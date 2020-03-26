@@ -68,9 +68,15 @@ set(SOURCES
   src/yin.c
   )
 
+configure_file(include/sphinx_config.h.in include/sphinx_config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+
+configure_file(src/config.h.in config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 add_library(soundswallower ${SOURCES})
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
-  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/src)
+  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 add_executable(ssbatch batch.c)
 target_link_libraries(ssbatch soundswallower)
