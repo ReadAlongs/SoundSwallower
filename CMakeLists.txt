@@ -68,9 +68,7 @@ set(SOURCES
   src/yin.c
   )
 
-configure_file(include/sphinx_config.h.in include/sphinx_config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
-
+configure_file(sphinx_config.h.in sphinx_config.h)
 configure_file(src/config.h.in config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
