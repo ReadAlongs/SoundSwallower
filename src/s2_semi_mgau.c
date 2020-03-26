@@ -36,6 +36,10 @@
  */
 
 /* System headers */
+#include "config.h"
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,15 +47,8 @@
 #include <limits.h>
 #include <math.h>
 
-#include "config.h"
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
 /* SphinxBase headers */
-#include <sphinx_config.h>
 #include <soundswallower/cmd_ln.h>
-#include <soundswallower/fixpoint.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/bio.h>
 #include <soundswallower/err.h>

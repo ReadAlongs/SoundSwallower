@@ -39,6 +39,7 @@
  * bitarr.c -- Bit array manipulations implementation.
  */
 
+#include "config.h"
 #include <soundswallower/prim_type.h>
 #include <soundswallower/bitarr.h>
 

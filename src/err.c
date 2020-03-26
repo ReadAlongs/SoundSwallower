@@ -39,6 +39,7 @@
  * @brief Somewhat antiquated logging and error interface.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>

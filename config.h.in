@@ -2,3 +2,5 @@
 #cmakedefine HAVE_SYS_TYPES_H
 #cmakedefine HAVE_SYS_STAT_H
 #cmakedefine HAVE_SNPRINTF
+#cmakedefine HAVE_LONG_LONG
+#define SIZEOF_LONG_LONG @LONG_LONG@

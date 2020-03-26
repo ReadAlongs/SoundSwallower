@@ -50,6 +50,7 @@
 #define __VECTOR_H__
 
 /* System headers. */
+#include "config.h"
 #include <stdio.h>
 
 /* SphinxBase headers. */

@@ -47,6 +47,7 @@
  * Cepstra For Robust Speech Recognition by Dong Yu and others
  */
 
+#include "config.h"
 #include <math.h>
 
 #include <soundswallower/prim_type.h>
@@ -115,7 +116,6 @@ fe_lower_envelope(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * floor
     int i;
 
     for (i = 0; i < num_filt; i++) {
-#ifndef FIXED_POINT
         if (buf[i] >= floor_buf[i]) {
             floor_buf[i] =
                 noise_stats->lambda_a * floor_buf[i] + noise_stats->comp_lambda_a * buf[i];
@@ -124,16 +124,6 @@ fe_lower_envelope(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * floor
             floor_buf[i] =
                 noise_stats->lambda_b * floor_buf[i] + noise_stats->comp_lambda_b * buf[i];
         }
-#else
-        if (buf[i] >= floor_buf[i]) {
-            floor_buf[i] = fe_log_add(noise_stats->lambda_a + floor_buf[i],
-                                  noise_stats->comp_lambda_a + buf[i]);
-        }
-        else {
-            floor_buf[i] = fe_log_add(noise_stats->lambda_b + floor_buf[i],
-                                  noise_stats->comp_lambda_b + buf[i]);
-        }
-#endif
     }
 }
 
@@ -148,31 +138,17 @@ fe_is_frame_quiet(noise_stats_t *noise_stats, powspec_t *buf, int32 num_filt)
 
     sum = 0.0;
     for (i = 0; i < num_filt; i++) {
-#ifndef FIXED_POINT
         sum += buf[i];
-#else 
-        sum = fe_log_add(sum, buf[i]);
-#endif
     }
-#ifndef FIXED_POINT
     sum = log(sum);
-#endif
     smooth_factor = (sum > noise_stats->slow_peak_sum) ? SLOW_PEAK_LEARN_FACTOR : SLOW_PEAK_FORGET_FACTOR;
     noise_stats->slow_peak_sum = noise_stats->slow_peak_sum * smooth_factor +
                                  sum * (1 - smooth_factor);
 
 #ifdef VAD_DEBUG
-#ifndef FIXED_POINT
     fprintf(vad_stats, "%.3f %.3f ", noise_stats->slow_peak_sum, sum);
-#else
-    fprintf(vad_stats, "%d %d ", noise_stats->slow_peak_sum, sum);
 #endif
-#endif
-#ifndef FIXED_POINT
     is_quiet = noise_stats->slow_peak_sum - SPEECH_VOLUME_RANGE > sum;
-#else
-    is_quiet = noise_stats->slow_peak_sum - FLOAT2FIX(SPEECH_VOLUME_RANGE) > sum;
-#endif
     return is_quiet;
 }
 
@@ -186,15 +162,9 @@ fe_temp_masking(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * peak, i
     for (i = 0; i < num_filt; i++) {
         cur_in = buf[i];
 
-#ifndef FIXED_POINT
         peak[i] *= noise_stats->lambda_t;
         if (buf[i] < noise_stats->lambda_t * peak[i])
             buf[i] = peak[i] * noise_stats->mu_t;
-#else
-        peak[i] += noise_stats->lambda_t;
-        if (buf[i] < noise_stats->lambda_t + peak[i])
-            buf[i] = peak[i] + noise_stats->mu_t;
-#endif
 
         if (cur_in > peak[i])
             peak[i] = cur_in;
@@ -214,20 +184,11 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
         l2 = ((i + SMOOTH_WINDOW) <
               (num_filt - 1)) ? (i + SMOOTH_WINDOW) : (num_filt - 1);
 
-#ifndef FIXED_POINT
         coef = 0;
         for (j = l1; j <= l2; j++) {
             coef += coefs[j];
         }
         buf[i] = buf[i] * (coef / (l2 - l1 + 1));
-#else
-        coef = MIN_FIXLOG;
-        for (j = l1; j <= l2; j++) {
-            coef = fe_log_add(coef, coefs[j]);
-        }        
-        buf[i] = buf[i] + coef - noise_stats->smooth_scaling[l2 - l1 + 1];
-#endif
-
     }
 }
 
@@ -251,7 +212,6 @@ fe_init_noisestats(int num_filters)
     noise_stats->undefined = TRUE;
     noise_stats->num_filters = num_filters;
 
-#ifndef FIXED_POINT
     noise_stats->lambda_power = LAMBDA_POWER;
     noise_stats->comp_lambda_power = 1 - LAMBDA_POWER;
     noise_stats->lambda_a = LAMBDA_A;
@@ -266,22 +226,6 @@ fe_init_noisestats(int num_filters)
     for (i = 1; i < 2 * SMOOTH_WINDOW + 1; i++) {
         noise_stats->smooth_scaling[i] = 1.0 / i;
     }
-#else
-    noise_stats->lambda_power = FLOAT2FIX(log(LAMBDA_POWER));
-    noise_stats->comp_lambda_power = FLOAT2FIX(log(1 - LAMBDA_POWER));
-    noise_stats->lambda_a = FLOAT2FIX(log(LAMBDA_A));
-    noise_stats->comp_lambda_a = FLOAT2FIX(log(1 - LAMBDA_A));
-    noise_stats->lambda_b = FLOAT2FIX(log(LAMBDA_B));
-    noise_stats->comp_lambda_b = FLOAT2FIX(log(1 - LAMBDA_B));
-    noise_stats->lambda_t = FLOAT2FIX(log(LAMBDA_T));
-    noise_stats->mu_t = FLOAT2FIX(log(MU_T));
-    noise_stats->max_gain = FLOAT2FIX(log(MAX_GAIN));
-    noise_stats->inv_max_gain = FLOAT2FIX(log(1.0 / MAX_GAIN));
-
-    for (i = 1; i < 2 * SMOOTH_WINDOW + 3; i++) {
-        noise_stats->smooth_scaling[i] = FLOAT2FIX(log(i));
-    }
-#endif
 
 #ifdef VAD_DEBUG
     vad_stats = fopen("vad_debug", "w");
@@ -339,47 +283,31 @@ fe_track_snr(fe_t * fe, int32 *in_speech)
     signal = (powspec_t *) ckd_calloc(num_filts, sizeof(powspec_t));
 
     if (noise_stats->undefined) {
-        noise_stats->slow_peak_sum = FIX2FLOAT(0.0);
+        noise_stats->slow_peak_sum = 0.0;
         for (i = 0; i < num_filts; i++) {
             noise_stats->power[i] = mfspec[i];
-#ifndef FIXED_POINT
             noise_stats->noise[i] = mfspec[i] / noise_stats->max_gain;
             noise_stats->floor[i] = mfspec[i] / noise_stats->max_gain;
             noise_stats->peak[i] = 0.0;
-#else
-            noise_stats->noise[i] = mfspec[i] - noise_stats->max_gain;;
-            noise_stats->floor[i] = mfspec[i] - noise_stats->max_gain;
-            noise_stats->peak[i] = MIN_FIXLOG;
-#endif
         }
         noise_stats->undefined = FALSE;
     }
 
     /* Calculate smoothed power */
     for (i = 0; i < num_filts; i++) {
-#ifndef FIXED_POINT
         noise_stats->power[i] =
             noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];   
-#else
-        noise_stats->power[i] = fe_log_add(noise_stats->lambda_power + noise_stats->power[i],
-            noise_stats->comp_lambda_power + mfspec[i]);
-#endif
     }
 
     /* Noise estimation and vad decision */
     fe_lower_envelope(noise_stats, noise_stats->power, noise_stats->noise, num_filts);
 
-    lrt = FLOAT2FIX(0.0);
+    lrt = 0.0;
     for (i = 0; i < num_filts; i++) {
-#ifndef FIXED_POINT
         signal[i] = noise_stats->power[i] - noise_stats->noise[i];
         if (signal[i] < 1.0)
             signal[i] = 1.0;
         snr = log(noise_stats->power[i] / noise_stats->noise[i]);
-#else
-        signal[i] = fe_log_sub(noise_stats->power[i], noise_stats->noise[i]);
-        snr = noise_stats->power[i] - noise_stats->noise[i];
-#endif    
         if (snr > lrt)
             lrt = snr;
     }
@@ -392,22 +320,14 @@ fe_track_snr(fe_t * fe, int32 *in_speech)
         low_volume++;
 #endif
 
-#ifndef FIXED_POINT
     if (fe->remove_silence && (lrt < fe->vad_threshold || is_quiet)) {
-#else
-    if (fe->remove_silence && (lrt < FLOAT2FIX(fe->vad_threshold) || is_quiet)) {
-#endif
         *in_speech = FALSE;
     } else {
         *in_speech = TRUE;
     }
 
 #ifdef VAD_DEBUG
-#ifndef FIXED_POINT
     fprintf(vad_stats, "%.3f %d\n", lrt, *in_speech);
-#else
-    fprintf(vad_stats, "%d %d\n", lrt, *in_speech);
-#endif
 #endif
 
     fe_lower_envelope(noise_stats, signal, noise_stats->floor, num_filts);
@@ -426,7 +346,6 @@ fe_track_snr(fe_t * fe, int32 *in_speech)
     }
 
     gain = (powspec_t *) ckd_calloc(num_filts, sizeof(powspec_t));
-#ifndef FIXED_POINT
     for (i = 0; i < num_filts; i++) {
         if (signal[i] < noise_stats->max_gain * noise_stats->power[i])
             gain[i] = signal[i] / noise_stats->power[i];
@@ -435,15 +354,6 @@ fe_track_snr(fe_t * fe, int32 *in_speech)
         if (gain[i] < noise_stats->inv_max_gain)
             gain[i] = noise_stats->inv_max_gain;
     }
-#else
-    for (i = 0; i < num_filts; i++) {
-        gain[i] = signal[i] - noise_stats->power[i];
-        if (gain[i] > noise_stats->max_gain)
-            gain[i] = noise_stats->max_gain;
-        if (gain[i] < noise_stats->inv_max_gain)
-            gain[i] = noise_stats->inv_max_gain;
-    }
-#endif
 
     /* Weight smoothing and time frequency normalization */
     fe_weight_smooth(noise_stats, mfspec, gain, num_filts);

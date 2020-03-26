@@ -39,14 +39,15 @@
  * Society of America, 111 (4), April 2002.
  */
 
-#include <soundswallower/prim_type.h>
-#include <soundswallower/ckd_alloc.h>
-#include <soundswallower/fixpoint.h>
-
-#include <soundswallower/yin.h>
-
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
+
+#include <soundswallower/prim_type.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/yin.h>
+
 
 struct yin_s {
     uint16 frame_size;       /** Size of analysis frame. */
@@ -59,7 +60,7 @@ struct yin_s {
     unsigned char wcur;     /**< Current frame of analysis. */
     unsigned char endut;    /**< Hoch Hech! Are we at the utterance end? */
 
-    fixed32 **diff_window;  /**< Window of difference function outputs. */
+    int32 **diff_window;  /**< Window of difference function outputs. */
     uint16 *period_window;  /**< Window of best period estimates. */
 };
 
@@ -169,7 +170,7 @@ yin_end(yin_t *pe)
 }
 
 int
-thresholded_search(int32 *diff_window, fixed32 threshold, int start, int end)
+thresholded_search(int32 *diff_window, int32 threshold, int start, int end)
 {
     int i, min, argmin;
 

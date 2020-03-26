@@ -85,8 +85,6 @@ extern "C" {
 } /* Fool Emacs into not indenting things. */
 #endif
 
-#include <sphinx_config.h>
-
 /**
  * Union of basic types.
  */

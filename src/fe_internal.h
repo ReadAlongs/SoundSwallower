@@ -38,9 +38,7 @@
 #ifndef __FE_INTERNAL_H__
 #define __FE_INTERNAL_H__
 
-#include <sphinx_config.h>
 #include <soundswallower/fe.h>
-#include <soundswallower/fixpoint.h>
 
 #include "fe_noise.h"
 #include "fe_prespch_buf.h"
@@ -185,9 +183,6 @@ int32 fe_build_melfilters(melfb_t *MEL_FB);
 int32 fe_compute_melcosine(melfb_t *MEL_FB);
 void fe_create_hamming(window_t *in, int32 in_len);
 void fe_create_twiddle(fe_t *fe);
-
-fixed32 fe_log_add(fixed32 x, fixed32 y);
-fixed32 fe_log_sub(fixed32 x, fixed32 y);
 
 /* Miscellaneous processing functions. */
 void fe_spec2cep(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep);

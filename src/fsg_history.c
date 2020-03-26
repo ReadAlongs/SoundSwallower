@@ -49,6 +49,7 @@
  */
 
 /* System headers. */
+#include "config.h"
 #include <assert.h>
 
 /* SphinxBase headers. */

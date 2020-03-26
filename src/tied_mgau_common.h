@@ -44,7 +44,6 @@
 #define __TIED_MGAU_COMMON_H__
 
 #include <soundswallower/logmath.h>
-#include <soundswallower/fixpoint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,17 +57,8 @@ extern "C" {
 #define NONE		-1
 #define WORST_DIST	(int32)(0x80000000)
 
-/** Subtract GMM component b (assumed to be positive) and saturate */
-#ifdef FIXED_POINT
-#define GMMSUB(a,b) \
-	(((a)-(b) > a) ? (INT_MIN) : ((a)-(b)))
-/** Add GMM component b (assumed to be positive) and saturate */
-#define GMMADD(a,b) \
-	(((a)+(b) < a) ? (INT_MAX) : ((a)+(b)))
-#else
 #define GMMSUB(a,b) ((a)-(b))
 #define GMMADD(a,b) ((a)+(b))
-#endif
 
 #ifndef MIN
 #define MIN(a,b) ((a) < (b) ? (a) : (b))

@@ -116,6 +116,7 @@
  * such as MFC->feature conversion, is available or needed.
  */
 
+#include "config.h"
 #include <assert.h>
 #include <string.h>
 
@@ -1079,11 +1080,7 @@ feat_s2mfc_read_norm_pad(feat_t *fcb, char *file, int32 win,
         if (sf > 0)
             fseek(fp, sf * cepsize * sizeof(float32), SEEK_CUR);
         n_float32 = n * cepsize;
-#ifdef FIXED_POINT
-        float_feat = ckd_calloc(n_float32, sizeof(float32));
-#else
         float_feat = mfc[start_pad];
-#endif
         if (fread_retry(float_feat, sizeof(float32), n_float32, fp) != n_float32) {
             E_ERROR("%s: fread(%dx%d) (MFC data) failed\n", file, n, cepsize);
             ckd_free_2d(mfc);
@@ -1095,12 +1092,6 @@ feat_s2mfc_read_norm_pad(feat_t *fcb, char *file, int32 win,
                 SWAP_FLOAT32(&float_feat[i]);
             }
         }
-#ifdef FIXED_POINT
-        for (i = 0; i < n_float32; ++i) {
-            mfc[start_pad][i] = FLOAT2MFCC(float_feat[i]);
-        }
-        ckd_free(float_feat);
-#endif
 
         /* Normalize */
         feat_cmn(fcb, mfc + start_pad, n, 1, 1);

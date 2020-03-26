@@ -42,6 +42,8 @@
 #ifndef __STATE_ALIGN_SEARCH_H__
 #define __STATE_ALIGN_SEARCH_H__
 
+#include "config.h"
+
 /* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 

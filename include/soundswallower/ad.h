@@ -41,8 +41,6 @@
 #ifndef _AD_H_
 #define _AD_H_
 
-#include <sphinx_config.h>
-
 #include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus

@@ -283,10 +283,6 @@ gauden_dist_precompute(gauden_t * g, logmath_t *lmath, float32 varfloor)
                      i < flen; i++, varp++, meanp++) {
                     float32 *fvarp = (float32 *)varp;
 
-#ifdef FIXED_POINT
-                    float32 *fmp = (float32 *)meanp;
-                    *meanp = FLOAT2MFCC(*fmp);
-#endif
                     if (*fvarp < varfloor) {
                         *fvarp = varfloor;
                         ++floored;
@@ -389,21 +385,10 @@ compute_dist_all(gauden_dist_t * out_dist, mfcc_t* obs, int32 featlen,
 
         for (i = 0; i < featlen; i++) {
             mfcc_t diff;
-#ifdef FIXED_POINT
-            /* Have to check for underflows here. */
-            mfcc_t pdval = dval;
-            diff = obs[i] - m[i];
-            dval -= MFCCMUL(MFCCMUL(diff, diff), v[i]);
-            if (dval > pdval) {
-                dval = WORST_SCORE;
-                break;
-            }
-#else
             diff = obs[i] - m[i];
             /* The compiler really likes this to be a single
              * expression, for whatever reason. */
             dval -= diff * diff * v[i];
-#endif
         }
 
         out_dist[d].dist = dval;
@@ -447,21 +432,10 @@ compute_dist(gauden_dist_t * out_dist, int32 n_top,
 
         for (i = 0; (i < featlen) && (dval >= worst->dist); i++) {
             mfcc_t diff;
-#ifdef FIXED_POINT
-            /* Have to check for underflows here. */
-            mfcc_t pdval = dval;
-            diff = obs[i] - m[i];
-            dval -= MFCCMUL(MFCCMUL(diff, diff), v[i]);
-            if (dval > pdval) {
-                dval = WORST_SCORE;
-                break;
-            }
-#else
             diff = obs[i] - m[i];
             /* The compiler really likes this to be a single
              * expression, for whatever reason. */
             dval -= diff * diff * v[i];
-#endif
         }
 
         if ((i < featlen) || (dval < worst->dist))     /* Codeword d worse than worst */

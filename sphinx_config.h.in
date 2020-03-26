@@ -1,8 +1,0 @@
-/* sphinx_config.h: Externally visible configuration parameters */
-
-#cmakedefine FIXED_POINT
-#cmakedefine DEFAULT_RADIX @DEFAULT_RADIX@
-
-/* FIXME: These really shouldn't be here actually! */
-#cmakedefine HAVE_LONG_LONG
-#cmakedefine SIZEOF_LONG_LONG @LONG_LONG@

@@ -57,7 +57,6 @@
 #define _NEW_FE_H_
 
 #include <soundswallower/cmd_ln.h>
-#include <soundswallower/fixpoint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -254,19 +253,6 @@ extern "C" {
     "Show input filenames" } \
   
   
-#ifdef FIXED_POINT
-/** MFCC computation type. */
-typedef fixed32 mfcc_t;
-
-/** Convert a floating-point value to mfcc_t. */
-#define FLOAT2MFCC(x) FLOAT2FIX(x)
-/** Convert a mfcc_t value to floating-point. */
-#define MFCC2FLOAT(x) FIX2FLOAT(x)
-/** Multiply two mfcc_t values. */
-#define MFCCMUL(a,b) FIXMUL(a,b)
-#define MFCCLN(x,in,out) FIXLN_ANY(x,in,out)
-#else /* !FIXED_POINT */
-
 /** MFCC computation type. */
 typedef float32 mfcc_t;
 /** Convert a floating-point value to mfcc_t. */
@@ -276,7 +262,6 @@ typedef float32 mfcc_t;
 /** Multiply two mfcc_t values. */
 #define MFCCMUL(a,b) ((a)*(b))
 #define MFCCLN(x,in,out) log(x)
-#endif /* !FIXED_POINT */
 
 /**
  * Structure for the front-end computation.
@@ -525,22 +510,6 @@ int fe_process_utt(fe_t *fe,  /**< A front end object */
  * Free the output pointer returned by fe_process_utt().
  **/
 void fe_free_2d(void *arr);
-
-/**
- * Convert a block of mfcc_t to float32 (can be done in-place)
- **/
-int fe_mfcc_to_float(fe_t *fe,
-                     mfcc_t **input,
-                     float32 **output,
-                     int32 nframes);
-
-/**
- * Convert a block of float32 to mfcc_t (can be done in-place)
- **/
-int fe_float_to_mfcc(fe_t *fe,
-                     float32 **input,
-                     mfcc_t **output,
-                     int32 nframes);
 
 /**
  * Process one frame of log spectra into MFCC using discrete cosine

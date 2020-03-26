@@ -34,6 +34,7 @@
  * ====================================================================
  *
  */
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -42,7 +43,6 @@
 
 #include <soundswallower/prim_type.h>
 #include <soundswallower/byteorder.h>
-#include <soundswallower/fixpoint.h>
 #include <soundswallower/genrand.h>
 #include <soundswallower/err.h>
 #include <soundswallower/cmd_ln.h>
@@ -667,50 +667,9 @@ fe_free(fe_t * fe)
     return 0;
 }
 
-/**
- * Convert a block of mfcc_t to float32 (can be done in-place)
- **/
-int32
-fe_mfcc_to_float(fe_t * fe,
-                 mfcc_t ** input, float32 ** output, int32 nframes)
-{
-    int32 i;
-
-#ifndef FIXED_POINT
-    if ((void *) input == (void *) output)
-        return nframes * fe->feature_dimension;
-#endif
-    for (i = 0; i < nframes * fe->feature_dimension; ++i)
-        output[0][i] = MFCC2FLOAT(input[0][i]);
-
-    return i;
-}
-
-/**
- * Convert a block of float32 to mfcc_t (can be done in-place)
- **/
-int32
-fe_float_to_mfcc(fe_t * fe,
-                 float32 ** input, mfcc_t ** output, int32 nframes)
-{
-    int32 i;
-
-#ifndef FIXED_POINT
-    if ((void *) input == (void *) output)
-        return nframes * fe->feature_dimension;
-#endif
-    for (i = 0; i < nframes * fe->feature_dimension; ++i)
-        output[0][i] = FLOAT2MFCC(input[0][i]);
-
-    return i;
-}
-
 int32
 fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 {
-#ifdef FIXED_POINT
-    fe_spec2cep(fe, fr_spec, fr_cep);
-#else                           /* ! FIXED_POINT */
     powspec_t *powspec;
     int32 i;
 
@@ -719,16 +678,13 @@ fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
         powspec[i] = (powspec_t) fr_spec[i];
     fe_spec2cep(fe, powspec, fr_cep);
     ckd_free(powspec);
-#endif                          /* ! FIXED_POINT */
+
     return 0;
 }
 
 int32
 fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 {
-#ifdef FIXED_POINT
-    fe_dct2(fe, fr_spec, fr_cep, 0);
-#else                           /* ! FIXED_POINT */
     powspec_t *powspec;
     int32 i;
 
@@ -737,16 +693,13 @@ fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
         powspec[i] = (powspec_t) fr_spec[i];
     fe_dct2(fe, powspec, fr_cep, 0);
     ckd_free(powspec);
-#endif                          /* ! FIXED_POINT */
+
     return 0;
 }
 
 int32
 fe_mfcc_dct3(fe_t * fe, const mfcc_t * fr_cep, mfcc_t * fr_spec)
 {
-#ifdef FIXED_POINT
-    fe_dct3(fe, fr_cep, fr_spec);
-#else                           /* ! FIXED_POINT */
     powspec_t *powspec;
     int32 i;
 
@@ -755,6 +708,6 @@ fe_mfcc_dct3(fe_t * fe, const mfcc_t * fr_cep, mfcc_t * fr_spec)
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
         fr_spec[i] = (mfcc_t) powspec[i];
     ckd_free(powspec);
-#endif                          /* ! FIXED_POINT */
+
     return 0;
 }

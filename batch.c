@@ -227,10 +227,6 @@ read_mfc_file(FILE *infh, int sf, int ef, int *out_nfr, int ceplen)
         for (i = 0; i < nfr * ceplen; ++i)
             SWAP_FLOAT32(&floats[i]);
     }
-#ifdef FIXED_POINT
-    for (i = 0; i < nfr * ceplen; ++i)
-        mfcs[0][i] = FLOAT2MFCC(floats[i]);
-#endif
     *out_nfr = nfr;
     return mfcs;
 }

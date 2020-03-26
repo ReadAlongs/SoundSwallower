@@ -46,7 +46,6 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <soundswallower/fixpoint.h>
 #include <soundswallower/listelem_alloc.h>
 
 /* PocketSphinx headers. */

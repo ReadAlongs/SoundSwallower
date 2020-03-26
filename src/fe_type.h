@@ -37,20 +37,11 @@
 #ifndef FE_TYPE_H
 #define FE_TYPE_H
 
-#include <sphinx_config.h>
 #include <soundswallower/fe.h>
-#include <soundswallower/fixpoint.h>
 
-#if defined(FIXED_POINT)
-typedef fixed32 frame_t;
-typedef int32 powspec_t;
-typedef fixed32 window_t;
-typedef struct { fixed32 r, i; } complex;
-#else /* FIXED_POINT */
 typedef float64 frame_t;
 typedef float64 powspec_t;
 typedef float64 window_t;
 typedef struct { float64 r, i; } complex;
-#endif /* FIXED_POINT */
 
 #endif /* FE_TYPE_H */

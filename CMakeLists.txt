@@ -5,16 +5,11 @@ include(CheckSymbolExists)
 project(soundswallower VERSION 0.1
   DESCRIPTION "An even smaller speech recognizer")
 
-CHECK_TYPE_SIZE("long long" LONG_LONG)
-option(FIXED_POINT "Build with fixed-point math" OFF)
-option(DEFAULT_RADIX "Set the default radix point (out of 32) for fixed-point math")
-
-configure_file(sphinx_config.h.in include/sphinx_config.h)
-
 CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
 CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
+CHECK_TYPE_SIZE("long long" LONG_LONG)
 
 configure_file(config.h.in config.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -91,8 +86,7 @@ set(SOURCES
 
 add_library(soundswallower ${SOURCES})
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
-  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include
-  soundswallower PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
+  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include)
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
   target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})

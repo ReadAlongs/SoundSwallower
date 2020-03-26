@@ -38,7 +38,6 @@
 #define FE_NOISE_H
 
 #include <soundswallower/fe.h>
-#include <soundswallower/fixpoint.h>
 #include "fe_type.h"
 
 typedef struct noise_stats_s noise_stats_t;
