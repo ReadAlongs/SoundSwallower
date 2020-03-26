@@ -43,11 +43,8 @@
 #define __PS_LATTICE_H__
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
-#include <sphinxbase/ngram_model.h>
-
-/* PocketSphinx headers. */
-#include <pocketsphinx_export.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/ngram_model.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,7 +94,6 @@ struct ps_decoder_s;
  * @param file Path to lattice file.
  * @return Newly created lattice, or NULL for failure.
  */
-POCKETSPHINX_EXPORT
 ps_lattice_t *ps_lattice_read(struct ps_decoder_s *ps,
                               char const *file);
 
@@ -110,7 +106,6 @@ ps_lattice_t *ps_lattice_read(struct ps_decoder_s *ps,
  *
  * @return pointer to the retained lattice.
  */
-POCKETSPHINX_EXPORT
 ps_lattice_t *ps_lattice_retain(ps_lattice_t *dag);
 
 /**
@@ -118,7 +113,6 @@ ps_lattice_t *ps_lattice_retain(ps_lattice_t *dag);
  *
  * @return new reference count (0 if dag was freed)
  */
-POCKETSPHINX_EXPORT
 int ps_lattice_free(ps_lattice_t *dag);
 
 /**
@@ -126,7 +120,6 @@ int ps_lattice_free(ps_lattice_t *dag);
  *
  * @return 0 for success, <0 on failure.
  */
-POCKETSPHINX_EXPORT
 int ps_lattice_write(ps_lattice_t *dag, char const *filename);
 
 /**
@@ -134,7 +127,6 @@ int ps_lattice_write(ps_lattice_t *dag, char const *filename);
  *
  * @return 0 for success, <0 on failure.
  */
-POCKETSPHINX_EXPORT
 int ps_lattice_write_htk(ps_lattice_t *dag, char const *filename);
 
 /**
@@ -145,7 +137,6 @@ int ps_lattice_write_htk(ps_lattice_t *dag, char const *filename);
  *         free it manually.  Use logmath_retain() if you wish to
  *         reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT
 logmath_t *ps_lattice_get_logmath(ps_lattice_t *dag);
 
 
@@ -158,7 +149,6 @@ logmath_t *ps_lattice_get_logmath(ps_lattice_t *dag);
  * @param dag Lattice to iterate over.
  * @return Iterator over lattice nodes.
  */
-POCKETSPHINX_EXPORT
 ps_latnode_iter_t *ps_latnode_iter(ps_lattice_t *dag);
 
 /**
@@ -166,20 +156,17 @@ ps_latnode_iter_t *ps_latnode_iter(ps_lattice_t *dag);
  * @param itor Node iterator.
  * @return Updated node iterator, or NULL if finished
  */
-POCKETSPHINX_EXPORT
 ps_latnode_iter_t *ps_latnode_iter_next(ps_latnode_iter_t *itor);
 
 /**
  * Stop iterating over nodes.
  * @param itor Node iterator.
  */
-POCKETSPHINX_EXPORT
 void ps_latnode_iter_free(ps_latnode_iter_t *itor);
 
 /**
  * Get node from iterator.
  */
-POCKETSPHINX_EXPORT
 ps_latnode_t *ps_latnode_iter_node(ps_latnode_iter_t *itor);
 
 /**
@@ -190,7 +177,6 @@ ps_latnode_t *ps_latnode_iter_node(ps_latnode_iter_t *itor);
  * @param out_lef Output: End frame of last exit from this node.
  * @return Start frame for all edges exiting this node.
  */
-POCKETSPHINX_EXPORT
 int ps_latnode_times(ps_latnode_t *node, int16 *out_fef, int16 *out_lef);
 
 /**
@@ -200,7 +186,6 @@ int ps_latnode_times(ps_latnode_t *node, int16 *out_fef, int16 *out_lef);
  * @param node Node inquired about.
  * @return Word string for this node (possibly a pronunciation variant).
  */
-POCKETSPHINX_EXPORT
 char const *ps_latnode_word(ps_lattice_t *dag, ps_latnode_t *node);
 
 /**
@@ -210,7 +195,6 @@ char const *ps_latnode_word(ps_lattice_t *dag, ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Base word string for this node.
  */
-POCKETSPHINX_EXPORT
 char const *ps_latnode_baseword(ps_lattice_t *dag, ps_latnode_t *node);
 
 /**
@@ -219,7 +203,6 @@ char const *ps_latnode_baseword(ps_lattice_t *dag, ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Iterator over exit links from this node.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_iter_t *ps_latnode_exits(ps_latnode_t *node);
 
 /**
@@ -228,7 +211,6 @@ ps_latlink_iter_t *ps_latnode_exits(ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Iterator over entry links to this node.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_iter_t *ps_latnode_entries(ps_latnode_t *node);
 
 /**
@@ -242,7 +224,6 @@ ps_latlink_iter_t *ps_latnode_entries(ps_latnode_t *node);
  *         convert to linear floating-point, use
  *         logmath_exp(ps_lattice_get_logmath(), pprob).
  */
-POCKETSPHINX_EXPORT
 int32 ps_latnode_prob(ps_lattice_t *dag, ps_latnode_t *node,
                       ps_latlink_t **out_link);
 
@@ -252,20 +233,17 @@ int32 ps_latnode_prob(ps_lattice_t *dag, ps_latnode_t *node,
  * @param itor Iterator.
  * @return Updated iterator, or NULL if finished.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_iter_t *ps_latlink_iter_next(ps_latlink_iter_t *itor);
 
 /**
  * Stop iterating over links.
  * @param itor Link iterator.
  */
-POCKETSPHINX_EXPORT
 void ps_latlink_iter_free(ps_latlink_iter_t *itor);
 
 /**
  * Get link from iterator.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_latlink_iter_link(ps_latlink_iter_t *itor);
 
 /**
@@ -278,7 +256,6 @@ ps_latlink_t *ps_latlink_iter_link(ps_latlink_iter_t *itor);
  * @param out_sf Output: (optional) start frame of this link.
  * @return End frame of this link.
  */
-POCKETSPHINX_EXPORT
 int ps_latlink_times(ps_latlink_t *link, int16 *out_sf);
 
 /**
@@ -288,7 +265,6 @@ int ps_latlink_times(ps_latlink_t *link, int16 *out_sf);
  * @param out_src Output: (optional) source node.
  * @return destination node
  */
-POCKETSPHINX_EXPORT
 ps_latnode_t *ps_latlink_nodes(ps_latlink_t *link, ps_latnode_t **out_src);
 
 /**
@@ -298,7 +274,6 @@ ps_latnode_t *ps_latlink_nodes(ps_latlink_t *link, ps_latnode_t **out_src);
  * @param link Link inquired about
  * @return Word string for this link (possibly a pronunciation variant).
  */
-POCKETSPHINX_EXPORT
 char const *ps_latlink_word(ps_lattice_t *dag, ps_latlink_t *link);
 
 /**
@@ -308,7 +283,6 @@ char const *ps_latlink_word(ps_lattice_t *dag, ps_latlink_t *link);
  * @param link Link inquired about
  * @return Base word string for this link
  */
-POCKETSPHINX_EXPORT
 char const *ps_latlink_baseword(ps_lattice_t *dag, ps_latlink_t *link);
 
 /**
@@ -317,7 +291,6 @@ char const *ps_latlink_baseword(ps_lattice_t *dag, ps_latlink_t *link);
  * @param link Link inquired about
  * @return Best previous link from bestpath search, if any.  Otherwise NULL
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_latlink_pred(ps_latlink_t *link);
 
 /**
@@ -330,14 +303,12 @@ ps_latlink_t *ps_latlink_pred(ps_latlink_t *link);
  *         the log-base used in the decoder.  To convert to linear
  *         floating-point, use logmath_exp(ps_lattice_get_logmath(), pprob).
  */
-POCKETSPHINX_EXPORT
 int32 ps_latlink_prob(ps_lattice_t *dag, ps_latlink_t *link, int32 *out_ascr);
 
 /**
  * Create a directed link between "from" and "to" nodes, but if a link already exists,
  * choose one with the best link_scr.
  */
-POCKETSPHINX_EXPORT
 void ps_lattice_link(ps_lattice_t *dag, ps_latnode_t *from, ps_latnode_t *to,
                      int32 score, int32 ef);
 
@@ -356,7 +327,6 @@ void ps_lattice_link(ps_lattice_t *dag, ps_latnode_t *from, ps_latnode_t *to,
  * @param end End node (goal) of traversal.
  * @return First link in traversal.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_lattice_traverse_edges(ps_lattice_t *dag, ps_latnode_t *start, ps_latnode_t *end);
 
 /**
@@ -366,7 +336,6 @@ ps_latlink_t *ps_lattice_traverse_edges(ps_lattice_t *dag, ps_latnode_t *start, 
  * @param end End node (goal) of traversal.
  * @return Next link in traversal.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_lattice_traverse_next(ps_lattice_t *dag, ps_latnode_t *end);
 
 /**
@@ -379,7 +348,6 @@ ps_latlink_t *ps_lattice_traverse_next(ps_lattice_t *dag, ps_latnode_t *end);
  * @param end End node (source) of traversal.
  * @return First link in traversal.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_lattice_reverse_edges(ps_lattice_t *dag, ps_latnode_t *start, ps_latnode_t *end);
 
 /**
@@ -389,7 +357,6 @@ ps_latlink_t *ps_lattice_reverse_edges(ps_lattice_t *dag, ps_latnode_t *start, p
  * @param start Start node (goal) of traversal.
  * @return Next link in traversal.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
 
 /**
@@ -400,7 +367,6 @@ ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
  *
  * @return Final link in best path, NULL on error.
  */
-POCKETSPHINX_EXPORT
 ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
                                   float32 lwf, float32 ascale);
 
@@ -411,7 +377,6 @@ ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
  *
  * @return Posterior probability of the utterance as a whole.
  */
-POCKETSPHINX_EXPORT
 int32 ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
                            float32 ascale);
 
@@ -426,7 +391,6 @@ int32 ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
  *         logmath_log(ps_lattice_get_logmath(), prob).
  * @return number of arcs removed.
  */
-POCKETSPHINX_EXPORT
 int32 ps_lattice_posterior_prune(ps_lattice_t *dag, int32 beam);
 
 #ifdef NOT_IMPLEMENTED_YET
@@ -436,7 +400,6 @@ int32 ps_lattice_posterior_prune(ps_lattice_t *dag, int32 beam);
  * This function expands the lattice such that each node represents a
  * unique N-gram history, and adds language model scores to the links.
  */
-POCKETSPHINX_EXPORT
 int32 ps_lattice_ngram_expand(ps_lattice_t *dag, ngram_model_t *lm);
 #endif
 
@@ -446,7 +409,6 @@ int32 ps_lattice_ngram_expand(ps_lattice_t *dag, ngram_model_t *lm);
  * @param dag The lattice in question.
  * @return Number of frames in this lattice.
  */
-POCKETSPHINX_EXPORT
 int ps_lattice_n_frames(ps_lattice_t *dag);
 
 #ifdef __cplusplus

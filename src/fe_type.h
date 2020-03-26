@@ -41,8 +41,8 @@
 #include <config.h>
 #endif
 
-#include "sphinxbase/fe.h"
-#include "sphinxbase/fixpoint.h"
+#include <soundswallower/fe.h>
+#include <soundswallower/fixpoint.h>
 
 #if defined(FIXED_POINT)
 typedef fixed32 frame_t;

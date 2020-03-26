@@ -44,12 +44,12 @@
 
 #include <stdio.h>
 
-#include <sphinxbase/hash_table.h>
-#include <sphinxbase/glist.h>
-#include <sphinxbase/fsg_model.h>
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/strfuncs.h>
-#include <sphinxbase/jsgf.h>
+#include <soundswallower/hash_table.h>
+#include <soundswallower/glist.h>
+#include <soundswallower/fsg_model.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/jsgf.h>
 
 
 /* Flex uses strdup which is missing on WinCE */

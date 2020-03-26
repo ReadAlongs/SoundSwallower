@@ -39,11 +39,11 @@
  * Society of America, 111 (4), April 2002.
  */
 
-#include "sphinxbase/prim_type.h"
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/fixpoint.h"
+#include <soundswallower/prim_type.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/fixpoint.h>
 
-#include "sphinxbase/yin.h"
+#include <soundswallower/yin.h>
 
 #include <stdio.h>
 #include <string.h>

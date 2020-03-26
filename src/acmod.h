@@ -47,16 +47,16 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/cmd_ln.h>
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/fe.h>
-#include <sphinxbase/feat.h>
-#include <sphinxbase/bitvec.h>
-#include <sphinxbase/err.h>
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/feat.h>
+#include <soundswallower/bitvec.h>
+#include <soundswallower/err.h>
+#include <soundswallower/prim_type.h>
 
-/* Local headers. */
-#include "ps_mllr.h"
+/* PocketSphinx headers. */
+#include <soundswallower/ps_mllr.h>
 #include "bin_mdef.h"
 #include "tmat.h"
 #include "hmm.h"

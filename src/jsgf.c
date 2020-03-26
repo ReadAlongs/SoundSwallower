@@ -38,12 +38,12 @@
 #include <string.h>
 #include <assert.h>
 
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/strfuncs.h"
-#include "sphinxbase/hash_table.h"
-#include "sphinxbase/filename.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/jsgf.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/hash_table.h>
+#include <soundswallower/filename.h>
+#include <soundswallower/err.h>
+#include <soundswallower/jsgf.h>
 
 #include "jsgf_internal.h"
 #include "jsgf_parser.h"

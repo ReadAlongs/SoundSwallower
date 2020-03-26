@@ -69,8 +69,8 @@
 #ifndef __PS_SEARCH_H__
 #define __PS_SEARCH_H__
 
-#include <sphinxbase/fsg_model.h>
-#include <sphinxbase/ngram_model.h>
+#include <soundswallower/fsg_model.h>
+#include <soundswallower/ngram_model.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -93,7 +93,6 @@ typedef struct ps_search_iter_s ps_search_iter_t;
  *
  * @return 0 on success, -1 on failure
  */
-POCKETSPHINX_EXPORT
 int ps_set_search(ps_decoder_t *ps, const char *name);
 
 /**
@@ -101,7 +100,6 @@ int ps_set_search(ps_decoder_t *ps, const char *name);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT 
 const char* ps_get_search(ps_decoder_t *ps);
 
 /**
@@ -114,7 +112,6 @@ const char* ps_get_search(ps_decoder_t *ps);
  * @see ps_set_lm
  * @see ps_set_kws
  */
-POCKETSPHINX_EXPORT
 int ps_unset_search(ps_decoder_t *ps, const char *name);
 
 /**
@@ -122,7 +119,6 @@ int ps_unset_search(ps_decoder_t *ps, const char *name);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 ps_search_iter_t *ps_search_iter(ps_decoder_t *ps);
 
 /**
@@ -132,7 +128,6 @@ ps_search_iter_t *ps_search_iter(ps_decoder_t *ps);
  * the final entry.
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 ps_search_iter_t *ps_search_iter_next(ps_search_iter_t *itor);
 
 /**
@@ -140,7 +135,6 @@ ps_search_iter_t *ps_search_iter_next(ps_search_iter_t *itor);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 const char* ps_search_iter_val(ps_search_iter_t *itor);
 
 /**
@@ -148,7 +142,6 @@ const char* ps_search_iter_val(ps_search_iter_t *itor);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 void ps_search_iter_free(ps_search_iter_t *itor);
 
 /**
@@ -158,7 +151,6 @@ void ps_search_iter_free(ps_search_iter_t *itor);
  * the final entry.
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 const char* ps_search_iter_val(ps_search_iter_t *itor);
 
 
@@ -173,7 +165,6 @@ const char* ps_search_iter_val(ps_search_iter_t *itor);
  *         not attempt to free it manually.  Use ngram_model_retain()
  *         if you wish to reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT 
 ngram_model_t *ps_get_lm(ps_decoder_t *ps, const char *name);
 
 /**
@@ -184,7 +175,6 @@ ngram_model_t *ps_get_lm(ps_decoder_t *ps, const char *name);
  *
  * @see ps_set_search.
  */ 
-POCKETSPHINX_EXPORT
 int ps_set_lm(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
 
 /**
@@ -194,7 +184,6 @@ int ps_set_lm(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
  * 
  * @see ps_set_lm
  */
-POCKETSPHINX_EXPORT
 int ps_set_lm_file(ps_decoder_t *ps, const char *name, const char *path);
 
 /**
@@ -206,7 +195,6 @@ int ps_set_lm_file(ps_decoder_t *ps, const char *name, const char *path);
  * @return The current FSG set object for this decoder, or
  *         NULL if none is available.
  */
-POCKETSPHINX_EXPORT
 fsg_model_t *ps_get_fsg(ps_decoder_t *ps, const char *name);
 
 /**
@@ -217,7 +205,6 @@ fsg_model_t *ps_get_fsg(ps_decoder_t *ps, const char *name);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT
 int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg);
 
 /**
@@ -227,7 +214,6 @@ int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg);
  *
  * @see ps_set_fsg
  */
-POCKETSPHINX_EXPORT
 int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path);
 
 /**
@@ -237,7 +223,6 @@ int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path);
  *
  * @see ps_set_fsg
  */
-POCKETSPHINX_EXPORT
 int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string);
 
 /**
@@ -248,7 +233,6 @@ int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_stri
  *
  * @return The current keyphrase to spot
  */
-POCKETSPHINX_EXPORT 
 const char* ps_get_kws(ps_decoder_t *ps, const char *name);
 
 /**
@@ -259,7 +243,6 @@ const char* ps_get_kws(ps_decoder_t *ps, const char *name);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT 
 int ps_set_kws(ps_decoder_t *ps, const char *name, const char *keyfile);
 
 /**
@@ -270,7 +253,6 @@ int ps_set_kws(ps_decoder_t *ps, const char *name, const char *keyfile);
  *
  * @see ps_set_search
  */
-POCKETSPHINX_EXPORT 
 int ps_set_keyphrase(ps_decoder_t *ps, const char *name, const char *keyphrase);
 
 /**
@@ -281,7 +263,6 @@ int ps_set_keyphrase(ps_decoder_t *ps, const char *name, const char *keyphrase);
  *
  * @see ps_set_search.
  */ 
-POCKETSPHINX_EXPORT
 int ps_set_allphone(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
 
 /**
@@ -291,7 +272,6 @@ int ps_set_allphone(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
  * 
  * @see ps_set_allphone
  */
-POCKETSPHINX_EXPORT
 int ps_set_allphone_file(ps_decoder_t *ps, const char *name, const char *path);
 
 /**
@@ -306,7 +286,6 @@ int ps_set_allphone_file(ps_decoder_t *ps, const char *name, const char *path);
  *   These words are assumed to exist in the current dictionary.
  * 
  */
-POCKETSPHINX_EXPORT
 int ps_set_align(ps_decoder_t *ps, const char *name, const char *words);
 
 #ifdef __cplusplus

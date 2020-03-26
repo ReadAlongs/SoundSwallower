@@ -49,7 +49,7 @@
 #include "fe_warp_piecewise_linear.h"
 #include "fe_warp.h"
 
-#include "sphinxbase/err.h"
+#include <soundswallower/err.h>
 
 #include <stdio.h>
 #include <string.h>

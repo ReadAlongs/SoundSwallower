@@ -45,7 +45,7 @@
 /* System headers. */
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/prim_type.h>
 
 /* Local headers. */
 #include "dict2pid.h"

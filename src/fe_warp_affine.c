@@ -56,8 +56,8 @@
 #pragma warning (disable: 4996)
 #endif
 
-#include "sphinxbase/strfuncs.h"
-#include "sphinxbase/err.h"
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/err.h>
 
 #include "fe_warp.h"
 #include "fe_warp_affine.h"

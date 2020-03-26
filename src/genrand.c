@@ -79,7 +79,7 @@
 
 #include <stdio.h>
 
-#include "sphinxbase/genrand.h"
+#include <soundswallower/genrand.h>
 
 /* Period parameters */
 #define N 624

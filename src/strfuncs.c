@@ -45,8 +45,8 @@
 #include <assert.h>
 #include <stdarg.h>
 
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/strfuncs.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/strfuncs.h>
 
 /* Defined in dtoa.c */
 double sb_strtod(const char *s00, char **se);

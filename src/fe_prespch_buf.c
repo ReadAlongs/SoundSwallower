@@ -43,8 +43,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/err.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
 
 #include "fe_prespch_buf.h"
 

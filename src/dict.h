@@ -43,12 +43,11 @@
  */
 
 /* SphinxBase headers. */
-#include <sphinxbase/hash_table.h>
+#include <soundswallower/hash_table.h>
 
 /* Local headers. */
 #include "s3types.h"
 #include "bin_mdef.h"
-#include "pocketsphinx_export.h"
 
 #define S3DICT_INC_SZ 4096
 
@@ -113,7 +112,6 @@ dict_t *dict_init(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase
 int dict_write(dict_t *dict, char const *filename, char const *format);
 
 /** Return word id for given word string if present.  Otherwise return BAD_S3WID */
-POCKETSPHINX_EXPORT
 s3wid_t dict_wordid(dict_t *d, const char *word);
 
 /**
@@ -127,7 +125,6 @@ int dict_filler_word(dict_t *d,  /**< The dictionary structure */
 /**
  * Test if w is a "real" word, i.e. neither a filler word nor START/FINISH.
  */
-POCKETSPHINX_EXPORT
 int dict_real_word(dict_t *d,  /**< The dictionary structure */
                    s3wid_t w     /**< The word ID */
     );

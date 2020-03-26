@@ -42,7 +42,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-#include "sphinxbase/bitarr.h"
+#include <soundswallower/bitarr.h>
 
 #define SIGN_BIT (0x80000000)
 

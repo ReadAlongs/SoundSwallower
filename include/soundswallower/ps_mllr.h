@@ -43,11 +43,7 @@
 #define __PS_MLLR_H__
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
-#include <sphinxbase/ngram_model.h>
-
-/* PocketSphinx headers. */
-#include <pocketsphinx_export.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,19 +60,16 @@ typedef struct ps_mllr_s ps_mllr_t;
 /**
  * Read a speaker-adaptive linear transform from a file.
  */
-POCKETSPHINX_EXPORT
 ps_mllr_t *ps_mllr_read(char const *file);
 
 /**
  * Retain a pointer to a linear transform.
  */
-POCKETSPHINX_EXPORT
 ps_mllr_t *ps_mllr_retain(ps_mllr_t *mllr);
 
 /**
  * Release a pointer to a linear transform.
  */
-POCKETSPHINX_EXPORT
 int ps_mllr_free(ps_mllr_t *mllr);
 
 #ifdef __cplusplus

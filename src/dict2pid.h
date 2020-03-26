@@ -42,8 +42,8 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/bitvec.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/bitvec.h>
 
 /* Local headers. */
 #include "s3types.h"

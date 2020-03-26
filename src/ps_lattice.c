@@ -45,11 +45,11 @@
 #include <math.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/listelem_alloc.h>
-#include <sphinxbase/strfuncs.h>
-#include <sphinxbase/err.h>
-#include <sphinxbase/pio.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/listelem_alloc.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/err.h>
+#include <soundswallower/pio.h>
 
 /* Local headers. */
 #include "pocketsphinx_internal.h"

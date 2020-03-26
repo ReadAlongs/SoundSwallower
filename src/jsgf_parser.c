@@ -75,9 +75,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <sphinxbase/hash_table.h>
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/err.h>
+#include <soundswallower/hash_table.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
 
 #include "jsgf_internal.h"
 #include "jsgf_parser.h"

@@ -51,9 +51,9 @@
 #pragma warning (disable: 4244)
 #endif
 
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/cmn.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/cmn.h>
 
 /* NOTE!  These must match the enum in cmn.h */
 const char *cmn_type_str[] = {

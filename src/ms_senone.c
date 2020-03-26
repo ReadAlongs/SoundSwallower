@@ -41,7 +41,7 @@
 #include <assert.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/bio.h>
+#include <soundswallower/bio.h>
 
 /* Local headers. */
 #include "ms_senone.h"

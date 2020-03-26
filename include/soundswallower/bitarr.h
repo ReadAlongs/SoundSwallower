@@ -40,9 +40,7 @@
 
 #include <string.h>
 
-#include <sphinxbase/prim_type.h>
-/* Win32/WinCE DLL gunk */
-#include <sphinxbase/sphinxbase_export.h>
+#include <soundswallower/prim_type.h>
 
 /** 
  * @file bitarr.h
@@ -83,7 +81,6 @@ typedef struct bitarr_address_s {
  * @param mask of read value
  * @return uint64 value that was read
  */
-SPHINXBASE_EXPORT
 uint64 bitarr_read_int57(bitarr_address_t address, uint8 length, uint64 mask);
 
 /**
@@ -94,7 +91,6 @@ uint64 bitarr_read_int57(bitarr_address_t address, uint8 length, uint64 mask);
  * @param length amount of active bytes in value to write
  * @param value integer to write
  */
-SPHINXBASE_EXPORT
 void bitarr_write_int57(bitarr_address_t address, uint8 length, uint64 value);
 
 /**
@@ -105,7 +101,6 @@ void bitarr_write_int57(bitarr_address_t address, uint8 length, uint64 value);
  * @param mask of read value
  * @return uint32 value that was read
  */
-SPHINXBASE_EXPORT
 uint32 bitarr_read_int25(bitarr_address_t address, uint8 length, uint32 mask);
 
 /**
@@ -116,7 +111,6 @@ uint32 bitarr_read_int25(bitarr_address_t address, uint8 length, uint32 mask);
  * @param length amount of active bytes in value to write
  * @param value integer to write
  */
-SPHINXBASE_EXPORT
 void bitarr_write_int25(bitarr_address_t address, uint8 length, uint32 value);
 
 /**
@@ -124,7 +118,6 @@ void bitarr_write_int25(bitarr_address_t address, uint8 length, uint32 value);
  * @param bit_mask mask that is filled
  * @param max_value bigest integer that is going to be stored using this mask
  */
-SPHINXBASE_EXPORT
 void bitarr_mask_from_max(bitarr_mask_t *bit_mask, uint32 max_value);
 
 /**
@@ -132,7 +125,6 @@ void bitarr_mask_from_max(bitarr_mask_t *bit_mask, uint32 max_value);
  * @param max_value bigest integer that going to be stored using this amount of bits
  * @return amount of bits required to store integers from range with maximum provided
  */
-SPHINXBASE_EXPORT
 uint8 bitarr_required_bits(uint32 max_value);
 
 #ifdef __cplusplus

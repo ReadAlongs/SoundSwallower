@@ -53,7 +53,7 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {

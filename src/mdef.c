@@ -89,8 +89,8 @@
 #include <assert.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/err.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
 
 /* Local headers. */
 #include "mdef.h"

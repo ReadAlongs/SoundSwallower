@@ -45,8 +45,8 @@
 #include <config.h>
 #endif
 
-#include "sphinxbase/prim_type.h"
-#include "sphinxbase/fixpoint.h"
+#include <soundswallower/prim_type.h>
+#include <soundswallower/fixpoint.h>
 
 #include "fe_internal.h"
 

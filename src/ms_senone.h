@@ -43,10 +43,10 @@
 
 
 /* SphinxBase headers. */
-#include <sphinxbase/err.h>
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/cmd_ln.h>
-#include <sphinxbase/logmath.h>
+#include <soundswallower/err.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/logmath.h>
 
 /* Local headers. */
 #include "ms_gauden.h"

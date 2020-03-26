@@ -44,15 +44,15 @@
 #endif
 
 /* SphinxBase headers. */
-#include <sphinxbase/err.h>
-#include <sphinxbase/strfuncs.h>
-#include <sphinxbase/filename.h>
-#include <sphinxbase/pio.h>
-#include <sphinxbase/jsgf.h>
-#include <sphinxbase/hash_table.h>
+#include <soundswallower/err.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/filename.h>
+#include <soundswallower/pio.h>
+#include <soundswallower/jsgf.h>
+#include <soundswallower/hash_table.h>
 
 /* Local headers. */
-#include "cmdln_macro.h"
+#include <soundswallower/cmdln_macro.h>
 #include "pocketsphinx.h"
 #include "pocketsphinx_internal.h"
 #include "ps_lattice_internal.h"

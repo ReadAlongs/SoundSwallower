@@ -61,9 +61,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-/* Win32/WinCE DLL gunk */
-#include <sphinxbase/sphinxbase_export.h>
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/prim_type.h>
 
 /**
  * @file cmd_ln.h
@@ -196,7 +194,6 @@ typedef struct cmd_ln_s cmd_ln_t;
  * @param strict Whether to fail on duplicate or unknown arguments.
  * @return A cmd_ln_t* containing the results of command line parsing, or NULL on failure.
  */
-SPHINXBASE_EXPORT
 cmd_ln_t *cmd_ln_init(cmd_ln_t *inout_cmdln, arg_t const *defn, int32 strict, ...);
 
 /**
@@ -204,7 +201,6 @@ cmd_ln_t *cmd_ln_init(cmd_ln_t *inout_cmdln, arg_t const *defn, int32 strict, ..
  *
  * @return pointer to retained command-line argument set.
  */
-SPHINXBASE_EXPORT
 cmd_ln_t *cmd_ln_retain(cmd_ln_t *cmdln);
 
 /**
@@ -212,7 +208,6 @@ cmd_ln_t *cmd_ln_retain(cmd_ln_t *cmdln);
  *
  * @return new reference count (0 if freed completely)
  */
-SPHINXBASE_EXPORT
 int cmd_ln_free_r(cmd_ln_t *cmdln);
 
 /**
@@ -234,7 +229,6 @@ int cmd_ln_free_r(cmd_ln_t *cmdln);
  * @return A cmd_ln_t containing the results of command line parsing,
  *         or NULL on failure.
  **/
-SPHINXBASE_EXPORT
 cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
                          arg_t const *defn,	/**< In: Array of argument name definitions */
@@ -250,7 +244,6 @@ cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-li
  *
  * @return A cmd_ln_t containing the results of command line parsing, or NULL on failure.
  */
-SPHINXBASE_EXPORT
 cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
                               arg_t const *defn,   /**< In: Array of argument name definitions*/
@@ -263,7 +256,6 @@ cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous comma
 /**
  * Access the generic type union for a command line argument.
  */
-SPHINXBASE_EXPORT
 anytype_t *cmd_ln_access_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -280,7 +272,6 @@ anytype_t *cmd_ln_access_r(cmd_ln_t *cmdln, char const *name);
  *         value is legitimately NULL and where the corresponding flag
  *         is unknown.
  */
-SPHINXBASE_EXPORT
 char const *cmd_ln_str_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -297,7 +288,6 @@ char const *cmd_ln_str_r(cmd_ln_t *cmdln, char const *name);
  *         value is legitimately NULL and where the corresponding flag
  *         is unknown.
  */
-SPHINXBASE_EXPORT
 char const **cmd_ln_str_list_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -311,7 +301,6 @@ char const **cmd_ln_str_list_r(cmd_ln_t *cmdln, char const *name);
  *         value is legitimately zero and where the corresponding flag
  *         is unknown.
  */
-SPHINXBASE_EXPORT
 long cmd_ln_int_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -325,7 +314,6 @@ long cmd_ln_int_r(cmd_ln_t *cmdln, char const *name);
  *         value is legitimately zero and where the corresponding flag
  *         is unknown.
  */
-SPHINXBASE_EXPORT
 double cmd_ln_float_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -341,7 +329,6 @@ double cmd_ln_float_r(cmd_ln_t *cmdln, char const *name);
  * @param str String value to set.  The command-line object does not
  *            retain ownership of this pointer.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str);
 
 /**
@@ -354,7 +341,6 @@ void cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str);
  * @param str String value to set.  The command-line object does not
  *            retain ownership of this pointer.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str);
 
 /**
@@ -364,7 +350,6 @@ void cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str);
  * @param name The command-line flag to set.
  * @param iv Integer value to set.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv);
 
 /**
@@ -374,7 +359,6 @@ void cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv);
  * @param name The command-line flag to set.
  * @param fv Integer value to set.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv);
 
 /**
@@ -398,7 +382,6 @@ void cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv);
  * @return True if the command line argument exists (i.e. it
  * was one of the arguments defined in the call to cmd_ln_parse_r().
  */
-SPHINXBASE_EXPORT
 int cmd_ln_exists_r(cmd_ln_t *cmdln, char const *name);
 
 /**
@@ -409,7 +392,6 @@ int cmd_ln_exists_r(cmd_ln_t *cmdln, char const *name);
  * @param fp   output stream
  * @param defn array of argument name definitions.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_print_help_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
 
 /**
@@ -419,7 +401,6 @@ void cmd_ln_print_help_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
  * @param fp   output stream
  * @param defn array of argument name definitions.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_print_values_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
 
 /**
@@ -429,7 +410,6 @@ void cmd_ln_print_values_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
  * function cmd_ln_parse_r().
  * @return 0 if successful, <0 if error.
  */
-SPHINXBASE_EXPORT
 int32 cmd_ln_parse(const arg_t *defn,  /**< In: Array of argument name definitions */
                    int32 argc,	       /**< In: Number of actual arguments */
                    char *argv[],       /**< In: Actual arguments */
@@ -446,7 +426,6 @@ int32 cmd_ln_parse(const arg_t *defn,  /**< In: Array of argument name definitio
  *
  * @return 0 if successful, <0 on error.
  */
-SPHINXBASE_EXPORT
 int32 cmd_ln_parse_file(const arg_t *defn,   /**< In: Array of argument name definitions*/
 			char const *filename,/**< In: A file that contains all the arguments */ 
                         int32 strict         /**< In: Fail on duplicate or unknown
@@ -458,7 +437,6 @@ int32 cmd_ln_parse_file(const arg_t *defn,   /**< In: Array of argument name def
  *
  * @deprecated This is deprecated in favor of the re-entrant API.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_appl_enter(int argc,   /**< In: Number of actual arguments */
 		       char *argv[], /**< In: Number of actual arguments */
 		       char const* default_argfn, /**< In: default argument file name*/
@@ -472,7 +450,6 @@ void cmd_ln_appl_enter(int argc,   /**< In: Number of actual arguments */
  * @deprecated This is deprecated in favor of the re-entrant API.
  */
 
-SPHINXBASE_EXPORT
 void cmd_ln_appl_exit(void);
 
 /**
@@ -481,7 +458,6 @@ void cmd_ln_appl_exit(void);
  * @deprecated This is deprecated in favor of the re-entrant API.
  * @return global cmd_ln_t object.
  */
-SPHINXBASE_EXPORT
 cmd_ln_t *cmd_ln_get(void);
 
 /**
@@ -598,7 +574,6 @@ cmd_ln_t *cmd_ln_get(void);
  * Free the global command line, if any exists.
  * @deprecated Use the re-entrant API instead.
  */
-SPHINXBASE_EXPORT
 void cmd_ln_free (void);
 
 

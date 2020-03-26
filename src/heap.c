@@ -67,9 +67,9 @@
 #include <string.h>
 #include <assert.h>
 
-#include "sphinxbase/heap.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/ckd_alloc.h"
+#include <soundswallower/heap.h>
+#include <soundswallower/err.h>
+#include <soundswallower/ckd_alloc.h>
 
 /**
  * One node on the heap

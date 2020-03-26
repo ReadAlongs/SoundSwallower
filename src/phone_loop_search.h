@@ -48,10 +48,10 @@
 #define __PHONE_LOOP_SEARCH_H__
 
 /* SphinxBase headers. */
-#include <sphinxbase/cmd_ln.h>
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/ngram_model.h>
-#include <sphinxbase/listelem_alloc.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/ngram_model.h>
+#include <soundswallower/listelem_alloc.h>
 
 /* Local headers. */
 #include "pocketsphinx_internal.h"

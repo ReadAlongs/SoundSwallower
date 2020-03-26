@@ -68,10 +68,10 @@
 # include <sys/mman.h>
 #endif
 
-#include "sphinxbase/prim_type.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/mmio.h"
-#include "sphinxbase/ckd_alloc.h"
+#include <soundswallower/prim_type.h>
+#include <soundswallower/err.h>
+#include <soundswallower/mmio.h>
+#include <soundswallower/ckd_alloc.h>
 
 #if defined(_WIN32_WCE) || defined(GNUWINCE)
 struct mmio_file_s {

@@ -64,8 +64,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "sphinxbase/case.h"
-#include "sphinxbase/err.h"
+#include <soundswallower/case.h>
+#include <soundswallower/err.h>
 
 
 void

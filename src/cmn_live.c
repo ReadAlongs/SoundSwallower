@@ -43,9 +43,9 @@
 #pragma warning (disable: 4244)
 #endif
 
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/cmn.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/cmn.h>
 
 void
 cmn_live_set(cmn_t *cmn, mfcc_t const * vec)

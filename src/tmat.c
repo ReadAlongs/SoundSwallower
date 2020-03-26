@@ -39,10 +39,10 @@
 #include <string.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/err.h>
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/bio.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/err.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/bio.h>
 
 /* Local headers. */
 #include "tmat.h"

@@ -43,7 +43,7 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/ckd_alloc.h>
+#include <soundswallower/ckd_alloc.h>
 
 /* Local headers. */
 #include "acmod.h"

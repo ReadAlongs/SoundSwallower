@@ -39,8 +39,8 @@
 #include <string.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/pio.h>
-#include <sphinxbase/strfuncs.h>
+#include <soundswallower/pio.h>
+#include <soundswallower/strfuncs.h>
 
 /* Local headers. */
 #include "dict.h"

@@ -44,13 +44,13 @@
 #include <config.h>
 #endif
 
-#include "sphinxbase/prim_type.h"
-#include "sphinxbase/byteorder.h"
-#include "sphinxbase/fixpoint.h"
-#include "sphinxbase/genrand.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/cmd_ln.h"
-#include "sphinxbase/ckd_alloc.h"
+#include <soundswallower/prim_type.h>
+#include <soundswallower/byteorder.h>
+#include <soundswallower/fixpoint.h>
+#include <soundswallower/genrand.h>
+#include <soundswallower/err.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/ckd_alloc.h>
 
 #include "fe_internal.h"
 #include "fe_warp.h"

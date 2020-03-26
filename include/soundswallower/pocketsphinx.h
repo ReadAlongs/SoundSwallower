@@ -43,16 +43,15 @@
 #include <stdio.h>
 
 /* SphinxBase headers we need. */
-#include <sphinxbase/cmd_ln.h>
-#include <sphinxbase/logmath.h>
-#include <sphinxbase/fe.h>
-#include <sphinxbase/feat.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/feat.h>
 
 /* PocketSphinx headers (not many of them!) */
-#include <pocketsphinx_export.h>
-#include <cmdln_macro.h>
-#include <ps_lattice.h>
-#include <ps_mllr.h>
+#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/ps_lattice.h>
+#include <soundswallower/ps_mllr.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -82,7 +81,7 @@ typedef struct ps_seg_s ps_seg_t;
  * Sets default grammar and language model if they are not set explicitly and
  * are present in the default search path.
  */
-POCKETSPHINX_EXPORT void
+void
 ps_default_search_args(cmd_ln_t *);
 
 /**
@@ -95,7 +94,6 @@ ps_default_search_args(cmd_ln_t *);
  * @param config a command-line structure, as created by
  * cmd_ln_parse_r() or cmd_ln_parse_file_r().
  */
-POCKETSPHINX_EXPORT
 ps_decoder_t *ps_init(cmd_ln_t *config);
 
 /**
@@ -115,7 +113,6 @@ ps_decoder_t *ps_init(cmd_ln_t *config);
  *               with any changes applied.
  * @return 0 for success, <0 for failure.
  */
-POCKETSPHINX_EXPORT
 int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config);
 
 /**
@@ -124,7 +121,6 @@ int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config);
  * This is here to avoid exporting global data, which is problematic
  * on Win32 and Symbian (and possibly other platforms).
  */
-POCKETSPHINX_EXPORT
 arg_t const *ps_args(void);
 
 /**
@@ -137,7 +133,6 @@ arg_t const *ps_args(void);
  *
  * @return pointer to retained decoder.
  */
-POCKETSPHINX_EXPORT
 ps_decoder_t *ps_retain(ps_decoder_t *ps);
 
 /**
@@ -150,7 +145,6 @@ ps_decoder_t *ps_retain(ps_decoder_t *ps);
  * @param ps Decoder to be freed.
  * @return New reference count (0 if freed).
  */
-POCKETSPHINX_EXPORT
 int ps_free(ps_decoder_t *ps);
 
 /**
@@ -161,7 +155,6 @@ int ps_free(ps_decoder_t *ps);
  *         attempt to free it manually.  Use cmd_ln_retain() if you
  *         wish to reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT
 cmd_ln_t *ps_get_config(ps_decoder_t *ps);
 
 /**
@@ -172,7 +165,6 @@ cmd_ln_t *ps_get_config(ps_decoder_t *ps);
  *         free it manually.  Use logmath_retain() if you wish to
  *         reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT
 logmath_t *ps_get_logmath(ps_decoder_t *ps);
 
 /**
@@ -183,7 +175,6 @@ logmath_t *ps_get_logmath(ps_decoder_t *ps);
  *         not attempt to free it manually.  Use fe_retain() if you
  *         wish to reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT
 fe_t *ps_get_fe(ps_decoder_t *ps);
 
 /**
@@ -194,7 +185,6 @@ fe_t *ps_get_fe(ps_decoder_t *ps);
  *         not attempt to free it manually.  Use feat_retain() if you
  *         wish to reuse it elsewhere.
  */
-POCKETSPHINX_EXPORT
 feat_t *ps_get_feat(ps_decoder_t *ps);
 
 /**
@@ -208,7 +198,6 @@ feat_t *ps_get_feat(ps_decoder_t *ps);
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */
-POCKETSPHINX_EXPORT
 ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
 
 /**
@@ -225,7 +214,6 @@ ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
  * @param format Format of the dictionary file, or NULL to determine
  *               automatically (currently unused,should be NULL)
  */
-POCKETSPHINX_EXPORT
 int ps_load_dict(ps_decoder_t *ps, char const *dictfile,
                  char const *fdictfile, char const *format);
 
@@ -238,7 +226,6 @@ int ps_load_dict(ps_decoder_t *ps, char const *dictfile,
  * @param format Format of the dictionary file, or NULL for the
  *               default (text) format (currently unused, should be NULL)
  */
-POCKETSPHINX_EXPORT
 int ps_save_dict(ps_decoder_t *ps, char const *dictfile, char const *format);
 
 /**
@@ -260,7 +247,6 @@ int ps_save_dict(ps_decoder_t *ps, char const *dictfile, char const *format);
  * @return The internal ID (>= 0) of the newly added word, or <0 on
  *         failure.
  */
-POCKETSPHINX_EXPORT
 int ps_add_word(ps_decoder_t *ps,
                 char const *word,
                 char const *phones,
@@ -277,7 +263,6 @@ int ps_add_word(ps_decoder_t *ps,
  *         or NULL if word is not present in the dictionary. The string is
  *         allocated and must be freed by the user.
  */
-POCKETSPHINX_EXPORT
 char *ps_lookup_word(ps_decoder_t *ps, 
 	             const char *word);
 
@@ -295,7 +280,6 @@ char *ps_lookup_word(ps_decoder_t *ps,
  *                 to read until end-of-file.
  * @return Number of samples of audio.
  */
-POCKETSPHINX_EXPORT
 long ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
                    long maxsamps);
 
@@ -306,7 +290,6 @@ long ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
  * @param senfh Previously opened file handle positioned at start of file.
  * @return Number of frames read.
  */
-POCKETSPHINX_EXPORT
 int ps_decode_senscr(ps_decoder_t *ps, FILE *senfh);
 
 /**
@@ -316,7 +299,6 @@ int ps_decode_senscr(ps_decoder_t *ps, FILE *senfh);
  *
  * @return 0 for success, <0 on error.
  */
-POCKETSPHINX_EXPORT
 int ps_start_stream(ps_decoder_t *ps);
 
 /**
@@ -329,7 +311,6 @@ int ps_start_stream(ps_decoder_t *ps);
  * @param ps Decoder to be started.
  * @return 0 for success, <0 on error.
  */
-POCKETSPHINX_EXPORT
 int ps_start_utt(ps_decoder_t *ps);
 
 /**
@@ -345,7 +326,6 @@ int ps_start_utt(ps_decoder_t *ps);
  *                 produce more accurate results.
  * @return Number of frames of data searched, or <0 for error.
  */
-POCKETSPHINX_EXPORT
 int ps_process_raw(ps_decoder_t *ps,
                    int16 const *data,
                    size_t n_samples,
@@ -365,7 +345,6 @@ int ps_process_raw(ps_decoder_t *ps,
  *                 produce more accurate results.
  * @return Number of frames of data searched, or <0 for error.
  */
-POCKETSPHINX_EXPORT
 int ps_process_cep(ps_decoder_t *ps,
                    mfcc_t **data,
                    int n_frames,
@@ -385,7 +364,6 @@ int ps_process_cep(ps_decoder_t *ps,
  * @return Number of frames of speech data which have been recognized
  * so far.
  */
-POCKETSPHINX_EXPORT
 int ps_get_n_frames(ps_decoder_t *ps);
 
 /**
@@ -394,7 +372,6 @@ int ps_get_n_frames(ps_decoder_t *ps);
  * @param ps Decoder.
  * @return 0 for success, <0 on error
  */
-POCKETSPHINX_EXPORT
 int ps_end_utt(ps_decoder_t *ps);
 
 /**
@@ -405,7 +382,6 @@ int ps_end_utt(ps_decoder_t *ps);
  * @return String containing best hypothesis at this point in
  *         decoding.  NULL if no hypothesis is available.
  */
-POCKETSPHINX_EXPORT
 char const *ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score);
 
 /**
@@ -421,7 +397,6 @@ char const *ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score);
  * @param ps Decoder.
  * @return Posterior probability of the best hypothesis.
  */
-POCKETSPHINX_EXPORT
 int32 ps_get_prob(ps_decoder_t *ps);
 
 /**
@@ -437,7 +412,6 @@ int32 ps_get_prob(ps_decoder_t *ps);
  *         It is only valid until the next utterance, unless you use
  *         ps_lattice_retain() to retain it.
  */
-POCKETSPHINX_EXPORT
 ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
 
 /**
@@ -447,7 +421,6 @@ ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
  * @return Iterator over the best hypothesis at this point in
  *         decoding.  NULL if no hypothesis is available.
  */
-POCKETSPHINX_EXPORT
 ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
 
 /**
@@ -457,7 +430,6 @@ ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
  * @return Updated iterator with the next segment.  NULL at end of
  *         utterance (the iterator will be freed in this case).
  */
-POCKETSPHINX_EXPORT
 ps_seg_t *ps_seg_next(ps_seg_t *seg);
 
 /**
@@ -467,7 +439,6 @@ ps_seg_t *ps_seg_next(ps_seg_t *seg);
  * @return Read-only string giving string name of this segment.  This
  * is only valid until the next call to ps_seg_next().
  */
-POCKETSPHINX_EXPORT
 char const *ps_seg_word(ps_seg_t *seg);
 
 /**
@@ -481,7 +452,6 @@ char const *ps_seg_word(ps_seg_t *seg);
  * @param out_sf Output: First frame index in segment.
  * @param out_ef Output: Last frame index in segment.
  */
-POCKETSPHINX_EXPORT
 void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef);
 
 /**
@@ -506,13 +476,11 @@ void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef);
  *         to linear floating-point, use logmath_exp(ps_get_logmath(),
  *         pprob).
  */
-POCKETSPHINX_EXPORT
 int32 ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr, int32 *out_lback);
 
 /**
  * Finish iterating over a word segmentation early, freeing resources.
  */
-POCKETSPHINX_EXPORT
 void ps_seg_free(ps_seg_t *seg);
 
 /**
@@ -523,7 +491,6 @@ void ps_seg_free(ps_seg_t *seg);
  * @param ps Decoder.
  * @return Iterator over N-best hypotheses or NULL if no hypothesis is available
  */
-POCKETSPHINX_EXPORT
 ps_nbest_t *ps_nbest(ps_decoder_t *ps);
 
 /**
@@ -533,7 +500,6 @@ ps_nbest_t *ps_nbest(ps_decoder_t *ps);
  * @return Updated N-best iterator, or NULL if no more hypotheses are
  *         available (iterator is freed ni this case).
  */
-POCKETSPHINX_EXPORT 
 ps_nbest_t *ps_nbest_next(ps_nbest_t *nbest);
 
 /**
@@ -543,7 +509,6 @@ ps_nbest_t *ps_nbest_next(ps_nbest_t *nbest);
  * @param out_score Output: Path score for this hypothesis.
  * @return String containing next best hypothesis.
  */
-POCKETSPHINX_EXPORT
 char const *ps_nbest_hyp(ps_nbest_t *nbest, int32 *out_score);
 
 /**
@@ -552,7 +517,6 @@ char const *ps_nbest_hyp(ps_nbest_t *nbest, int32 *out_score);
  * @param nbest N-best iterator.
  * @return Iterator over the next best hypothesis.
  */
-POCKETSPHINX_EXPORT
 ps_seg_t *ps_nbest_seg(ps_nbest_t *nbest);
 
 /**
@@ -560,7 +524,6 @@ ps_seg_t *ps_nbest_seg(ps_nbest_t *nbest);
  *
  * @param nbest N-best iterator.
  */
-POCKETSPHINX_EXPORT
 void ps_nbest_free(ps_nbest_t *nbest);
 
 /**
@@ -571,7 +534,6 @@ void ps_nbest_free(ps_nbest_t *nbest);
  * @param out_ncpu    Output: Number of seconds of CPU time used.
  * @param out_nwall   Output: Number of seconds of wall time used.
  */
-POCKETSPHINX_EXPORT
 void ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
 
@@ -583,7 +545,6 @@ void ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
  * @param out_ncpu    Output: Number of seconds of CPU time used.
  * @param out_nwall   Output: Number of seconds of wall time used.
  */
-POCKETSPHINX_EXPORT
 void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
 
@@ -593,7 +554,6 @@ void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
  * @param ps Decoder.
  * @return 1 if last buffer contained speech, 0 - otherwise
  */
-POCKETSPHINX_EXPORT
 uint8 ps_get_in_speech(ps_decoder_t *ps);
 
 
@@ -604,7 +564,6 @@ uint8 ps_get_in_speech(ps_decoder_t *ps);
  * @param ps Decoder
  * @param size bytes of the utterance to store
  */
-POCKETSPHINX_EXPORT
 void ps_set_rawdata_size(ps_decoder_t *ps, int32 size);
 
 
@@ -616,7 +575,6 @@ void ps_set_rawdata_size(ps_decoder_t *ps, int32 size);
  * set before
  * @param size size of the data collected in samples (not bytes).
  */
-POCKETSPHINX_EXPORT
 void ps_get_rawdata(ps_decoder_t *ps, int16 **buffer, int32 *size);
 
 /**

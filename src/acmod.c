@@ -47,16 +47,16 @@
 #include <math.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
-#include <sphinxbase/err.h>
-#include <sphinxbase/cmd_ln.h>
-#include <sphinxbase/strfuncs.h>
-#include <sphinxbase/byteorder.h>
-#include <sphinxbase/feat.h>
-#include <sphinxbase/bio.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/err.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/byteorder.h>
+#include <soundswallower/feat.h>
+#include <soundswallower/bio.h>
+#include <soundswallower/cmdln_macro.h>
 
 /* Local headers. */
-#include "cmdln_macro.h"
 #include "acmod.h"
 #include "s2_semi_mgau.h"
 #include "ptm_mgau.h"

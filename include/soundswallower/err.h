@@ -43,9 +43,6 @@
 #include <stdlib.h>
 #include <errno.h>
 
-/* Win32/WinCE DLL gunk */
-#include <sphinxbase/sphinxbase_export.h>
-
 /**
  * @file err.h
  * @brief Implementation of logging routines.
@@ -142,13 +139,13 @@ typedef enum err_e {
     ERR_MAX
 } err_lvl_t;
 
-SPHINXBASE_EXPORT void
+void
 err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
 
-SPHINXBASE_EXPORT void
+void
 err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
 
-SPHINXBASE_EXPORT void
+void
 err_logfp_cb(void * user_data, err_lvl_t level, const char *fmt, ...);
 
 typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
@@ -161,7 +158,7 @@ typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
  * @param callback callback to pass messages too
  * @param user_data data to pass to callback
  */
-SPHINXBASE_EXPORT void
+void
 err_set_callback(err_cb_f callback, void *user_data);
 
 /**
@@ -169,7 +166,7 @@ err_set_callback(err_cb_f callback, void *user_data);
  *
  * @param stream Filehandle to send log messages to, or NULL to disable logging.
  */
-SPHINXBASE_EXPORT void
+void
 err_set_logfp(FILE *stream);
 
 /**
@@ -178,7 +175,7 @@ err_set_logfp(FILE *stream);
  * @return Current logging filehandle, NULL if logging is disabled. Initially
  * it returns stderr
  */
-SPHINXBASE_EXPORT FILE *
+FILE *
 err_get_logfp(void);
 
 /**
@@ -189,7 +186,7 @@ err_get_logfp(void);
  * @param path File path to send log messages to
  * @return 0 for success, <0 for failure (e.g. if file does not exist)
  */
-SPHINXBASE_EXPORT int
+int
 err_set_logfile(const char *path);
 
 #ifdef __cplusplus

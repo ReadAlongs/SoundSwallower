@@ -43,7 +43,7 @@
 #define __STATE_ALIGN_SEARCH_H__
 
 /* SphinxBase headers. */
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/prim_type.h>
 
 /* Local headers. */
 #include "pocketsphinx_internal.h"

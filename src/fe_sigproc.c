@@ -56,13 +56,13 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#include "sphinxbase/prim_type.h"
-#include "sphinxbase/ckd_alloc.h"
-#include "sphinxbase/byteorder.h"
-#include "sphinxbase/fixpoint.h"
-#include "sphinxbase/fe.h"
-#include "sphinxbase/genrand.h"
-#include "sphinxbase/err.h"
+#include <soundswallower/prim_type.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/byteorder.h>
+#include <soundswallower/fixpoint.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/genrand.h>
+#include <soundswallower/err.h>
 
 #include "fe_internal.h"
 #include "fe_warp.h"

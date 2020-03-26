@@ -41,10 +41,10 @@
 #include "config.h"
 #endif
 
-#include "sphinxbase/clapack_lite.h"
-#include "sphinxbase/matrix.h"
-#include "sphinxbase/err.h"
-#include "sphinxbase/ckd_alloc.h"
+#include <soundswallower/clapack_lite.h>
+#include <soundswallower/matrix.h>
+#include <soundswallower/err.h>
+#include <soundswallower/ckd_alloc.h>
 
 void
 norm_3d(float32 ***arr,

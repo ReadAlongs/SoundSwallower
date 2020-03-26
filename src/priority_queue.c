@@ -39,9 +39,9 @@
 #include <config.h>
 #endif
 
-#include <sphinxbase/priority_queue.h>
-#include <sphinxbase/ckd_alloc.h>
-#include <sphinxbase/err.h>
+#include <soundswallower/priority_queue.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
 
 struct priority_queue_s {
     void **pointers;

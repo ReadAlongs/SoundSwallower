@@ -43,8 +43,7 @@
 
 #include <sphinx_config.h>
 
-#include <sphinxbase/sphinxbase_export.h>
-#include <sphinxbase/prim_type.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,7 +73,6 @@ typedef struct ad_rec_s ad_rec_t;
  * otherwise.  The return value to be used as the first argument to
  * other recording functions.
  */
-SPHINXBASE_EXPORT
 ad_rec_t *ad_open_dev (
 	const char *dev, /**< Device name (platform-specific) */
 	int32 samples_per_sec /**< Samples per second */
@@ -83,7 +81,6 @@ ad_rec_t *ad_open_dev (
 /**
  * Open the default audio device with a given sampling rate.
  */
-SPHINXBASE_EXPORT
 ad_rec_t *ad_open_sps (
 		       int32 samples_per_sec /**< Samples per second */
 		       );
@@ -92,22 +89,18 @@ ad_rec_t *ad_open_sps (
 /**
  * Open the default audio device.
  */
-SPHINXBASE_EXPORT
 ad_rec_t *ad_open ( void );
 
 
 /* Start audio recording.  Return value: 0 if successful, <0 otherwise */
-SPHINXBASE_EXPORT
 int32 ad_start_rec (ad_rec_t *);
 
 
 /* Stop audio recording.  Return value: 0 if successful, <0 otherwise */
-SPHINXBASE_EXPORT
 int32 ad_stop_rec (ad_rec_t *);
 
 
 /* Close the recording device.  Return value: 0 if successful, <0 otherwise */
-SPHINXBASE_EXPORT
 int32 ad_close (ad_rec_t *);
 
 /*
@@ -115,7 +108,6 @@ int32 ad_close (ad_rec_t *);
  * Return value: # samples actually read (could be 0 since non-blocking); -1 if not
  * recording and no more samples remaining to be read from most recent recording.
  */
-SPHINXBASE_EXPORT
 int32 ad_read (ad_rec_t *, int16 *buf, int32 max);
 
 
