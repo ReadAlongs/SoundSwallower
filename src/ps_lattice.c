@@ -54,7 +54,6 @@
 /* Local headers. */
 #include "pocketsphinx_internal.h"
 #include "ps_lattice_internal.h"
-#include "ngram_search.h"
 #include "dict.h"
 
 /*
@@ -880,53 +879,6 @@ ps_lattice_hyp(ps_lattice_t *dag, ps_latlink_t *link)
 }
 
 static void
-ps_lattice_compute_lscr(ps_seg_t *seg, ps_latlink_t *link, int to)
-{
-    ngram_model_t *lmset;
-
-    /* Language model score is included in the link score for FSG
-     * search.  FIXME: Of course, this is sort of a hack :( */
-    if (0 != strcmp(ps_search_type(seg->search), PS_SEARCH_TYPE_NGRAM)) {
-        seg->lback = 1; /* Unigram... */
-        seg->lscr = 0;
-        return;
-    }
-        
-    lmset = ((ngram_search_t *)seg->search)->lmset;
-
-    if (link->best_prev == NULL) {
-        if (to) /* Sentence has only two words. */
-            seg->lscr = ngram_bg_score(lmset, link->to->basewid,
-                                       link->from->basewid, &seg->lback)
-                >> SENSCR_SHIFT;
-        else {/* This is the start symbol, its lscr is always 0. */
-            seg->lscr = 0;
-            seg->lback = 1;
-        }
-    }
-    else {
-        /* Find the two predecessor words. */
-        if (to) {
-            seg->lscr = ngram_tg_score(lmset, link->to->basewid,
-                                       link->from->basewid,
-                                       link->best_prev->from->basewid,
-                                       &seg->lback) >> SENSCR_SHIFT;
-        }
-        else {
-            if (link->best_prev->best_prev)
-                seg->lscr = ngram_tg_score(lmset, link->from->basewid,
-                                           link->best_prev->from->basewid,
-                                           link->best_prev->best_prev->from->basewid,
-                                           &seg->lback) >> SENSCR_SHIFT;
-            else
-                seg->lscr = ngram_bg_score(lmset, link->from->basewid,
-                                           link->best_prev->from->basewid,
-                                           &seg->lback) >> SENSCR_SHIFT;
-        }
-    }
-}
-
-static void
 ps_lattice_link2itor(ps_seg_t *seg, ps_latlink_t *link, int to)
 {
     dag_seg_t *itor = (dag_seg_t *)seg;
@@ -959,8 +911,6 @@ ps_lattice_link2itor(ps_seg_t *seg, ps_latlink_t *link, int to)
     seg->word = dict_wordstr(ps_search_dict(seg->search), node->wid);
     seg->sf = node->sf;
     seg->ascr = link->ascr << SENSCR_SHIFT;
-    /* Compute language model score from best predecessors. */
-    ps_lattice_compute_lscr(seg, link, to);
 }
 
 static void
@@ -1208,7 +1158,7 @@ ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start)
  * like there is for state-level?  Or, is it just lattice density?)
  */
 ps_latlink_t *
-ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
+ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
                     float32 lwf, float32 ascale)
 {
     ps_search_t *search;
@@ -1239,9 +1189,6 @@ ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
 
         /* Best path points to dag->start, obviously. */
         x->link->path_scr = x->link->ascr;
-        if (lmset && !to_is_fil)
-            x->link->path_scr += (ngram_bg_score(lmset, x->link->to->basewid,
-                                ps_search_start_wid(search), &n_used) >> SENSCR_SHIFT) * lwf;
         x->link->best_prev = NULL;
         /* No predecessors for start links. */
         x->link->alpha = 0;
@@ -1278,10 +1225,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
         }
 
         /* Calculate common bigram probability for all alphas. */
-        if (lmset && !w3_is_fil && !w2_is_fil)
-            bprob = ngram_ng_prob(lmset, w2_wid, &w3_wid, 1, &n_used);
-        else
-            bprob = 0;
+        bprob = 0;
         /* Add in this link's acoustic score, which was a constant
            factor in previous computations (if any). */
         link->alpha += (link->ascr << SENSCR_SHIFT) * ascale;
@@ -1314,15 +1258,6 @@ ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
 
             /* Update link score with maximum link score. */
             score = link->path_scr + x->link->ascr;
-            /* Calculate language score for bestpath if possible */
-            if (lmset && !w1_is_fil && !w2_is_fil) {
-                if (w3_is_fil)
-                    /* partial context available */
-                    score += (ngram_bg_score(lmset, w1_wid, w2_wid, &n_used) >> SENSCR_SHIFT) * lwf;
-                else
-                    /* full context available */
-                    score += (ngram_tg_score(lmset, w1_wid, w2_wid, w3_wid, &n_used) >> SENSCR_SHIFT) * lwf;
-            }
 
             if (score BETTER_THAN x->link->path_scr) {
                 x->link->path_scr = score;
@@ -1358,12 +1293,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
             }
         }
 
-        if (lmset && !from_is_fil)
-            bprob = ngram_ng_prob(lmset,
-                                  x->link->to->basewid,
-                                  &from_wid, 1, &n_used);
-        else
-            bprob = 0;
+        bprob = 0;
         dag->norm = logmath_add(lmath, dag->norm, x->link->alpha + bprob);
         if (x->link->path_scr BETTER_THAN bestescr) {
             bestescr = x->link->path_scr;
@@ -1384,14 +1314,11 @@ ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
 static int32
 ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
 {
-    ngram_model_t *lmset;
+    void *lmset;
     int32 jprob;
 
     /* Sort of a hack... */
-    if (dag->search && 0 == strcmp(ps_search_type(dag->search), PS_SEARCH_TYPE_NGRAM))
-        lmset = ((ngram_search_t *)dag->search)->lmset;
-    else
-        lmset = NULL;
+    lmset = NULL;
 
     jprob = (dag->final_node_ascr << SENSCR_SHIFT) * ascale;
     while (link) {
@@ -1417,15 +1344,6 @@ ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
                     }
                 }
             }
-
-            /* Compute unscaled language model probability.  Note that
-               this is actually not the language model probability
-               that corresponds to this link, but that is okay,
-               because we are just taking the sum over all links in
-               the best path. */
-            if (!from_is_fil && !to_is_fil)
-                jprob += ngram_ng_prob(lmset, to_wid,
-                                       &from_wid, 1, &lback);
         }
         /* If there is no language model, we assume that the language
            model probability (such as it is) has been included in the
@@ -1439,7 +1357,7 @@ ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
 }
 
 int32
-ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
+ps_lattice_posterior(ps_lattice_t *dag, void *lmset,
                      float32 ascale)
 {
     logmath_t *lmath;
@@ -1486,10 +1404,7 @@ ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
         }
 
         /* Calculate LM probability. */
-        if (lmset && !from_is_fil && !to_is_fil)
-            bprob = ngram_ng_prob(lmset, to_wid, &from_wid, 1, &n_used);
-        else
-            bprob = 0;
+        bprob = 0;
 
         if (link->to == dag->end) {
             /* Track the best path - we will backtrace in order to
@@ -1587,10 +1502,6 @@ best_rem_score(ps_astar_t *nbest, ps_latnode_t * from)
 
         score = best_rem_score(nbest, x->link->to);
         score += x->link->ascr;
-        if (nbest->lmset)
-            score += (ngram_bg_score(nbest->lmset, x->link->to->basewid,
-                                     from->basewid, &n_used) >> SENSCR_SHIFT)
-                      * nbest->lwf;
         if (score BETTER_THAN bestscore)
             bestscore = score;
     }
@@ -1669,20 +1580,6 @@ path_extend(ps_astar_t *nbest, ps_latpath_t * path)
         newpath->node = x->link->to;
         newpath->parent = path;
         newpath->score = path->score + x->link->ascr;
-        if (nbest->lmset) {
-            if (path->parent) {
-                newpath->score += nbest->lwf
-                    * (ngram_tg_score(nbest->lmset, newpath->node->basewid,
-                                      path->node->basewid,
-                                      path->parent->node->basewid, &n_used)
-                       >> SENSCR_SHIFT);
-            }
-            else 
-                newpath->score += nbest->lwf
-                    * (ngram_bg_score(nbest->lmset, newpath->node->basewid,
-                                      path->node->basewid, &n_used)
-                       >> SENSCR_SHIFT);
-        }
 
         /* Insert new partial path hypothesis into sorted path_list */
         nbest->n_hyp_tried++;
@@ -1706,10 +1603,10 @@ path_extend(ps_astar_t *nbest, ps_latpath_t * path)
 
 ps_astar_t *
 ps_astar_start(ps_lattice_t *dag,
-                  ngram_model_t *lmset,
-                  float32 lwf,
-                  int sf, int ef,
-                  int w1, int w2)
+               void *lmset,
+               float32 lwf,
+               int sf, int ef,
+               int w1, int w2)
 {
     ps_astar_t *nbest;
     ps_latnode_t *node;
@@ -1748,13 +1645,7 @@ ps_astar_start(ps_lattice_t *dag,
             path = listelem_malloc(nbest->latpath_alloc);
             path->node = node;
             path->parent = NULL;
-            if (nbest->lmset)
-                path->score = nbest->lwf *
-                    ((w1 < 0)
-                    ? ngram_bg_score(nbest->lmset, node->basewid, w2, &n_used)
-                    : ngram_tg_score(nbest->lmset, node->basewid, w2, w1, &n_used));
-            else
-                path->score = 0;
+            path->score = 0;
             path->score >>= SENSCR_SHIFT;
             path_insert(nbest, path, path->score + node->info.rem_score);
         }

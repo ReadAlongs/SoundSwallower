@@ -39,6 +39,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "config.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -50,19 +52,15 @@
 #include <soundswallower/pio.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
+#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/pocketsphinx.h>
 
 /* Local headers. */
-#include <soundswallower/cmdln_macro.h>
-#include "pocketsphinx.h"
 #include "pocketsphinx_internal.h"
 #include "ps_lattice_internal.h"
 #include "phone_loop_search.h"
 #include "kws_search.h"
 #include "fsg_search_internal.h"
-#include "ngram_search.h"
-#include "ngram_search_fwdtree.h"
-#include "ngram_search_fwdflat.h"
-#include "allphone_search.h"
 #include "state_align_search.h"
 
 static const arg_t ps_args_def[] = {
@@ -126,12 +124,6 @@ ps_expand_model_config(ps_decoder_t *ps)
 {
     char const *hmmdir, *featparams;
 
-    /* Disable memory mapping on Blackfin (FIXME: should be uClinux in general). */
-#ifdef __ADSPBLACKFIN__
-    E_INFO("Will not use mmap() on uClinux/Blackfin.");
-    cmd_ln_set_boolean_r(ps->config, "-mmap", FALSE);
-#endif
-
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = cmd_ln_str_r(ps->config, "-hmm");
     ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef");
@@ -141,7 +133,6 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-mixw", "_mixw", hmmdir, "mixture_weights");
     ps_expand_file_config(ps, "-sendump", "_sendump", hmmdir, "sendump");
     ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
-    ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
 
@@ -334,50 +325,6 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
             return -1;
     }
 
-    if ((path = cmd_ln_str_r(ps->config, "-allphone"))) {
-        if (ps_set_allphone_file(ps, PS_DEFAULT_SEARCH, path)
-                || ps_set_search(ps, PS_DEFAULT_SEARCH))
-                return -1;
-    }
-
-    if ((path = cmd_ln_str_r(ps->config, "-lm")) && 
-        !cmd_ln_boolean_r(ps->config, "-allphone")) {
-        if (ps_set_lm_file(ps, PS_DEFAULT_SEARCH, path)
-            || ps_set_search(ps, PS_DEFAULT_SEARCH))
-            return -1;
-    }
-
-    if ((path = cmd_ln_str_r(ps->config, "-lmctl"))) {
-        const char *name;
-        ngram_model_t *lmset;
-        ngram_model_set_iter_t *lmset_it;
-
-        if (!(lmset = ngram_model_set_read(ps->config, path, ps->lmath))) {
-            E_ERROR("Failed to read language model control file: %s\n", path);
-            return -1;
-        }
-
-        for(lmset_it = ngram_model_set_iter(lmset);
-            lmset_it; lmset_it = ngram_model_set_iter_next(lmset_it)) {    
-            ngram_model_t *lm = ngram_model_set_iter_model(lmset_it, &name);            
-            E_INFO("adding search %s\n", name);
-            if (ps_set_lm(ps, name, lm)) {
-                ngram_model_set_iter_free(lmset_it);
-        	ngram_model_free(lmset);
-                return -1;
-            }
-        }
-        ngram_model_free(lmset);
-
-        name = cmd_ln_str_r(ps->config, "-lmname");
-        if (name)
-            ps_set_search(ps, name);
-        else {
-            E_ERROR("No default LM name (-lmname) for `-lmctl'\n");
-            return -1;
-        }
-    }
-
     /* Initialize performance timer. */
     ps->perf.name = "decode";
     ptmr_init(&ps->perf);
@@ -479,12 +426,7 @@ ps_set_search(ps_decoder_t *ps, const char *name)
     }
 
     ps->search = search;
-    /* Set pl window depending on the search */
-    if (!strcmp(PS_SEARCH_TYPE_NGRAM, ps_search_type(search))) {
-        ps->pl_window = cmd_ln_int32_r(ps->config, "-pl_window");
-    } else {
-        ps->pl_window = 0;
-    }
+    ps->pl_window = 0;
 
     return 0;
 }
@@ -540,15 +482,6 @@ ps_search_iter_free(ps_search_iter_t *itor)
     hash_table_iter_free((hash_iter_t *)itor);
 }
 
-ngram_model_t *
-ps_get_lm(ps_decoder_t *ps, const char *name)
-{
-    ps_search_t *search =  ps_find_search(ps, name);
-    if (search && strcmp(PS_SEARCH_TYPE_NGRAM, ps_search_type(search)))
-        return NULL;
-    return search ? ((ngram_search_t *) search)->lmset : NULL;
-}
-
 fsg_model_t *
 ps_get_fsg(ps_decoder_t *ps, const char *name)
 {
@@ -581,84 +514,6 @@ set_search_internal(ps_decoder_t *ps, ps_search_t *search)
         ps_search_free(old_search);
 
     return 0;
-}
-
-int
-ps_set_lm(ps_decoder_t *ps, const char *name, ngram_model_t *lm)
-{
-    ps_search_t *search;
-    search = ngram_search_init(name, lm, ps->config, ps->acmod, ps->dict, ps->d2p);
-    return set_search_internal(ps, search);
-}
-
-int
-ps_set_lm_file(ps_decoder_t *ps, const char *name, const char *path)
-{
-  ngram_model_t *lm;
-  int result;
-
-  lm = ngram_model_read(ps->config, path, NGRAM_AUTO, ps->lmath);
-  if (!lm)
-      return -1;
-
-  result = ps_set_lm(ps, name, lm);
-  ngram_model_free(lm);
-  return result;
-}
-
-int
-ps_set_allphone(ps_decoder_t *ps, const char *name, ngram_model_t *lm)
-{
-    ps_search_t *search;
-    search = allphone_search_init(name, lm, ps->config, ps->acmod, ps->dict, ps->d2p);
-    return set_search_internal(ps, search);
-}
-
-int
-ps_set_allphone_file(ps_decoder_t *ps, const char *name, const char *path)
-{
-  ngram_model_t *lm;
-  int result;
-
-  lm = NULL;
-  if (path)
-    lm = ngram_model_read(ps->config, path, NGRAM_AUTO, ps->lmath);
-  result = ps_set_allphone(ps, name, lm);
-  if (lm)
-      ngram_model_free(lm);
-  return result;
-}
-
-int
-ps_set_align(ps_decoder_t *ps, const char *name, const char *text)
-{
-    ps_search_t *search;
-    ps_alignment_t *alignment;
-    char *textbuf = ckd_salloc(text);
-    char *ptr, *word, delimfound;
-    int n;
-
-    textbuf = string_trim(textbuf, STRING_BOTH);
-    alignment = ps_alignment_init(ps->d2p);
-    ps_alignment_add_word(alignment, dict_wordid(ps->dict, "<s>"), 0);
-    for (ptr = textbuf;
-         (n = nextword(ptr, " \t\n\r", &word, &delimfound)) >= 0;
-         ptr = word + n, *ptr = delimfound) {
-        int wid;
-        if ((wid = dict_wordid(ps->dict, word)) == BAD_S3WID) {
-            E_ERROR("Unknown word %s\n", word);
-            ckd_free(textbuf);
-            ps_alignment_free(alignment);
-            return -1;
-        }
-        ps_alignment_add_word(alignment, wid, 0);
-    }
-    ps_alignment_add_word(alignment, dict_wordid(ps->dict, "</s>"), 0);
-    ps_alignment_populate(alignment);
-    search = state_align_search_init(name, ps->config, ps->acmod, alignment);
-    ps_alignment_free(alignment);
-    ckd_free(textbuf);
-    return set_search_internal(ps, search);
 }
 
 int
@@ -872,13 +727,6 @@ ps_add_word(ps_decoder_t *ps,
     for (search_it = hash_table_iter(ps->searches); search_it;
          search_it = hash_table_iter_next(search_it)) {
         ps_search_t *search = hash_entry_val(search_it->ent);
-        if (!strcmp(PS_SEARCH_TYPE_NGRAM, ps_search_type(search))) {
-            ngram_model_t *lmset = ((ngram_search_t *) search)->lmset;
-            if (ngram_model_add_word(lmset, word, 1.0) == NGRAM_INVALID_WID) {
-                hash_table_iter_free(search_it);
-                return -1;
-            }
-        }
 
         if (update) {
             if ((rv = ps_search_reinit(search, ps->dict, ps->d2p)) < 0) {
@@ -1301,8 +1149,8 @@ ps_nbest_t *
 ps_nbest(ps_decoder_t *ps)
 {
     ps_lattice_t *dag;
-    ngram_model_t *lmset;
     ps_astar_t *nbest;
+    void *lmset;
     float32 lwf;
 
     if (ps->search == NULL)
@@ -1310,19 +1158,9 @@ ps_nbest(ps_decoder_t *ps)
     if ((dag = ps_get_lattice(ps)) == NULL)
         return NULL;
 
-    /* FIXME: This is all quite specific to N-Gram search.  Either we
-     * should make N-best a method for each search module or it needs
-     * to be abstracted to work for N-Gram and FSG. */
-    if (0 != strcmp(ps_search_type(ps->search), PS_SEARCH_TYPE_NGRAM)) {
-        lmset = NULL;
-        lwf = 1.0f;
-    } else {
-        lmset = ((ngram_search_t *)ps->search)->lmset;
-        lwf = ((ngram_search_t *)ps->search)->bestpath_fwdtree_lw_ratio;
-    }
-
+    lmset = NULL;
+    lwf = 1.0f;
     nbest = ps_astar_start(dag, lmset, lwf, 0, -1, -1, -1);
-
     nbest = ps_nbest_next(nbest);
 
     return (ps_nbest_t *)nbest;

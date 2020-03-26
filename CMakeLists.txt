@@ -1,6 +1,23 @@
 cmake_minimum_required(VERSION 3.10)
+include(CheckTypeSize)
+include(CheckSymbolExists)
+
 project(soundswallower VERSION 0.1
   DESCRIPTION "An even smaller speech recognizer")
+
+CHECK_TYPE_SIZE("long long" LONG_LONG)
+option(FIXED_POINT "Build with fixed-point math" OFF)
+option(DEFAULT_RADIX "Set the default radix point (out of 32) for fixed-point math")
+
+configure_file(sphinx_config.h.in include/sphinx_config.h)
+
+CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
+CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
+CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
+
+configure_file(config.h.in config.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set(SOURCES
   src/acmod.c
@@ -43,6 +60,8 @@ set(SOURCES
   src/jsgf.c
   src/jsgf_parser.c
   src/jsgf_scanner.c
+  src/kws_search.c
+  src/kws_detections.c
   src/listelem_alloc.c
   src/logmath.c
   src/matrix.c
@@ -70,13 +89,15 @@ set(SOURCES
   src/yin.c
   )
 
-configure_file(sphinx_config.h.in sphinx_config.h)
-configure_file(src/config.h.in config.h)
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 add_library(soundswallower ${SOURCES})
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
-  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include)
+  soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include
+  soundswallower PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+  target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})
+endif()
 
 add_executable(ssbatch batch.c)
 target_link_libraries(ssbatch soundswallower)
+target_include_directories(ssbatch PRIVATE ${PROJECT_SOURCE_DIR}/src)

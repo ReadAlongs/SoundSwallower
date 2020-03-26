@@ -70,7 +70,6 @@
 #define __PS_SEARCH_H__
 
 #include <soundswallower/fsg_model.h>
-#include <soundswallower/ngram_model.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -153,39 +152,6 @@ void ps_search_iter_free(ps_search_iter_t *itor);
  */
 const char* ps_search_iter_val(ps_search_iter_t *itor);
 
-
-/**
- * Get the language model set object for this decoder.
- *
- * If N-Gram decoding is not enabled, this will return NULL.  You will
- * need to enable it using ps_set_lmset().
- *
- * @return The language model set object for this decoder.  The
- *         decoder retains ownership of this pointer, so you should
- *         not attempt to free it manually.  Use ngram_model_retain()
- *         if you wish to reuse it elsewhere.
- */
-ngram_model_t *ps_get_lm(ps_decoder_t *ps, const char *name);
-
-/**
- * Adds new search based on N-gram language model.
- *
- * Associates N-gram search with the provided name. The search can be activated
- * using ps_set_search().
- *
- * @see ps_set_search.
- */ 
-int ps_set_lm(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
-
-/**
- * Adds new search based on N-gram language model.
- *
- * Convenient method to load N-gram model and create a search.
- * 
- * @see ps_set_lm
- */
-int ps_set_lm_file(ps_decoder_t *ps, const char *name, const char *path);
-
 /**
  * Get the finite-state grammar set object for this decoder.
  *
@@ -254,39 +220,6 @@ int ps_set_kws(ps_decoder_t *ps, const char *name, const char *keyfile);
  * @see ps_set_search
  */
 int ps_set_keyphrase(ps_decoder_t *ps, const char *name, const char *keyphrase);
-
-/**
- * Adds new search based on phone N-gram language model.
- *
- * Associates N-gram search with the provided name. The search can be activated
- * using ps_set_search().
- *
- * @see ps_set_search.
- */ 
-int ps_set_allphone(ps_decoder_t *ps, const char *name, ngram_model_t *lm);
-
-/**
- * Adds new search based on phone N-gram language model.
- *
- * Convenient method to load N-gram model and create a search.
- * 
- * @see ps_set_allphone
- */
-int ps_set_allphone_file(ps_decoder_t *ps, const char *name, const char *path);
-
-/**
- * Adds new search based on forced alignment.
- *
- * Convenient method to and create a forced aligner for a piece of text.
- *
- * @param ps Decoder
- * @param name Name for this search (could be anything, such as an utterance
- *   label or the name of the input file)
- * @param words String containing whitespace-separated words for alignment.
- *   These words are assumed to exist in the current dictionary.
- * 
- */
-int ps_set_align(ps_decoder_t *ps, const char *name, const char *words);
 
 #ifdef __cplusplus
 }

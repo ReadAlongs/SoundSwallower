@@ -44,7 +44,6 @@
 
 /* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
-#include <soundswallower/ngram_model.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -360,14 +359,14 @@ ps_latlink_t *ps_lattice_reverse_edges(ps_lattice_t *dag, ps_latnode_t *start, p
 ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
 
 /**
- * Do N-Gram based best-path search on a word graph.
+ * Do best-path search on a word graph.
  *
  * This function calculates both the best path as well as the forward
  * probability used in confidence estimation.
  *
  * @return Final link in best path, NULL on error.
  */
-ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
+ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
                                   float32 lwf, float32 ascale);
 
 /**
@@ -377,7 +376,7 @@ ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, ngram_model_t *lmset,
  *
  * @return Posterior probability of the utterance as a whole.
  */
-int32 ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
+int32 ps_lattice_posterior(ps_lattice_t *dag, void *lmset,
                            float32 ascale);
 
 /**
@@ -392,16 +391,6 @@ int32 ps_lattice_posterior(ps_lattice_t *dag, ngram_model_t *lmset,
  * @return number of arcs removed.
  */
 int32 ps_lattice_posterior_prune(ps_lattice_t *dag, int32 beam);
-
-#ifdef NOT_IMPLEMENTED_YET
-/**
- * Expand lattice using an N-gram language model.
- *
- * This function expands the lattice such that each node represents a
- * unique N-gram history, and adds language model scores to the links.
- */
-int32 ps_lattice_ngram_expand(ps_lattice_t *dag, ngram_model_t *lm);
-#endif
 
 /**
  * Get the number of frames in the lattice.

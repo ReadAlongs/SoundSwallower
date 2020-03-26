@@ -60,13 +60,11 @@
  * 		Created.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "config.h"
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
 # include <windows.h>
@@ -178,17 +176,8 @@ make_sec(struct timeval *s)
 void
 ptmr_start(ptmr_t * tm)
 {
-#if (! defined(_WIN32)) || defined(GNUWINCE) || defined(__SYMBIAN32__)
+#if (!defined(_WIN32)) || defined(GNUWINCE) || defined(__SYMBIAN32__)
     struct timeval e_start;     /* Elapsed time */
-
-#if (! defined(_HPUX_SOURCE))  && (! defined(__SYMBIAN32__))
-    struct rusage start;        /* CPU time */
-
-    /* Unix but not HPUX */
-    getrusage(RUSAGE_SELF, &start);
-    tm->start_cpu = make_sec(&start.ru_utime) + make_sec(&start.ru_stime);
-#endif
-    /* Unix + HP */
     gettimeofday(&e_start, 0);
     tm->start_elapsed = make_sec(&e_start);
 #elif defined(_WIN32_WP)

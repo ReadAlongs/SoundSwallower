@@ -39,9 +39,7 @@
  * bitarr.c -- Bit array manipulations implementation.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <soundswallower/prim_type.h>
 #include <soundswallower/bitarr.h>
 
 #define SIGN_BIT (0x80000000)

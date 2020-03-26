@@ -157,7 +157,7 @@ triphone_add(mdef_t * m,
             m->wpos_ci_lclist[wpos][(int) ci] = lcptr;  /* This is what needs to be freed */
         }
         if ((rcptr = find_ph_rc(lcptr->rclist, rc)) != NULL) {
-            __BIGSTACKVARIABLE__ char buf[4096];
+            char buf[4096];
 
             mdef_phone_str(m, rcptr->pid, buf);
             E_FATAL("Duplicate triphone: %s\n", buf);
@@ -274,7 +274,7 @@ parse_tmat_senmap(mdef_t * m, char *line, long off, int p)
 {
     int32 wlen, n, s;
     char *lp;
-    __BIGSTACKVARIABLE__ char word[1024];
+    char word[1024];
 
     lp = line + off;
 
@@ -319,7 +319,7 @@ static void
 parse_base_line(mdef_t * m, char *line, int p)
 {
     int32 wlen, n;
-    __BIGSTACKVARIABLE__ char word[1024], *lp;
+    char word[1024], *lp;
     int ci;
 
     lp = line;
@@ -368,7 +368,7 @@ static void
 parse_tri_line(mdef_t * m, char *line, int p)
 {
     int32 wlen;
-    __BIGSTACKVARIABLE__ char word[1024], *lp;
+    char word[1024], *lp;
     int ci, lc, rc;
     word_posn_t wpos = WORD_POSN_BEGIN;
 
@@ -505,7 +505,7 @@ mdef_init(char *mdeffile, int32 breport)
 {
     FILE *fp;
     int32 n_ci, n_tri, n_map, n;
-    __BIGSTACKVARIABLE__ char tag[1024], buf[1024];
+    char tag[1024], buf[1024];
     uint16 **senmap;
     int p;
     int32 s, ci, cd;

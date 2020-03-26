@@ -67,9 +67,7 @@
 #pragma warning (disable: 4996 4018)
 #endif
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "config.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

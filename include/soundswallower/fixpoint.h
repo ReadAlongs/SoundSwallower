@@ -96,7 +96,7 @@ typedef int32 fixed32;
 #elif defined(_MSC_VER) || (defined(HAVE_LONG_LONG) && SIZEOF_LONG_LONG == 8) 
 /* Standard systems*/
 #define FIXMUL(a,b) FIXMUL_ANY(a,b,DEFAULT_RADIX)
-#define FIXMUL_ANY(a,b,radix) ((fixed32)(((int64)(a)*(b))>>(radix)))
+#define FIXMUL_ANY(a,b,radix) ((fixed32)(((long long)(a)*(b))>>(radix)))
 
 #else
 /* Most general case where 'long long' doesn't exist or is slow. */

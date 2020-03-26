@@ -172,7 +172,7 @@ typedef struct ps_latpath_s {
  */
 typedef struct ps_astar_s {
     ps_lattice_t *dag;
-    ngram_model_t *lmset;
+    void *lmset;
     float32 lwf;
 
     frame_idx_t sf;
@@ -261,7 +261,7 @@ ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link,
  * @return 0 for success, <0 on error.
  */
 ps_astar_t *ps_astar_start(ps_lattice_t *dag,
-                           ngram_model_t *lmset,
+                           void *lmset,
                            float32 lwf,
                            int sf, int ef,
                            int w1, int w2);

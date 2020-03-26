@@ -46,7 +46,6 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/cmn.h>
-#include <soundswallower/agc.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,14 +83,6 @@ extern "C" {
       ARG_BOOLEAN,                                                      \
       "no",                                                             \
       "Variance normalize each utterance (only if CMN == current)" },   \
-{ "-agc",                                                               \
-      ARG_STRING,                                                       \
-      "none",                                                           \
-      "Automatic gain control for c0 ('max', 'emax', 'noise', or 'none')" }, \
-{ "-agcthresh",                                                         \
-      ARG_FLOAT32,                                                      \
-      "2.0",                                                            \
-      "Initial threshold for automatic gain control" },                 \
 { "-lda",                                                               \
       ARG_STRING,                                                       \
       NULL,                                                             \
@@ -129,7 +120,7 @@ typedef struct feat_s {
     cmn_type_t cmn;	/**< Type of CMN to be performed on each utterance */
     int32 varnorm;	/**< Whether variance normalization is to be performed on each utt;
                            Irrelevant if no CMN is performed */
-    agc_type_t agc;	/**< Type of AGC to be performed on each utterance */
+    int agc;		/**< UNUSED */
 
     /**
      * Feature computation function. 
@@ -146,8 +137,7 @@ typedef struct feat_s {
     void (*compute_feat)(struct feat_s *fcb, mfcc_t **input, mfcc_t **feat);
     cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral 
                            means normalization*/
-    agc_t *agc_struct;	/**< Structure that stores the temporary variables for acoustic
-                           gain control*/
+    void *agc_struct;	/**< UNUSED*/
 
     mfcc_t **cepbuf;    /**< Circular buffer of MFCC frames for live feature computation. */
     mfcc_t **tmpcepbuf; /**< Array of pointers into cepbuf to handle border cases. */
@@ -285,8 +275,7 @@ feat_t *feat_init(char const *type,/**< In: Type of feature stream */
                   int32 varnorm,  /**< In: (boolean) Whether variance 
                                      normalization done on each utt; only 
                                      applicable if CMN also done */
-                  agc_type_t agc, /**< In: Type of automatic gain control to be 
-                                     done before feature computation */
+                  int agc, 	 /**< UNUSED */
                   int32 breport, /**< In: Whether to show a report for feat_t */
                   int32 cepsize  /**< Number of components in the input vector
                                     (or 0 for the default for this feature type,

@@ -118,9 +118,6 @@
 
 #include <assert.h>
 #include <string.h>
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4244 4996)
@@ -131,11 +128,12 @@
 #include <soundswallower/bio.h>
 #include <soundswallower/pio.h>
 #include <soundswallower/cmn.h>
-#include <soundswallower/agc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/glist.h>
+
+#include "config.h"
 
 #define FEAT_VERSION	"1.0"
 #define FEAT_DCEP_WIN		2
@@ -703,7 +701,7 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 
 feat_t *
 feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
-          agc_type_t agc, int32 breport, int32 cepsize)
+          int agc, int32 breport, int32 cepsize)
 {
     feat_t *fcb;
 
@@ -711,8 +709,8 @@ feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
         cepsize = 13;
     if (breport)
         E_INFO
-            ("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='%s'\n",
-             type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no", agc_type_str[agc]);
+            ("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='none'\n",
+             type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no");
 
     fcb = (feat_t *) ckd_calloc(1, sizeof(feat_t));
     fcb->refcount = 1;
@@ -866,16 +864,6 @@ feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
     fcb->cmn = cmn;
     fcb->varnorm = varnorm;
-    if (agc != AGC_NONE) {
-        fcb->agc_struct = agc_init();
-        /*
-         * No need to check if agc is set to EMAX; agc_emax_set() changes only emax related things
-         * Moreover, if agc is not NONE and block mode is used, feat_agc() SILENTLY
-         * switches to EMAX
-         */
-        /* HACK: hardwired initial estimates based on use of CMN (from Sphinx2) */
-        agc_emax_set(fcb->agc_struct, (cmn != CMN_NONE) ? 5.0 : 10.0);
-    }
     fcb->agc = agc;
     /*
      * Make sure this buffer is large enough to be used in feat_s2mfc2feat_block_utt()
@@ -937,33 +925,6 @@ feat_cmn(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 beginutt, int32 endutt)
 }
 
 static void
-feat_agc(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 beginutt, int32 endutt)
-{
-    agc_type_t agc_type = fcb->agc;
-
-    if (!(beginutt && endutt)
-        && agc_type != AGC_NONE) /* Only agc_emax in block computation mode. */
-        agc_type = AGC_EMAX;
-
-    switch (agc_type) {
-    case AGC_MAX:
-        agc_max(fcb->agc_struct, mfc, nfr);
-        break;
-    case AGC_EMAX:
-        agc_emax(fcb->agc_struct, mfc, nfr);
-        if (endutt)
-            agc_emax_update(fcb->agc_struct);
-        break;
-    case AGC_NOISE:
-        agc_noise(fcb->agc_struct, mfc, nfr);
-        break;
-    default:
-        ;
-    }
-    cep_dump_dbg(fcb, mfc, nfr, "After AGC");
-}
-
-static void
 feat_compute_utt(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 win, mfcc_t ***feat)
 {
     int32 i;
@@ -976,11 +937,6 @@ feat_compute_utt(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 win, mfcc_t ***feat
     }
 
     feat_print_dbg(fcb, feat, nfr - win * 2, "After dynamic feature computation");
-
-    if (fcb->lda) {
-        feat_lda_transform(fcb, feat, nfr - win * 2);
-        feat_print_dbg(fcb, feat, nfr - win * 2, "After LDA");
-    }
 
     if (fcb->subvecs) {
         feat_subvec_project(fcb, feat, nfr - win * 2);
@@ -1148,7 +1104,6 @@ feat_s2mfc_read_norm_pad(feat_t *fcb, char *file, int32 win,
 
         /* Normalize */
         feat_cmn(fcb, mfc + start_pad, n, 1, 1);
-        feat_agc(fcb, mfc + start_pad, n, 1, 1);
 
         /* Replicate start and end frames if necessary. */
         for (i = 0; i < start_pad; ++i)
@@ -1289,7 +1244,6 @@ feat_s2mfc2feat_block_utt(feat_t * fcb, mfcc_t ** uttcep,
 
     /* Do normalization before we interpolate on the boundary */    
     feat_cmn(fcb, cepbuf + win, nfr, 1, 1);
-    feat_agc(fcb, cepbuf + win, nfr, 1, 1);
 
     /* Now interpolate */    
     for (i = 0; i < win; ++i) {
@@ -1347,7 +1301,6 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
 
     /* FIXME: Don't modify the input! */
     feat_cmn(fcb, uttcep, *inout_ncep, beginutt, endutt);
-    feat_agc(fcb, uttcep, *inout_ncep, beginutt, endutt);
 
     /* Replicate first frame into the first win frames if we're at the
      * beginning of the utterance and there was some actual input to
@@ -1411,9 +1364,6 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
         fcb->curpos %= LIVEBUFBLOCKSIZE;
     }
 
-    if (fcb->lda)
-        feat_lda_transform(fcb, ofeat, nfeatvec);
-
     if (fcb->subvecs)
         feat_subvec_project(fcb, ofeat, nfeatvec);
 
@@ -1425,9 +1375,6 @@ feat_update_stats(feat_t *fcb)
 {
     if (fcb->cmn == CMN_LIVE) {
         cmn_live_update(fcb->cmn_struct);
-    }
-    if (fcb->agc == AGC_EMAX || fcb->agc == AGC_MAX) {
-	agc_emax_update(fcb->agc_struct);	
     }
 }
 
@@ -1453,8 +1400,6 @@ feat_free(feat_t * f)
     if (f->name) {
         ckd_free((void *) f->name);
     }
-    if (f->lda)
-        ckd_free_3d((void ***) f->lda);
 
     ckd_free(f->stream_len);
     ckd_free(f->sv_len);
@@ -1462,7 +1407,6 @@ feat_free(feat_t * f)
     subvecs_free(f->subvecs);
 
     cmn_free(f->cmn_struct);
-    agc_free(f->agc_struct);
 
     ckd_free(f);
     return 0;

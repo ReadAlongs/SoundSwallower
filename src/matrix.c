@@ -37,10 +37,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <soundswallower/clapack_lite.h>
 #include <soundswallower/matrix.h>
 #include <soundswallower/err.h>

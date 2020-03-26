@@ -39,16 +39,14 @@
 #include <stdio.h>
 
 /* SphinxBase headers. */
-#include <sphinxbase/pio.h>
-#include <sphinxbase/err.h>
-#include <sphinxbase/strfuncs.h>
-#include <sphinxbase/filename.h>
-#include <sphinxbase/byteorder.h>
+#include <soundswallower/pio.h>
+#include <soundswallower/err.h>
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/filename.h>
+#include <soundswallower/byteorder.h>
 
 /* PocketSphinx headers. */
-#include <pocketsphinx.h>
-
-/* S3kr3t headerz. */
+#include <soundswallower/pocketsphinx.h>
 #include "pocketsphinx_internal.h"
 
 /* Silvio Moioli: setbuf doesn't exist in Windows CE */
@@ -110,18 +108,6 @@ static const arg_t ps_args_def[] = {
       ARG_STRING,
       NULL,
       "File extension for FSG files (including leading dot)" },
-    { "-alignctl",
-      ARG_STRING,
-      NULL,
-      "Control file listing transcript files to force-align to utts" },
-    { "-aligndir",
-      ARG_STRING,
-      NULL,
-      "Base directory for transcript files" },
-    { "-alignext",
-      ARG_STRING,
-      NULL,
-      "File extension for transcript files (including leading dot)" },
 
     /* Input file types and locations. */
     { "-adcin",
@@ -344,62 +330,6 @@ process_lmnamectl_line(ps_decoder_t *ps, cmd_ln_t *config, char const *lmname)
         return -1;
     }
     return 0;
-}
-
-static int
-process_alignctl_line(ps_decoder_t *ps, cmd_ln_t *config, char const *fname)
-{
-    int err;
-    char *path = NULL;
-    const char *aligndir = cmd_ln_str_r(config, "-aligndir");
-    const char *alignext = cmd_ln_str_r(config, "-alignext");
-    char *text = NULL;
-    size_t nchars, nread;
-    FILE *fh;
-
-    if (fname == NULL)
-        return 0;
-
-    if (aligndir)
-        path = string_join(aligndir, "/", fname, alignext ? alignext : "", NULL);
-    else if (alignext)
-        path = string_join(fname, alignext, NULL);
-    else
-        path = ckd_salloc(fname);
-
-    if ((fh = fopen(path, "r")) == NULL) {
-        E_ERROR_SYSTEM("Failed to open transcript file %s", path);
-        err = -1;
-        goto error_out;
-    }
-    fseek(fh, 0, SEEK_END);
-    nchars = ftell(fh);
-    text = ckd_calloc(nchars + 1, 1);
-    fseek(fh, 0, SEEK_SET);
-    if ((nread = fread(text, 1, nchars, fh)) != nchars) {
-        E_ERROR_SYSTEM("Failed to fully read transcript file %s", path);
-        err = -1;
-        goto error_out;
-    }
-    if ((err = fclose(fh)) != 0) {
-        E_ERROR_SYSTEM("Failed to close transcript file %s", path);
-        goto error_out;
-    }
-    /* Always use the same name so that we don't leak memory (hopefully). */
-    if (ps_set_align(ps, "align", text)) {
-        err = -1;
-        goto error_out;
-    }
-
-    E_INFO("Force-aligning with transcript from: %s\n", fname);
-    if (ps_set_search(ps, "align"))
-        err = -1;
-
-error_out:
-    ckd_free(path);
-    ckd_free(text);
-
-    return err;
 }
 
 static int
@@ -820,8 +750,6 @@ process_ctl(ps_decoder_t *ps, cmd_ln_t *config, FILE *ctlfh)
             if(process_lmnamectl_line(ps, config, lmname) < 0)
                 continue;
             if(process_fsgctl_line(ps, config, fsgfile) < 0)
-                continue;
-            if(process_alignctl_line(ps, config, alignfile) < 0)
                 continue;
             if(process_ctl_line(ps, config, file, uttid, sf, ef) < 0)
                 continue;

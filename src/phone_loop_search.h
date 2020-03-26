@@ -50,7 +50,6 @@
 /* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
-#include <soundswallower/ngram_model.h>
 #include <soundswallower/listelem_alloc.h>
 
 /* Local headers. */

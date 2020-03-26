@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2013 Carnegie Mellon University.  All rights 
+ * Copyright (c) 2014 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -15,9 +15,6 @@
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
- * United States of America, and the CMU Sphinx Speech Consortium.
  *
  * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
  * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
@@ -34,23 +31,57 @@
  * ====================================================================
  *
  */
-#ifndef FE_TYPE_H
-#define FE_TYPE_H
 
-#include <sphinx_config.h>
-#include <soundswallower/fe.h>
-#include <soundswallower/fixpoint.h>
+/*
+ * kws_detections.h -- Structures for storing keyphrase spotting results.
+ */
 
-#if defined(FIXED_POINT)
-typedef fixed32 frame_t;
-typedef int32 powspec_t;
-typedef fixed32 window_t;
-typedef struct { fixed32 r, i; } complex;
-#else /* FIXED_POINT */
-typedef float64 frame_t;
-typedef float64 powspec_t;
-typedef float64 window_t;
-typedef struct { float64 r, i; } complex;
-#endif /* FIXED_POINT */
+#ifndef __KWS_DETECTIONS_H__
+#define __KWS_DETECTIONS_H__
 
-#endif /* FE_TYPE_H */
+/* SphinxBase headers. */
+#include <soundswallower/glist.h>
+
+/* Local headers. */
+#include "pocketsphinx_internal.h"
+#include "hmm.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#if 0
+}
+#endif
+
+typedef struct kws_detection_s {
+    const char* keyphrase;
+    frame_idx_t sf;
+    frame_idx_t ef;
+    int32 prob;
+    int32 ascr;
+} kws_detection_t;
+
+typedef struct kws_detections_s {
+    glist_t detect_list;
+} kws_detections_t;
+
+/**
+ * Reset history structure.
+ */
+void kws_detections_reset(kws_detections_t *detections);
+
+/**
+ * Add history entry.
+ */
+void kws_detections_add(kws_detections_t *detections, const char* keyphrase, int sf, int ef, int prob, int ascr);
+
+/**
+ * Compose hypothesis.
+ */
+char* kws_detections_hyp_str(kws_detections_t *detections, int frame, int delay);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __KWS_DETECTIONS_H__ */

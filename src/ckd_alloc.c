@@ -146,20 +146,10 @@ __ckd_calloc__(size_t n_elem, size_t elem_size,
 {
     void *mem;
 
-#if defined(__ADSPBLACKFIN__) && !defined(__linux__)
-    if ((mem = heap_calloc(heap_lookup(1),n_elem, elem_size)) == NULL)
-    	if ((mem = heap_calloc(heap_lookup(0),n_elem, elem_size)) == NULL)
-    	{
-        	ckd_fail("calloc(%d,%d) failed from %s(%d), free space: %d\n", n_elem,
-                elem_size, caller_file, caller_line,space_unused());
-    	}
-#else
     if ((mem = calloc(n_elem, elem_size)) == NULL) {
         ckd_fail("calloc(%d,%d) failed from %s(%d)\n", n_elem,
                 elem_size, caller_file, caller_line);
 	}
-#endif
-
 
     return mem;
 }
@@ -170,14 +160,9 @@ __ckd_malloc__(size_t size, const char *caller_file, int caller_line)
 {
     void *mem;
 
-#if defined(__ADSPBLACKFIN__) && !defined(__linux__)
-    if ((mem = heap_malloc(heap_lookup(0),size)) == NULL)
-       	if ((mem = heap_malloc(heap_lookup(1),size)) == NULL)
-#else
     if ((mem = malloc(size)) == NULL)
-#endif
-	        ckd_fail("malloc(%d) failed from %s(%d)\n", size,
-                caller_file, caller_line);
+        ckd_fail("malloc(%d) failed from %s(%d)\n", size,
+                 caller_file, caller_line);
 
     return mem;
 }
@@ -188,11 +173,7 @@ __ckd_realloc__(void *ptr, size_t new_size,
                 const char *caller_file, int caller_line)
 {
     void *mem;
-#if defined(__ADSPBLACKFIN__) && !defined(__linux__)
-    if ((mem = heap_realloc(heap_lookup(0),ptr, new_size)) == NULL) {
-#else
     if ((mem = realloc(ptr, new_size)) == NULL) {
-#endif
         ckd_fail("malloc(%d) failed from %s(%d)\n", new_size,
                 caller_file, caller_line);
     }
@@ -243,12 +224,7 @@ __ckd_calloc_2d__(size_t d1, size_t d2, size_t elemsize,
 void
 ckd_free(void *ptr)
 {
-#if defined(__ADSPBLACKFIN__) && !defined(__linux__)
-    if (ptr)
-        heap_free(0,ptr);
-#else
     free(ptr);
-#endif
 }
 
 void

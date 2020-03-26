@@ -42,8 +42,9 @@
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
-#if defined(__ADSPBLACKFIN__)
-#elif !defined(_WIN32_WCE)
+
+#include "config.h"
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
 

@@ -38,10 +38,7 @@
 #ifndef __FE_INTERNAL_H__
 #define __FE_INTERNAL_H__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
+#include <sphinx_config.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/fixpoint.h>
 

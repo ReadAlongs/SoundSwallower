@@ -142,19 +142,10 @@ acmod_init_feat(acmod_t *acmod)
         feat_init(cmd_ln_str_r(acmod->config, "-feat"),
                   cmn_type_from_str(cmd_ln_str_r(acmod->config,"-cmn")),
                   cmd_ln_boolean_r(acmod->config, "-varnorm"),
-                  agc_type_from_str(cmd_ln_str_r(acmod->config, "-agc")),
+                  0,
                   1, cmd_ln_int32_r(acmod->config, "-ceplen"));
     if (acmod->fcb == NULL)
         return -1;
-
-    if (cmd_ln_str_r(acmod->config, "_lda")) {
-        E_INFO("Reading linear feature transformation from %s\n",
-               cmd_ln_str_r(acmod->config, "_lda"));
-        if (feat_read_lda(acmod->fcb,
-                          cmd_ln_str_r(acmod->config, "_lda"),
-                          cmd_ln_int32_r(acmod->config, "-ldadim")) < 0)
-            return -1;
-    }
 
     if (cmd_ln_str_r(acmod->config, "-svspec")) {
         int32 **subvecs;
@@ -164,12 +155,6 @@ acmod_init_feat(acmod_t *acmod)
             return -1;
         if ((feat_set_subvecs(acmod->fcb, subvecs)) < 0)
             return -1;
-    }
-
-    if (cmd_ln_exists_r(acmod->config, "-agcthresh")
-        && 0 != strcmp(cmd_ln_str_r(acmod->config, "-agc"), "none")) {
-        agc_set_threshold(acmod->fcb->agc_struct,
-                          cmd_ln_float32_r(acmod->config, "-agcthresh"));
     }
 
     if (acmod->fcb->cmn_struct
@@ -220,7 +205,6 @@ acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
     /* Input vector dimension needs to be the same. */
     if (cmd_ln_int32_r(acmod->config, "-ceplen") != feat_cepsize(fcb))
         return TRUE;
-    /* FIXME: Need to check LDA and stuff too. */
     return FALSE;
 }
 

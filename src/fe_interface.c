@@ -40,10 +40,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <soundswallower/prim_type.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/fixpoint.h>

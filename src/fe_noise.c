@@ -47,10 +47,6 @@
  * Cepstra For Robust Speech Recognition by Dong Yu and others
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <math.h>
 
 #include <soundswallower/prim_type.h>

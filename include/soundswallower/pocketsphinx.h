@@ -65,7 +65,9 @@ extern "C" {
  */
 typedef struct ps_decoder_s ps_decoder_t;
 
-#include <ps_search.h>
+/* Dependency means this needs to come after (bad design!) */
+#include <soundswallower/ps_search.h>
+
 
 /**
  * PocketSphinx N-best hypothesis iterator object.

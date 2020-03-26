@@ -35,10 +35,6 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <soundswallower/priority_queue.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>

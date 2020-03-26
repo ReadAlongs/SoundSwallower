@@ -87,20 +87,6 @@ extern "C" {
 
 #include <sphinx_config.h>
 
-/* Define some things for VisualDSP++ */
-#if defined(__ADSPBLACKFIN__) && !defined(__GNUC__)
-# ifndef HAVE_LONG_LONG
-#  define HAVE_LONG_LONG
-# endif
-# ifndef ssize_t
-typedef signed int ssize_t;
-# endif
-# define SIZEOF_LONG_LONG 8
-# define __BIGSTACKVARIABLE__ static
-#else /* Not VisualDSP++ */
-# define __BIGSTACKVARIABLE__
-#endif
-
 /**
  * Union of basic types.
  */

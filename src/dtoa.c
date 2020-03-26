@@ -117,10 +117,6 @@
 
 /* Linking of sphinxbase's #defines to Gay's #defines starts here. */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
 #include <errno.h>
 #include <string.h>
 #include <assert.h>
@@ -128,6 +124,8 @@
 
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/prim_type.h>
+
+#include <sphinx_config.h>
 
 #ifdef WORDS_BIGENDIAN
 #define IEEE_MC68k
