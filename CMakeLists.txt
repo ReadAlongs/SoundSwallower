@@ -59,6 +59,8 @@ set(SOURCES
   src/ps_alignment.c
   src/ps_lattice.c
   src/ps_mllr.c
+  src/ptm_mgau.c
+  src/s2_semi_mgau.c
   src/slamch.c
   src/slapack_lite.c
   src/state_align_search.c

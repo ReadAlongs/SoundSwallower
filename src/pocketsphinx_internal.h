@@ -51,9 +51,9 @@
 #include <soundswallower/hash_table.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/profile.h>
+#include <soundswallower/pocketsphinx.h>
 
 /* Local headers. */
-#include "pocketsphinx.h"
 #include "acmod.h"
 #include "dict.h"
 #include "dict2pid.h"
