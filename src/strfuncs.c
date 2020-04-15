@@ -54,7 +54,7 @@ double sb_strtod(const char *s00, char **se);
 double
 atof_c(char const *str)
 {
-    return sb_strtod(str, NULL);
+    return strtod(str, NULL);
 }
 
 /* Locale-independent isspace to avoid different incompatibilities */
