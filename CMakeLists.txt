@@ -7,6 +7,7 @@ project(soundswallower VERSION 0.1
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
+  enable_testing()
 endif()
 
 option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
