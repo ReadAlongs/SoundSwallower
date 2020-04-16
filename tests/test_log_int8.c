@@ -1,7 +1,8 @@
-#include <logmath.h>
+#include <soundswallower/logmath.h>
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
+#undef LOG_EPSILON
 #define LOG_EPSILON 1500
 
 int

@@ -1,12 +1,13 @@
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/ptm_mgau.h>
-#include <soundswallower/ms_mgau.h>
-#include <soundswallower/test_macros.h>
+#include "pocketsphinx_internal.h"
+#include "ptm_mgau.h"
+#include "ms_mgau.h"
+
+#include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(41.00),
@@ -38,7 +39,7 @@ run_acmod_test(acmod_t *acmod)
 	nsamps = 2048;
 	frame_counter = 0;
 	buf = ckd_calloc(nsamps, sizeof(*buf));
-	TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+	TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
 	TEST_EQUAL(0, acmod_start_utt(acmod));
 	printf("Incremental(2048):\n");
 	while (!feof(rawfh)) {

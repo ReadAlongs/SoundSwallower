@@ -7,10 +7,11 @@
 #include <math.h>
 
 #include <soundswallower/feat.h>
-#include <soundswallower/test_macros.h>
 #include <soundswallower/ckd_alloc.h>
 
-const mfcc_t data[6][13] = {
+#include "test_macros.h"
+
+mfcc_t data[6][13] = {
 	{ FLOAT2MFCC(15.114), FLOAT2MFCC(-1.424), FLOAT2MFCC(-0.953),
 	  FLOAT2MFCC(0.186), FLOAT2MFCC(-0.656), FLOAT2MFCC(-0.226),
 	  FLOAT2MFCC(-0.105), FLOAT2MFCC(-0.412), FLOAT2MFCC(-0.024),
@@ -37,6 +38,7 @@ const mfcc_t data[6][13] = {
 	  FLOAT2MFCC(-0.124), FLOAT2MFCC(-0.445), FLOAT2MFCC(-0.352), FLOAT2MFCC(-0.400)},
 };
 
+enum { AGC_NONE };
 int
 main(int argc, char *argv[])
 {

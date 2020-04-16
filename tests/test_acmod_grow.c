@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/logmath.h>
 
-#include <sphinxbase/logmath.h>
+#include "acmod.h"
 
-#include <soundswallower/acmod.h>
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(41.00),
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
     nsamps = 2048;
     frame_counter = 0;
     buf = ckd_calloc(nsamps, sizeof(*buf));
-    TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+    TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(FALSE, acmod_set_grow(acmod, TRUE));
     TEST_EQUAL(0, acmod_start_utt(acmod));
     printf("Incremental(2048):\n");

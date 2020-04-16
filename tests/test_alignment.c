@@ -1,9 +1,9 @@
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 
-#include <soundswallower/ps_alignment.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include "ps_alignment.h"
+#include "pocketsphinx_internal.h"
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

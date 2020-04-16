@@ -4,11 +4,12 @@
  */
 
 #include <soundswallower/heap.h>
-#include <soundswallower/test_macros.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

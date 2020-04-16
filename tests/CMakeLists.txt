@@ -1,9 +1,8 @@
-add_compile_definitions(TESTDATADIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\")
+configure_file(test_macros.h.in test_macros.h)
 set(TESTS
   test_acmod.c
   test_acmod_grow.c
   test_alignment.c
-  test_allphone.c
   test_atof.c
   test_bitarr.c
   test_bit_encode.c
@@ -21,51 +20,38 @@ set(TESTS
   test_dict2pid.c
   test_dict.c
   test_display_hash.c
-  test_event.c
   test_feat.c
   test_feat_fe.c
   test_feat_live.c
   test_fe.c
   test_filename.c
-  test_fopen.c
   test_fsg.c
-  test_fwdflat.c
-  test_fwdtree_bestpath.c
-  test_fwdtree.c
   test_hash_iter.c
   test_heap.c
-  test_init.c
   test_invert.c
   test_jsgf.c
   test_keyphrase.c
-  test_lattice.c
   test_lineiter.c
   test_listelem_alloc.c
-  test_lm_read.c
   test_log_int16.c
   test_log_int8.c
   test_log_shifted.c
-  test_mllr.c
-  test_msgq.c
-  test_nbest.c
   test_pitch.c
-  test_posterior.c
-  test_ps.c
   test_ptm_mgau.c
   test_readfile.c
   test_reinit.c
-  test_senfh.c
-  test_set_search.c
-  test_simple.c
   test_solve.c
   test_state_align.c
   test_strfuncs.c
-  test_subvq.c
-  test_thread.c)
+  test_subvq.c)
 foreach(TEST_SOURCE ${TESTS})
   get_filename_component(TEST_EXECUTABLE ${TEST_SOURCE} NAME_WE)
   add_executable(${TEST_EXECUTABLE} ${TEST_SOURCE})
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)
+  target_include_directories(${TEST_EXECUTABLE} PRIVATE
+    ${CMAKE_BINARY_DIR} # for config.h
+    ${CMAKE_CURRENT_BINARY_DIR} # for test_macros.h
+    ${PROJECT_SOURCE_DIR}/src)
 endforeach()
 
 # weird case-changing tests, not sure where they came from

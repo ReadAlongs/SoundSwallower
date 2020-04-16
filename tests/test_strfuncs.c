@@ -7,6 +7,8 @@
 #include <soundswallower/pio.h>
 #include <soundswallower/ckd_alloc.h>
 
+#include "test_macros.h"
+
 int
 main(int argc, char *argv[])
 {

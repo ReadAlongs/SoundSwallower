@@ -4,7 +4,8 @@
  */
 
 #include <soundswallower/pio.h>
-#include <soundswallower/test_macros.h>
+
+#include "test_macros.h"
 
 #include <stdio.h>
 #include <stdlib.h>

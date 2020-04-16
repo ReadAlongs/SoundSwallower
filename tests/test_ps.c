@@ -1,10 +1,10 @@
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx_internal.h>
+#include "pocketsphinx_internal.h"
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 int
 ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
@@ -23,7 +23,7 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
 
     TEST_ASSERT(ps = ps_init(config));
     /* Test it first with pocketsphinx_decode_raw() */
-    TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+    TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);

@@ -4,8 +4,9 @@
 #include <soundswallower/pocketsphinx.h>
 #include <soundswallower/logmath.h>
 
-#include <soundswallower/acmod.h>
-#include <soundswallower/test_macros.h>
+#include "acmod.h"
+
+#include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(41.00),
@@ -67,7 +68,7 @@ main(int argc, char *argv[])
     nsamps = 2048;
     frame_counter = 0;
     buf = ckd_calloc(nsamps, sizeof(*buf));
-    TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+    TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(0, acmod_start_utt(acmod));
     E_INFO("Incremental(2048):\n");
     while (!feof(rawfh)) {

@@ -49,7 +49,6 @@
 
 /* Local headers. */
 #include "pocketsphinx_internal.h"
-#include "ps_alignment.h"
 #include "hmm.h"
 
 #ifdef __cplusplus

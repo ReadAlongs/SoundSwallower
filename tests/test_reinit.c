@@ -1,8 +1,8 @@
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])
@@ -12,8 +12,8 @@ main(int argc, char *argv[])
 
 	TEST_ASSERT(config =
 		    cmd_ln_init(NULL, ps_args(), TRUE,
-				"-hmm", DATADIR "/tidigits/hmm",
-				"-dict", DATADIR "/tidigits/lm/tidigits.dic",
+				"-hmm", TESTDATADIR "/tidigits/hmm",
+				"-dict", TESTDATADIR "/tidigits/lm/tidigits.dic",
 				NULL));
 	TEST_ASSERT(ps = ps_init(config));
 	cmd_ln_free_r(config);

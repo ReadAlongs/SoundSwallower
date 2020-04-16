@@ -1,10 +1,9 @@
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 
-#include <soundswallower/ps_alignment.h>
-#include <soundswallower/state_align_search.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include "state_align_search.h"
+#include "pocketsphinx_internal.h"
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 static int
 do_search(ps_search_t *search, acmod_t *acmod)
@@ -15,7 +14,7 @@ do_search(ps_search_t *search, acmod_t *acmod)
     int16 const *bptr;
     int nfr;
 
-    TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+    TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(0, acmod_start_utt(acmod));
     ps_search_start(search);
     while (!feof(rawfh)) {
@@ -41,7 +40,7 @@ do_decode(ps_decoder_t *ps)
     long nsamp;
     int score;
     
-    TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
+    TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     nsamp = ps_decode_raw(ps, rawfh, -1);
     hyp = ps_get_hyp(ps, &score);
     printf("%s (%ld samples, %d score)\n", hyp, nsamp, score);
@@ -128,55 +127,6 @@ main(int argc, char *argv[])
 
     ps_search_free(search);
     ps_alignment_free(al);
-
-    /* Test alignment through the decoder/search API */
-    TEST_EQUAL(0, ps_set_align(ps, "align", "go forward ten meters"));
-    ps_set_search(ps, "align");
-    do_decode(ps);
-    TEST_EQUAL(0, strcmp(ps_get_hyp(ps, &i), "<s> go forward ten meters </s>"));
-    seg = ps_seg_iter(ps);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("<s>", ps_seg_word(seg)));
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("go", ps_seg_word(seg)));
-    TEST_ASSERT(sf > last_ef);
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("forward", ps_seg_word(seg)));
-    TEST_ASSERT(sf > last_ef);
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("ten", ps_seg_word(seg)));
-    TEST_ASSERT(sf > last_ef);
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("meters", ps_seg_word(seg)));
-    TEST_ASSERT(sf > last_ef);
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    ps_seg_frames(seg, &sf, &ef);
-    printf("%s %d %d\n", ps_seg_word(seg), sf, ef);
-    TEST_EQUAL(0, strcmp("</s>", ps_seg_word(seg)));
-    TEST_ASSERT(sf > last_ef);
-    TEST_ASSERT(ef > sf);
-    last_ef = ef;
-    seg = ps_seg_next(seg);
-    TEST_EQUAL(NULL, seg);
 
     ps_free(ps);
     cmd_ln_free_r(config);

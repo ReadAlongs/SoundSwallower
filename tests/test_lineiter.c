@@ -1,13 +1,13 @@
-#include <pio.h>
 #include <stdlib.h>
 
-#include <soundswallower/test_macros.h>
+#include <soundswallower/pio.h>
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])
 {
 	FILE *fp;
-	fp = fopen(FILEDIR "/test.txt", "rb");
+	fp = fopen(TESTDATADIR "/test.txt", "rb");
 	lineiter_t *li;
 	int i;
 	

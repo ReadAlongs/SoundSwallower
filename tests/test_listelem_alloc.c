@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <listelem_alloc.h>
+#include <soundswallower/listelem_alloc.h>
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 struct bogus {
 	char const *str;

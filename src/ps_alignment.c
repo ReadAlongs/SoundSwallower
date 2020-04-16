@@ -44,7 +44,6 @@
 /* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
 
-/* Local headers. */
 #include "ps_alignment.h"
 
 ps_alignment_t *

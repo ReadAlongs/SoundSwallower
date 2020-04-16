@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-#include <ckd_alloc.h>
+#include <soundswallower/ckd_alloc.h>
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

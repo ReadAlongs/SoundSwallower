@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <pocketsphinx.h>
+#include <soundswallower/pocketsphinx.h>
 #include <bin_mdef.h>
 
-#include <soundswallower/dict.h>
-#include <soundswallower/dict2pid.h>
-#include <soundswallower/test_macros.h>
+#include "dict.h"
+#include "dict2pid.h"
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

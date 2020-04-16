@@ -5,11 +5,12 @@
  */
 
 #include <soundswallower/filename.h>
-#include <soundswallower/test_macros.h>
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

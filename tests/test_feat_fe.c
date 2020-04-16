@@ -6,7 +6,9 @@
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
 
-#include <soundswallower/test_macros.h>
+#include "test_macros.h"
+
+enum { AGC_NONE };
 
 int
 main(int argc, char *argv[])
@@ -39,7 +41,7 @@ main(int argc, char *argv[])
 	fseek(raw, 0, SEEK_END);
 	nsamp = ftell(raw) / sizeof(int16);
 	fe_process_frames(fe, NULL, &nsamp, NULL, &total_frames, NULL);
-	printf("%d samples, %d + 1 frames\n", nsamp, total_frames);
+	printf("%ld samples, %d + 1 frames\n", nsamp, total_frames);
 	total_frames++; /* For the possible fe_end_utt() frame */
 	cepbuf = ckd_calloc_2d(total_frames + 1, fe_get_output_size(fe), sizeof(**cepbuf));
 	fseek(raw, 0, SEEK_SET);

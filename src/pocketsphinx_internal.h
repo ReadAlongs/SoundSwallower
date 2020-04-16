@@ -57,6 +57,7 @@
 #include "acmod.h"
 #include "dict.h"
 #include "dict2pid.h"
+#include "ps_alignment.h"
 
 #ifdef __cplusplus
 extern "C" {
