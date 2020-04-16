@@ -71,3 +71,51 @@ add_test(str2words test_strfuncs str2words)
 add_test(string_join test_strfuncs string_join)
 add_test(string_trim test_strfuncs string_trim)
 add_test(fread_line test_strfuncs fread_line)
+
+# utility tests
+add_test(atof test_atof)
+add_test(bitarr test_bitarr)
+add_test(bit_encode test_bit_encode)
+add_test(bitvec test_bitvec)
+add_test(ckd_alloc_abort test_ckd_alloc_abort)
+add_test(ckd_alloc_catch test_ckd_alloc_catch)
+add_test(ckd_alloc_fail test_ckd_alloc_fail)
+add_test(build_directory test_build_directory)
+add_test(filename test_filename)
+add_test(hash_iter test_hash_iter)
+add_test(heap test_heap)
+# invert requires output FIXME
+add_test(lineiter test_lineiter)
+add_test(listelem_alloc test_listelem_alloc)
+add_test(log_int16 test_log_int16)
+add_test(log_int8 test_log_int8)
+add_test(log_shifted test_log_shifted)
+add_test(readfile test_readfile)
+add_test(reinit test_reinit)
+# solve requires output FIXME
+
+# command-line tests require output FIXME
+
+# delete and display hash tests require output FIXME
+
+# determinant test requires output FIXME
+
+
+# component tests
+add_test(acmod test_acmod)
+add_test(acmod_grow test_acmod_grow)
+add_test(alignment test_alignment)
+add_test(dict2pid test_dict2pid)
+add_test(dict test_dict)
+add_test(feat_fe test_feat_fe)
+add_test(feat_live test_feat_live)
+# test_feat reqiures output FIXME
+add_test(ptm_mgau test_ptm_mgau)
+add_test(subvq test_subvq)
+
+# functional-ish tests
+add_test(jsgf test_jsgf)
+add_test(fsg test_fsg)
+add_test(keyphrase test_keyphrase)
+add_test(pitch test_pitch)
+add_test(state_align test_state_align)
