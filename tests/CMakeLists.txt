@@ -1,4 +1,3 @@
-configure_file(testfuncs.sh.in testfuncs.sh)
 add_compile_definitions(TESTDATADIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\")
 set(TESTS
   test_acmod.c
