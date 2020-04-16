@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "strfuncs.h"
-#include "pio.h"
-#include "ckd_alloc.h"
+#include <soundswallower/strfuncs.h>
+#include <soundswallower/pio.h>
+#include <soundswallower/ckd_alloc.h>
 
 int
 main(int argc, char *argv[])

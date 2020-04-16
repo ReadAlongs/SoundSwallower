@@ -3,10 +3,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "pocketsphinx_internal.h"
-#include "fsg_search_internal.h"
-#include "ps_lattice_internal.h"
-#include "test_macros.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/fsg_search_internal.h>
+#include <soundswallower/ps_lattice_internal.h>
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

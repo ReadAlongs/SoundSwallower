@@ -3,7 +3,7 @@
 
 #include <listelem_alloc.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 struct bogus {
 	char const *str;

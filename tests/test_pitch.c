@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-#include "yin.h"
-#include "ckd_alloc.h"
+#include <soundswallower/yin.h>
+#include <soundswallower/ckd_alloc.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

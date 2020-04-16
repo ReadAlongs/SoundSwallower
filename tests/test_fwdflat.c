@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pocketsphinx_internal.h"
-#include "test_macros.h"
-#include "test_ps.c"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/test_macros.h>
+#include <soundswallower/test_ps.c>
 
 int
 main(int argc, char *argv[])

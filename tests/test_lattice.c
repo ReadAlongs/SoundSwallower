@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pocketsphinx_internal.h"
-#include "ps_lattice_internal.h"
-#include "test_macros.h"
-#include "test_ps.c"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ps_lattice_internal.h>
+#include <soundswallower/test_macros.h>
+#include <soundswallower/test_ps.c>
 
 int
 test_nodes_and_stuff(ps_lattice_t *dag)

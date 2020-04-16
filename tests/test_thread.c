@@ -1,8 +1,9 @@
 #include <stdio.h>
-#include <sbthread.h>
-#include <fe.h>
-#include <ckd_alloc.h>
-#include <err.h>
+
+#include <soundswallower/sbthread.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallowererr.h>
 
 static const arg_t fe_args[] = {
 	waveform_to_cepstral_command_line_macro(),

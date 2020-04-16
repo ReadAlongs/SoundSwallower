@@ -1,3 +1,5 @@
+configure_file(testfuncs.sh.in testfuncs.sh)
+add_compile_definitions(TESTDATADIR=\"${CMAKE_CURRENT_SOURCE_DIR}/data\")
 set(TESTS
   test_acmod.c
   test_acmod_grow.c
@@ -66,3 +68,21 @@ foreach(TEST_SOURCE ${TESTS})
   add_executable(${TEST_EXECUTABLE} ${TEST_SOURCE})
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)
 endforeach()
+
+# weird case-changing tests, not sure where they came from
+add_test(lcase1 test_case lcase 5 3)
+add_test(lcase2 test_case lcase 1 1)
+add_test(lcase3 test_case lcase)
+add_test(ucase1 test_case ucase 2 4)
+add_test(ucase2 test_case ucase 1 1)
+add_test(lcase3 test_case ucase)
+add_test(strcmp1 test_case strcmp_nocase 2 3)
+add_test(strcmp2 test_case strcmp_nocase 1 1)
+add_test(strcmp3 test_case strcmp_nocase)
+
+# string tests
+add_test(nextword test_strfuncs nextword)
+add_test(str2words test_strfuncs str2words)
+add_test(string_join test_strfuncs string_join)
+add_test(string_trim test_strfuncs string_trim)
+add_test(fread_line test_strfuncs fread_line)

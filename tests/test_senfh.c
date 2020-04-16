@@ -3,9 +3,9 @@
 #include <string.h>
 #include <time.h>
 
-#include "pocketsphinx_internal.h"
-#include "ngram_search_fwdtree.h"
-#include "test_macros.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ngram_search_fwdtree.h>
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

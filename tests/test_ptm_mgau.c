@@ -3,10 +3,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "pocketsphinx_internal.h"
-#include "ptm_mgau.h"
-#include "ms_mgau.h"
-#include "test_macros.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/ms_mgau.h>
+#include <soundswallower/test_macros.h>
 
 static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(41.00),

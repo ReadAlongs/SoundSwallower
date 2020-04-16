@@ -1,6 +1,6 @@
 #include <logmath.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 #define LOG_EPSILON 1500
 

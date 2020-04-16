@@ -3,9 +3,9 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include "hash_table.h"
-#include "ckd_alloc.h"
-#include "test_macros.h"
+#include <soundswallower/hash_table.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/test_macros.h>
 
 #include <stdio.h>
 #include <stdlib.h>

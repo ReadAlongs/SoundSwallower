@@ -3,7 +3,7 @@
 
 #include <pocketsphinx.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

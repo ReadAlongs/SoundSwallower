@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cmd_ln.h"
-#include "ckd_alloc.h"
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/ckd_alloc.h>
 
 const arg_t defs[] = {
     { "-a", ARG_INT32, "42", "This is the first argument." },

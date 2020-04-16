@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "fe.h"
-#include "cmd_ln.h"
-#include "ckd_alloc.h"
+#include <soundswallower/fe.h>
+#include <soundswallower/cmd_ln.h>
+#include <soundswallower/ckd_alloc.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

@@ -3,10 +3,10 @@
 #include <string.h>
 #include <time.h>
 
-#include "pocketsphinx_internal.h"
-#include "ngram_search_fwdtree.h"
-#include "ps_lattice_internal.h"
-#include "test_macros.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ngram_search_fwdtree.h>
+#include <soundswallower/ps_lattice_internal.h>
+#include <soundswallower/test_macros.h>
 
 int
 test_decode(ps_decoder_t *ps)

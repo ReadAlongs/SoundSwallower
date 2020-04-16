@@ -3,8 +3,8 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include "heap.h"
-#include "test_macros.h"
+#include <soundswallower/heap.h>
+#include <soundswallower/test_macros.h>
 
 #include <stdio.h>
 #include <stdlib.h>

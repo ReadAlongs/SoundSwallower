@@ -4,7 +4,7 @@
 #include <locale.h>
 #include <stdlib.h>
 
-#include "strfuncs.h"
+#include <soundswallower/strfuncs.h>
 
 int
 main(int argc, char *argv[])

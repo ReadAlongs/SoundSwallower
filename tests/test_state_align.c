@@ -1,10 +1,10 @@
 #include <pocketsphinx.h>
 
-#include "ps_alignment.h"
-#include "state_align_search.h"
-#include "pocketsphinx_internal.h"
+#include <soundswallower/ps_alignment.h>
+#include <soundswallower/state_align_search.h>
+#include <soundswallower/pocketsphinx_internal.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 static int
 do_search(ps_search_t *search, acmod_t *acmod)

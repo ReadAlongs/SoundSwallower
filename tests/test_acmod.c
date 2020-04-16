@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <string.h>
-#include <pocketsphinx.h>
 
-#include <sphinxbase/logmath.h>
+#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/logmath.h>
 
-#include "acmod.h"
-#include "test_macros.h"
+#include <soundswallower/acmod.h>
+#include <soundswallower/test_macros.h>
 
 static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(41.00),

@@ -3,7 +3,7 @@
 #include <pocketsphinx.h>
 #include <pocketsphinx_internal.h>
 
-#include "test_macros.h"
+#include <soundswallower/test_macros.h>
 
 static cmd_ln_t *
 default_config()

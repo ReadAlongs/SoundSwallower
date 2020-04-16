@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <time.h>
 
-#include "bitvec.h"
-#include "test_macros.h"
+#include <soundswallower/bitvec.h>
+#include <soundswallower/test_macros.h>
 
 int
 main(int argc, char *argv[])

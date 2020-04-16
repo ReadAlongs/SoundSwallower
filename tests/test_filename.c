@@ -4,8 +4,8 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include "filename.h"
-#include "test_macros.h"
+#include <soundswallower/filename.h>
+#include <soundswallower/test_macros.h>
 
 #include <stdio.h>
 #include <string.h>
