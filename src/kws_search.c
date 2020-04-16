@@ -355,7 +355,8 @@ kws_search_read_list(kws_search_t *kwss, const char* keyfile)
                 begin--;
             line[end] = 0;
             line[begin] = 0;
-            keyphrase->threshold = (int32) logmath_log(kwss->base.acmod->lmath, atof_c(line + begin + 1)) 
+            keyphrase->threshold = (int32) logmath_log(kwss->base.acmod->lmath,
+                                                       atof(line + begin + 1)) 
                                           >> SENSCR_SHIFT;
         } else {
             keyphrase->threshold = kwss->def_threshold;

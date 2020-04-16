@@ -35,8 +35,11 @@
  *
  */
 
+#include "config.h"
+
 /* System headers. */
 #include <stdio.h>
+#include <locale.h>
 
 /* SphinxBase headers. */
 #include <soundswallower/pio.h>
@@ -547,7 +550,7 @@ write_ctm(FILE *fh, ps_decoder_t *ps, ps_seg_t *itor, char const *uttid, int32 f
         if ((c = strchr(c, ',')) != NULL) {
             *c++ = '\0';
             if ((c = strchr(c, ',')) != NULL) {
-                ustart = atof_c(c + 1);
+                ustart = atof(c + 1);
             }
         }
     }
@@ -810,6 +813,9 @@ main(int32 argc, char *argv[])
     cmd_ln_t *config;
     char const *ctl;
     FILE *ctlfh;
+
+    /* Important for sorting dictionaries, parsing floats, etc. */
+    setlocale(LC_ALL, "C");
 
     config = cmd_ln_parse_r(NULL, ps_args_def, argc, argv, TRUE);
 

@@ -27,4 +27,6 @@ endif()
 
 add_executable(ssbatch batch.c)
 target_link_libraries(ssbatch soundswallower)
-target_include_directories(ssbatch PRIVATE ${PROJECT_SOURCE_DIR}/src)
+target_include_directories(ssbatch PRIVATE ${PROJECT_SOURCE_DIR}/src
+  ssbatch PRIVATE ${CMAKE_BINARY_DIR} # for config.h
+  )

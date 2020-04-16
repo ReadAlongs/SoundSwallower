@@ -1049,7 +1049,7 @@ YY_RULE_SETUP
 case 20:
 YY_RULE_SETUP
 #line 84 "_jsgf_scanner.l"
-{ yylval->weight = atof_c(yytext+1); return WEIGHT; }
+{ yylval->weight = atof(yytext+1); return WEIGHT; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP

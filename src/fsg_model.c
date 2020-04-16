@@ -661,7 +661,7 @@ fsg_model_read(FILE * fp, logmath_t * lmath, float32 lw)
                 goto parse_error;
             }
 
-            p = atof_c(wordptr[3]);
+            p = atof(wordptr[3]);
             if ((p <= 0.0) || (p > 1.0)) {
                 E_ERROR
                     ("Line[%d]: transition spec malformed; Expecting float as transition probability\n",

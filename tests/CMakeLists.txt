@@ -3,7 +3,6 @@ set(TESTS
   test_acmod.c
   test_acmod_grow.c
   test_alignment.c
-  test_atof.c
   test_bitarr.c
   test_bit_encode.c
   test_bitvec.c
@@ -73,13 +72,13 @@ add_test(string_trim test_strfuncs string_trim)
 add_test(fread_line test_strfuncs fread_line)
 
 # utility tests
-add_test(atof test_atof)
 add_test(bitarr test_bitarr)
 add_test(bit_encode test_bit_encode)
 add_test(bitvec test_bitvec)
 add_test(ckd_alloc_abort test_ckd_alloc_abort)
 add_test(ckd_alloc_catch test_ckd_alloc_catch)
 add_test(ckd_alloc_fail test_ckd_alloc_fail)
+set_tests_properties(ckd_alloc_abort ckd_alloc_fail PROPERTIES WILL_FAIL TRUE)
 add_test(build_directory test_build_directory)
 add_test(filename test_filename)
 add_test(hash_iter test_hash_iter)

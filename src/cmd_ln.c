@@ -384,7 +384,7 @@ cmd_ln_val_init(int t, const char *name, const char *str)
         case REQARG_FLOATING:
             if (e_str == NULL || e_str[0] == 0)
             valid = 0;
-            val.fl = atof_c(e_str);
+            val.fl = atof(e_str);
             break;
         case ARG_BOOLEAN:
         case REQARG_BOOLEAN:

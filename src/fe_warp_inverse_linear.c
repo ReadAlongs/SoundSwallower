@@ -117,7 +117,7 @@ fe_warp_inverse_linear_set_parameters(char const *param_str, float sampling_rate
     /* FIXME: strtok() is not re-entrant... */
     tok = strtok(temp_param_str, seps);
     while (tok != NULL) {
-        params[param_index++] = (float) atof_c(tok);
+        params[param_index++] = (float) atof(tok);
         tok = strtok(NULL, seps);
         if (param_index >= N_PARAM) {
             break;

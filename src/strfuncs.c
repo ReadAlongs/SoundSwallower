@@ -48,15 +48,6 @@
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/strfuncs.h>
 
-/* Defined in dtoa.c */
-double sb_strtod(const char *s00, char **se);
-
-double
-atof_c(char const *str)
-{
-    return strtod(str, NULL);
-}
-
 /* Locale-independent isspace to avoid different incompatibilities */
 static int
 isspace_c(char ch)
