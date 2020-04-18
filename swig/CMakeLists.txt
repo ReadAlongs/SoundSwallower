@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 set(SWIG_SOURCES
-  pocketsphinx.i
-  sphinxbase.i)
+  soundswallower.i)
 
 set(SWIG_INCLUDES
   cmd_ln.i
@@ -12,7 +11,10 @@ set(SWIG_INCLUDES
   iterators.i
   jsgf.i
   logmath.i
-  typemaps.i)
+  typemaps.i
+  ps_decoder.i
+  ps_lattice.i)
+
 
 option(BUILD_PYTHON "Build Python SWIG module" ON)
 if(BUILD_PYTHON)

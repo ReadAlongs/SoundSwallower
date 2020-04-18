@@ -5,12 +5,12 @@ find_package(Python COMPONENTS Interpreter Development)
 include(UseSWIG)
 
 set(SWIG_SOURCES
-  ../pocketsphinx.i
-  ../sphinxbase.i)
+  ../soundswallower.i)
 
 swig_add_library(sspy
   LANGUAGE python
   SOURCES ${SWIG_SOURCES})
+set_property(TARGET sspy PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(sspy soundswallower)
 target_include_directories(
   sspy PRIVATE ..

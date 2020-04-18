@@ -51,18 +51,18 @@ negative error code."
 %enddef
 
 #if SWIGJAVA
-%module SphinxBase
+%module SoundSwallower
 %rename("%(lowercamelcase)s", notregexmatch$name="^[A-Z]") "";
 #elif SWIGJAVASCRIPT
-%module SphinxBase
+%module SoundSwallower
 %rename("%(lowercamelcase)s", notregexmatch$name="^[A-Z]") "";
 #elif SWIGCSHARP
-%module SphinxBase
+%module SoundSwallower
 %rename("%(camelcase)s", notregexmatch$name="^[A-Z]") "";
 #elif SWIGRUBY
-%module sphinxbase
+%module soundswallower
 #else
-%module(docstring=DOCSTRING) sphinxbase
+%module(docstring=DOCSTRING) soundswallower
 #endif
 
 %feature("autodoc", "1");
@@ -71,6 +71,7 @@ negative error code."
 %include iterators.i
 
 #if SWIGPYTHON
+%include pybuffer.i
 %begin %{
 #include <Python.h>
 %}
@@ -89,6 +90,7 @@ typedef int bool;
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/jsgf.h>
+#include <soundswallower/pocketsphinx.h>
 
 typedef cmd_ln_t Config;
 typedef jsgf_t Jsgf;
@@ -97,8 +99,48 @@ typedef feat_t Feature;
 typedef fe_t FrontEnd;
 typedef fsg_model_t FsgModel;
 typedef logmath_t LogMath;
+
+typedef ps_decoder_t Decoder;
+typedef ps_decoder_t SegmentList;
+typedef ps_decoder_t NBestList;
+typedef ps_lattice_t Lattice;
 %}
 
+%typemap(cscode) Segment %{
+    public override string ToString() {
+	return Word + " " + StartFrame + " " + EndFrame + " " + Prob;
+    }
+%}
+
+%inline %{
+
+// TODO: make private with %immutable
+typedef struct {
+    char *hypstr;
+    int best_score;
+    int prob;
+} Hypothesis;
+
+typedef struct {
+    char *word;
+    int ascore;
+    int lscore;
+    int lback;
+    int prob;
+    int start_frame;
+    int end_frame;
+} Segment;
+
+typedef struct {
+    char *hypstr;
+    int score;
+} NBest;
+
+%}
+
+
+%nodefaultctor SegmentList;
+%nodefaultctor NBestList;
 %nodefaultctor Config;
 
 typedef struct {} Config;
@@ -108,9 +150,18 @@ typedef struct {} FsgModel;
 typedef struct {} JsgfRule;
 typedef struct {} LogMath;
 
+sb_iterator(Segment, ps_seg, Segment)
+sb_iterator(NBest, ps_nbest, NBest)
+sb_iterable(SegmentList, Segment, ps_seg, ps_seg_iter, Segment)
+sb_iterable(NBestList, NBest, ps_nbest, ps_nbest, NBest)
 sb_iterator(Jsgf, jsgf_rule_iter, JsgfRule)
 sb_iterable(Jsgf, Jsgf, jsgf_rule_iter, jsgf_rule_iter, JsgfRule)
+
 typedef struct {} Jsgf;
+typedef struct {} Decoder;
+typedef struct {} Lattice;
+typedef struct {} NBestList;
+typedef struct {} SegmentList;
 
 #ifdef HAS_DOC
 %include pydoc.i
@@ -121,3 +172,66 @@ typedef struct {} Jsgf;
 %include fsg_model.i
 %include jsgf.i
 %include logmath.i
+
+%extend Hypothesis {
+    Hypothesis(char const *hypstr, int best_score, int prob) {
+        Hypothesis *h = (Hypothesis *)ckd_malloc(sizeof *h);
+        if (hypstr)
+            h->hypstr = ckd_salloc(hypstr);
+        else
+    	    h->hypstr = NULL;
+        h->best_score = best_score;
+        h->prob = prob;
+        return h;  
+    }
+
+    ~Hypothesis() {
+        if ($self->hypstr)
+    	    ckd_free($self->hypstr);
+        ckd_free($self);
+    }
+}
+
+%extend Segment {
+
+    static Segment* fromIter(void *itor) {
+	Segment *seg;
+	if (!itor)
+	    return NULL;
+	seg = (Segment *)ckd_malloc(sizeof(Segment));
+	seg->word = ckd_salloc(ps_seg_word((ps_seg_t *)itor));
+	seg->prob = ps_seg_prob((ps_seg_t *)itor, &(seg->ascore), &(seg->lscore), &(seg->lback));
+	ps_seg_frames((ps_seg_t *)itor, &seg->start_frame, &seg->end_frame);
+	return seg;
+    }
+    ~Segment() {
+	ckd_free($self->word);
+	ckd_free($self);
+    }
+}
+
+
+%extend NBest {
+
+    static NBest* fromIter(void *itor) {
+	NBest *nbest;
+	if (!itor)
+	    return NULL;
+	nbest = (NBest *)ckd_malloc(sizeof(NBest));
+	nbest->hypstr = ckd_salloc(ps_nbest_hyp((ps_nbest_t *)itor, &(nbest->score)));
+	return nbest;
+    }
+    
+    %newobject hyp;
+    Hypothesis* hyp() {
+        return $self->hypstr ? new_Hypothesis($self->hypstr, $self->score, 0) : NULL;
+    }
+    
+    ~NBest() {
+	ckd_free($self->hypstr);
+	ckd_free($self);
+    }
+}
+
+%include ps_decoder.i
+%include ps_lattice.i
