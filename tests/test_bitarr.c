@@ -2,6 +2,8 @@
  * @file test_bitarr.c Test bit array io
  */
 
+#include "config.h"
+
 #include <soundswallower/bitarr.h>
 
 #include <stdio.h>

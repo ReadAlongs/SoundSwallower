@@ -96,7 +96,7 @@ typedef union anytype_s {
 } anytype_t;
 
 /*
- * Assume P64 or LP64.  If you need to port this to a DSP, let us know.
+ * FIXME: Not the right way to do this, we should probably use C99 types.
  */
 typedef int		int32;
 typedef short		int16;
@@ -109,13 +109,10 @@ typedef double		float64;
 #if defined(_MSC_VER)
 typedef __int64	         int64;
 typedef unsigned __int64 uint64;
-#elif defined(HAVE_LONG_LONG) && (SIZEOF_LONG_LONG == 8)
+#else
 typedef long long	   int64;
 typedef unsigned long long uint64;
-#else /* !HAVE_LONG_LONG && SIZEOF_LONG_LONG == 8 */
-typedef double          int64;
-typedef double          uint64;
-#endif /* !HAVE_LONG_LONG && SIZEOF_LONG_LONG == 8 */
+#endif
 
 #ifndef TRUE
 #define TRUE 1

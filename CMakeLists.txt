@@ -16,7 +16,6 @@ CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
 CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
-CHECK_TYPE_SIZE("long long" LONG_LONG)
 
 configure_file(config.h.in config.h)
 

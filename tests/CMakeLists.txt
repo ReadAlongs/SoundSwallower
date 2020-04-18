@@ -8,7 +8,6 @@ set(TESTS
   test_bitvec.c
   test_build_directory.c
   test_case.c
-  test_ckd_alloc_abort.c
   test_ckd_alloc_catch.c
   test_ckd_alloc_fail.c
   test_cmdln.c
@@ -38,7 +37,6 @@ set(TESTS
   test_pitch.c
   test_ptm_mgau.c
   test_readfile.c
-  test_reinit.c
   test_solve.c
   test_state_align.c
   test_strfuncs.c
@@ -75,10 +73,9 @@ add_test(fread_line test_strfuncs fread_line)
 add_test(bitarr test_bitarr)
 add_test(bit_encode test_bit_encode)
 add_test(bitvec test_bitvec)
-add_test(ckd_alloc_abort test_ckd_alloc_abort)
 add_test(ckd_alloc_catch test_ckd_alloc_catch)
 add_test(ckd_alloc_fail test_ckd_alloc_fail)
-set_tests_properties(ckd_alloc_abort ckd_alloc_fail PROPERTIES WILL_FAIL TRUE)
+set_tests_properties(ckd_alloc_fail PROPERTIES WILL_FAIL TRUE)
 add_test(build_directory test_build_directory)
 add_test(filename test_filename)
 add_test(hash_iter test_hash_iter)
@@ -90,7 +87,6 @@ add_test(log_int16 test_log_int16)
 add_test(log_int8 test_log_int8)
 add_test(log_shifted test_log_shifted)
 add_test(readfile test_readfile)
-add_test(reinit test_reinit)
 # solve requires output FIXME
 
 # command-line tests require output FIXME
