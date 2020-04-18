@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.13)
 include(CheckTypeSize)
 include(CheckSymbolExists)
 
@@ -20,6 +20,7 @@ CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 configure_file(config.h.in config.h)
 
 add_subdirectory(src)
+add_subdirectory(swig)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
   add_subdirectory(tests)
 endif()
