@@ -4,7 +4,6 @@ set(SOURCES
   bio.c
   bitarr.c
   bitvec.c
-  blas_lite.c
   blkarray_list.c
   case.c
   ckd_alloc.c
@@ -15,7 +14,6 @@ set(SOURCES
   dict.c
   err.c
   errno.c
-  f2c_lite.c
   feat.c
   fe_interface.c
   fe_noise.c
@@ -58,8 +56,6 @@ set(SOURCES
   ps_mllr.c
   ptm_mgau.c
   s2_semi_mgau.c
-  slamch.c
-  slapack_lite.c
   state_align_search.c
   strfuncs.c
   tmat.c
@@ -67,11 +63,22 @@ set(SOURCES
   yin.c
   )
 
-add_library(soundswallower ${SOURCES})
+if(LAPACK_LITE)
+  set(LAPACK_SOURCES
+    slapack_lite.c
+    blas_lite.c
+    f2c_lite.c
+    slamch.c)
+endif()
+
+add_library(soundswallower ${SOURCES} ${LAPACK_SOURCES})
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
   soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
   soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include)
 find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
   target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})
+endif()
+if(HAVE_LIBLAPACK)
+  target_link_libraries(soundswallower PUBLIC lapack)
 endif()
