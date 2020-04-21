@@ -184,8 +184,8 @@ ps_default_search_args(cmd_ln_t *config)
     const char *lmfile = cmd_ln_str_r(config, "-lm");
     const char *dictfile = cmd_ln_str_r(config, "-dict");
 
-    if (hmmdir == NULL && hmmdir_exists(MODELDIR "/en-us/en-us")) {
-        hmmdir = MODELDIR "/en-us/en-us";
+    if (hmmdir == NULL && hmmdir_exists(MODELDIR "/en-us")) {
+        hmmdir = MODELDIR "/en-us";
         cmd_ln_set_str_r(config, "-hmm", hmmdir);
     }
 
@@ -195,13 +195,13 @@ ps_default_search_args(cmd_ln_t *config)
         && !cmd_ln_str_r(config, "-kws")
         && !cmd_ln_str_r(config, "-keyphrase")
         && !cmd_ln_str_r(config, "-alignctl")
-        && file_exists(MODELDIR "/en-us/en-us.lm.bin")) {
-        lmfile = MODELDIR "/en-us/en-us.lm.bin";
+        && file_exists(MODELDIR "/en-us.lm.bin")) {
+        lmfile = MODELDIR "/en-us.lm.bin";
         cmd_ln_set_str_r(config, "-lm", lmfile);
     }
 
-    if (dictfile == NULL && file_exists(MODELDIR "/en-us/cmudict-en-us.dict")) {
-        dictfile = MODELDIR "/en-us/cmudict-en-us.dict";
+    if (dictfile == NULL && file_exists(MODELDIR "/en-us.dict")) {
+        dictfile = MODELDIR "/en-us.dict";
         cmd_ln_set_str_r(config, "-dict", dictfile);
     }
 #endif

@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-dict", TESTDATADIR "/turtle.dic",
                 "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-dict", TESTDATADIR "/turtle.dic",
                 "-jsgf", TESTDATADIR "/goforward.gram",
                 "-samprate", "16000", NULL));
@@ -68,7 +68,7 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-dict", TESTDATADIR "/turtle.dic",
                 "-jsgf", TESTDATADIR "/goforward.gram",
                 "-toprule", "goforward.move2",
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-dict", TESTDATADIR "/turtle.dic",
                 "-jsgf", TESTDATADIR "/defective.gram",
                 NULL));

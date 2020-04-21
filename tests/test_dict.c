@@ -19,12 +19,12 @@ main(int argc, char *argv[])
 	char buf[100];
 
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us/cmudict-en-us.dict",
-						   "_fdict", MODELDIR "/en-us/en-us/noisedict",
+						   "-dict", MODELDIR "/en-us.dict",
+						   "_fdict", MODELDIR "/en-us/noisedict",
 						   NULL));
 
 	/* Test dictionary in standard fashion. */
-	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/en-us/mdef"));
+	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
 
 	printf("Word ID (CARNEGIE) = %d\n",
@@ -32,8 +32,10 @@ main(int argc, char *argv[])
 	printf("Word ID (ASDFASFASSD) = %d\n",
 	       dict_wordid(dict, "ASDFASFASSD"));
 
+#ifndef _WIN32
 	TEST_EQUAL(0, dict_write(dict, "_cmu07a.dic", NULL));
-	TEST_EQUAL(0, system("diff -uw " MODELDIR "/en-us/cmudict-en-us.dict _cmu07a.dic"));
+	TEST_EQUAL(0, system("diff -uw " MODELDIR "/en-us.dict _cmu07a.dic"));
+#endif
 
 	dict_free(dict);
 	bin_mdef_free(mdef);

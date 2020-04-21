@@ -66,8 +66,8 @@ main(int argc, char *argv[])
     int i, sf, ef, last_ef;
 
     config = cmd_ln_init(NULL, ps_args(), FALSE,
-                 "-hmm", MODELDIR "/en-us/en-us",
-                 "-dict", MODELDIR "/en-us/cmudict-en-us.dict",
+                 "-hmm", MODELDIR "/en-us",
+                 "-dict", MODELDIR "/en-us.dict",
                  "-samprate", "16000", NULL);
     TEST_ASSERT(ps = ps_init(config));
     dict = ps->dict;

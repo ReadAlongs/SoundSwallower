@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-fsg", TESTDATADIR "/goforward.fsg",
                 "-dict", TESTDATADIR "/turtle.dic",
                 "-bestpath", "no",

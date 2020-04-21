@@ -13,8 +13,8 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
+                "-hmm", MODELDIR "/en-us",
                 "-kws", TESTDATADIR "/goforward.kws",
-                "-dict", MODELDIR "/en-us/cmudict-en-us.dict", NULL));
+                "-dict", MODELDIR "/en-us.dict", NULL));
     return ps_decoder_test(config, "KEYPHRASE", "forward");
 }

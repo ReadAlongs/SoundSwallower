@@ -93,13 +93,13 @@ main(int argc, char *argv[])
 	config = cmd_ln_init(NULL, ps_args(), TRUE,
 	     "-compallsen", "yes",
 	     NULL);
-	cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/en-us/feat.params", FALSE);
+	cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
 
-	cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/en-us/mdef");
-	cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/en-us/means");
-	cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/en-us/variances");
-	cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/en-us/transition_matrices");
-	cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/en-us/sendump");
+	cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef");
+	cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/means");
+	cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/variances");
+	cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/transition_matrices");
+	cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/sendump");
 	cmd_ln_set_str_extra_r(config, "_mixw", NULL);
 	cmd_ln_set_str_extra_r(config, "_lda", NULL);
 	cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
@@ -129,7 +129,7 @@ main(int argc, char *argv[])
 	ptm_mgau_free(ps);
 	cmd_ln_set_str_r(config,
 			 "-mixw",
-			 MODELDIR "/en-us/en-us/mixture_weights");
+			 MODELDIR "/en-us/mixture_weights");
 	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
 	run_acmod_test(acmod);
 	cmd_ln_free_r(config);
