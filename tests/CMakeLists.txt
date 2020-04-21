@@ -49,6 +49,10 @@ foreach(TEST_SOURCE ${TESTS})
     ${CMAKE_BINARY_DIR} # for config.h
     ${CMAKE_CURRENT_BINARY_DIR} # for test_macros.h
     ${PROJECT_SOURCE_DIR}/src)
+    add_custom_command(TARGET ${TEST_EXECUTABLE} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:soundswallower>
+        $<TARGET_FILE_DIR:${TEST_EXECUTABLE}>)
 endforeach()
 
 # weird case-changing tests, not sure where they came from

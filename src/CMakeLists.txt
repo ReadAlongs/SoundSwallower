@@ -72,6 +72,7 @@ if(LAPACK_LITE)
 endif()
 
 add_library(soundswallower ${SOURCES} ${LAPACK_SOURCES})
+set_property(TARGET soundswallower PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
   soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
   soundswallower PUBLIC ${PROJECT_SOURCE_DIR}/include)
