@@ -34,7 +34,6 @@ To build the JavaScript library, use CMake with Emscripten:
 
 To build the Python extension, use setup.py in the standard way:
 
-	cd pyext
 	python setup.py bdist_wheel
 
 In all cases the resulting binary is self-contained and should not

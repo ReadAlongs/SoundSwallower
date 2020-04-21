@@ -6,7 +6,7 @@ setup(
     version="0.1.1",
     description="An even smaller speech recognizer",
     author="David Huggins-Daines",
-    author_email="dhdaines@gmail.com"
+    author_email="dhdaines@gmail.com",
     url="https://github.com/ReadAlongs/SoundSwallower",
     packages=["soundswallower"],
     include_package_data=True,
