@@ -3,7 +3,7 @@ include(CheckTypeSize)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 
-project(soundswallower VERSION 0.1
+project(soundswallower VERSION 0.1.1
   DESCRIPTION "An even smaller speech recognizer")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -45,3 +45,24 @@ target_include_directories(
 install(TARGETS soundswallower DESTINATION lib)
 install(TARGETS ssbatch DESTINATION bin)
 
+# Specific configuration for Python extension build
+if(SKBUILD)
+  find_package(PythonExtensions REQUIRED)
+  find_package(Python COMPONENTS Interpreter Development)
+
+  set(BUILD_SHARED_LIBS OFF)
+  set_property(TARGET soundswallower PROPERTY POSITION_INDEPENDENT_CODE on)
+
+  add_library(_soundswallower MODULE pyext/soundswallower_wrap.c)
+  set_property(TARGET _soundswallower PROPERTY PREFIX "")
+  target_link_libraries(_soundswallower soundswallower)
+  target_include_directories(
+    _soundswallower PRIVATE ${PYTHON_INCLUDE_DIR}
+    _soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
+    _soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/include
+    _soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
+    )
+
+  set(MODELDIR ${PROJECT_SOURCE_DIR}/model)
+  install(DIRECTORY ${MODELDIR} DESTINATION soundswallower)
+endif()
