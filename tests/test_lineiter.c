@@ -7,7 +7,7 @@ int
 main(int argc, char *argv[])
 {
 	FILE *fp;
-	fp = fopen(TESTDATADIR "/test.txt", "rb");
+	fp = fopen(TESTDATADIR "/test.txt", "r");
 	lineiter_t *li;
 	int i;
 	
