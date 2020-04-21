@@ -75,4 +75,3 @@ find_library(MATH_LIBRARY m)
 if(MATH_LIBRARY)
   target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})
 endif()
-

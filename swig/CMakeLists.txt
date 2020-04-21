@@ -14,9 +14,3 @@ set(SWIG_INCLUDES
   typemaps.i
   ps_decoder.i
   ps_lattice.i)
-
-
-option(BUILD_PYTHON "Build Python SWIG module" ON)
-if(BUILD_PYTHON)
-  add_subdirectory(python)
-endif()

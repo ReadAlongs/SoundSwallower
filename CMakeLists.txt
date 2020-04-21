@@ -20,6 +20,7 @@ CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 configure_file(config.h.in config.h)
 
 add_subdirectory(src)
+add_subdirectory(include/soundswallower)
 add_subdirectory(swig)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
   add_subdirectory(tests)
@@ -30,3 +31,7 @@ target_link_libraries(ssbatch soundswallower)
 target_include_directories(ssbatch PRIVATE ${PROJECT_SOURCE_DIR}/src
   ssbatch PRIVATE ${CMAKE_BINARY_DIR} # for config.h
   )
+
+install(TARGETS soundswallower DESTINATION lib)
+install(TARGETS ssbatch DESTINATION bin)
+
