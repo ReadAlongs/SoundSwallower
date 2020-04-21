@@ -6,5 +6,6 @@ setup(
     description="An even smaller speech recognizer",
     author="David Huggins-Daines",
     license="MIT",
-    packages=["soundswallower"]
+    packages=["soundswallower"],
+    include_package_data=True
     )

@@ -30,3 +30,6 @@ target_include_directories(
   )
 python_extension_module(_soundswallower)
 install(TARGETS _soundswallower LIBRARY DESTINATION soundswallower)
+
+set(MODELDIR ${PROJECT_SOURCE_DIR}/../model)
+install(DIRECTORY ${MODELDIR}  DESTINATION soundswallower)
