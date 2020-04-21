@@ -4,14 +4,15 @@ from os import environ, path
 from sys import stdout
 
 from soundswallower import Decoder
+from soundswallower import Jsgf
 
-MODELDIR = "../../../model"
-DATADIR = "../../../test/data"
+MODELDIR = "../model"
+DATADIR = "../tests/data"
 
 # Create a decoder with certain model
 config = Decoder.default_config()
 config.set_string('-hmm', path.join(MODELDIR, 'en-us/en-us'))
-config.set_string('-lm', path.join(DATADIR, 'turtle.lm.bin'))
+config.set_string('-fsg', path.join(DATADIR, 'goforward.fsg'))
 config.set_string('-dict', path.join(DATADIR, 'turtle.dic'))
 decoder = Decoder(config)
 

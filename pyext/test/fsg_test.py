@@ -2,8 +2,8 @@
 
 import sys
 
-from sphinxbase import LogMath
-from sphinxbase import FsgModel
+from soundswallower import LogMath
+from soundswallower import FsgModel
 
 lmath = LogMath()
 fsg = FsgModel("simple_grammar", lmath, 1.0, 10)

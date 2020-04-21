@@ -6,7 +6,7 @@ from soundswallower import Decoder
 
 #some dumb test for checking during developent
 
-MODELDIR = "../../../model"
+MODELDIR = "../model"
 
 config = Decoder.default_config()
 

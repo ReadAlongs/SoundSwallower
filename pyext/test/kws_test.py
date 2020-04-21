@@ -4,8 +4,8 @@ import sys, os
 
 from soundswallower import Decoder
 
-modeldir = "../../../model"
-datadir = "../../../test/data"
+modeldir = "../model"
+datadir = "../tests/data"
 
 # Create a decoder with certain model
 config = Decoder.default_config()
