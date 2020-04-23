@@ -1,3 +1,7 @@
+// Originally written by and
+// Copyright © 2013-2017 Sylvain Chevalier
+// MIT license, see LICENSE for details
+
 #ifndef _PSRECOGNIZER_H_
 #define _PSRECOGNIZER_H_
 

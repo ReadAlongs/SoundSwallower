@@ -239,6 +239,11 @@ logmath_read(const char *file_name)
         E_WARN("%s: Data is wrong-endian, will not memory map\n", file_name);
         do_mmap = 0;
     }
+#ifdef __EMSCRIPTEN__
+    E_WARN("-mmap specified, but mmap() doesn't work in Emscripten. "
+           "Will not memory-map.\n");
+    do_mmap = FALSE;
+#endif
 
     if (do_mmap) {
         lmath->filemap = mmio_file_read(file_name);

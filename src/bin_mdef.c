@@ -403,6 +403,11 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
 
     /* Decide whether to read in the whole file or mmap it. */
     do_mmap = config ? cmd_ln_boolean_r(config, "-mmap") : TRUE;
+#ifdef __EMSCRIPTEN__
+    E_WARN("-mmap specified, but mmap() doesn't work in Emscripten. "
+           "Will not memory-map.\n");
+    do_mmap = FALSE;
+#endif
     if (swap) {
         E_WARN("-mmap specified, but mdef is other-endian.  Will not memory-map.\n");
         do_mmap = FALSE;
@@ -415,8 +420,10 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
     }
     pos = ftell(fh);
     if (do_mmap) {
+        E_INFO("header says:\n%s\n", mmio_file_ptr(m->filemap));
         /* Get the base pointer from the memory map. */
         m->ciname[0] = (char *)mmio_file_ptr(m->filemap) + pos;
+        E_INFO("pos is %ld ciname[0] is %s\n", pos, m->ciname[0]);
         /* Success! */
         m->alloc_mode = BIN_MDEF_ON_DISK;
     }
@@ -431,8 +438,10 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
             E_FATAL("Failed to read %d bytes of data from %s\n", end - pos, filename);
     }
 
-    for (i = 1; i < m->n_ciphone; ++i)
+    for (i = 1; i < m->n_ciphone; ++i) {
         m->ciname[i] = m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1;
+        E_INFO("ciname[%d] is %s\n", i, m->ciname[i]);
+    }
 
     /* Skip past the padding. */
     tree_start =

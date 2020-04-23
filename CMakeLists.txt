@@ -53,32 +53,24 @@ if(SKBUILD)
   install(DIRECTORY model DESTINATION py/soundswallower)
 elseif(EMSCRIPTEN)
   # Specific configuration for JavaScript build
-  option(WASM "Build to WebAssembly" ON)
-  set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
-  option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
-  # Compile to WebAssembly?
-  if(WASM)
-    separate_arguments(binaryen UNIX_COMMAND "-s WASM=1")
-  else(WASM)
-    separate_arguments(binaryen UNIX_COMMAND "-s WASM=0")
-  endif(WASM)
-  # We are using the C++ binding utility of emscripten, this needs to be
-  # added to the compilation command
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Oz -DMODELDIR=\"\"")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Oz --bind")
-  target_sources(
-    soundswallower PRIVATE js/psRecognizer.cpp)
-  # Adding custom target for the JavaScript library.
-  add_custom_target(soundswallower.js ALL
-    COMMAND ${CMAKE_C_COMPILER} -Oz ${binaryen}
-    -s ERROR_ON_UNDEFINED_SYMBOLS=0
-    -s TOTAL_MEMORY=100663296
-    --bind --memory-init-file 0
-    $<TARGET_FILE:soundswallower>
-    -o soundswallower.js ${EMBED}
-    DEPENDS soundswallower
-    )
   configure_file(js/pocketsphinxjs-config.h.in pocketsphinxjs-config.h)
+  add_executable(ssjs js/psRecognizer.cpp)
+  set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
+  target_link_libraries(ssjs soundswallower)
+  target_compile_options(ssjs PRIVATE --bind)
+  target_link_options(ssjs PRIVATE --bind)
+  target_link_options(ssjs PRIVATE "SHELL:-s WASM=0")
+  # FIXME: Need to optimize with recognizer.js to get only what we need
+  target_link_options(ssjs PRIVATE "SHELL:-s FORCE_FILESYSTEM=1")
+  target_link_options(ssjs PRIVATE "SHELL:-s TOTAL_MEMORY=100663296")
+  target_link_options(ssjs PRIVATE "SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=0")
+  target_link_options(ssjs PRIVATE "SHELL:--memory-init-file 0")
+  target_include_directories(
+    ssjs PRIVATE ${PYTHON_INCLUDE_DIR}
+    ssjs PRIVATE ${PROJECT_SOURCE_DIR}/src
+    ssjs PRIVATE ${PROJECT_SOURCE_DIR}/include
+    ssjs PRIVATE ${CMAKE_BINARY_DIR} # for config.h
+    )
 else()
   # Normal build and installation
   option(BUILD_SHARED_LIBS "Build using shared libraries" ON)

@@ -895,6 +895,11 @@ read_sendump(s2_semi_mgau_t *s, bin_mdef_t *mdef, char const *file)
 
     s->n_sen = n_sen; /* FIXME: Should have been done earlier */
     do_mmap = cmd_ln_boolean_r(s->config, "-mmap");
+#ifdef __EMSCRIPTEN__
+    E_WARN("-mmap specified, but mmap() doesn't work in Emscripten. "
+           "Will not memory-map.\n");
+    do_mmap = FALSE;
+#endif
 
     if ((fp = fopen(file, "rb")) == NULL)
         return -1;
