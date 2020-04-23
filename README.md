@@ -28,7 +28,8 @@ build the C shared library and binaries, run CMake in the standard way:
 
 To build the JavaScript library, use CMake with Emscripten:
 
-	cd jslib
+	mkdir jsbuild
+	cd jsbuild
 	emcmake cmake ..
 	make
 

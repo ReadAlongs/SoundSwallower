@@ -37,7 +37,7 @@ if(SKBUILD)
 
   set_property(TARGET soundswallower PROPERTY POSITION_INDEPENDENT_CODE on)
 
-  add_library(_soundswallower MODULE soundswallower_wrap.c)
+  add_library(_soundswallower MODULE py/soundswallower_wrap.c)
   set_property(TARGET _soundswallower PROPERTY PREFIX "")
   target_link_libraries(_soundswallower soundswallower)
   target_include_directories(
@@ -51,6 +51,34 @@ if(SKBUILD)
   # scikit-build, which is not very smart, gets very confused.
   install(TARGETS _soundswallower LIBRARY DESTINATION py/soundswallower)
   install(DIRECTORY model DESTINATION py/soundswallower)
+elseif(EMSCRIPTEN)
+  # Specific configuration for JavaScript build
+  option(WASM "Build to WebAssembly" ON)
+  set_property(GLOBAL PROPERTY TARGET_SUPPORTS_SHARED_LIBS TRUE)
+  option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+  # Compile to WebAssembly?
+  if(WASM)
+    separate_arguments(binaryen UNIX_COMMAND "-s WASM=1")
+  else(WASM)
+    separate_arguments(binaryen UNIX_COMMAND "-s WASM=0")
+  endif(WASM)
+  # We are using the C++ binding utility of emscripten, this needs to be
+  # added to the compilation command
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Oz -DMODELDIR=\"\"")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Oz --bind")
+  target_sources(
+    soundswallower PRIVATE js/psRecognizer.cpp)
+  # Adding custom target for the JavaScript library.
+  add_custom_target(soundswallower.js ALL
+    COMMAND ${CMAKE_C_COMPILER} -Oz ${binaryen}
+    -s ERROR_ON_UNDEFINED_SYMBOLS=0
+    -s TOTAL_MEMORY=100663296
+    --bind --memory-init-file 0
+    $<TARGET_FILE:soundswallower>
+    -o soundswallower.js ${EMBED}
+    DEPENDS soundswallower
+    )
+  configure_file(js/pocketsphinxjs-config.h.in pocketsphinxjs-config.h)
 else()
   # Normal build and installation
   option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
