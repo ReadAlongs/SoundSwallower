@@ -4,7 +4,7 @@ from setuptools import find_packages
 setup(
     name="soundswallower",
     license="MIT",
-    version="0.1.1",
+    version="0.1.2",
     description="An even smaller speech recognizer",
     author="David Huggins-Daines",
     author_email="dhdaines@gmail.com",
