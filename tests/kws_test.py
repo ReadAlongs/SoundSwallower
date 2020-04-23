@@ -2,21 +2,21 @@
 
 import sys, os
 
-from soundswallower import Decoder
+from soundswallower import Decoder, get_model_path
 
-modeldir = "../model"
-datadir = "../tests/data"
+MODELDIR = get_model_path()
+DATADIR = os.path.join(os.path.dirname(__file__), "data")
 
 # Create a decoder with certain model
 config = Decoder.default_config()
-config.set_string('-hmm', os.path.join(modeldir, 'en-us'))
-config.set_string('-dict', os.path.join(modeldir, 'en-us.dict'))
+config.set_string('-hmm', os.path.join(MODELDIR, 'en-us'))
+config.set_string('-dict', os.path.join(MODELDIR, 'en-us.dict'))
 config.set_string('-keyphrase', 'forward')
 config.set_float('-kws_threshold', 1e+20)
 
 
 # Open file to read the data
-stream = open(os.path.join(datadir, "goforward.raw"), "rb")
+stream = open(os.path.join(DATADIR, "goforward.raw"), "rb")
 
 # Alternatively you can read from microphone
 # import pyaudio

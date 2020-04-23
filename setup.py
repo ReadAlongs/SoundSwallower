@@ -1,4 +1,5 @@
 from skbuild import setup
+from setuptools import find_packages
 
 setup(
     name="soundswallower",
@@ -8,8 +9,8 @@ setup(
     author="David Huggins-Daines",
     author_email="dhdaines@gmail.com",
     url="https://github.com/ReadAlongs/SoundSwallower",
-    packages=["soundswallower"],
-    include_package_data=True,
+    packages=find_packages('py'),
+    package_dir={"": "py"},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Programming Language :: C",

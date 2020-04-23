@@ -2,13 +2,12 @@
 
 from os import environ, path
 
-from soundswallower import Decoder
+from soundswallower import Decoder, get_model_path
 
-MODELDIR = "../model"
-DATADIR = "../tests/data"
+DATADIR = path.join(path.dirname(__file__), "data")
 
 config = Decoder.default_config()
-config.set_string('-hmm', path.join(MODELDIR, 'en-us'))
+config.set_string('-hmm', path.join(get_model_path(), 'en-us'))
 config.set_string('-fsg', path.join(DATADIR, 'goforward.fsg'))
 config.set_string('-dict', path.join(DATADIR, 'turtle.dic'))
 config.set_string('-logfn', '/dev/null')

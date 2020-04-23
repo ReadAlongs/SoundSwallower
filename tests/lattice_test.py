@@ -2,10 +2,10 @@
 
 from os import environ, path
 
-from soundswallower import Decoder
+from soundswallower import Decoder, get_model_path
 
-MODELDIR = "../model"
-DATADIR = "../tests/data"
+MODELDIR = get_model_path()
+DATADIR = path.join(path.dirname(__file__), "data")
 
 # Create a decoder with certain model
 config = Decoder.default_config()

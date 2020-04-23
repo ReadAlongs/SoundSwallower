@@ -47,10 +47,10 @@ if(SKBUILD)
     _soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
     )
   python_extension_module(_soundswallower)
-  install(TARGETS _soundswallower LIBRARY DESTINATION soundswallower)
-  
-  set(MODELDIR ${PROJECT_SOURCE_DIR}/model)
-  install(DIRECTORY ${MODELDIR} DESTINATION soundswallower)
+  # Need to install the library in the same place as the module or
+  # scikit-build, which is not very smart, gets very confused.
+  install(TARGETS _soundswallower LIBRARY DESTINATION py/soundswallower)
+  install(DIRECTORY model DESTINATION py/soundswallower)
 else()
   # Normal build and installation
   option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
