@@ -420,10 +420,8 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
     }
     pos = ftell(fh);
     if (do_mmap) {
-        E_INFO("header says:\n%s\n", mmio_file_ptr(m->filemap));
         /* Get the base pointer from the memory map. */
         m->ciname[0] = (char *)mmio_file_ptr(m->filemap) + pos;
-        E_INFO("pos is %ld ciname[0] is %s\n", pos, m->ciname[0]);
         /* Success! */
         m->alloc_mode = BIN_MDEF_ON_DISK;
     }
@@ -440,7 +438,6 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
 
     for (i = 1; i < m->n_ciphone; ++i) {
         m->ciname[i] = m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1;
-        E_INFO("ciname[%d] is %s\n", i, m->ciname[i]);
     }
 
     /* Skip past the padding. */
