@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-"""
-Command-line interface for SoundSwallower.
+"""Command-line interface for SoundSwallower.  Takes audio files as
+input and outputs JSON (to standard output, or a file) containing a
+list of time alignments for recognized words.
 
 Basic usage, to recognize using a JSGF grammar:
 
@@ -24,6 +25,7 @@ To use a different model:
 To use a custom dictionary:
 
   soundswallower --dict /path/to/dictionary.dict
+
 """
 
 import soundswallower as ss
@@ -37,7 +39,8 @@ import os
 
 def make_argparse():
     """Function to make the argument parser (for auto-documentation purposes)"""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("inputs", nargs="+",
                         help="One or more input files.")
     parser.add_argument("--dict", help="Custom dictionary file.")
@@ -45,6 +48,8 @@ def make_argparse():
                         help="Specific model, built-in or from directory.",
                         default='en-us')
     parser.add_argument("--config", help="JSON file with decoder configuration.")
+    parser.add_argument("-o", "--output",
+                        help="Filename for output (default is standard output")
     grammars = parser.add_mutually_exclusive_group(required=True)
     grammars.add_argument("-k", "--keyword", action='append',
                           help="One or more keywords to spot in input audio.")
@@ -200,9 +205,15 @@ def main(argv=None):
         make_fsg(fsg_temp, words)
         config.set_string("-fsg", fsg_temp.name)
     decoder = ss.Decoder(config)
+    results = []
     for input_file in args.inputs:
-        decode_file(decoder, config, args, input_file)
-
+        file_align = decode_file(decoder, config, args, input_file)
+        results.append(file_align)
+    if args.output is not None:
+        with open(args.output, 'w') as outfh:
+            json.dump(results, outfh)
+    else:
+        print(json.dumps(results))
 
 if __name__ == "__main__":
     main()
