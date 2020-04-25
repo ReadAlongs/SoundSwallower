@@ -166,6 +166,11 @@ def decode_file(decoder, config, args, input_file):
     if len(results) == 0:
         raise RuntimeError("Decoding produced only noise or silence segments, "
                            "please examine dictionary and input audio and text.")
+
+    # For some reason the keyword search results are backwards. This
+    # should get fixed in kws_search.c but for now we'll fix it here.
+    if args.keywords is not None or args.keyword:
+        results = results[::-1]
     return results
 
 
@@ -214,6 +219,7 @@ def main(argv=None):
             json.dump(results, outfh)
     else:
         print(json.dumps(results))
+
 
 if __name__ == "__main__":
     main()
