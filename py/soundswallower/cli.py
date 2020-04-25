@@ -24,10 +24,6 @@ To use a different model:
 To use a custom dictionary:
 
   soundswallower --dict /path/to/dictionary.dict
-
-To list available built-in models:
-
-  soundswallower --list-models
 """
 
 import soundswallower as ss
@@ -36,6 +32,7 @@ import argparse
 import tempfile
 import json
 import wave
+import os
 
 
 def make_argparse():
@@ -44,14 +41,17 @@ def make_argparse():
     parser.add_argument("inputs", nargs="+",
                         help="One or more input files.")
     parser.add_argument("--dict", help="Custom dictionary file.")
-    parser.add_argument("--model", help="Specific model, built-in or from directory.")
+    parser.add_argument("--model",
+                        help="Specific model, built-in or from directory.",
+                        default='en-us')
     parser.add_argument("--config", help="JSON file with decoder configuration.")
     grammars = parser.add_mutually_exclusive_group(required=True)
     grammars.add_argument("-k", "--keyword", action='append',
-                        help="One or more keywords to spot in input audio.")
-    grammars.add_argument("--keywords", help="File listing keywords, one per line.")
-    grammars.add_argument("--align", help="Input text for force alignment.")
-    grammars.add_argument("--grammar", help="Grammar file for recognition.")
+                          help="One or more keywords to spot in input audio.")
+    grammars.add_argument("-l", "--keywords",
+                          help="File listing keywords, one per line.")
+    grammars.add_argument("-a", "--align", help="Input text for force alignment.")
+    grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     parser.add_argument_group(grammars)
     return parser
 
@@ -77,9 +77,14 @@ def make_decoder_config(args):
                     config.set_float(value)
                 else:
                     config.set_string(value)
-    if args.model is not None:
+    model_path = ss.get_model_path()
+    if args.model in os.listdir(model_path):
+        config.set_string("-hmm", os.path.join(model_path, args.model))
+        config.set_string("-dict", os.path.join(model_path,
+                                                args.model + '.dict'))
+    else:
         config.set_string("-hmm", args.model)
-        config.set_string("-dict", args.model + '.dict')
+        config.set_string("-dict", os.path.normpath(args.model) + '.dict')
     # FIXME: This actually should be in addition to the built-in
     # dictionary, or we should have G2P support, which shouldn't be
     # all that hard, we hope.
@@ -90,6 +95,7 @@ def make_decoder_config(args):
         config.set_string("-jsgf", args.grammar)
     elif args.keywords:
         config.set_string("-kws", args.keywords)
+        
     return config
 
 
@@ -158,19 +164,41 @@ def decode_file(decoder, config, args, input_file):
     return results
 
 
+def make_fsg(outfh, words):
+    """Make an FSG for word-level "force-alignment" that is just a linear
+    chain of all the words."""
+    outfh.write("""FSG_BEGIN align
+NUM_STATES %d
+START_STATE 0
+FINAL_STATE %d
+""" % (len(words) + 1, len(words)))
+    for i, w in enumerate(words):
+        outfh.write("TRANSITION %d %d 1.0 %s\n" % (i, i + 1, w))
+    outfh.write("FSG_END\n")
+    outfh.flush()
+
+
 def main(argv=None):
     """Main entry point for SoundSwallower."""
     logging.basicConfig(level=logging.INFO)
     parser = make_argparse()
     args = parser.parse_args(argv)
     config = make_decoder_config(args)
-    # FIXME: need to do this without a temporary file
+    # FIXME: These two should be doable without temporary files, but
+    # we need to improve the decoder API somewhat for that.
     if args.keyword:
         kws_temp = tempfile.NamedTemporaryFile(mode="w")
         for k in args.keyword:
             print(("%s\n" % k), file=kws_temp)
         kws_temp.flush()
         config.set_string("-kws", kws_temp.name)
+    elif args.align:
+        words = []
+        with open(args.align) as fh:
+            words = fh.read().strip().split()
+        fsg_temp = tempfile.NamedTemporaryFile(mode="w")
+        make_fsg(fsg_temp, words)
+        config.set_string("-fsg", fsg_temp.name)
     decoder = ss.Decoder(config)
     for input_file in args.inputs:
         decode_file(decoder, config, args, input_file)
