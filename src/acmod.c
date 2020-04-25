@@ -107,18 +107,26 @@ acmod_init_am(acmod_t *acmod)
             return -1;
     }
     else {
+#ifdef WITH_PTM_MGAU
         E_INFO("Attempting to use PTM computation module\n");
         if ((acmod->mgau = ptm_mgau_init(acmod, acmod->mdef)) == NULL) {
+#endif /* WITH_PTM_MGAU */
+#ifdef WITH_S2_SEMI_MGAU
             E_INFO("Attempting to use semi-continuous computation module\n");
             if ((acmod->mgau = s2_semi_mgau_init(acmod)) == NULL) {
                 E_INFO("Falling back to general multi-stream GMM computation\n");
+#endif /* WITH_S2_SEMI_MGAU */
                 acmod->mgau = ms_mgau_init(acmod, acmod->lmath, acmod->mdef);
                 if (acmod->mgau == NULL) {
                     E_ERROR("Failed to read acoustic model\n");
                     return -1;
                 }
+#ifdef WITH_S2_SEMI_MGAU
             }
+#endif /* WITH_S2_SEMI_MGAU */
+#ifdef WITH_PTM_MGAU
         }
+#endif /* WITH_PTM_MGAU */
     }
 
     /* If there is an MLLR transform, apply it. */

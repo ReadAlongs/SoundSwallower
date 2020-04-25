@@ -5,3 +5,5 @@
 #cmakedefine HAVE_LONG_LONG
 #cmakedefine WITH_LAPACK
 #cmakedefine LAPACK_LITE
+#cmakedefine WITH_PTM_MGAU
+#cmakedefine WITH_S2_SEMI_MGAU

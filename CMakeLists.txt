@@ -24,6 +24,8 @@ if(WITH_LAPACK)
     set(LAPACK_LITE 1)
   endif()
 endif()
+option(WITH_PTM_MGAU "Enable special phonetically-tied mixture code" ON)
+option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" OFF)
 
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)

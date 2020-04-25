@@ -51,14 +51,20 @@ set(SOURCES
   ps_alignment.c
   ps_lattice.c
   ps_mllr.c
-  ptm_mgau.c
-  s2_semi_mgau.c
   state_align_search.c
   strfuncs.c
   tmat.c
   vector.c
   yin.c
   )
+
+if(WITH_PTM_MGAU)
+  set(PTM_SOURCES ptm_mgau.c)
+endif()
+
+if(WITH_S2_SEMI_MGAU)
+  set(S2_SEMI_SOURCES s2_semi_mgau.c)
+endif()
 
 if(LAPACK_LITE)
   set(LAPACK_SOURCES
@@ -68,7 +74,8 @@ if(LAPACK_LITE)
     slamch.c)
 endif()
 
-add_library(soundswallower ${SOURCES} ${LAPACK_SOURCES})
+add_library(soundswallower ${SOURCES} ${LAPACK_SOURCES}
+  ${PTM_SOURCES} ${S2_SEMI_SOURCES})
 set_property(TARGET soundswallower PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
   soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
