@@ -60,7 +60,7 @@ elseif(EMSCRIPTEN)
   target_link_libraries(ssjs soundswallower)
   target_compile_options(soundswallower PRIVATE -Oz)
   target_compile_options(ssjs PRIVATE --bind -Oz)
-  target_link_options(ssjs PRIVATE --bind)
+  target_link_options(ssjs PRIVATE --bind -Oz)
   # FIXME: Need to optimize with recognizer.js to get only what we need
   target_link_options(ssjs PRIVATE "SHELL:-s FORCE_FILESYSTEM=1")
   target_link_options(ssjs PRIVATE "SHELL:-s TOTAL_MEMORY=100663296")
