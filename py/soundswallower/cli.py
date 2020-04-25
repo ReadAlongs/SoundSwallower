@@ -63,20 +63,20 @@ def make_decoder_config(args):
     if args.config is not None:
         with open(args.config) as fh:
             json_config = json.load(fh)
-            for key, value in json_config:
+            for key, value in json_config.items():
                 if not key.startswith('-'):
                     key = "-%s" % key
                 # FIXME: right away here's a problem with the dumb cmd_ln API
                 if isinstance(value, bool):
-                    config.set_boolean(value)
+                    config.set_boolean(key, value)
                 elif isinstance(value, int):
-                    config.set_int(value)
+                    config.set_int(key, value)
                 elif isinstance(value, float):
                     # FIXME: in particular, we want -cepinit to
                     # actually be a list of floats, which it isn't
-                    config.set_float(value)
+                    config.set_float(key, value)
                 else:
-                    config.set_string(value)
+                    config.set_string(key, value)
     model_path = ss.get_model_path()
     if args.model in os.listdir(model_path):
         config.set_string("-hmm", os.path.join(model_path, args.model))

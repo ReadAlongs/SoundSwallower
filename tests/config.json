@@ -1,0 +1,6 @@
+{
+    "kws_threshold" : 1e-10,
+    "remove_noise": true,
+    "pl_window": 6,
+    "cmn": "batch"
+}
