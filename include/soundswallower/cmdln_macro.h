@@ -92,22 +92,6 @@
       ARG_FLOAT64,                                                      \
       "1e-48",                                                          \
       "Beam width applied to phone transitions" },                      \
-{ "-lpbeam",                                                            \
-      ARG_FLOAT64,                                                      \
-      "1e-40",                                                          \
-      "Beam width applied to last phone in words" },                    \
-{ "-lponlybeam",                                                        \
-      ARG_FLOAT64,                                                      \
-      "7e-29",                                                          \
-      "Beam width applied to last phone in single-phone words" },       \
-{ "-fwdflatbeam",                                                       \
-      ARG_FLOAT64,                                                      \
-      "1e-64",                                                          \
-      "Beam width applied to every frame in second-pass flat search" }, \
-{ "-fwdflatwbeam",                                                      \
-      ARG_FLOAT64,                                                      \
-      "7e-29",                                                          \
-      "Beam width applied to word exits in second-pass flat search" },  \
 { "-pl_window",                                                         \
       ARG_INT32,                                                        \
       "5",                                                              \
@@ -127,7 +111,7 @@
 { "-pl_weight",                                                         \
       ARG_FLOAT64,                                                      \
       "3.0",                                                            \
-      "Weight for phoneme lookahead penalties" }                        \
+      "Weight for phoneme lookahead penalties" }
 
 /** Options defining other parameters for tuning the search. */
 #define POCKETSPHINX_SEARCH_OPTIONS \
@@ -135,14 +119,6 @@
       ARG_BOOLEAN,                                                                              \
       "no",                                                                                     \
       "Compute all senone scores in every frame (can be faster when there are many senones)" }, \
-{ "-fwdtree",                                                                                   \
-      ARG_BOOLEAN,                                                                              \
-      "yes",                                                                                    \
-      "Run forward lexicon-tree search (1st pass)" },                                           \
-{ "-fwdflat",                                                                                   \
-      ARG_BOOLEAN,                                                                              \
-      "yes",                                                                                    \
-      "Run forward flat-lexicon search over word lattice (2nd pass)" },                         \
 { "-bestpath",                                                                                  \
       ARG_BOOLEAN,                                                                              \
       "yes",                                                                                    \
@@ -151,30 +127,10 @@
       ARG_BOOLEAN,                                                                              \
       "no",                                                                                     \
       "Print results and backtraces to log." },                                                 \
-{ "-latsize",                                                                                   \
-      ARG_INT32,                                                                                \
-      "5000",                                                                                   \
-      "Initial backpointer table size" },                                                       \
-{ "-maxwpf",                                                                                    \
-      ARG_INT32,                                                                                \
-      "-1",                                                                                     \
-      "Maximum number of distinct word exits at each frame (or -1 for no pruning)" },           \
 { "-maxhmmpf",                                                                                  \
       ARG_INT32,                                                                                \
       "30000",                                                                                  \
-      "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" },       \
-{ "-min_endfr",                                                                                 \
-      ARG_INT32,                                                                                \
-      "0",                                                                                      \
-      "Nodes ignored in lattice construction if they persist for fewer than N frames" },        \
-{ "-fwdflatefwid",                                                                              \
-      ARG_INT32,                                                                                \
-      "4",                                                                     	                \
-      "Minimum number of end frames for a word to be searched in fwdflat search" },             \
-{ "-fwdflatsfwin",                                                                              \
-      ARG_INT32,                                                                                \
-      "25",                                                                    	                \
-      "Window of frames in lattice to search for successor words in fwdflat search " }
+      "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
 
 /** Command-line options for keyphrase spotting */
 #define POCKETSPHINX_KWS_OPTIONS \
@@ -224,38 +180,10 @@
 
 /** Command-line options for statistical language models. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
-{ "-allphone",										\
-      ARG_STRING,									\
-      NULL,										\
-      "Perform phoneme decoding with phonetic lm" },					\
-{ "-allphone_ci",									\
-      ARG_BOOLEAN,									\
-      "yes",										\
-      "Perform phoneme decoding with phonetic lm and context-independent units only" }, \
-{ "-lm",										\
-      ARG_STRING,									\
-      NULL,										\
-      "Word trigram language model input file" },					\
-{ "-lmctl",										\
-      ARG_STRING,									\
-      NULL,										\
-      "Specify a set of language model"},						\
-{ "-lmname",										\
-      ARG_STRING,									\
-      NULL,									\
-      "Which language model in -lmctl to use by default"},				\
 { "-lw",										\
       ARG_FLOAT32,									\
       "6.5",										\
       "Language model probability weight" },						\
-{ "-fwdflatlw",										\
-      ARG_FLOAT32,									\
-      "8.5",										\
-      "Language model probability weight for flat lexicon (2nd pass) decoding" },	\
-{ "-bestpathlw",									\
-      ARG_FLOAT32,									\
-      "9.5",										\
-      "Language model probability weight for bestpath search" },			\
 { "-ascale",										\
       ARG_FLOAT32,									\
       "20.0",										\
@@ -264,18 +192,10 @@
       ARG_FLOAT32,									\
       "0.65",										\
       "Word insertion penalty" },							\
-{ "-nwpen",										\
-      ARG_FLOAT32,									\
-      "1.0",										\
-      "New word transition penalty" },							\
 { "-pip",										\
       ARG_FLOAT32,									\
       "1.0",										\
       "Phone insertion penalty" },							\
-{ "-uw",										\
-      ARG_FLOAT32,									\
-      "1.0",										\
-      "Unigram weight" }, 								\
 { "-silprob",										\
       ARG_FLOAT32,									\
       "0.005",										\
