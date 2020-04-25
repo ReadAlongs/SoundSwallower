@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+
+"""
+Command-line interface for SoundSwallower.
+
+Basic usage, to recognize using a JSGF grammar:
+
+  soundswallower --grammar input.gram audio.wav
+
+To force-align text to audio:
+
+  soundswallower --align input.txt input.wav
+
+To locate a list of keywords:
+
+  soundswallower -k word1 -k word2 -k word3 input.wav
+  soundswallower --keywords keywords.txt input.wav
+
+To use a different model:
+
+  soundswallower --model fr-fr ...
+  soundswallower --model /path/to/model/
+
+To use a custom dictionary:
+
+  soundswallower --dict /path/to/dictionary.dict
+
+To list available built-in models:
+
+  soundswallower --list-models
+"""
+
+import soundswallower as ss
+import logging
+import argparse
+import tempfile
+import json
+import wave
+
+
+def make_argparse():
+    """Function to make the argument parser (for auto-documentation purposes)"""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("inputs", nargs="+",
+                        help="One or more input files.")
+    parser.add_argument("--dict", help="Custom dictionary file.")
+    parser.add_argument("--model", help="Specific model, built-in or from directory.")
+    parser.add_argument("--config", help="JSON file with decoder configuration.")
+    grammars = parser.add_mutually_exclusive_group(required=True)
+    grammars.add_argument("-k", "--keyword", action='append',
+                        help="One or more keywords to spot in input audio.")
+    grammars.add_argument("--keywords", help="File listing keywords, one per line.")
+    grammars.add_argument("--align", help="Input text for force alignment.")
+    grammars.add_argument("--grammar", help="Grammar file for recognition.")
+    parser.add_argument_group(grammars)
+    return parser
+
+
+def make_decoder_config(args):
+    """Make a decoder configuration from command-line arguments, possibly
+    including a JSON configuration file."""
+    config = ss.Decoder.default_config()
+    if args.config is not None:
+        with open(args.config) as fh:
+            json_config = json.load(fh)
+            for key, value in json_config:
+                if not key.startswith('-'):
+                    key = "-%s" % key
+                # FIXME: right away here's a problem with the dumb cmd_ln API
+                if isinstance(value, bool):
+                    config.set_boolean(value)
+                elif isinstance(value, int):
+                    config.set_int(value)
+                elif isinstance(value, float):
+                    # FIXME: in particular, we want -cepinit to
+                    # actually be a list of floats, which it isn't
+                    config.set_float(value)
+                else:
+                    config.set_string(value)
+    if args.model is not None:
+        config.set_string("-hmm", args.model)
+        config.set_string("-dict", args.model + '.dict')
+    # FIXME: This actually should be in addition to the built-in
+    # dictionary, or we should have G2P support, which shouldn't be
+    # all that hard, we hope.
+    if args.dict is not None:
+        config.set_string("-dict", args.dict)
+
+    if args.grammar is not None:
+        config.set_string("-jsgf", args.grammar)
+    elif args.keywords:
+        config.set_string("-kws", args.keywords)
+    return config
+
+
+def get_audio_data(input_file):
+    """Try to get single-channel audio data in the most portable way
+    possible."""
+    wavfile = wave.open(input_file)
+    if wavfile.getnchannels() != 1:
+        raise ValueError("Only supporting single-channel WAV")
+    data = wavfile.readframes(wavfile.getnframes())
+    sample_rate = wavfile.getframerate()
+    # FIXME: Do that above in a try block, then switch to pydub if failed
+    return data, sample_rate
+
+
+def decode_file(decoder, config, args, input_file):
+    """Decode one input audio file."""
+    # Note that we always decode the entire file at once. It would
+    # have to be really huge for this to cause memory problems, in
+    # which case the decoder would explode anyway. Otherwise, CMN
+    # doesn't work as well, which causes unnecessary recognition
+    # errors.
+    data, sample_rate = get_audio_data(input_file)
+    # Reinitialize the decoder if necessary
+    if sample_rate != config.get_float("-samprate"):
+        logging.info("Setting sample rate to %d", sample_rate)
+        config.set_float("-samprate", sample_rate)
+        # Calculate the minimum required FFT size for the sample rate
+        frame_points = int(sample_rate * config.get_float("-wlen"))
+        fft_size = 1
+        while fft_size < frame_points:
+            fft_size = fft_size << 1
+        if fft_size > config.get_int("-nfft"):
+            logging.info("Increasing FFT size to %d for sample rate %d",
+                         fft_size, sample_rate)
+            config.set_int("-nfft", fft_size)
+        decoder.reinit(config)
+    frame_size = 1.0 / config.get_int('-frate')
+
+    decoder.start_utt()
+    decoder.process_raw(data, no_search=False, full_utt=True)
+    decoder.end_utt()
+
+    if not decoder.seg():
+        raise RuntimeError("Decoding produced no segments, "
+                           "please examine dictionary/grammar and input audio.")
+
+    results = []
+    for seg in decoder.seg():
+        start = seg.start_frame * frame_size
+        end = (seg.end_frame + 1) * frame_size
+        if seg.word in ('<sil>', '[NOISE]'):
+            continue
+        else:
+            results.append({
+                "id": seg.word,
+                "start": start,
+                "end": end
+            })
+        logging.info("Segment: %s (%.3f : %.3f)",
+                     seg.word, start, end)
+
+    if len(results) == 0:
+        raise RuntimeError("Decoding produced only noise or silence segments, "
+                           "please examine dictionary and input audio and text.")
+    return results
+
+
+def main(argv=None):
+    """Main entry point for SoundSwallower."""
+    logging.basicConfig(level=logging.INFO)
+    parser = make_argparse()
+    args = parser.parse_args(argv)
+    config = make_decoder_config(args)
+    # FIXME: need to do this without a temporary file
+    if args.keyword:
+        kws_temp = tempfile.NamedTemporaryFile(mode="w")
+        for k in args.keyword:
+            print(("%s\n" % k), file=kws_temp)
+        kws_temp.flush()
+        config.set_string("-kws", kws_temp.name)
+    decoder = ss.Decoder(config)
+    for input_file in args.inputs:
+        decode_file(decoder, config, args, input_file)
+
+
+if __name__ == "__main__":
+    main()
