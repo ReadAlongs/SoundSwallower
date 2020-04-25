@@ -81,19 +81,18 @@
  *   Every phone has exactly one non-emitting, final state--the last one.
  *   CI phones must appear first in model definition file.
  */
+/* FIXME: This code only exists for reading model definition files and
+   is not used otherwise, it should be merged with bin_mdef.c at this
+   point. */
 
-/* System headers. */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
-
-/* Local headers. */
-#include "mdef.h"
+#include <soundswallower/mdef.h>
 
 
 #define MODEL_DEF_VERSION	"0.3"

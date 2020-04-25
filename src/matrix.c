@@ -39,10 +39,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <soundswallower/clapack_lite.h>
 #include <soundswallower/matrix.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+
+#ifdef WITH_LAPACK /* LAPACK has no header file because it's ancient */
+#include "clapack_lite.h"
+#endif
 
 void
 norm_3d(float32 ***arr,

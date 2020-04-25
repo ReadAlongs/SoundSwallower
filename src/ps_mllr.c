@@ -39,14 +39,10 @@
  * @file ps_mllr.c Model-space linear transforms for speaker adaptation
  */
 
-/* System headers. */
 #include <stdio.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
-
-/* Local headers. */
-#include "acmod.h"
+#include <soundswallower/acmod.h>
 
 ps_mllr_t *
 ps_mllr_read(char const *regmatfile)

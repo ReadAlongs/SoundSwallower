@@ -134,8 +134,6 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/glist.h>
 
-#include "config.h"
-
 #define FEAT_VERSION	"1.0"
 #define FEAT_DCEP_WIN		2
 

@@ -95,9 +95,19 @@ typedef union anytype_s {
     double fl;
 } anytype_t;
 
-/*
- * FIXME: Not the right way to do this, we should probably use C99 types.
- */
+/* Use C99 types if available */
+#if defined(HAVE_STDINT_H) || (defined(__STDC_VERSION__) &&  __STDC_VERSION__ >= 199901L)
+#include <stdint.h>
+typedef int32_t		int32;
+typedef int16_t		int16;
+typedef int8_t		int8;
+typedef uint32_t	uint32;
+typedef uint16_t	uint16;
+typedef uint8_t		uint8;
+typedef int64_t		int64;
+typedef uint64_t	uint64;
+/* Take a wild guess otherwise */
+#else
 typedef int		int32;
 typedef short		int16;
 typedef signed char	int8;
@@ -106,13 +116,20 @@ typedef unsigned short	uint16;
 typedef unsigned char	uint8;
 typedef float		float32;
 typedef double		float64;
-#if defined(_MSC_VER)
+# if defined(_MSC_VER)
 typedef __int64	         int64;
 typedef unsigned __int64 uint64;
-#else
+# else
 typedef long long	   int64;
 typedef unsigned long long uint64;
-#endif
+# endif
+#endif /* not C99 or POSIX */
+
+/* We should maybe stop using these as there isn't any good way to
+   know their exact size, but it's 99% certain they are 32 and 64
+   bits. */
+typedef float		float32;
+typedef double		float64;
 
 #ifndef TRUE
 #define TRUE 1
@@ -125,7 +142,6 @@ typedef unsigned long long uint64;
 #define NULL (void *)0
 #endif
 
-/* These really ought to come from <limits.h>, but not everybody has that. */
 /* Useful constants */
 #define MAX_INT32		((int32) 0x7fffffff)
 #define MAX_INT16		((int16) 0x00007fff)

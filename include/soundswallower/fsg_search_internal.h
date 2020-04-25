@@ -40,17 +40,13 @@
 #ifndef __S2_FSG_SEARCH_H__
 #define __S2_FSG_SEARCH_H__
 
-
-/* SphinxBase headers. */
 #include <soundswallower/glist.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/fsg_model.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "hmm.h"
-#include "fsg_history.h"
-#include "fsg_lextree.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/hmm.h>
+#include <soundswallower/fsg_history.h>
+#include <soundswallower/fsg_lextree.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -44,7 +44,6 @@
 #ifndef __POCKETSPHINX_INTERNAL_H__
 #define __POCKETSPHINX_INTERNAL_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
@@ -52,12 +51,10 @@
 #include <soundswallower/logmath.h>
 #include <soundswallower/profile.h>
 #include <soundswallower/pocketsphinx.h>
-
-/* Local headers. */
-#include "acmod.h"
-#include "dict.h"
-#include "dict2pid.h"
-#include "ps_alignment.h"
+#include <soundswallower/acmod.h>
+#include <soundswallower/dict.h>
+#include <soundswallower/dict2pid.h>
+#include <soundswallower/ps_alignment.h>
 
 #ifdef __cplusplus
 extern "C" {

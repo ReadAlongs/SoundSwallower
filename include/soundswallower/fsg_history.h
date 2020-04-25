@@ -74,15 +74,11 @@
 #ifndef __S2_FSG_HISTORY_H__
 #define __S2_FSG_HISTORY_H__
 
-
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/fsg_model.h>
-
-/* Local headers. */
-#include "blkarray_list.h"
-#include "fsg_lextree.h"
-#include "dict.h"
+#include <soundswallower/blkarray_list.h>
+#include <soundswallower/fsg_lextree.h>
+#include <soundswallower/dict.h>
 
 #ifdef __cplusplus
 extern "C" {

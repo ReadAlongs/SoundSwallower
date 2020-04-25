@@ -42,15 +42,12 @@
 #define _MS_SENONE_H_
 
 
-/* SphinxBase headers. */
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
-
-/* Local headers. */
-#include "ms_gauden.h"
-#include "bin_mdef.h"
+#include <soundswallower/ms_gauden.h>
+#include <soundswallower/bin_mdef.h>
 
 /** \file ms_senone.h
  *  \brief (Sphinx 3.0 specific) multiple streams senones. used with ms_gauden.h

@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <soundswallower/pocketsphinx.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,9 +7,9 @@
 
 #include <soundswallower/jsgf.h>
 #include <soundswallower/fsg_model.h>
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/fsg_search_internal.h>
 
-#include "pocketsphinx_internal.h"
-#include "fsg_search_internal.h"
 #include "test_macros.h"
 
 int

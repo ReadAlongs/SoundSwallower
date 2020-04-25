@@ -36,7 +36,7 @@
 * kws_detections.c -- Object for storing keyphrase search results
 */
 
-#include "kws_detections.h"
+#include <soundswallower/kws_detections.h>
 
 void
 kws_detections_reset(kws_detections_t *detections)

@@ -39,22 +39,18 @@
  * @file ps_lattice.c Word graph search.
  */
 
-/* System headers. */
 #include <assert.h>
 #include <string.h>
 #include <math.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/listelem_alloc.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
 #include <soundswallower/pio.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "ps_lattice_internal.h"
-#include "dict.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ps_lattice_internal.h>
+#include <soundswallower/dict.h>
 
 /*
  * Create a directed link between "from" and "to" nodes, but if a link already exists,

@@ -3,7 +3,6 @@ set(TESTS
   test_acmod.c
   test_acmod_grow.c
   test_alignment.c
-  test_bitarr.c
   test_bit_encode.c
   test_bitvec.c
   test_build_directory.c
@@ -74,7 +73,6 @@ add_test(string_trim test_strfuncs string_trim)
 add_test(fread_line test_strfuncs fread_line)
 
 # utility tests
-add_test(bitarr test_bitarr)
 add_test(bit_encode test_bit_encode)
 add_test(bitvec test_bitvec)
 add_test(ckd_alloc_catch test_ckd_alloc_catch)

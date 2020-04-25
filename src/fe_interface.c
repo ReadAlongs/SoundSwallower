@@ -47,9 +47,8 @@
 #include <soundswallower/err.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
-
-#include "fe_internal.h"
-#include "fe_warp.h"
+#include <soundswallower/fe_internal.h>
+#include <soundswallower/fe_warp.h>
 
 static const arg_t fe_args[] = {
     waveform_to_cepstral_command_line_macro(),

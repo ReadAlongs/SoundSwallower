@@ -2,7 +2,6 @@ set(SOURCES
   acmod.c
   bin_mdef.c
   bio.c
-  bitarr.c
   bitvec.c
   blkarray_list.c
   case.c
@@ -13,7 +12,6 @@ set(SOURCES
   dict2pid.c
   dict.c
   err.c
-  errno.c
   feat.c
   fe_interface.c
   fe_noise.c
@@ -36,8 +34,8 @@ set(SOURCES
   jsgf.c
   jsgf_parser.c
   jsgf_scanner.c
-  kws_search.c
   kws_detections.c
+  kws_search.c
   listelem_alloc.c
   logmath.c
   matrix.c
@@ -49,7 +47,6 @@ set(SOURCES
   phone_loop_search.c
   pio.c
   pocketsphinx.c
-  priority_queue.c
   profile.c
   ps_alignment.c
   ps_lattice.c

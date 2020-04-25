@@ -4,11 +4,13 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include <soundswallower/filename.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <soundswallower/filename.h>
 
 #include "test_macros.h"
 

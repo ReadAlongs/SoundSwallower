@@ -39,14 +39,11 @@
 #ifndef __KWS_SEARCH_H__
 #define __KWS_SEARCH_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/glist.h>
 #include <soundswallower/cmd_ln.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "kws_detections.h"
-#include "hmm.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/kws_detections.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

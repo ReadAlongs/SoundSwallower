@@ -35,11 +35,10 @@
  *
  */
 
-/* System headers. */
+#include "config.h"
+
 #include <stdio.h>
 #include <assert.h>
-
-#include "config.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -56,12 +55,12 @@
 #include <soundswallower/pocketsphinx.h>
 
 /* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "ps_lattice_internal.h"
-#include "phone_loop_search.h"
-#include "kws_search.h"
-#include "fsg_search_internal.h"
-#include "state_align_search.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ps_lattice_internal.h>
+#include <soundswallower/phone_loop_search.h>
+#include <soundswallower/kws_search.h>
+#include <soundswallower/fsg_search_internal.h>
+#include <soundswallower/state_align_search.h>
 
 static const arg_t ps_args_def[] = {
     POCKETSPHINX_OPTIONS,

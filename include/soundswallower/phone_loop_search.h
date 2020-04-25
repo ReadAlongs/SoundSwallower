@@ -47,14 +47,11 @@
 #ifndef __PHONE_LOOP_SEARCH_H__
 #define __PHONE_LOOP_SEARCH_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/listelem_alloc.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "hmm.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -42,14 +42,9 @@
 #ifndef __HMM_H__
 #define __HMM_H__
 
-/* System headers. */
 #include <stdio.h>
-
-/* SphinxBase headers. */
 #include <soundswallower/listelem_alloc.h>
-
-/* PocketSphinx headers. */
-#include "bin_mdef.h"
+#include <soundswallower/bin_mdef.h>
 
 #ifdef __cplusplus
 extern "C" {

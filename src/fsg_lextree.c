@@ -43,12 +43,9 @@
 #include <string.h>
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
-
-/* Local headers. */
-#include "fsg_lextree.h"
+#include <soundswallower/fsg_lextree.h>
 
 #define __FSG_DBG__		0
 

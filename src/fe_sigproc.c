@@ -59,9 +59,8 @@
 #include <soundswallower/fe.h>
 #include <soundswallower/genrand.h>
 #include <soundswallower/err.h>
-
-#include "fe_internal.h"
-#include "fe_warp.h"
+#include <soundswallower/fe_internal.h>
+#include <soundswallower/fe_warp.h>
 
 /* Use extra precision for cosines, Hamming window, pre-emphasis
  * coefficient, twiddle factors. */

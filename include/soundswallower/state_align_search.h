@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2007 Carnegie Mellon University.  All rights
+ * Copyright (c) 2010 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,62 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
- */
-/*********************************************************************
  *
- * File: errno.c
- * 
- * Description: functions and variables missing from Windows CE standard
- * library
- * 
- * Author: Silvio Moioli <silvio@moioli.net>
- * 
- *********************************************************************/
+ */
 
-#include <errno.h>
+/**
+ * @file state_align_search.h State (and phone and word) alignment search.
+ */
 
-#if defined(_WIN32_WCE)
-int errno;
+#ifndef __STATE_ALIGN_SEARCH_H__
+#define __STATE_ALIGN_SEARCH_H__
+
+#include <soundswallower/prim_type.h>
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/hmm.h>
+
+#ifdef __cplusplus
+extern "C" {
 #endif
+#if 0
+}
+#endif
+
+/**
+ * History structure
+ */
+struct state_align_hist_s {
+    uint16 id;
+    int32 score;
+};
+typedef struct state_align_hist_s state_align_hist_t;
+
+/**
+ * Forced alignment search structure.
+ */
+struct state_align_search_s {
+    ps_search_t base;       /**< Base search structure. */
+    hmm_context_t *hmmctx;  /**< HMM context structure. */
+    ps_alignment_t *al;     /**< Alignment structure being operated on. */
+    hmm_t *hmms;            /**< Vector of HMMs corresponding to phone level. */
+    int n_phones;	    /**< Number of HMMs (phones). */
+
+    int frame;              /**< Current frame being processed. */
+    int32 best_score;       /**< Best score in current frame. */
+
+    int n_emit_state;       /**< Number of emitting states (tokens per frame) */
+    state_align_hist_t *tokens;         /**< Tokens (backpointers) for state alignment. */
+    int n_fr_alloc;         /**< Number of frames of tokens allocated. */
+};
+typedef struct state_align_search_s state_align_search_t;
+
+ps_search_t *state_align_search_init(const char *name,
+				     cmd_ln_t *config,
+                                     acmod_t *acmod,
+                                     ps_alignment_t *al);
+
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
+
+#endif /* __STATE_ALIGN_SEARCH_H__ */

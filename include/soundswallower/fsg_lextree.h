@@ -39,14 +39,11 @@
 #ifndef __S2_FSG_LEXTREE_H__
 #define __S2_FSG_LEXTREE_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/fsg_model.h>
-
-/* Local headers. */
-#include "hmm.h"
-#include "dict.h"
-#include "dict2pid.h"
+#include <soundswallower/hmm.h>
+#include <soundswallower/dict.h>
+#include <soundswallower/dict2pid.h>
 
 #ifdef __cplusplus
 extern "C" {

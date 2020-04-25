@@ -41,14 +41,11 @@
 /* System headers. */
 #include <stdio.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/logmath.h>
 #include <soundswallower/bitvec.h>
-
-/* Local headers. */
-#include "s3types.h"
-#include "bin_mdef.h"
-#include "dict.h"
+#include <soundswallower/s3types.h>
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/dict.h>
 
 /** \file dict2pid.h
  * \brief Building triphones for a dictionary. 

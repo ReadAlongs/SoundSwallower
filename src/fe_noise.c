@@ -55,8 +55,8 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
 
-#include "fe_noise.h"
-#include "fe_internal.h"
+#include <soundswallower/fe_noise.h>
+#include <soundswallower/fe_internal.h>
 
 /* Noise supression constants */
 #define SMOOTH_WINDOW 4

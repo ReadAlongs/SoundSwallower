@@ -39,18 +39,14 @@
  * @file hmm.h Implementation of HMM base structure.
  */
 
-/* System headers. */
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
-
-/* Local headers. */
-#include "hmm.h"
+#include <soundswallower/hmm.h>
 
 hmm_context_t *
 hmm_context_init(int32 n_emit_state,

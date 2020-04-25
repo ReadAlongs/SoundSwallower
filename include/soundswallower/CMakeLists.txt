@@ -1,38 +1,69 @@
 set(INCLUDES
-  ad.h
+  acmod.h
+  bin_mdef.h
   bio.h
-  bitarr.h
   bitvec.h
+  blkarray_list.h
   byteorder.h
   case.h
   ckd_alloc.h
-  clapack_lite.h
   cmd_ln.h
   cmdln_macro.h
   cmn.h
+  dict2pid.h
+  dict.h
   err.h
-  f2c.h
   feat.h
   fe.h
+  fe_internal.h
+  fe_noise.h
+  fe_prespch_buf.h
+  fe_type.h
+  fe_warp_affine.h
+  fe_warp.h
+  fe_warp_inverse_linear.h
+  fe_warp_piecewise_linear.h
   filename.h
+  fsg_history.h
+  fsg_lextree.h
   fsg_model.h
+  fsg_search_internal.h
   genrand.h
   glist.h
   hash_table.h
   heap.h
+  hmm.h
   jsgf.h
+  jsgf_internal.h
+  kws_detections.h
+  kws_search.h
   listelem_alloc.h
   logmath.h
   matrix.h
+  mdef.h
   mmio.h
+  ms_gauden.h
+  ms_mgau.h
+  ms_senone.h
+  phone_loop_search.h
   pio.h
   pocketsphinx.h
+  pocketsphinx_internal.h
   prim_type.h
-  priority_queue.h
   profile.h
+  ps_alignment.h
   ps_lattice.h
+  ps_lattice_internal.h
   ps_mllr.h
   ps_search.h
+  ptm_mgau.h
+  s2_semi_mgau.h
+  s3types.h
+  state_align_search.h
   strfuncs.h
-  yin.h)
+  tied_mgau_common.h
+  tmat.h
+  vector.h
+  yin.h
+)
 install(FILES ${INCLUDES} DESTINATION include)

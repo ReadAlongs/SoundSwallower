@@ -40,11 +40,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/bio.h>
-
-/* Local headers. */
-#include "ms_senone.h"
+#include <soundswallower/ms_senone.h>
 
 #define MIXW_PARAM_VERSION	"1.0"
 #define SPDEF_PARAM_VERSION	"1.2"

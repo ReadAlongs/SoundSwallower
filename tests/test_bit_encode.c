@@ -3,13 +3,15 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include <soundswallower/pio.h>
-
-#include "test_macros.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <soundswallower/pio.h>
+
+#include "test_macros.h"
 
 int
 main(int argc, char *argv[])

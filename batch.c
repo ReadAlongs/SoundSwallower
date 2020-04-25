@@ -37,20 +37,16 @@
 
 #include "config.h"
 
-/* System headers. */
 #include <stdio.h>
 #include <locale.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/pio.h>
 #include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
 #include <soundswallower/byteorder.h>
-
-/* PocketSphinx headers. */
 #include <soundswallower/pocketsphinx.h>
-#include "pocketsphinx_internal.h"
+#include <soundswallower/pocketsphinx_internal.h>
 
 /* Silvio Moioli: setbuf doesn't exist in Windows CE */
 #if defined(_WIN32_WCE)

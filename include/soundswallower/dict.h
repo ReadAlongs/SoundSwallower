@@ -42,12 +42,9 @@
  * \brief Operations on dictionary. 
  */
 
-/* SphinxBase headers. */
 #include <soundswallower/hash_table.h>
-
-/* Local headers. */
-#include "s3types.h"
-#include "bin_mdef.h"
+#include <soundswallower/s3types.h>
+#include <soundswallower/bin_mdef.h>
 
 #define S3DICT_INC_SZ 4096
 

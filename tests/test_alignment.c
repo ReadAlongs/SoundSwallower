@@ -1,7 +1,8 @@
-#include <soundswallower/pocketsphinx.h>
+#include "config.h"
 
-#include "ps_alignment.h"
-#include "pocketsphinx_internal.h"
+#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/ps_alignment.h>
+#include <soundswallower/pocketsphinx_internal.h>
 
 #include "test_macros.h"
 

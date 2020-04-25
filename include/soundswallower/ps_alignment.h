@@ -42,14 +42,10 @@
 #ifndef __PS_ALIGNMENT_H__
 #define __PS_ALIGNMENT_H__
 
-/* System headers. */
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
-
-/* Local headers. */
-#include "dict2pid.h"
-#include "hmm.h"
+#include <soundswallower/dict2pid.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -59,8 +59,8 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
 
-#include "fe_warp.h"
-#include "fe_warp_affine.h"
+#include <soundswallower/fe_warp.h>
+#include <soundswallower/fe_warp_affine.h>
 
 #define N_PARAM		2
 #define YES             1

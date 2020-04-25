@@ -1,9 +1,11 @@
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
+
 #include <soundswallower/pocketsphinx.h>
 #include <soundswallower/logmath.h>
-
-#include "acmod.h"
+#include <soundswallower/acmod.h>
 
 #include "test_macros.h"
 

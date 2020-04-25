@@ -35,19 +35,15 @@
  *
  */
 
-/* System headers. */
 #include <string.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/logmath.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/bio.h>
-
-/* Local headers. */
-#include "tmat.h"
-#include "hmm.h"
-#include "vector.h"
+#include <soundswallower/tmat.h>
+#include <soundswallower/hmm.h>
+#include <soundswallower/vector.h>
 
 #define TMAT_PARAM_VERSION		"1.0"
 

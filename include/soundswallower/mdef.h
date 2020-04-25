@@ -51,10 +51,7 @@
 #define __MDEF_H__
 
 
-/* System headers. */
 #include <stdio.h>
-
-/* SphinxBase headers. */
 #include <soundswallower/hash_table.h>
 
 #ifdef __cplusplus

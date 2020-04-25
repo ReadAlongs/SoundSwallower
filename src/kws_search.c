@@ -46,8 +46,8 @@
 #include <soundswallower/pio.h>
 #include <soundswallower/cmd_ln.h>
 
-#include "pocketsphinx_internal.h"
-#include "kws_search.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/kws_search.h>
 
 /** Access macros */
 #define hmm_is_active(hmm) ((hmm)->frame > 0)
@@ -276,7 +276,9 @@ kws_search_trans(kws_search_t * kwss)
             if (hmm_out_score(last_hmm) - hmm_out_score(pl_best_hmm) 
                 >= keyphrase->threshold) {
 
-                int32 prob = hmm_out_score(last_hmm) - hmm_out_score(pl_best_hmm) - KWS_MAX;
+                int32 prob = (hmm_out_score(last_hmm)
+                              - hmm_out_score(pl_best_hmm)
+                              - KWS_MAX);
                 kws_detections_add(kwss->detections, keyphrase->word,
                                   hmm_out_history(last_hmm),
                                   kwss->frame, prob,
@@ -379,8 +381,8 @@ kws_search_init(const char *name,
                 acmod_t * acmod, dict_t * dict, dict2pid_t * d2p)
 {
     kws_search_t *kwss = (kws_search_t *) ckd_calloc(1, sizeof(*kwss));
-    ps_search_init(ps_search_base(kwss), &kws_funcs, PS_SEARCH_TYPE_KWS, name, config, acmod, dict,
-                   d2p);
+    ps_search_init(ps_search_base(kwss), &kws_funcs, PS_SEARCH_TYPE_KWS,
+                   name, config, acmod, dict, d2p);
 
     kwss->detections = (kws_detections_t *)ckd_calloc(1, sizeof(*kwss->detections));
 
@@ -526,7 +528,8 @@ kws_search_reinit(ps_search_t * search, dict_t * dict, dict2pid_t * d2p)
         for (i = 0; i < n_wrds; i++) {
             wid = dict_wordid(dict, wrdptr[i]);
             if (wid == BAD_S3WID) {
-        	E_ERROR("Word '%s' in phrase '%s' is missing in the dictionary\n", wrdptr[i], keyphrase->word);
+        	E_ERROR("Word '%s' in phrase '%s' is missing in the dictionary\n",
+                        wrdptr[i], keyphrase->word);
         	in_dict = FALSE;
         	break;
             }

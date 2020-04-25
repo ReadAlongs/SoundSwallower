@@ -41,13 +41,11 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-/* System headers. */
 #include "config.h"
 #include <assert.h>
 #include <string.h>
 #include <math.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
 #include <soundswallower/cmd_ln.h>
@@ -56,12 +54,10 @@
 #include <soundswallower/feat.h>
 #include <soundswallower/bio.h>
 #include <soundswallower/cmdln_macro.h>
-
-/* Local headers. */
-#include "acmod.h"
-#include "s2_semi_mgau.h"
-#include "ptm_mgau.h"
-#include "ms_mgau.h"
+#include <soundswallower/acmod.h>
+#include <soundswallower/s2_semi_mgau.h>
+#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/ms_mgau.h>
 
 static int32 acmod_process_mfcbuf(acmod_t *acmod);
 

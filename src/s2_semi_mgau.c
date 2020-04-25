@@ -35,7 +35,6 @@
  *
  */
 
-/* System headers */
 #include "config.h"
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -47,16 +46,13 @@
 #include <limits.h>
 #include <math.h>
 
-/* SphinxBase headers */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/bio.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-
-/* Local headers */
-#include "s2_semi_mgau.h"
-#include "tied_mgau_common.h"
+#include <soundswallower/s2_semi_mgau.h>
+#include <soundswallower/tied_mgau_common.h>
 
 static ps_mgaufuncs_t s2_semi_mgau_funcs = {
     "s2_semi",

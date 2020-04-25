@@ -35,15 +35,11 @@
  *
  */
 
-/* System headers. */
 #include <string.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/pio.h>
 #include <soundswallower/strfuncs.h>
-
-/* Local headers. */
-#include "dict.h"
+#include <soundswallower/dict.h>
 
 
 #define DELIM	" \t\n"         /* Set of field separator characters */

@@ -41,17 +41,13 @@
  * 		Started.
  */
 
-/* System headers. */
 #include "config.h"
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-
-/* Local headers. */
-#include "blkarray_list.h"
+#include <soundswallower/blkarray_list.h>
 
 
 #define BLKARRAY_DEFAULT_MAXBLKS	16380

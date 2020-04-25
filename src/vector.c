@@ -65,20 +65,18 @@
  * 		Copied from Eric Thayer.
  */
 
-/* System headers. */
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <math.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/bitvec.h>
-
-/* Local headers. */
-#include "vector.h"
+#include <soundswallower/vector.h>
 
 #if defined(_WIN32)
 #define srandom	srand

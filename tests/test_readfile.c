@@ -4,12 +4,14 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#include <soundswallower/ckd_alloc.h>
-#include <soundswallower/bio.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/bio.h>
 
 #include "test_macros.h"
 

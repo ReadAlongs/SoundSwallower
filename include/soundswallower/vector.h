@@ -1,6 +1,5 @@
-/* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2010 Carnegie Mellon University.  All rights
+ * Copyright (c) 1999-2004 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,21 +34,23 @@
  *
  */
 
-/**
- * @file state_align_search.h State (and phone and word) alignment search.
+/*
+ * vector.h -- vector routines.
+ * 
+ * **********************************************
+ * CMU ARPA Speech Project
+ *
+ * Copyright (c) 1997 Carnegie Mellon University.
+ * ALL RIGHTS RESERVED.
+ * **********************************************
  */
 
-#ifndef __STATE_ALIGN_SEARCH_H__
-#define __STATE_ALIGN_SEARCH_H__
 
-#include "config.h"
+#ifndef __VECTOR_H__
+#define __VECTOR_H__
 
-/* SphinxBase headers. */
+#include <stdio.h>
 #include <soundswallower/prim_type.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "hmm.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,41 +59,39 @@ extern "C" {
 }
 #endif
 
-/**
- * History structure
+typedef float32 *vector_t;
+
+/*
+ * The reason for some of the "trivial" routines below is that they could be OPTIMIZED for SPEED
+ * at some point.
  */
-struct state_align_hist_s {
-    uint16 id;
-    int32 score;
-};
-typedef struct state_align_hist_s state_align_hist_t;
 
-/**
- * Forced alignment search structure.
+
+/* Floor all elements of v[0..dim-1] to min value of f */
+void vector_floor(vector_t v, int32 dim, float64 f);
+
+
+/* Floor all non-0 elements of v[0..dim-1] to min value of f */
+void vector_nz_floor(vector_t v, int32 dim, float64 f);
+
+
+/*
+ * Normalize the elements of the given vector so that they sum to 1.0.  If the sum is 0.0
+ * to begin with, the vector is left untouched.  Return value: The normalization factor.
  */
-struct state_align_search_s {
-    ps_search_t base;       /**< Base search structure. */
-    hmm_context_t *hmmctx;  /**< HMM context structure. */
-    ps_alignment_t *al;     /**< Alignment structure being operated on. */
-    hmm_t *hmms;            /**< Vector of HMMs corresponding to phone level. */
-    int n_phones;	    /**< Number of HMMs (phones). */
+float64 vector_sum_norm(vector_t v, int32 dim);
 
-    int frame;              /**< Current frame being processed. */
-    int32 best_score;       /**< Best score in current frame. */
 
-    int n_emit_state;       /**< Number of emitting states (tokens per frame) */
-    state_align_hist_t *tokens;         /**< Tokens (backpointers) for state alignment. */
-    int n_fr_alloc;         /**< Number of frames of tokens allocated. */
-};
-typedef struct state_align_search_s state_align_search_t;
+/* Print vector in one line, in %11.4e format, terminated by newline */
+void vector_print(FILE *fp, vector_t v, int32 dim);
 
-ps_search_t *state_align_search_init(const char *name,
-				     cmd_ln_t *config,
-                                     acmod_t *acmod,
-                                     ps_alignment_t *al);
+
+/* Return TRUE iff given vector is all 0.0 */
+int32 vector_is_zero (float32 *vec,	/* In: Vector to be checked */
+		      int32 len);	/* In: Length of above vector */
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* __STATE_ALIGN_SEARCH_H__ */
+#endif /* VECTOR_H */ 

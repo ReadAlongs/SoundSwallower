@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <soundswallower/logmath.h>
 
 #include "test_macros.h"

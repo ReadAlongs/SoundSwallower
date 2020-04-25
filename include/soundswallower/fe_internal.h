@@ -39,10 +39,9 @@
 #define __FE_INTERNAL_H__
 
 #include <soundswallower/fe.h>
-
-#include "fe_noise.h"
-#include "fe_prespch_buf.h"
-#include "fe_type.h"
+#include <soundswallower/fe_noise.h>
+#include <soundswallower/fe_prespch_buf.h>
+#include <soundswallower/fe_type.h>
 
 #ifdef __cplusplus
 extern "C" {

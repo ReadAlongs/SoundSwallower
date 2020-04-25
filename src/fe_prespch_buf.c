@@ -41,8 +41,7 @@
 
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
-
-#include "fe_prespch_buf.h"
+#include <soundswallower/fe_prespch_buf.h>
 
 struct prespch_buf_s {
     /* saved mfcc frames */

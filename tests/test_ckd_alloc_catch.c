@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <stdio.h>
 
 #include <soundswallower/ckd_alloc.h>

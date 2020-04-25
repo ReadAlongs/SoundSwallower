@@ -50,15 +50,12 @@
  *
  */
 
-/* SphinxBase headers. */
 #include <soundswallower/feat.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/cmd_ln.h>
-
-/* Local headers. */
-#include "vector.h"
-#include "pocketsphinx_internal.h"
-#include "hmm.h"
+#include <soundswallower/vector.h>
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

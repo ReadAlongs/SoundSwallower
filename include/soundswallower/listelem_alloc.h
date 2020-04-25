@@ -51,10 +51,6 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
-#ifdef S60
-#include <types.h>
-#endif
-
 #include <soundswallower/prim_type.h>
 
 /**

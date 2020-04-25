@@ -1,11 +1,13 @@
-#include <soundswallower/pocketsphinx.h>
+#include "config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#include "pocketsphinx_internal.h"
-#include "ptm_mgau.h"
-#include "ms_mgau.h"
+#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/ms_mgau.h>
 
 #include "test_macros.h"
 

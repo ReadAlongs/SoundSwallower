@@ -3,6 +3,8 @@
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
+#include "config.h"
+
 #include <soundswallower/heap.h>
 
 #include <stdio.h>

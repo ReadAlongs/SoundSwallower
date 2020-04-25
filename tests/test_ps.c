@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "pocketsphinx_internal.h"
+#include <soundswallower/pocketsphinx_internal.h>
 
 #include "test_macros.h"
 

@@ -44,17 +44,16 @@
 
 /* static char rcsid[] = "@(#)$Id: fe_warp.c,v 1.2 2006/02/17 00:31:34 egouvea Exp $";*/
 
-#include "fe_warp_inverse_linear.h"
-#include "fe_warp_affine.h"
-#include "fe_warp_piecewise_linear.h"
-#include "fe_warp.h"
-
-#include <soundswallower/err.h>
-
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+
+#include <soundswallower/err.h>
+#include <soundswallower/fe_warp_inverse_linear.h>
+#include <soundswallower/fe_warp_affine.h>
+#include <soundswallower/fe_warp_piecewise_linear.h>
+#include <soundswallower/fe_warp.h>
 
 /* This is for aliases for each of the entries below. Currently not
    used.

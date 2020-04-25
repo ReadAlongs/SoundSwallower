@@ -35,7 +35,7 @@
  *
  */
 
-/* System headers */
+
 #include "config.h"
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
@@ -47,16 +47,13 @@
 #include <limits.h>
 #include <math.h>
 
-/* SphinxBase headers */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/bio.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-
-/* Local headers */
-#include "tied_mgau_common.h"
-#include "ptm_mgau.h"
+#include <soundswallower/tied_mgau_common.h>
+#include <soundswallower/ptm_mgau.h>
 
 static ps_mgaufuncs_t ptm_mgau_funcs = {
     "ptm",

@@ -96,16 +96,13 @@
 #ifndef _LIBFBS_MS_CONT_MGAU_H_
 #define _LIBFBS_MS_CONT_MGAU_H_
 
-/* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/feat.h>
-
-/* Local headers. */
-#include "acmod.h"
-#include "bin_mdef.h"
-#include "ms_gauden.h"
-#include "ms_senone.h"
+#include <soundswallower/acmod.h>
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/ms_gauden.h>
+#include <soundswallower/ms_senone.h>
 
 #ifdef __cplusplus
 extern "C" {

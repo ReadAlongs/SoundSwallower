@@ -46,22 +46,18 @@
  * 	David Huggins-Daines <dhuggins@cs.cmu.edu>
  *********************************************************************/
 
-/* System headers. */
 #include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/case.h>
 #include <soundswallower/err.h>
-
-/* Local headers. */
-#include "mdef.h"
-#include "bin_mdef.h"
+#include <soundswallower/mdef.h>
+#include <soundswallower/bin_mdef.h>
 
 bin_mdef_t *
 bin_mdef_read_text(cmd_ln_t *config, const char *filename)

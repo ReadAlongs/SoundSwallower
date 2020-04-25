@@ -38,7 +38,10 @@
  * @file bin_mdef.h
  * 
  * Binary format model definition files, with support for
- * heterogeneous topologies and variable-size N-phones
+ * heterogeneous topologies and variable-size N-phones.
+ *
+ * Note that the binary format is not actually all that efficient,
+ * though it does load faster than the text one.
  *
  * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
@@ -52,11 +55,9 @@ extern "C" {
 }
 #endif
 
-/* SphinxBase headers. */
 #include <soundswallower/mmio.h>
 #include <soundswallower/cmd_ln.h>
-
-#include "mdef.h"
+#include <soundswallower/mdef.h>
 
 #define BIN_MDEF_FORMAT_VERSION 1
 /* Little-endian machines will write "BMDF" to disk, big-endian ones "FDMB". */

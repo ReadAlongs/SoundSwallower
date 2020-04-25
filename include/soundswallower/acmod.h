@@ -46,7 +46,6 @@
 /* System headers. */
 #include <stdio.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/fe.h>
@@ -54,12 +53,10 @@
 #include <soundswallower/bitvec.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-
-/* PocketSphinx headers. */
 #include <soundswallower/ps_mllr.h>
-#include "bin_mdef.h"
-#include "tmat.h"
-#include "hmm.h"
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/tmat.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

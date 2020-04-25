@@ -601,7 +601,7 @@ static yyconst flex_int32_t yy_rule_can_match_eol[23] =
 /* YOU MUST USE FLEX 2.6.1 OR NEWER TO PROCESS THIS FILE!!! */
 #line 39 "_jsgf_scanner.l"
 
-#include "jsgf_internal.h"
+#include <soundswallower/jsgf_internal.h>
 #include "jsgf_parser.h"
 
 #define YY_NO_UNISTD_H 1

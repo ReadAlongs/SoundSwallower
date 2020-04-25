@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 1999-2004 Carnegie Mellon University.  All rights
+ * Copyright (c) 1999-2010 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,21 @@
  * ====================================================================
  *
  */
-/*
- * Interface for "semi-continuous vector quantization", a.k.a. Sphinx2
- * fast GMM computation.
+/**
+ * @file ptm_mgau.h Fast phonetically-tied mixture evaluation.
+ * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
  */
 
-#ifndef __S2_SEMI_MGAU_H__
-#define __S2_SEMI_MGAU_H__
+#ifndef __PTM_MGAU_H__
+#define __PTM_MGAU_H__
 
-/* SphinxBase headesr. */
 #include <soundswallower/fe.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/mmio.h>
-
-/* Local headers. */
-#include "acmod.h"
-#include "hmm.h"
-#include "bin_mdef.h"
-#include "ms_gauden.h"
+#include <soundswallower/acmod.h>
+#include <soundswallower/hmm.h>
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/ms_gauden.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,28 +57,33 @@ extern "C" {
 }
 #endif
 
-typedef struct vqFeature_s vqFeature_t;
+typedef struct ptm_mgau_s ptm_mgau_t;
 
-typedef struct s2_semi_mgau_s s2_semi_mgau_t;
-struct s2_semi_mgau_s {
+typedef struct ptm_topn_s {
+    int32 cw;    /**< Codeword index. */
+    int32 score; /**< Score. */
+} ptm_topn_t;
+
+typedef struct ptm_fast_eval_s {
+    ptm_topn_t ***topn;     /**< Top-N for each codebook (mgau x feature x topn) */
+    bitvec_t *mgau_active; /**< Set of active codebooks */
+} ptm_fast_eval_t;
+
+struct ptm_mgau_s {
     ps_mgau_t base;     /**< base structure. */
-    cmd_ln_t *config;   /* configuration parameters */
-
-    gauden_t *g;        /* Set of Gaussians (pointers below point in here and will go away soon) */
-
-    uint8 ***mixw;     /* mixture weight distributions */
-    mmio_file_t *sendump_mmap;/* memory map for mixw (or NULL if not mmap) */
-
-    uint8 *mixw_cb;    /* mixture weight codebook, if any (assume it contains 16 values) */
-    int32 n_sen;	/* Number of senones */
-    uint8 *topn_beam;   /* Beam for determining per-frame top-N densities */
+    cmd_ln_t *config;   /**< Configuration parameters */
+    gauden_t *g;        /**< Set of Gaussians. */
+    int32 n_sen;       /**< Number of senones. */
+    uint8 *sen2cb;     /**< Senone to codebook mapping. */
+    uint8 ***mixw;     /**< Mixture weight distributions by feature, codeword, senone */
+    mmio_file_t *sendump_mmap;/* Memory map for mixw (or NULL if not mmap) */
+    uint8 *mixw_cb;    /* Mixture weight codebook, if any (assume it contains 16 values) */
     int16 max_topn;
     int16 ds_ratio;
 
-    vqFeature_t ***topn_hist; /**< Top-N scores and codewords for past frames. */
-    uint8 **topn_hist_n;      /**< Variable top-N for past frames. */
-    vqFeature_t **f;          /**< Topn-N for currently scoring frame. */
-    int n_topn_hist;          /**< Number of past frames tracked. */
+    ptm_fast_eval_t *hist;   /**< Fast evaluation info for past frames. */
+    ptm_fast_eval_t *f;      /**< Fast eval info for current frame. */
+    int n_fast_hist;         /**< Number of past frames tracked. */
 
     /* Log-add table for compressed values. */
     logmath_t *lmath_8b;
@@ -89,20 +91,20 @@ struct s2_semi_mgau_s {
     logmath_t *lmath;
 };
 
-ps_mgau_t *s2_semi_mgau_init(acmod_t *acmod);
-void s2_semi_mgau_free(ps_mgau_t *s);
-int s2_semi_mgau_frame_eval(ps_mgau_t *s,
-                            int16 *senone_scores,
-                            uint8 *senone_active,
-                            int32 n_senone_active,
-                            mfcc_t **featbuf,
-                            int32 frame,
-                            int32 compallsen);
-int s2_semi_mgau_mllr_transform(ps_mgau_t *s,
-                                ps_mllr_t *mllr);
+ps_mgau_t *ptm_mgau_init(acmod_t *acmod, bin_mdef_t *mdef);
+void ptm_mgau_free(ps_mgau_t *s);
+int ptm_mgau_frame_eval(ps_mgau_t *s,
+                        int16 *senone_scores,
+                        uint8 *senone_active,
+                        int32 n_senone_active,
+                        mfcc_t **featbuf,
+                        int32 frame,
+                        int32 compallsen);
+int ptm_mgau_mllr_transform(ps_mgau_t *s,
+                            ps_mllr_t *mllr);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /*  __S2_SEMI_MGAU_H__ */
+#endif /*  __PTM_MGAU_H__ */

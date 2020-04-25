@@ -39,7 +39,9 @@
  * @file state_align_search.c State (and phone and word) alignment search.
  */
 
-#include "state_align_search.h"
+#include "config.h"
+
+#include <soundswallower/state_align_search.h>
 
 static int
 state_align_search_start(ps_search_t *search)

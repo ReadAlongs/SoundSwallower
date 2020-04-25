@@ -60,11 +60,11 @@
  * 		Created.
  */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "config.h"
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
 # include <windows.h>

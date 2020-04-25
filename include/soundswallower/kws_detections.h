@@ -39,12 +39,9 @@
 #ifndef __KWS_DETECTIONS_H__
 #define __KWS_DETECTIONS_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/glist.h>
-
-/* Local headers. */
-#include "pocketsphinx_internal.h"
-#include "hmm.h"
+#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {

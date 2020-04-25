@@ -48,18 +48,14 @@
  * 		Started..
  */
 
-/* System headers. */
 #include "config.h"
 #include <assert.h>
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-
-/* Local headers. */
-#include "fsg_search_internal.h"
-#include "fsg_history.h"
+#include <soundswallower/fsg_search_internal.h>
+#include <soundswallower/fsg_history.h>
 
 
 #define __FSG_DBG__	0

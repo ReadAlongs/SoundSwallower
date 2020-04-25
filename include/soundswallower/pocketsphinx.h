@@ -32,23 +32,18 @@
  *
  */
 /**
- * @file pocketsphinx.h Main header file for the PocketSphinx decoder.
+ * @file pocketsphinx.h PocketSphinx API for SoundSwallower
  */
 
 #ifndef __POCKETSPHINX_H__
 #define __POCKETSPHINX_H__
 
 
-/* System headers we need. */
 #include <stdio.h>
-
-/* SphinxBase headers we need. */
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-
-/* PocketSphinx headers (not many of them!) */
 #include <soundswallower/cmdln_macro.h>
 #include <soundswallower/ps_lattice.h>
 #include <soundswallower/ps_mllr.h>
@@ -66,6 +61,7 @@ extern "C" {
 typedef struct ps_decoder_s ps_decoder_t;
 
 /* Dependency means this needs to come after (bad design!) */
+/* FIXME: That API in general is bad, fix it... */
 #include <soundswallower/ps_search.h>
 
 

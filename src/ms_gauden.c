@@ -43,8 +43,7 @@
 #include <soundswallower/bio.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-
-#include "ms_gauden.h"
+#include <soundswallower/ms_gauden.h>
 
 #define GAUDEN_PARAM_VERSION	"1.0"
 

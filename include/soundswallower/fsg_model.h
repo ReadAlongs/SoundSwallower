@@ -47,11 +47,8 @@
 #ifndef __FSG_MODEL_H__
 #define __FSG_MODEL_H__
 
-/* System headers. */
 #include <stdio.h>
 #include <string.h>
-
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 #include <soundswallower/glist.h>
 #include <soundswallower/logmath.h>

@@ -34,14 +34,32 @@
  * ====================================================================
  *
  */
-#ifndef FE_TYPE_H
-#define FE_TYPE_H
+#ifndef FE_NOISE_H
+#define FE_NOISE_H
 
 #include <soundswallower/fe.h>
+#include <soundswallower/fe_type.h>
 
-typedef float64 frame_t;
-typedef float64 powspec_t;
-typedef float64 window_t;
-typedef struct { float64 r, i; } complex;
+typedef struct noise_stats_s noise_stats_t;
 
-#endif /* FE_TYPE_H */
+/* Creates noisestats object */
+noise_stats_t *fe_init_noisestats(int num_filters);
+
+/* Resets collected noise statistics */
+void fe_reset_noisestats(noise_stats_t * noise_stats);
+
+/* Frees allocated data */
+void fe_free_noisestats(noise_stats_t * noise_stats);
+
+/**
+ * Process frame, update noise statistics, remove noise components if needed, 
+ * and return local vad decision.
+ */
+void fe_track_snr(fe_t *fe, int32 *in_speech);
+
+/**
+ * Updates global state based on local VAD state smoothing the estimate.
+ */
+void fe_vad_hangover(fe_t *fe, mfcc_t *feat, int32 is_speech, int32 store_pcm);
+
+#endif                          /* FE_NOISE_H */

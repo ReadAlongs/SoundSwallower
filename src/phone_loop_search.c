@@ -40,8 +40,7 @@
  */
 
 #include <soundswallower/err.h>
-
-#include "phone_loop_search.h"
+#include <soundswallower/phone_loop_search.h>
 
 static int phone_loop_search_start(ps_search_t *search);
 static int phone_loop_search_step(ps_search_t *search, int frame_idx);

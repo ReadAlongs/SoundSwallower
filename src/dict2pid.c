@@ -37,8 +37,8 @@
 
 #include <string.h>
 
-#include "dict2pid.h"
-#include "hmm.h"
+#include <soundswallower/dict2pid.h>
+#include <soundswallower/hmm.h>
 
 
 /**

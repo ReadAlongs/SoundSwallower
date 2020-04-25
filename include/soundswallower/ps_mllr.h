@@ -42,7 +42,6 @@
 #ifndef __PS_MLLR_H__
 #define __PS_MLLR_H__
 
-/* SphinxBase headers. */
 #include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
