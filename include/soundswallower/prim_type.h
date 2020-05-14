@@ -114,8 +114,6 @@ typedef signed char	int8;
 typedef unsigned int	uint32;
 typedef unsigned short	uint16;
 typedef unsigned char	uint8;
-typedef float		float32;
-typedef double		float64;
 # if defined(_MSC_VER)
 typedef __int64	         int64;
 typedef unsigned __int64 uint64;
