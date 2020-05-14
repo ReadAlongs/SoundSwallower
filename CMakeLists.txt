@@ -30,6 +30,10 @@ option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" OFF)
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
 
+# For MSVC/vscode in Windows: don't warn about functions only MS considers deprecated
+add_definitions(-D_CRT_SECURE_NO_WARINIGS)
+add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+
 # Always build the core library source
 add_subdirectory(src)
 
