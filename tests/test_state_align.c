@@ -53,6 +53,17 @@ do_decode(ps_decoder_t *ps)
     return 0;
 }
 
+// display an alignment in a simplistic way, for test-suite debugging purposes.
+static void
+print_al(ps_alignment_t *al)
+{
+    ps_alignment_iter_t *itor = ps_alignment_words(al);
+    while (itor) {
+        printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
+        itor = ps_alignment_iter_next(itor);
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -90,28 +101,23 @@ main(int argc, char *argv[])
     for (i = 0; i < 5; i++)
         do_search(search, acmod);
 
+    //print_al(al);
     itor = ps_alignment_words(al);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 0);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 46);
     itor = ps_alignment_iter_next(itor);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 46);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 18);
     itor = ps_alignment_iter_next(itor);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 64);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 53);
     itor = ps_alignment_iter_next(itor);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 117);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 36);
     itor = ps_alignment_iter_next(itor);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 153);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 59);
     itor = ps_alignment_iter_next(itor);
-    //printf("start=%d duration=%d\n", ps_alignment_iter_get(itor)->start, ps_alignment_iter_get(itor)->duration);
     TEST_EQUAL(ps_alignment_iter_get(itor)->start, 212);
     TEST_EQUAL(ps_alignment_iter_get(itor)->duration, 62);
     itor = ps_alignment_iter_next(itor);
@@ -125,13 +131,18 @@ main(int argc, char *argv[])
     al = ps_alignment_init(d2p);
     TEST_EQUAL(1, ps_alignment_add_word(al, dict_wordid(dict, "<s>"), 0));
     for (i = 0; i < 20; i++) {
-        TEST_EQUAL(i + 2, ps_alignment_add_word(al, dict_wordid(dict, "hello"), 0));
+        // EJ changed "hello" to "debug" because somehow the decoder found an alignment
+        // with "hello"! With its hard consonants "debug" fails to align, as we want.
+        TEST_EQUAL(i + 2, ps_alignment_add_word(al, dict_wordid(dict, "debug"), 0));
     }
     TEST_EQUAL(22, ps_alignment_add_word(al, dict_wordid(dict, "</s>"), 0));
     TEST_EQUAL(0, ps_alignment_populate(al));
     TEST_ASSERT(search = state_align_search_init("state_align", config, acmod, al));
     E_INFO("Error here is expected, testing bad alignment\n");
-    TEST_EQUAL(-1, do_search(search, acmod));
+    int do_search_rc = do_search(search, acmod);
+    //printf("do_search_rc=%d\n", do_search_rc);
+    //print_al(al);
+    TEST_EQUAL(-1, do_search_rc);
 
     ps_search_free(search);
     ps_alignment_free(al);
