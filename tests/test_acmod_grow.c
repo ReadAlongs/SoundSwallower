@@ -92,7 +92,10 @@ main(int argc, char *argv[])
             }
         }
     }
-    TEST_EQUAL(0, acmod_end_utt(acmod));
+    int rc = acmod_end_utt(acmod);
+    printf("acmod_end_utt(acmod)=%d\n", rc);
+    // EJ: I don't know why acmod_end_utt(acmod) should return 0, but it returns 1 instead.
+    TEST_EQUAL(0, rc); //FAILS
     nread = 0;
     acmod_process_raw(acmod, NULL, &nread, FALSE);
     {
