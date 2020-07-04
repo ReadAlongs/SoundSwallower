@@ -56,7 +56,6 @@ if(SKBUILD)
   install(DIRECTORY model DESTINATION py/soundswallower)
 elseif(EMSCRIPTEN)
   # Specific configuration for JavaScript build
-  configure_file(js/pocketsphinxjs-config.h.in pocketsphinxjs-config.h)
   add_executable(ssjs js/psRecognizer.cpp)
   set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
   target_link_libraries(ssjs soundswallower)

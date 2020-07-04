@@ -3,15 +3,8 @@
 // MIT license, see LICENSE for details
 
 #include "psRecognizer.h"
-#include "pocketsphinxjs-config.h"
 
 namespace pocketsphinxjs {
-  typedef std::map<std::string, std::string> StringsMapType;
-  typedef std::map<std::string, std::string>::iterator StringsMapIterator;
-
-  // Implemented later in this file
-  ReturnType parseStringList(const std::string &, StringsSetType*, std::string*);
-
   Recognizer::Recognizer(): is_fsg(true), is_recording(false), current_hyp(""), grammar_index(0) {
     Config c;
     if (init(c) != SUCCESS) cleanup();
@@ -180,30 +173,8 @@ namespace pocketsphinxjs {
   }
 
   ReturnType Recognizer::init(const Config& config) {
-#ifdef HMM_FOLDERS
-    parseStringList(HMM_FOLDERS, &acoustic_models, &default_acoustic_model);
-#endif /* HMM_FOLDERS */
-#ifdef LM_FILES
-    parseStringList(LM_FILES, &language_models, &default_language_model);
-#endif /* LM_FILES */
-#ifdef DICT_FILES
-    parseStringList(DICT_FILES, &dictionaries, &default_dictionary);
-#endif /* DICT_FILES */
-
     const arg_t cont_args_def[] = {
       POCKETSPHINX_OPTIONS,
-      { "-argfile",
-	ARG_STRING,
-	NULL,
-	"Argument file giving extra arguments." },
-      { "-adcdev",
-	ARG_STRING,
-	NULL,
-	"Name of audio device to use for input." },
-      { "-infile",
-	ARG_STRING,
-	NULL,
-	"Audio file to transcribe." },
       { "-time",
 	ARG_BOOLEAN,
 	"no",
@@ -212,7 +183,7 @@ namespace pocketsphinxjs {
     };
     grammar_names.push_back("_default");
     grammar_index++;
-    std::map<std::string, std::string> parameters;
+    StringsMapType parameters;
     for (int i=0 ; i< config.size() ; ++i)
       parameters[config[i].key] = config[i].value;
     
@@ -229,7 +200,6 @@ namespace pocketsphinxjs {
     char ** argv = new char*[argc];
     int index = 0;
     for (StringsMapIterator i = parameters.begin() ; i != parameters.end(); ++i) {
-      if (i->first == "-lm") is_fsg = false;
       argv[index++] = (char*) i->first.c_str();
       argv[index++] = (char*) i->second.c_str();
     }
@@ -248,28 +218,6 @@ namespace pocketsphinxjs {
     if (logmath == NULL) {
       return RUNTIME_ERROR;
     }
-    return SUCCESS;
-  }
-
-  /*******************************************
-   *
-   * Parses the string with available models and fills in
-   * the default model and the available models
-   * @param string to parse, the models are separated with ";"
-   * @return 0 if successful, always successful
-   *
-   *****************************************/
-  ReturnType parseStringList(const std::string & list, StringsSetType* strings_set, std::string* default_string = NULL) {
-    if ((strings_set == NULL) || (list.size() == 0))
-      return BAD_ARGUMENT;
-    std::string separator = ";";
-    std::string::size_type index;
-    std::string first_string = list.substr(0, index = list.find(separator));
-    if (default_string != NULL)
-      *default_string = first_string;
-    strings_set->insert(first_string);
-    while((index != std::string::npos) && (index != list.size() -1))
-      strings_set->insert(list.substr(index+1, -1 -index +(index = list.find(separator, index + 1))));
     return SUCCESS;
   }
 } // namespace pocketsphinxjs

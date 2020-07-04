@@ -16,7 +16,13 @@
 #include <soundswallower/pocketsphinx.h>
 
 namespace pocketsphinxjs {
-
+  typedef std::map<std::string, std::string> StringsMapType;
+  typedef std::map<std::string, std::string>::iterator StringsMapIterator;
+  typedef std::vector<std::string> StringsListType;
+  typedef std::set<std::string> StringsSetType;
+  typedef std::vector<int> Integers;
+  typedef std::map<std::string, std::string> Dictionary;
+  
   enum ReturnType {
     SUCCESS,
     BAD_STATE,
@@ -38,8 +44,6 @@ namespace pocketsphinxjs {
     std::vector<Transition> transitions;
   };
 
-  typedef std::map<std::string, std::string> Dictionary;
-  
   struct Word {
     std::string word;
     std::string pronunciation;
@@ -49,6 +53,7 @@ namespace pocketsphinxjs {
     std::string key;
     std::string value;
   };
+  typedef std::vector<ConfigItem> Config;
 
   struct SegItem {
     std::string word;
@@ -57,11 +62,6 @@ namespace pocketsphinxjs {
     int ascr;
     int lscr;
   };
-
-  typedef std::vector<std::string> StringsListType;
-  typedef std::set<std::string> StringsSetType;
-  typedef std::vector<ConfigItem> Config;
-  typedef std::vector<int> Integers;
   typedef std::vector<SegItem> Segmentation;
 
   class Recognizer {
