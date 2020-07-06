@@ -37,7 +37,6 @@ set(TESTS
   test_ptm_mgau.c
   test_readfile.c
   test_solve.c
-  test_state_align.c
   test_strfuncs.c
   test_subvq.c)
 foreach(TEST_SOURCE ${TESTS})
