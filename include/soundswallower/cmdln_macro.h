@@ -81,35 +81,35 @@
 /** Options defining beam width parameters for tuning the search. */
 #define POCKETSPHINX_BEAM_OPTIONS                                       \
 { "-beam",                                                              \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "1e-48",                                                          \
       "Beam width applied to every frame in Viterbi search (smaller values mean wider beam)" }, \
 { "-wbeam",                                                             \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "7e-29",                                                          \
       "Beam width applied to word exits" },                             \
 { "-pbeam",                                                             \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "1e-48",                                                          \
       "Beam width applied to phone transitions" },                      \
 { "-pl_window",                                                         \
-      ARG_INT32,                                                        \
+      ARG_INTEGER,                                                        \
       "5",                                                              \
       "Phoneme lookahead window size, in frames" },                     \
 { "-pl_beam",                                                           \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "1e-10",                                                          \
       "Beam width applied to phone loop search for lookahead" },        \
 { "-pl_pbeam",                                                          \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "1e-10",                                                          \
       "Beam width applied to phone loop transitions for lookahead" },   \
 { "-pl_pip",                                                            \
-      ARG_FLOAT32,                                                      \
+      ARG_FLOATING,                                                      \
       "1.0",                                                            \
       "Phone insertion penalty for phone loop" },                       \
 { "-pl_weight",                                                         \
-      ARG_FLOAT64,                                                      \
+      ARG_FLOATING,                                                      \
       "3.0",                                                            \
       "Weight for phoneme lookahead penalties" }
 
@@ -128,7 +128,7 @@
       "no",                                                                                     \
       "Print results and backtraces to log." },                                                 \
 { "-maxhmmpf",                                                                                  \
-      ARG_INT32,                                                                                \
+      ARG_INTEGER,                                                                                \
       "30000",                                                                                  \
       "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
 
@@ -143,15 +143,15 @@
          NULL,                                                  \
          "A file with keyphrases to spot, one per line"},       \
 { "-kws_plp",                                                   \
-      ARG_FLOAT64,                                              \
+      ARG_FLOATING,                                              \
       "1e-1",                                                   \
       "Phone loop probability for keyphrase spotting" },          \
 { "-kws_delay",                                                 \
-      ARG_INT32,                                                \
+      ARG_INTEGER,                                                \
       "10",                                                     \
       "Delay to wait for best detection score" },               \
 { "-kws_threshold",                                             \
-      ARG_FLOAT64,                                              \
+      ARG_FLOATING,                                              \
       "1e-30",                                                  \
       "Threshold for p(hyp)/p(alternatives) ratio" }
 
@@ -181,27 +181,27 @@
 /** Command-line options for statistical language models. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
 { "-lw",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "6.5",										\
       "Language model probability weight" },						\
 { "-ascale",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "20.0",										\
       "Inverse of acoustic model scale for confidence score calculation" },		\
 { "-wip",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "0.65",										\
       "Word insertion penalty" },							\
 { "-pip",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "1.0",										\
       "Phone insertion penalty" },							\
 { "-silprob",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "0.005",										\
       "Silence word transition probability" },						\
 { "-fillprob",										\
-      ARG_FLOAT32,									\
+      ARG_FLOATING,									\
       "1e-8",										\
         "Filler word transition probability" } \
 
@@ -243,7 +243,7 @@
       NULL,                                                                     \
       "HMM state transition matrix input file" },                               \
 { "-tmatfloor",                                                                 \
-      ARG_FLOAT32,                                                              \
+      ARG_FLOATING,                                                              \
       "0.0001",                                                                 \
       "HMM state transition probability floor (applied to -tmat file)" },       \
 { "-mean",                                                                      \
@@ -255,7 +255,7 @@
       NULL,                                                                     \
       "Mixture gaussian variances input file" },                                \
 { "-varfloor",                                                                  \
-      ARG_FLOAT32,                                                              \
+      ARG_FLOATING,                                                              \
       "0.0001",                                                                 \
       "Mixture gaussian variance floor (applied to data from -var file)" },     \
 { "-mixw",                                                                      \
@@ -263,11 +263,11 @@
       NULL,                                                                     \
       "Senone mixture weights input file (uncompressed)" },                     \
 { "-mixwfloor",                                                                 \
-      ARG_FLOAT32,                                                              \
+      ARG_FLOATING,                                                              \
       "0.0000001",                                                              \
       "Senone mixture weights floor (applied to data from -mixw file)" },       \
 { "-aw",                                                                \
-    ARG_INT32,                                                          \
+    ARG_INTEGER,                                                          \
     "1", \
         "Inverse weight applied to acoustic scores." },                 \
 { "-sendump",                                                                   \
@@ -283,11 +283,11 @@
       "yes",                                                                    \
       "Use memory-mapped I/O (if possible) for model files" },                  \
 { "-ds",                                                                        \
-      ARG_INT32,                                                                \
+      ARG_INTEGER,                                                                \
       "1",                                                                      \
       "Frame GMM computation downsampling ratio" },                             \
 { "-topn",                                                                      \
-      ARG_INT32,                                                                \
+      ARG_INTEGER,                                                                \
       "4",                                                                      \
       "Maximum number of top Gaussians to use in scoring." },                   \
 { "-topn_beam",                                                                 \
@@ -295,7 +295,7 @@
       "0",                                                                     \
       "Beam width used to determine top-N Gaussians (or a list, per-feature)" },\
 { "-logbase",                                                                   \
-      ARG_FLOAT32,                                                              \
+      ARG_FLOATING,                                                              \
       "1.0001",                                                                 \
       "Base in which all log-likelihoods calculated" }
 

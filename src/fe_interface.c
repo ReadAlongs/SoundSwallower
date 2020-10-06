@@ -198,12 +198,6 @@ fe_print_current(fe_t const *fe)
 }
 
 fe_t *
-fe_init_auto()
-{
-    return fe_init_auto_r(cmd_ln_get());
-}
-
-fe_t *
 fe_init_auto_r(cmd_ln_t *config)
 {
     fe_t *fe;
@@ -299,18 +293,6 @@ fe_init_auto_r(cmd_ln_t *config)
     /*** Initialize the overflow buffers ***/
     fe_start_utt(fe);
     return fe;
-}
-
-arg_t const *
-fe_get_args(void)
-{
-    return fe_args;
-}
-
-const cmd_ln_t *
-fe_get_config(fe_t *fe)
-{
-    return fe->config;
 }
 
 void

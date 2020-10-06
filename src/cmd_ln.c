@@ -80,21 +80,12 @@
 #include <soundswallower/case.h>
 #include <soundswallower/strfuncs.h>
 
-typedef struct cmd_ln_val_s {
-    anytype_t val;
-    int type;
-    char *name;
-} cmd_ln_val_t;
-
 struct cmd_ln_s {
     int refcount;
     hash_table_t *ht;
     char **f_argv;
     uint32 f_argc;
 };
-
-/** Global command-line, for non-reentrant API. */
-cmd_ln_t *global_cmdln;
 
 static void
 arg_dump_r(cmd_ln_t *, FILE *, arg_t const *, int32);
@@ -243,7 +234,7 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
     int32 i, n;
     size_t l;
     int32 namelen, deflen;
-    anytype_t *vp;
+    cmd_ln_val_t const *vp;
     char const **array;
 
     /* No definitions, do nothing. */
@@ -298,19 +289,19 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
                 switch (pos[i]->type) {
                 case ARG_INTEGER:
                 case REQARG_INTEGER:
-                    fprintf(fp, "%ld", vp->i);
+                    fprintf(fp, "%ld", vp->val.i);
                     break;
                 case ARG_FLOATING:
                 case REQARG_FLOATING:
-                    fprintf(fp, "%e", vp->fl);
+                    fprintf(fp, "%e", vp->val.fl);
                     break;
                 case ARG_STRING:
                 case REQARG_STRING:
-                    if (vp->ptr)
-                        fprintf(fp, "%s", (char *)vp->ptr);
+                    if (vp->val.ptr)
+                        fprintf(fp, "%s", (char *)vp->val.ptr);
                     break;
                 case ARG_STRING_LIST:
-                    array = (char const**)vp->ptr;
+                    array = (char const**)vp->val.ptr;
                     if (array)
                         for (l = 0; array[l] != 0; l++) {
                             fprintf(fp, "%s,", array[l]);
@@ -318,7 +309,7 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
                     break;
                 case ARG_BOOLEAN:
                 case REQARG_BOOLEAN:
-                    fprintf(fp, "%s", vp->i ? "yes" : "no");
+                    fprintf(fp, "%s", vp->val.i ? "yes" : "no");
                     break;
                 default:
                     E_ERROR("Unknown argument type: %d\n", pos[i]->type);
@@ -487,71 +478,10 @@ cmd_ln_val_free(cmd_ln_val_t *val)
     ckd_free(val);
 }
 
-cmd_ln_t *
-cmd_ln_get(void)
-{
-    return global_cmdln;
-}
-
-void
-cmd_ln_appl_enter(int argc, char *argv[],
-                  const char *default_argfn,
-                  const arg_t * defn)
-{
-    /* Look for default or specified arguments file */
-    const char *str;
-
-    str = NULL;
-
-    if ((argc == 2) && (strcmp(argv[1], "help") == 0)) {
-        cmd_ln_print_help(stderr, defn);
-        exit(1);
-    }
-
-    if ((argc == 2) && (argv[1][0] != '-'))
-        str = argv[1];
-    else if (argc == 1) {
-        FILE *fp;
-        E_INFO("Looking for default argument file: %s\n", default_argfn);
-
-        if ((fp = fopen(default_argfn, "r")) == NULL) {
-            E_INFO("Can't find default argument file %s.\n",
-                   default_argfn);
-        }
-        else {
-            str = default_argfn;
-        }
-        if (fp != NULL)
-            fclose(fp);
-    }
-
-
-    if (str) {
-        /* Build command line argument list from file */
-        E_INFO("Parsing command lines from file %s\n", str);
-        if (cmd_ln_parse_file(defn, str, TRUE)) {
-            E_INFOCONT("Usage:\n");
-            E_INFOCONT("\t%s argument-list, or\n", argv[0]);
-            E_INFOCONT("\t%s [argument-file] (default file: . %s)\n\n",
-                    argv[0], default_argfn);
-            cmd_ln_print_help(stderr, defn);
-            exit(1);
-        }
-    }
-    else {
-        cmd_ln_parse(defn, argc, argv, TRUE);
-    }
-}
-
-void
-cmd_ln_appl_exit()
-{
-    cmd_ln_free();
-}
-
 
 cmd_ln_t *
-cmd_ln_parse_r(cmd_ln_t *inout_cmdln, const arg_t * defn, int32 argc, char *argv[], int strict)
+cmd_ln_parse_r(cmd_ln_t *inout_cmdln, const arg_t * defn,
+               int32 argc, char *argv[], int strict)
 {
     int32 i, j, n, argstart;
     hash_table_t *defidx = NULL;
@@ -740,24 +670,6 @@ cmd_ln_init(cmd_ln_t *inout_cmdln, const arg_t *defn, int32 strict, ...)
     return parse_options(inout_cmdln, defn, f_argc, f_argv, strict);
 }
 
-int
-cmd_ln_parse(const arg_t * defn, int32 argc, char *argv[], int strict)
-{
-    cmd_ln_t *cmdln;
-
-    cmdln = cmd_ln_parse_r(global_cmdln, defn, argc, argv, strict);
-    if (cmdln == NULL) {
-        /* Old, bogus behaviour... */
-        E_ERROR("Failed to parse arguments list, forced exit\n");
-        exit(-1);
-    }
-    /* Initialize global_cmdln if not present. */
-    if (global_cmdln == NULL) {
-        global_cmdln = cmdln;
-    }
-    return 0;
-}
-
 cmd_ln_t *
 cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, const arg_t * defn, const char *filename, int32 strict)
 {
@@ -889,22 +801,6 @@ cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, const arg_t * defn, const char *filen
     return parse_options(inout_cmdln, defn, argc, f_argv, strict);
 }
 
-int
-cmd_ln_parse_file(const arg_t * defn, const char *filename, int32 strict)
-{
-    cmd_ln_t *cmdln;
-
-    cmdln = cmd_ln_parse_file_r(global_cmdln, defn, filename, strict);
-    if (cmdln == NULL) {
-        return -1;
-    }
-    /* Initialize global_cmdln if not present. */
-    if (global_cmdln == NULL) {
-        global_cmdln = cmdln;
-    }
-    return 0;
-}
-
 void
 cmd_ln_print_help_r(cmd_ln_t *cmdln, FILE *fp, arg_t const* defn)
 {
@@ -932,7 +828,7 @@ cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
     return (hash_table_lookup(cmdln->ht, name, &val) == 0);
 }
 
-anytype_t *
+cmd_ln_val_t *
 cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
 {
     void *val;
@@ -940,60 +836,80 @@ cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
         E_ERROR("Unknown argument: %s\n", name);
         return NULL;
     }
-    return (anytype_t *)val;
+    return (cmd_ln_val_t *)val;
 }
 
 char const *
 cmd_ln_str_r(cmd_ln_t *cmdln, char const *name)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL)
         return NULL;
-    return (char const *)val->ptr;
+    if (!(val->type & ARG_STRING)) {
+        E_ERROR("Argument %s does not have string type\n", name);
+        return NULL;
+    }
+    return (char const *)val->val.ptr;
 }
 
 char const **
 cmd_ln_str_list_r(cmd_ln_t *cmdln, char const *name)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL)
         return NULL;
-    return (char const **)val->ptr;
+    if (!(val->type & ARG_STRING_LIST)) {
+        E_ERROR("Argument %s does not have string list type\n", name);
+        return NULL;
+    }
+    return (char const **)val->val.ptr;
 }
 
 long
 cmd_ln_int_r(cmd_ln_t *cmdln, char const *name)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL)
         return 0L;
-    return val->i;
+    if (!(val->type & (ARG_INTEGER | ARG_BOOLEAN))) {
+        E_ERROR("Argument %s does not have integer type\n", name);
+        return 0L;
+    }
+    return val->val.i;
 }
 
 double
 cmd_ln_float_r(cmd_ln_t *cmdln, char const *name)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL)
         return 0.0;
-    return val->fl;
+    if (!(val->type & ARG_FLOATING)) {
+        E_ERROR("Argument %s does not have floating-point type\n", name);
+        return 0.0;
+    }
+    return val->val.fl;
 }
 
 void
 cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
         return;
     }
-    ckd_free(val->ptr);
-    val->ptr = ckd_salloc(str);
+    if (!(val->type & ARG_STRING)) {
+        E_ERROR("Argument %s does not have string type\n", name);
+        return;
+    }
+    ckd_free(val->val.ptr);
+    val->val.ptr = ckd_salloc(str);
 }
 
 void
@@ -1004,6 +920,10 @@ cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str)
 	val = cmd_ln_val_init(ARG_STRING, name, str);
 	hash_table_enter(cmdln->ht, val->name, (void *)val);
     } else {
+        if (!(val->type & ARG_STRING)) {
+            E_ERROR("Argument %s does not have string type\n", name);
+            return;
+        }
         ckd_free(val->val.ptr);
         val->val.ptr = ckd_salloc(str);
     }
@@ -1012,25 +932,33 @@ cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str)
 void
 cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
         return;
     }
-    val->i = iv;
+    if (!(val->type & (ARG_INTEGER | ARG_BOOLEAN))) {
+        E_ERROR("Argument %s does not have integer type\n", name);
+        return;
+    }
+    val->val.i = iv;
 }
 
 void
 cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv)
 {
-    anytype_t *val;
+    cmd_ln_val_t *val;
     val = cmd_ln_access_r(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
         return;
     }
-    val->fl = fv;
+    if (!(val->type & ARG_FLOATING)) {
+        E_ERROR("Argument %s does not have floating-point type\n", name);
+        return;
+    }
+    val->val.fl = fv;
 }
 
 cmd_ln_t *
@@ -1074,13 +1002,6 @@ cmd_ln_free_r(cmd_ln_t *cmdln)
     }
     ckd_free(cmdln);
     return 0;
-}
-
-void
-cmd_ln_free(void)
-{
-    cmd_ln_free_r(global_cmdln);
-    global_cmdln = NULL;
 }
 
 /* vim: set ts=4 sw=4: */
