@@ -9,8 +9,6 @@ set(TESTS
   test_case.c
   test_ckd_alloc_catch.c
   test_ckd_alloc_fail.c
-  test_cmdln.c
-  test_cmdln_multiple.c
   test_cmdln_parse_r.c
   test_delete_hash.c
   test_determinant.c
