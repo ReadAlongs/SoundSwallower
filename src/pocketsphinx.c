@@ -1234,7 +1234,7 @@ ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
     *out_nwall = ps->perf.t_tot_elapsed;
 }
 
-uint8 
+int
 ps_get_in_speech(ps_decoder_t *ps)
 {
     return fe_get_vad_state(ps->acmod->fe);

@@ -344,7 +344,7 @@ fe_get_input_size(fe_t *fe, int *out_frame_shift,
         *out_frame_size = fe->frame_size;
 }
 
-uint8
+int
 fe_get_vad_state(fe_t *fe)
 {
     return fe->vad_data->in_speech;

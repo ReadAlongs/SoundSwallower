@@ -345,7 +345,7 @@ void fe_get_input_size(fe_t *fe, int *out_frame_shift,
  *
  * @return 1 if speech, 0 if silence
  */
-uint8 fe_get_vad_state(fe_t *fe);
+int fe_get_vad_state(fe_t *fe);
 
 /**
  * Finish processing an utterance.

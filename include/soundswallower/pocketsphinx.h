@@ -552,7 +552,7 @@ void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
  * @param ps Decoder.
  * @return 1 if last buffer contained speech, 0 - otherwise
  */
-uint8 ps_get_in_speech(ps_decoder_t *ps);
+int ps_get_in_speech(ps_decoder_t *ps);
 
 
 /**

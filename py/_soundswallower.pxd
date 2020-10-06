@@ -64,4 +64,30 @@ cdef extern from "soundswallower/cmd_ln.h":
 
 
 cdef extern from "soundswallower/pocketsphinx.h":
-    arg_t *ps_args();
+    ctypedef struct ps_decoder_t:
+        pass
+    ctypedef struct ps_seg_t:
+        pass
+    arg_t *ps_args()
+    ps_decoder_t *ps_init(cmd_ln_t *config)
+    logmath_t *ps_get_logmath(ps_decoder_t *ps)
+    int ps_start_utt(ps_decoder_t *ps)
+    int ps_process_raw(ps_decoder_t *ps,
+                       const short *data, size_t n_samples,
+                       int no_search, int full_utt)
+    int ps_end_utt(ps_decoder_t *ps)
+    const char *ps_get_hyp(ps_decoder_t *ps, int *out_best_score)
+    int ps_get_prob(ps_decoder_t *ps)
+    ps_seg_t *ps_seg_iter(ps_decoder_t *ps)
+    ps_seg_t *ps_seg_next(ps_seg_t *seg)
+    const char *ps_seg_word(ps_seg_t *seg)
+    void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
+    int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr, int *out_lback)
+    void ps_seg_free(ps_seg_t *seg)
+    void ps_free(ps_decoder_t *ps)
+    int ps_load_dict(ps_decoder_t *ps, char *dictfile,
+                     char *fdictfile, char *format)
+    int ps_save_dict(ps_decoder_t *ps, char *dictfile, char *format)
+    int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
+    int ps_get_in_speech(ps_decoder_t *ps)
+    
