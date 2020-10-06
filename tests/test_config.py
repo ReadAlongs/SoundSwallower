@@ -31,47 +31,70 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
-
-from soundswallower import DefaultConfig
+from soundswallower import Config
 
 
 class TestConfig(unittest.TestCase):
 
     def test_config_get_float(self):
-        config = DefaultConfig()
+        config = Config()
         self.assertEqual(config.get_float('-samprate'), 16000.0)
 
     def test_config_set_float(self):
-        config = DefaultConfig()
+        config = Config()
         config.set_float('-samprate', 8000.0)
         self.assertEqual(config.get_float('-samprate'), 8000.0)
 
     def test_config_get_int(self):
-        config = DefaultConfig()
+        config = Config()
         self.assertEqual(config.get_int('-nfft'), 512)
 
     def test_config_set_int(self):
-        config = DefaultConfig()
+        config = Config()
         config.set_int('-nfft', 256)
         self.assertEqual(config.get_int('-nfft'), 256)
 
     def test_config_get_string(self):
-        config = DefaultConfig()
+        config = Config()
         self.assertEqual(config.get_string('-rawlogdir'), None)
 
     def test_config_set_string(self):
-        config = DefaultConfig()
+        config = Config()
         config.set_string('-rawlogdir', '~/pocketsphinx')
         self.assertEqual(config.get_string('-rawlogdir'), '~/pocketsphinx')
 
     def test_config_get_boolean(self):
-        config = DefaultConfig()
+        config = Config()
         self.assertEqual(config.get_boolean('-backtrace'), False)
 
     def test_config_set_boolean(self):
-        config = DefaultConfig()
+        config = Config()
         config.set_boolean('-backtrace', True)
         self.assertEqual(config.get_boolean('-backtrace'), True)
+
+
+class TestConfigHash(unittest.TestCase):
+    def test_config__getitem(self):
+        config = Config()
+        self.assertEqual(config['samprate'], 16000.)
+        self.assertEqual(config['nfft'], 512)
+        self.assertEqual(config['rawlogdir'], None)
+        self.assertEqual(config['backtrace'], False)
+        self.assertEqual(config['feat'], '1s_c_d_dd')
+
+    def test_config_easyinit(self):
+        config = Config(samprate=11025.,
+                        nfft=512,
+                        rawlogdir=None,
+                        backtrace=False,
+                        feat="1s_c_d_dd")
+        self.assertEqual(config['samprate'], 11025.)
+        self.assertEqual(config.get_float('-samprate'), 11025.)
+        self.assertEqual(config['nfft'], 512)
+        self.assertEqual(config['rawlogdir'], None)
+        self.assertEqual(config['backtrace'], False)
+        self.assertEqual(config['feat'], '1s_c_d_dd')
+
 
 if __name__ == '__main__':
     unittest.main()

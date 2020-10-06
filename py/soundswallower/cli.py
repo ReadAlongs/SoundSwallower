@@ -41,13 +41,15 @@ def make_argparse():
     """Function to make the argument parser (for auto-documentation purposes)"""
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("inputs", nargs="+",
-                        help="One or more input files.")
+    parser.add_argument("inputs", nargs="*", help="Input files.")
     parser.add_argument("--dict", help="Custom dictionary file.")
     parser.add_argument("--model",
                         help="Specific model, built-in or from directory.",
                         default='en-us')
     parser.add_argument("--config", help="JSON file with decoder configuration.")
+    parser.add_argument("--write-config",
+                        help="Write full configuration as JSON to OUTPUT "
+                        "(or standard output if none given) and exit.")
     parser.add_argument("-o", "--output",
                         help="Filename for output (default is standard output")
     grammars = parser.add_mutually_exclusive_group(required=True)
@@ -102,6 +104,12 @@ def make_decoder_config(args):
         config.set_string("-kws", args.keywords)
         
     return config
+
+
+def write_config(config, output=None):
+    """Write the full configuraiton as JSON to output file or standard output."""
+    config_dict = {}
+    pass
 
 
 def get_audio_data(input_file):
@@ -194,6 +202,8 @@ def main(argv=None):
     parser = make_argparse()
     args = parser.parse_args(argv)
     config = make_decoder_config(args)
+    if args.write_config:
+        write_config(config, args.output)
     # FIXME: These two should be doable without temporary files, but
     # we need to improve the decoder API somewhat for that.
     if args.keyword:

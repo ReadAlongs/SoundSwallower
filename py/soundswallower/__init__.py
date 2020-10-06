@@ -1,7 +1,7 @@
 import os
 
 from ._soundswallower import LogMath
-# from .soundswallower import Config
+from ._soundswallower import Config
 # from .soundswallower import FrontEnd
 # from .soundswallower import Feature
 # from .soundswallower import FsgModel
@@ -14,8 +14,6 @@ from ._soundswallower import LogMath
 # from .soundswallower import SegmentList
 # from .soundswallower import Decoder
 
-
-# DefaultConfig = Decoder.default_config
 
 def get_model_path():
     """ Return path to the model. """

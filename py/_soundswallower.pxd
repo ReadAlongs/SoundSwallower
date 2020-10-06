@@ -34,14 +34,33 @@ cdef extern from "soundswallower/cmd_ln.h":
         pass
     ctypedef struct arg_t:
         pass
+    cdef enum:
+        ARG_REQUIRED,
+        ARG_INTEGER,
+        ARG_FLOATING,
+        ARG_STRING,
+        ARG_BOOLEAN,
+        ARG_STRING_LIST,
+        REQARG_INTEGER,
+        REQARG_FLOATING,
+        REQARG_STRING,
+        REQARG_BOOLEAN
+    ctypedef struct cmd_ln_val_t:
+        int type
+        
     cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, arg_t *defn,
                              int argc, char **argv, int strict)
     void cmd_ln_free_r(cmd_ln_t *cmdln)
-    float cmd_ln_float32_r(cmd_ln_t *cmdln, char *key)
-    int cmd_ln_int32_r(cmd_ln_t *cmdln, char *key)
-    bint cmd_ln_boolean_r(cmd_ln_t *cmdln, char *key)
-    char *cmd_ln_str_r(cmd_ln_t *cmdln, char *key)
 
+    double cmd_ln_float_r(cmd_ln_t *cmdln, const char *name)
+    long cmd_ln_int_r(cmd_ln_t *cmdln, const char *name)
+    const char *cmd_ln_str_r(cmd_ln_t *cmdln, const char *name)
+    void cmd_ln_set_str_r(cmd_ln_t *cmdln, const char *name, const char *str)
+    void cmd_ln_set_int_r(cmd_ln_t *cmdln, const char *name, long iv)
+    void cmd_ln_set_float_r(cmd_ln_t *cmdln, const char *name, double fv)
+    cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
+
+    int cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
 
 
 cdef extern from "soundswallower/pocketsphinx.h":
