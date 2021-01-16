@@ -1,3 +1,4 @@
+# cython: embedsignature=True
 # Copyright (c) 2008-2020 Carnegie Mellon University. All rights
 # reserved.
 #
@@ -131,17 +132,13 @@ cdef class LogMath:
 
 
 cdef class Config:
-    """
-    SoundSwallower configuration manager.
-    """
     cdef cmd_ln_t *cmd_ln
     
     def __cinit__(self, *args, **kwargs):
-        """
-        Create a config from arguments.
-        """
         cdef char **argv
-        if kwargs:
+        if args or kwargs:
+            args = [str(k).encode('utf-8')
+                    for k in args]
             for k, v in kwargs.items():
                 if len(k) > 0 and k[0] != '-':
                     k = "-" + k
@@ -164,9 +161,6 @@ cdef class Config:
             self.cmd_ln = cmd_ln_parse_r(NULL, ps_args(), 0, NULL, 0)
 
     def __init__(self, *args, **kwargs):
-        """
-        Create a config from arguments.
-        """
         pass
 
     def __dealloc__(self):
@@ -287,9 +281,6 @@ cdef class Segment:
 
 
 cdef class SegmentIterator:
-    """
-    Iterator for best hypothesis word segments of best hypothesis
-    """
     cdef ps_seg_t *itor
     cdef int first_seg
 
@@ -326,17 +317,6 @@ class Hypothesis:
 
 
 cdef class Decoder:
-    """
-    Speech decoder.
-
-    To initialize the decoder, pass a list of keyword
-    arguments to the constructor::
-
-     d = soundswallower.Decoder(hmm='/path/to/acoustic/model',
-                                fsg='/path/to/grammar',
-                                dict='/path/to/dictionary',
-                                beam='1e-80')
-    """
     cdef ps_decoder_t *ps
     cdef Config config
 
@@ -362,29 +342,10 @@ cdef class Decoder:
         return Config()
 
     def start_utt(self):
-        """
-        Prepare the decoder to recognize an utterance.
-        """
         if ps_start_utt(self.ps) < 0:
             raise RuntimeError, "Failed to start utterance processing"
 
     def process_raw(self, data, no_search=False, full_utt=False):
-        """Process (decode) some audio data.
-
-        @param data: Audio data to process.  This is packed binary
-        data, which consists of single-channel, 16-bit PCM audio, at
-        the sample rate specified when the decoder was initialized.
-        @type data: bytes
-        @param no_search: Buffer the data without actually processing
-        it (default is to process the data as it is received).
-        @type no_search: bool
-        @param full_utt: This block of data is an entire utterance.
-        Processing an entire utterance at once may improve
-        recognition, particularly for the first utterance passed to
-        the decoder.
-        @type full_utt: bool
-
-        """
         cdef const unsigned char[:] cdata = data
         cdef Py_ssize_t n_samples = len(cdata) // 2
         if ps_process_raw(self.ps, <const short *>&cdata[0],
@@ -392,9 +353,6 @@ cdef class Decoder:
             raise RuntimeError, "Failed to process %d samples of audio data" % len / 2
 
     def end_utt(self):
-        """
-        Finish processing an utterance.
-        """
         if ps_end_utt(self.ps) < 0:
             raise RuntimeError, "Failed to stop utterance processing"
 
@@ -409,56 +367,18 @@ cdef class Decoder:
         return Hypothesis(hyp.decode('utf-8'), score, prob)
 
     def get_prob(self):
-        """
-	Get a posterior probability.
-	
-	Returns the posterior in linear scale.
-	
-	@return: posterior probability of the result
-	@rtype: float
-	"""
         cdef logmath_t *lmath
         cdef const char *uttid
         lmath = ps_get_logmath(self.ps)
         return logmath_exp(lmath, ps_get_prob(self.ps))
 
     def add_word(self, word, phones, update=True):
-        """
-        Add a word to the dictionary and current language model.
-
-        @param word: Name of the word to add.
-        @type word: str
-        @param phones: Pronunciation of the word, a space-separated list of phones.
-        @type phones: str
-        @param update: Update the decoder to recognize this new word.
-        If adding a number of words at once you may wish to pass
-        C{False} here.
-        @type update: bool
-        """
         return ps_add_word(self.ps, word, phones, update)
 
     def load_dict(self, dictfile, fdictfile=None, format=None):
-        """
-        Load a new pronunciation dictionary.
-
-        @param dictfile: Dictionary filename.
-        @type dictfile: str
-        @param fdictfile: Filler dictionary filename.
-        @type fdictfile: str
-        @param format: Dictionary format, currently unused.
-        @type format: str
-        """
         return ps_load_dict(self.ps, dictfile, fdictfile, format)
 
     def save_dict(self, dictfile, format=None):
-        """
-        Save current pronunciation dictionary to a file.
-
-        @param dictfile: Dictionary filename.
-        @type dictfile: str
-        @param format: Dictionary format, currently unused.
-        @type format: str
-        """
         return ps_save_dict(self.ps, dictfile, format)
 
     def seg(self):
@@ -473,10 +393,4 @@ cdef class Decoder:
         return itor
 
     def get_in_speech(self):
-        """
-        Checks if the last feed audio buffer contained speech
-
-        @param ps Decoder.
-        @return 1 if last buffer contained speech, 0 - otherwise
-        """
         return ps_get_in_speech(self.ps)

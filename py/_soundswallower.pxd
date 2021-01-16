@@ -1,3 +1,4 @@
+# cython: embedsignature=True
 # Copyright (c) 2008-2020 Carnegie Mellon University. All rights
 # reserved.
 #

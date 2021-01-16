@@ -9,7 +9,7 @@ setup(
     author="David Huggins-Daines",
     author_email="dhdaines@gmail.com",
     url="https://github.com/ReadAlongs/SoundSwallower",
-    packages=find_packages('py'),
+    packages=find_packages('py', exclude=["test"]),
     package_dir={"": "py"},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
