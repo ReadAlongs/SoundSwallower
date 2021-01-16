@@ -50,12 +50,5 @@ else()
   if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(tests)
   endif()
-  add_executable(ssbatch batch.c)
-  target_link_libraries(ssbatch soundswallower)
-  target_include_directories(
-    ssbatch PRIVATE ${PROJECT_SOURCE_DIR}/src
-    ssbatch PRIVATE ${CMAKE_BINARY_DIR} # for config.h
-    )
   install(TARGETS soundswallower DESTINATION lib)
-  install(TARGETS ssbatch DESTINATION bin)
 endif()
