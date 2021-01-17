@@ -24,3 +24,32 @@ class TestDecoder(unittest.TestCase):
             decoder.end_utt()
             self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
 
+    def test_live(self):
+        config = Decoder.default_config()
+        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['-fsg'] = os.path.join(DATADIR, 'goforward.fsg')
+        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config['-logfn'] = '/dev/null'
+        decoder = Decoder(config)
+        was_in_speech = False
+        with open(os.path.join(DATADIR, 'goforward.raw'), 'rb') as fh:
+            decoder.start_utt()
+            self.assertFalse(decoder.get_in_speech())
+            while True:
+                buf = fh.read(1024)
+                if not buf:
+                    break
+                decoder.process_raw(buf, full_utt=False)
+                hyp = decoder.hyp()
+                if decoder.get_in_speech():
+                    was_in_speech = True
+                if hyp is not None:
+                    self.assertTrue("go forward ten meters".startswith(hyp.hypstr))
+            decoder.end_utt()
+            self.assertTrue(was_in_speech)
+            self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
+
+
+if __name__ == "__main__":
+    unittest.main()
+    
