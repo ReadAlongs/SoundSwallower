@@ -457,6 +457,8 @@ ps_unset_search(ps_decoder_t *ps, const char *name)
     return 0;
 }
 
+typedef struct ps_search_iter_s ps_search_iter_t;
+
 ps_search_iter_t *
 ps_search_iter(ps_decoder_t *ps)
 {
