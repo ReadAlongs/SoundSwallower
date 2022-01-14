@@ -87,14 +87,6 @@ extern "C" {
 #define DEFAULT_NUM_CEPSTRA 13
 /** Default number of filter bands used to generate MFCCs. */
 #define DEFAULT_NUM_FILTERS 40
-
-/** Default prespeech length */
-#define DEFAULT_PRE_SPEECH 20
-/** Default postspeech length */
-#define DEFAULT_POST_SPEECH 50
-/** Default postspeech length */
-#define DEFAULT_START_SPEECH 10
-
 /** Default lower edge of mel filter bank. */
 #define DEFAULT_LOWER_FILT_FREQ 133.33334
 /** Default upper edge of mel filter bank. */
@@ -187,26 +179,6 @@ extern "C" {
     "0", \
     "Length of sin-curve for liftering, or 0 for no liftering." }, \
    \
-  { "-vad_prespeech", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_PRE_SPEECH), \
-    "Num of speech frames to keep before silence to speech." }, \
-   \
-  { "-vad_startspeech", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_START_SPEECH), \
-    "Num of speech frames to trigger vad from silence to speech." }, \
-   \
-  { "-vad_postspeech", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_POST_SPEECH), \
-    "Num of silence frames to keep after from speech to silence." }, \
-   \
-  { "-vad_threshold", \
-    ARG_FLOATING, \
-    "3.0", \
-    "Threshold for decision between noise and silence frames. Log-ratio between signal level and noise level." }, \
-   \
   { "-input_endian", \
     ARG_STRING, \
     NATIVE_ENDIAN, \
@@ -237,16 +209,6 @@ extern "C" {
     "no", \
     "Remove DC offset from each frame" }, \
                                           \
-  { "-remove_noise", \
-    ARG_BOOLEAN, \
-    "yes", \
-    "Remove noise with spectral subtraction in mel-energies" }, \
-                                                                \
-  { "-remove_silence", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Enables VAD, removes silence frames from processing" }, \
-                                                             \
   { "-verbose", \
     ARG_BOOLEAN, \
     "no", \
@@ -299,9 +261,13 @@ enum fe_error_e {
 fe_t *fe_init_auto_r(cmd_ln_t *config);
 
 /**
- * Start processing of the stream, resets processed frame counter
+ * Retrieve the command-line object used to initialize this front-end.
+ *
+ * @return command-line object for this front-end.  This pointer is
+ *         retained by the fe_t, so you should not attempt to free it
+ *         manually.
  */
-void fe_start_stream(fe_t *fe);
+cmd_ln_t *fe_get_config(fe_t *fe);
 
 /**
  * Start processing an utterance.
@@ -313,11 +279,11 @@ int fe_start_utt(fe_t *fe);
  * Get the dimensionality of the output of this front-end object.
  *
  * This is guaranteed to be the number of values in one frame of
- * output from fe_end_utt() and fe_process_frames().  
- * It is usually the number of MFCC
+ * output from fe_end_utt(), fe_process_frame(), and
+ * fe_process_frames().  It is usually the number of MFCC
  * coefficients, but it might be the number of log-spectrum bins, if
  * the <tt>-logspec</tt> or <tt>-smoothspec</tt> options to
- * fe_init_auto() were true.
+ * fe_init_auto_r() were true.
  *
  * @param fe Front-end object
  * @return Dimensionality of front-end output.
@@ -339,13 +305,6 @@ int fe_get_output_size(fe_t *fe);
  */
 void fe_get_input_size(fe_t *fe, int *out_frame_shift,
                        int *out_frame_size);
-
-/**
- * Get vad state for the last processed frame
- *
- * @return 1 if speech, 0 if silence
- */
-int fe_get_vad_state(fe_t *fe);
 
 /**
  * Finish processing an utterance.
@@ -379,27 +338,16 @@ fe_t *fe_retain(fe_t *fe);
  */
 int fe_free(fe_t *fe);
 
-/*
- * Do same as fe_process_frames, but also returns
- * voiced audio. Output audio is valid till next
- * fe_process_frames call.
+/**
+ * Process one frame of samples.
  *
- * DO NOT MIX fe_process_frames calls
- *
- * @param voiced_spch Output: obtain voiced audio samples here
- *
- * @param voiced_spch_nsamps Output: shows voiced_spch length
- *
- * @param out_frameidx Output: index of the utterance start
+ * @param spch Speech samples (signed 16-bit linear PCM)
+ * @param nsamps Number of samples in <code>spch</code>
+ * @param buf_cep Buffer which will receive one frame of features.
+ * @return 0 for success, <0 for error (see enum fe_error_e)
  */
-int fe_process_frames_ext(fe_t *fe,
-                      int16 const **inout_spch,
-                      size_t *inout_nsamps,
-                      mfcc_t **buf_cep,
-                      int32 *inout_nframes,
-                      int16 *voiced_spch,
-                      int32 *voiced_spch_nsamps,
-                      int32 *out_frameidx);
+int fe_process_frame(fe_t *fe, int16 const *spch,
+                     int32 nsamps, mfcc_t *out_cep);
 
 /** 
  * Process a block of samples.
@@ -446,16 +394,13 @@ int fe_process_frames_ext(fe_t *fe,
  * @param inout_nframes Input: Pointer to maximum number of frames to
  *                      generate.
  *                      Output: Number of frames actually generated.
- * @param out_frameidx Index of the first frame returned in a stream
- *
  * @return 0 for success, <0 for failure (see enum fe_error_e)
  */
 int fe_process_frames(fe_t *fe,
                       int16 const **inout_spch,
                       size_t *inout_nsamps,
                       mfcc_t **buf_cep,
-                      int32 *inout_nframes,
-                      int32 *out_frameidx);
+                      int32 *inout_nframes);
 
 /** 
  * Process a block of samples, returning as many frames as possible.

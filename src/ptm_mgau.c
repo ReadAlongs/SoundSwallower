@@ -845,7 +845,7 @@ ptm_mgau_init(acmod_t *acmod, bin_mdef_t *mdef)
     /* Allocate fast-match history buffers.  We need enough for the
      * phoneme lookahead window, plus the current frame, plus one for
      * good measure? (FIXME: I don't remember why) */
-    s->n_fast_hist = cmd_ln_int32_r(s->config, "-pl_window") + 2;
+    s->n_fast_hist = 2;
     s->hist = ckd_calloc(s->n_fast_hist, sizeof(*s->hist));
     /* s->f will be a rotating pointer into s->hist. */
     s->f = s->hist;

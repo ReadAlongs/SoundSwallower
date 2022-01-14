@@ -248,10 +248,10 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
     deflen = deflen & 0xfffffff8;       /* Previous tab position */
 
     fprintf(fp, "[NAME]");
-    for (l = strlen("[NAME]"); l < namelen; l += 8)
+    for (l = strlen("[NAME]"); l < (size_t)namelen; l += 8)
         fprintf(fp, "\t");
     fprintf(fp, "\t[DEFLT]");
-    for (l = strlen("[DEFLT]"); l < deflen; l += 8)
+    for (l = strlen("[DEFLT]"); l < (size_t)deflen; l += 8)
         fprintf(fp, "\t");
 
     if (doc) {
@@ -265,7 +265,7 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
     pos = arg_sort(defn, n);
     for (i = 0; i < n; i++) {
         fprintf(fp, "%s", pos[i]->name);
-        for (l = strlen(pos[i]->name); l < namelen; l += 8)
+        for (l = strlen(pos[i]->name); l < (size_t)namelen; l += 8)
             fprintf(fp, "\t");
 
         fprintf(fp, "\t");
@@ -275,7 +275,7 @@ arg_dump_r(cmd_ln_t *cmdln, FILE *fp, const arg_t * defn, int32 doc)
         }
         else
             l = 0;
-        for (; l < deflen; l += 8)
+        for (; l < (size_t)deflen; l += 8)
             fprintf(fp, "\t");
 
         fprintf(fp, "\t");
@@ -993,7 +993,7 @@ cmd_ln_free_r(cmd_ln_t *cmdln)
 
     if (cmdln->f_argv) {
         int32 i;
-        for (i = 0; i < cmdln->f_argc; ++i) {
+        for (i = 0; i < (int32)cmdln->f_argc; ++i) {
             ckd_free(cmdln->f_argv[i]);
         }
         ckd_free(cmdln->f_argv);

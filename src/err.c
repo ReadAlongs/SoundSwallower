@@ -223,6 +223,9 @@ err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
     va_list ap;
     FILE *fp = err_get_logfp();
 
+    (void)user_data;
+    (void)lvl; /* FIXME?!?! */
+    
     if (!fp)
         return;
     

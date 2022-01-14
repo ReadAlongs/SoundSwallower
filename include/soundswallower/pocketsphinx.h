@@ -47,6 +47,7 @@
 #include <soundswallower/cmdln_macro.h>
 #include <soundswallower/ps_lattice.h>
 #include <soundswallower/ps_mllr.h>
+#include <soundswallower/fsg_model.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -182,6 +183,21 @@ fe_t *ps_get_fe(ps_decoder_t *ps);
 feat_t *ps_get_feat(ps_decoder_t *ps);
 
 /**
+ * Load new finite state grammar.
+ */
+int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg);
+
+/**
+ * Load new finite state grammar from JSGF file.
+ */
+int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path);
+
+/**
+ * Load new finite state grammar parsing JSGF from string.
+ */
+int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string);
+
+/**
  * Adapt current acoustic model using a linear transform.
  *
  * @param mllr The new transform to use, or NULL to update the existing
@@ -285,15 +301,6 @@ long ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
  * @return Number of frames read.
  */
 int ps_decode_senscr(ps_decoder_t *ps, FILE *senfh);
-
-/**
- * Start processing of the stream of speech. Channel parameters like
- * noise-level are maintained for the stream and reused among utterances.
- * Times returned in segment iterators are also stream-wide.
- *
- * @return 0 for success, <0 on error.
- */
-int ps_start_stream(ps_decoder_t *ps);
 
 /**
  * Start utterance processing.
@@ -541,35 +548,6 @@ void ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
  */
 void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
-
-/**
- * Checks if the last feed audio buffer contained speech
- *
- * @param ps Decoder.
- * @return 1 if last buffer contained speech, 0 - otherwise
- */
-int ps_get_in_speech(ps_decoder_t *ps);
-
-
-/**
- * Sets the limit of the raw audio data to store in decoder
- * to retrieve it later on ps_get_rawdata.
- *
- * @param ps Decoder
- * @param size bytes of the utterance to store
- */
-void ps_set_rawdata_size(ps_decoder_t *ps, int32 size);
-
-
-/**
- * Retrieves the raw data collected during utterance decoding.
- * 
- * @param ps Decoder
- * @param buffer preallocated buffer to store the data, must be within the limit
- * set before
- * @param size size of the data collected in samples (not bytes).
- */
-void ps_get_rawdata(ps_decoder_t *ps, int16 **buffer, int32 *size);
 
 /**
  * @mainpage PocketSphinx API Documentation

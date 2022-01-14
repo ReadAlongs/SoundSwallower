@@ -2,7 +2,6 @@ configure_file(test_macros.h.in test_macros.h)
 set(TESTS
   test_acmod.c
   test_acmod_grow.c
-  test_alignment.c
   test_bit_encode.c
   test_bitvec.c
   test_build_directory.c
@@ -11,7 +10,6 @@ set(TESTS
   test_ckd_alloc_fail.c
   test_cmdln_parse_r.c
   test_delete_hash.c
-  test_determinant.c
   test_dict2pid.c
   test_dict.c
   test_display_hash.c
@@ -23,7 +21,6 @@ set(TESTS
   test_fsg.c
   test_hash_iter.c
   test_heap.c
-  test_invert.c
   test_jsgf.c
   test_keyphrase.c
   test_lineiter.c
@@ -34,7 +31,6 @@ set(TESTS
   test_pitch.c
   test_ptm_mgau.c
   test_readfile.c
-  test_solve.c
   test_strfuncs.c
   test_subvq.c)
 foreach(TEST_SOURCE ${TESTS})
@@ -98,7 +94,6 @@ add_test(readfile test_readfile)
 # component tests
 add_test(acmod test_acmod)
 add_test(acmod_grow test_acmod_grow)
-add_test(alignment test_alignment)
 add_test(dict2pid test_dict2pid)
 add_test(dict test_dict)
 add_test(feat_fe test_feat_fe)
@@ -110,6 +105,4 @@ add_test(subvq test_subvq)
 # functional-ish tests
 add_test(jsgf test_jsgf)
 add_test(fsg test_fsg)
-add_test(keyphrase test_keyphrase)
 add_test(pitch test_pitch)
-add_test(state_align test_state_align)

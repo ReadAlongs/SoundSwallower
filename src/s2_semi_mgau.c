@@ -1301,7 +1301,7 @@ s2_semi_mgau_init(acmod_t *acmod)
     E_INFOCONT("\n");
 
     /* Top-N scores from recent frames */
-    s->n_topn_hist = cmd_ln_int32_r(s->config, "-pl_window") + 2;
+    s->n_topn_hist = 2;
     s->topn_hist = (vqFeature_t ***)
         ckd_calloc_3d(s->n_topn_hist, n_feat, s->max_topn,
                       sizeof(***s->topn_hist));

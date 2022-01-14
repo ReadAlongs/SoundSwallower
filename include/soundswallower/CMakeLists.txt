@@ -16,8 +16,6 @@ set(INCLUDES
   feat.h
   fe.h
   fe_internal.h
-  fe_noise.h
-  fe_prespch_buf.h
   fe_type.h
   fe_warp_affine.h
   fe_warp.h
@@ -35,8 +33,6 @@ set(INCLUDES
   hmm.h
   jsgf.h
   jsgf_internal.h
-  kws_detections.h
-  kws_search.h
   listelem_alloc.h
   logmath.h
   matrix.h
@@ -45,7 +41,6 @@ set(INCLUDES
   ms_gauden.h
   ms_mgau.h
   ms_senone.h
-  phone_loop_search.h
   pio.h
   pocketsphinx.h
   pocketsphinx_internal.h
@@ -59,7 +54,6 @@ set(INCLUDES
   ptm_mgau.h
   s2_semi_mgau.h
   s3types.h
-  state_align_search.h
   strfuncs.h
   tied_mgau_common.h
   tmat.h

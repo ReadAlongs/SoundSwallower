@@ -182,26 +182,18 @@ struct acmod_s {
     FILE *insenfh;	/**< Input senone score file. */
     long *framepos;     /**< File positions of recent frames in senone file. */
 
-    /* Rawdata collected during decoding */
-    int16 *rawdata;
-    int32 rawdata_size;
-    int32 rawdata_pos;
-
     /* A whole bunch of flags and counters: */
     uint8 state;        /**< State of utterance processing. */
     uint8 compallsen;   /**< Compute all senones? */
     uint8 grow_feat;    /**< Whether to grow feat_buf. */
     uint8 insen_swap;   /**< Whether to swap input senone score. */
-
-    frame_idx_t utt_start_frame; /**< Index of the utterance start in the stream, all timings are relative to that. */
-
-    frame_idx_t output_frame; /**< Index of next frame of dynamic features. */
-    frame_idx_t n_mfc_alloc;  /**< Number of frames allocated in mfc_buf */
-    frame_idx_t n_mfc_frame;  /**< Number of frames active in mfc_buf */
-    frame_idx_t mfc_outidx;   /**< Start of active frames in mfc_buf */
-    frame_idx_t n_feat_alloc; /**< Number of frames allocated in feat_buf */
-    frame_idx_t n_feat_frame; /**< Number of frames active in feat_buf */
-    frame_idx_t feat_outidx;  /**< Start of active frames in feat_buf */
+    int16 output_frame; /**< Index of next frame of dynamic features. */
+    int16 n_mfc_alloc;  /**< Number of frames allocated in mfc_buf */
+    int16 n_mfc_frame;  /**< Number of frames active in mfc_buf */
+    int16 mfc_outidx;   /**< Start of active frames in mfc_buf */
+    int16 n_feat_alloc; /**< Number of frames allocated in feat_buf */
+    int16 n_feat_frame; /**< Number of frames active in feat_buf */
+    int16 feat_outidx;  /**< Start of active frames in feat_buf */
 };
 typedef struct acmod_s acmod_t;
 
@@ -443,29 +435,9 @@ void acmod_activate_hmm(acmod_t *acmod, hmm_t *hmm);
 #define acmod_activate_sen(acmod, sen) bitvec_set((acmod)->senone_active_vec, sen)
 
 /**
- * Build active list from 
+ * Build active list.
  */
 int32 acmod_flags2list(acmod_t *acmod);
-
-/**
- * Get the offset of the utterance start of the current stream, helpful for stream-wide timing.
- */
-int32 acmod_stream_offset(acmod_t *acmod);
-
-/**
- * Reset the current stream
- */
-void acmod_start_stream(acmod_t *acmod);
-
-/**
- * Sets the limit of the raw audio data to store
- */
-void acmod_set_rawdata_size(acmod_t *acmod, int32 size);
-
-/**
- * Retrieves the raw data collected during utterance decoding
- */
-void acmod_get_rawdata(acmod_t *acmod, int16 **buffer, int32 *size);
 
 #ifdef __cplusplus
 } /* extern "C" */

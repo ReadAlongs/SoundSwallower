@@ -74,10 +74,7 @@ typedef struct ps_search_s ps_search_t;
 #define PS_DEFAULT_PL_SEARCH  "_default_pl"
 
 /* Search types */
-#define PS_SEARCH_TYPE_KWS    "kws"
 #define PS_SEARCH_TYPE_FSG    "fsg"
-#define PS_SEARCH_TYPE_NGRAM  "ngram"
-#define PS_SEARCH_TYPE_ALLPHONE  "allphone"
 #define PS_SEARCH_TYPE_STATE_ALIGN  "state_align"
 #define PS_SEARCH_TYPE_PHONE_LOOP  "phone_loop"
 
@@ -213,14 +210,7 @@ struct ps_decoder_s {
     dict_t *dict;    /**< Pronunciation dictionary. */
     dict2pid_t *d2p;   /**< Dictionary to senone mapping. */
     logmath_t *lmath;  /**< Log math computation. */
-
-    /* Search modules. */
-    hash_table_t *searches;        /**< Set of search modules. */
-    /* TODO: Convert this to a stack of searches each with their own
-     * lookahead value. */
-    ps_search_t *search;     /**< Currently active search module. */
-    ps_search_t *phone_loop; /**< Phone loop search for lookahead. */
-    int pl_window;           /**< Window size for phoneme lookahead. */
+    ps_search_t *search;     /**< Main search object. */
 
     /* Utterance-processing related stuff. */
     uint32 uttno;       /**< Utterance counter. */

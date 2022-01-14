@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 include(CheckTypeSize)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
+include(TestBigEndian)
 
 project(soundswallower VERSION 0.1.2
   DESCRIPTION "An even smaller speech recognizer")
@@ -17,18 +18,20 @@ CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 
-option(WITH_LAPACK "Enable linear algebra functions" OFF)
-if(WITH_LAPACK)
-  CHECK_LIBRARY_EXISTS(lapack sgesv_ "" HAVE_LIBLAPACK)
-  if(NOT HAVE_LIBLAPACK)
-    set(LAPACK_LITE 1)
-  endif()
-endif()
 option(WITH_PTM_MGAU "Enable special phonetically-tied mixture code" ON)
 option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" OFF)
+# deprecating this was really stupid, cmake
+test_big_endian(WORDS_BIGENDIAN)
 
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
+
+# Did I mention that CMake is really stupid
+if(MSVC)
+  add_compile_options(/W4 /WX)
+else()
+  add_compile_options(-Wall) # -Wextra -Wpedantic -Werror)
+endif()
 
 # For MSVC/vscode in Windows: don't warn about functions only MS considers deprecated
 add_definitions(-D_CRT_SECURE_NO_WARINIGS)

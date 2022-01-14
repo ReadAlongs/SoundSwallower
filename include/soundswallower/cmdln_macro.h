@@ -48,13 +48,12 @@
 #define POCKETSPHINX_OPTIONS \
     waveform_to_cepstral_command_line_macro(), \
     cepstral_to_feature_command_line_macro(), \
-    POCKETSPHINX_ACMOD_OPTIONS,      \
+        POCKETSPHINX_ACMOD_OPTIONS,           \
         POCKETSPHINX_BEAM_OPTIONS,   \
         POCKETSPHINX_SEARCH_OPTIONS, \
         POCKETSPHINX_DICT_OPTIONS,   \
         POCKETSPHINX_NGRAM_OPTIONS,  \
         POCKETSPHINX_FSG_OPTIONS,    \
-        POCKETSPHINX_KWS_OPTIONS,    \
         POCKETSPHINX_DEBUG_OPTIONS
 
 /** Options for debugging and logging. */
@@ -91,27 +90,7 @@
 { "-pbeam",                                                             \
       ARG_FLOATING,                                                      \
       "1e-48",                                                          \
-      "Beam width applied to phone transitions" },                      \
-{ "-pl_window",                                                         \
-      ARG_INTEGER,                                                        \
-      "5",                                                              \
-      "Phoneme lookahead window size, in frames" },                     \
-{ "-pl_beam",                                                           \
-      ARG_FLOATING,                                                      \
-      "1e-10",                                                          \
-      "Beam width applied to phone loop search for lookahead" },        \
-{ "-pl_pbeam",                                                          \
-      ARG_FLOATING,                                                      \
-      "1e-10",                                                          \
-      "Beam width applied to phone loop transitions for lookahead" },   \
-{ "-pl_pip",                                                            \
-      ARG_FLOATING,                                                      \
-      "1.0",                                                            \
-      "Phone insertion penalty for phone loop" },                       \
-{ "-pl_weight",                                                         \
-      ARG_FLOATING,                                                      \
-      "3.0",                                                            \
-      "Weight for phoneme lookahead penalties" }
+      "Beam width applied to phone transitions" }
 
 /** Options defining other parameters for tuning the search. */
 #define POCKETSPHINX_SEARCH_OPTIONS \
@@ -131,29 +110,6 @@
       ARG_INTEGER,                                                                                \
       "30000",                                                                                  \
       "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
-
-/** Command-line options for keyphrase spotting */
-#define POCKETSPHINX_KWS_OPTIONS \
-{ "-keyphrase",                                                 \
-         ARG_STRING,                                            \
-         NULL,                                                  \
-         "Keyphrase to spot"},                                  \
-{ "-kws",                                                       \
-         ARG_STRING,                                            \
-         NULL,                                                  \
-         "A file with keyphrases to spot, one per line"},       \
-{ "-kws_plp",                                                   \
-      ARG_FLOATING,                                              \
-      "1e-1",                                                   \
-      "Phone loop probability for keyphrase spotting" },          \
-{ "-kws_delay",                                                 \
-      ARG_INTEGER,                                                \
-      "10",                                                     \
-      "Delay to wait for best detection score" },               \
-{ "-kws_threshold",                                             \
-      ARG_FLOATING,                                              \
-      "1e-30",                                                  \
-      "Threshold for p(hyp)/p(alternatives) ratio" }
 
 /** Command-line options for finite state grammars. */
 #define POCKETSPHINX_FSG_OPTIONS \

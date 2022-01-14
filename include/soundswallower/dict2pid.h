@@ -154,10 +154,6 @@ void dict2pid_dump(FILE *fp,        /**< In: a file pointer */
                    dict2pid_t *d2p /**< In: a dict2pid_t structure */
     );
 
-/** Report a dict2pid data structure */
-void dict2pid_report(dict2pid_t *d2p /**< In: a dict2pid_t structure */
-    );
-
 /**
  * Get number of rc 
  */

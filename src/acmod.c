@@ -64,17 +64,11 @@ static int32 acmod_process_mfcbuf(acmod_t *acmod);
 static int
 acmod_init_am(acmod_t *acmod)
 {
-    char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
+    char const *mdeffn, *tmatfn, *mllrfn;
 
     /* Read model definition. */
     if ((mdeffn = cmd_ln_str_r(acmod->config, "_mdef")) == NULL) {
-        if ((hmmdir = cmd_ln_str_r(acmod->config, "-hmm")) == NULL)
-            E_ERROR("Acoustic model definition is not specified either "
-                    "with -mdef option or with -hmm\n");
-        else
-            E_ERROR("Folder '%s' does not contain acoustic model "
-                    "definition 'mdef'\n", hmmdir);
-
+        E_ERROR("Acoustic model definition is not specified neither with -mdef option nor with -hmm\n");
         return -1;
     }
 
@@ -263,11 +257,9 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
                       sizeof(**acmod->mfc_buf));
 
     /* Feature buffer has to be at least as large as MFCC buffer. */
-    acmod->n_feat_alloc = acmod->n_mfc_alloc + cmd_ln_int32_r(config, "-pl_window");
+    acmod->n_feat_alloc = acmod->n_mfc_alloc;
     acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
     acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
-
-    acmod->utt_start_frame = 0;
 
     /* Senone computation stuff. */
     acmod->senone_scores = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
@@ -310,7 +302,6 @@ acmod_free(acmod_t *acmod)
     ckd_free(acmod->senone_scores);
     ckd_free(acmod->senone_active_vec);
     ckd_free(acmod->senone_active);
-    ckd_free(acmod->rawdata);
 
     if (acmod->mdef)
         bin_mdef_free(acmod->mdef);
@@ -421,8 +412,6 @@ acmod_start_utt(acmod_t *acmod)
     acmod->senscr_frame = -1;
     acmod->n_senone_active = 0;
     acmod->mgau->frame_idx = 0;
-    acmod->rawdata_pos = 0;
-
     return 0;
 }
 
@@ -439,17 +428,15 @@ acmod_end_utt(acmod_t *acmod)
         /* nfr is always either zero or one. */
         fe_end_utt(acmod->fe, acmod->mfc_buf[inptr], &nfr);
         acmod->n_mfc_frame += nfr;
-        
-        /* Process whatever's left, and any leadout or update stats if needed. */
+        /* Process whatever's left, and any leadout. */
         if (nfr)
             nfr = acmod_process_mfcbuf(acmod);
-        else
-            feat_update_stats(acmod->fcb);
     }
     if (acmod->mfcfh) {
-        long outlen;
-        int32 rv;
+        int32 outlen, rv;
         outlen = (ftell(acmod->mfcfh) - 4) / 4;
+        if (!WORDS_BIGENDIAN)
+            SWAP_INT32(&outlen);
         /* Try to seek and write */
         if ((rv = fseek(acmod->mfcfh, 0, SEEK_SET)) == 0) {
             fwrite(&outlen, 4, 1, acmod->mfcfh);
@@ -474,10 +461,26 @@ static int
 acmod_log_mfc(acmod_t *acmod,
               mfcc_t **cep, int n_frames)
 {
-    int n = n_frames * feat_cepsize(acmod->fcb);
+    size_t i, n;
+    int32 *ptr = (int32 *)cep[0];
+
+    n = n_frames * feat_cepsize(acmod->fcb);
+    /* Swap bytes. */
+    if (!WORDS_BIGENDIAN) {
+        for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+            SWAP_INT32(ptr + i);
+        }
+    }
     /* Write features. */
     if (fwrite(cep[0], sizeof(mfcc_t), n, acmod->mfcfh) != n) {
-        E_ERROR_SYSTEM("Failed to write %d values to file", n);
+        E_ERROR_SYSTEM("Failed to write %d values to log file", n);
+    }
+
+    /* Swap them back. */
+    if (!WORDS_BIGENDIAN) {
+        for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+            SWAP_INT32(ptr + i);
+        }
     }
     return 0;
 }
@@ -489,7 +492,7 @@ acmod_process_full_cep(acmod_t *acmod,
 {
     int32 nfr;
 
-    /* Write to file. */
+    /* Write to log file. */
     if (acmod->mfcfh)
         acmod_log_mfc(acmod, *inout_cep, *inout_n_frames);
 
@@ -513,7 +516,6 @@ acmod_process_full_cep(acmod_t *acmod,
     assert(acmod->n_feat_frame <= acmod->n_feat_alloc);
     *inout_cep += *inout_n_frames;
     *inout_n_frames = 0;
-
     return nfr;
 }
 
@@ -526,14 +528,10 @@ acmod_process_full_raw(acmod_t *acmod,
     mfcc_t **cepptr;
 
     /* Write to logging file if any. */
-    if (*inout_n_samps + acmod->rawdata_pos < acmod->rawdata_size) {
-	memcpy(acmod->rawdata + acmod->rawdata_pos, *inout_raw, *inout_n_samps * sizeof(int16));
-	acmod->rawdata_pos += *inout_n_samps;
-    }
     if (acmod->rawfh)
-        fwrite(*inout_raw, sizeof(int16), *inout_n_samps, acmod->rawfh);
+        fwrite(*inout_raw, 2, *inout_n_samps, acmod->rawfh);
     /* Resize mfc_buf to fit. */
-    if (fe_process_frames(acmod->fe, NULL, inout_n_samps, NULL, &nfr, NULL) < 0)
+    if (fe_process_frames(acmod->fe, NULL, inout_n_samps, NULL, &nfr) < 0)
         return -1;
     if (acmod->n_mfc_alloc < nfr + 1) {
         ckd_free_2d(acmod->mfc_buf);
@@ -545,7 +543,7 @@ acmod_process_full_raw(acmod_t *acmod,
     acmod->mfc_outidx = 0;
     fe_start_utt(acmod->fe);
     if (fe_process_frames(acmod->fe, inout_raw, inout_n_samps,
-                          acmod->mfc_buf, &nfr, NULL) < 0)
+                          acmod->mfc_buf, &nfr) < 0)
         return -1;
     fe_end_utt(acmod->fe, acmod->mfc_buf[nfr], &ntail);
     nfr += ntail;
@@ -599,9 +597,7 @@ acmod_process_raw(acmod_t *acmod,
                   int full_utt)
 {
     int32 ncep;
-    int32 out_frameidx;
-    int16 const *prev_audio_inptr;
-    
+
     /* If this is a full utterance, process it all at once. */
     if (full_utt)
         return acmod_process_full_raw(acmod, inout_raw, inout_n_samps);
@@ -609,10 +605,9 @@ acmod_process_raw(acmod_t *acmod,
     /* Append MFCCs to the end of any that are previously in there
      * (in practice, there will probably be none) */
     if (inout_n_samps && *inout_n_samps) {
+        int16 const *prev_audio_inptr = *inout_raw;
         int inptr;
-        int32 processed_samples;
 
-        prev_audio_inptr = *inout_raw;
         /* Total number of frames available. */
         ncep = acmod->n_mfc_alloc - acmod->n_mfc_frame;
         /* Where to start writing them (circular buffer) */
@@ -622,25 +617,15 @@ acmod_process_raw(acmod_t *acmod,
         while (inptr + ncep > acmod->n_mfc_alloc) {
             int32 ncep1 = acmod->n_mfc_alloc - inptr;
             if (fe_process_frames(acmod->fe, inout_raw, inout_n_samps,
-                                  acmod->mfc_buf + inptr, &ncep1, &out_frameidx) < 0)
+                                  acmod->mfc_buf + inptr, &ncep1) < 0)
                 return -1;
-	    
-	    if (out_frameidx > 0)
-		acmod->utt_start_frame = out_frameidx;
-
-    	    processed_samples = *inout_raw - prev_audio_inptr;
-	    if (processed_samples + acmod->rawdata_pos < acmod->rawdata_size) {
-		memcpy(acmod->rawdata + acmod->rawdata_pos, prev_audio_inptr, processed_samples * sizeof(int16));
-		acmod->rawdata_pos += processed_samples;
-	    }
             /* Write to logging file if any. */
             if (acmod->rawfh) {
-                fwrite(prev_audio_inptr, sizeof(int16),
-                       processed_samples,
+                fwrite(prev_audio_inptr, 2,
+                       *inout_raw - prev_audio_inptr,
                        acmod->rawfh);
+                prev_audio_inptr = *inout_raw;
             }
-            prev_audio_inptr = *inout_raw;
-            
             /* ncep1 now contains the number of frames actually
              * processed.  This is a good thing, but it means we
              * actually still might have some room left at the end of
@@ -655,26 +640,16 @@ acmod_process_raw(acmod_t *acmod,
             if (ncep1 == 0)
         	goto alldone;
         }
-
-        assert(inptr + ncep <= acmod->n_mfc_alloc);        
+        assert(inptr + ncep <= acmod->n_mfc_alloc);
         if (fe_process_frames(acmod->fe, inout_raw, inout_n_samps,
-                              acmod->mfc_buf + inptr, &ncep, &out_frameidx) < 0)
+                              acmod->mfc_buf + inptr, &ncep) < 0)
             return -1;
-
-	if (out_frameidx > 0)
-	    acmod->utt_start_frame = out_frameidx;
-
-	
-	processed_samples = *inout_raw - prev_audio_inptr;
-	if (processed_samples + acmod->rawdata_pos < acmod->rawdata_size) {
-	    memcpy(acmod->rawdata + acmod->rawdata_pos, prev_audio_inptr, processed_samples * sizeof(int16));
-	    acmod->rawdata_pos += processed_samples;
-	}
+        /* Write to logging file if any. */
         if (acmod->rawfh) {
-            fwrite(prev_audio_inptr, sizeof(int16),
-                   processed_samples, acmod->rawfh);
+            fwrite(prev_audio_inptr, 2,
+                   *inout_raw - prev_audio_inptr, acmod->rawfh);
+            prev_audio_inptr = *inout_raw;
         }
-        prev_audio_inptr = *inout_raw;
         acmod->n_mfc_frame += ncep;
     alldone:
         ;
@@ -686,9 +661,9 @@ acmod_process_raw(acmod_t *acmod,
 
 int
 acmod_process_cep(acmod_t *acmod,
-                  mfcc_t ***inout_cep,
-                  int *inout_n_frames,
-                  int full_utt)
+		  mfcc_t ***inout_cep,
+		  int *inout_n_frames,
+		  int full_utt)
 {
     int32 nfeat, ncep, inptr;
     int orig_n_frames;
@@ -697,7 +672,7 @@ acmod_process_cep(acmod_t *acmod,
     if (full_utt)
         return acmod_process_full_cep(acmod, inout_cep, inout_n_frames);
 
-    /* Write to file. */
+    /* Write to log file. */
     if (acmod->mfcfh)
         acmod_log_mfc(acmod, *inout_cep, *inout_n_frames);
 
@@ -731,25 +706,18 @@ acmod_process_cep(acmod_t *acmod,
         inptr = (acmod->feat_outidx + acmod->n_feat_frame) % acmod->n_feat_alloc;
     }
 
-
-    /* FIXME: we can't split the last frame drop properly to be on the bounary,
-     *        so just return
-     */
-    if (inptr + nfeat > acmod->n_feat_alloc && acmod->state == ACMOD_ENDED) {
-        *inout_n_frames -= ncep;
-        *inout_cep += ncep;
-        return 0;
-    }
-
     /* Write them in two parts if there is wraparound. */
     if (inptr + nfeat > acmod->n_feat_alloc) {
         int32 ncep1 = acmod->n_feat_alloc - inptr;
+        int saved_state = acmod->state;
 
         /* Make sure we don't end the utterance here. */
+        if (acmod->state == ACMOD_ENDED)
+            acmod->state = ACMOD_PROCESSING;
         nfeat = feat_s2mfc2feat_live(acmod->fcb, *inout_cep,
                                      &ncep1,
                                      (acmod->state == ACMOD_STARTED),
-                                     FALSE,
+                                     (acmod->state == ACMOD_ENDED),
                                      acmod->feat_buf + inptr);
         if (nfeat < 0)
             return -1;
@@ -762,6 +730,8 @@ acmod_process_cep(acmod_t *acmod,
         *inout_n_frames -= ncep1;
         *inout_cep += ncep1;
         ncep -= ncep1;
+        /* Restore original state (could this really be the end) */
+        acmod->state = saved_state;
     }
 
     nfeat = feat_s2mfc2feat_live(acmod->fcb, *inout_cep,
@@ -778,13 +748,12 @@ acmod_process_cep(acmod_t *acmod,
     *inout_cep += ncep;
     if (acmod->state == ACMOD_STARTED)
         acmod->state = ACMOD_PROCESSING;
-    
     return orig_n_frames - *inout_n_frames;
 }
 
 int
 acmod_process_feat(acmod_t *acmod,
-                   mfcc_t **feat)
+		   mfcc_t **feat)
 {
     int i, inptr;
 
@@ -831,7 +800,6 @@ acmod_read_senfh_header(acmod_t *acmod)
                 goto error_out;
             }
         }
-
         if (!strcmp(name[i], "logbase")) {
             if (fabs(atof(val[i]) - logmath_get_base(acmod->lmath)) > 0.001) {
                 E_ERROR("Logbase in senone file (%f) does not match acmod "
@@ -917,12 +885,12 @@ acmod_write_scores(acmod_t *acmod, int n_active, uint8 const *active,
     if (fwrite(&n_active2, 2, 1, senfh) != 1)
         goto error_out;
     if (n_active == bin_mdef_n_sen(acmod->mdef)) {
-        if (fwrite(senscr, 2, n_active, senfh) != n_active)
+        if (fwrite(senscr, 2, n_active, senfh) != (size_t) n_active)
             goto error_out;
     }
     else {
         int i, n;
-        if (fwrite(active, 1, n_active, senfh) != n_active)
+        if (fwrite(active, 1, n_active, senfh) != (size_t) n_active)
             goto error_out;
         for (i = n = 0; i < n_active; ++i) {
             n += active[i];
@@ -962,14 +930,16 @@ acmod_read_scores_internal(acmod_t *acmod)
     acmod->n_senone_active = n_active;
     if (acmod->n_senone_active == bin_mdef_n_sen(acmod->mdef)) {
         if ((rv = fread(acmod->senone_scores, 2,
-                        acmod->n_senone_active, senfh)) != acmod->n_senone_active)
+                        acmod->n_senone_active, senfh))
+            != (size_t) acmod->n_senone_active)
             goto error_out;
     }
     else {
         int i, n;
         
         if ((rv = fread(acmod->senone_active, 1,
-                        acmod->n_senone_active, senfh)) != acmod->n_senone_active)
+                        acmod->n_senone_active, senfh))
+            != (size_t) acmod->n_senone_active)
             goto error_out;
 
         for (i = 0, n = 0; i < acmod->n_senone_active; ++i) {
@@ -1112,10 +1082,7 @@ acmod_score(acmod_t *acmod, int *inout_frame_idx)
     if ((feat_idx = calc_feat_idx(acmod, frame_idx)) < 0)
         return NULL;
 
-    /*
-     * If there is an input senone file locate the appropriate frame and read
-     * it.
-     */
+    /* If there is an input senone file locate the appropriate frame and read it. */
     if (acmod->insenfh) {
         fseek(acmod->insenfh, acmod->framepos[feat_idx], SEEK_SET);
         if (acmod_read_scores_internal(acmod) < 0)
@@ -1210,6 +1177,7 @@ acmod_activate_hmm(acmod_t *acmod, hmm_t *hmm)
         case 5:
             MPX_BITVEC_SET(acmod, hmm, 4);
             MPX_BITVEC_SET(acmod, hmm, 3);
+            /* FALLTHRU */
         case 3:
             MPX_BITVEC_SET(acmod, hmm, 2);
             MPX_BITVEC_SET(acmod, hmm, 1);
@@ -1226,6 +1194,7 @@ acmod_activate_hmm(acmod_t *acmod, hmm_t *hmm)
         case 5:
             NONMPX_BITVEC_SET(acmod, hmm, 4);
             NONMPX_BITVEC_SET(acmod, hmm, 3);
+            /* FALLTHRU */
         case 3:
             NONMPX_BITVEC_SET(acmod, hmm, 2);
             NONMPX_BITVEC_SET(acmod, hmm, 1);
@@ -1292,39 +1261,3 @@ acmod_flags2list(acmod_t *acmod)
             acmod->n_senone_active, acmod->output_frame);
     return n;
 }
-
-int32
-acmod_stream_offset(acmod_t *acmod)
-{
-    return acmod->utt_start_frame;
-}
-
-void
-acmod_start_stream(acmod_t *acmod)
-{
-    fe_start_stream(acmod->fe);
-    acmod->utt_start_frame = 0;
-}
-
-void
-acmod_set_rawdata_size(acmod_t *acmod, int32 size)
-{	
-    assert(size >= 0);
-    acmod->rawdata_size = size;
-    if (acmod->rawdata_size > 0) {
-	ckd_free(acmod->rawdata);
-	acmod->rawdata = ckd_calloc(size, sizeof(int16));
-    }
-}
-
-void
-acmod_get_rawdata(acmod_t *acmod, int16 **buffer, int32 *size)
-{
-    if (buffer) {
-	*buffer = acmod->rawdata;
-    }
-    if (size) {
-	*size = acmod->rawdata_pos;
-    }
-}
-

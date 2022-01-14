@@ -39,7 +39,6 @@ main(int argc, char *argv[])
     TEST_ASSERT(fsg);
     fsg_model_write(fsg, stdout);
     ps_set_fsg(ps, "goforward.move2", fsg);
-    ps_set_search(ps, "goforward.move2"); 
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
     hyp = ps_get_hyp(ps, &score);

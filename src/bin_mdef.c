@@ -67,6 +67,8 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
     int i, nodes, ci_idx, lc_idx, rc_idx;
     int nchars;
 
+    (void)config;
+
     if ((mdef = mdef_init((char *) filename, TRUE)) == NULL)
         return NULL;
 
@@ -428,7 +430,7 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         end = ftell(fh);
         fseek(fh, pos, SEEK_SET);
         m->ciname[0] = ckd_malloc(end - pos);
-        if (fread(m->ciname[0], 1, end - pos, fh) != end - pos)
+        if (fread(m->ciname[0], 1, end - pos, fh) != (size_t)(end - pos))
             E_FATAL("Failed to read %d bytes of data from %s\n", end - pos, filename);
     }
 

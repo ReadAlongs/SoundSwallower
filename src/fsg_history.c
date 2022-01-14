@@ -281,6 +281,7 @@ fsg_history_utt_start(fsg_history_t * h)
 void
 fsg_history_utt_end(fsg_history_t * h)
 {
+    (void)h;
 }
 
 void
@@ -288,6 +289,7 @@ fsg_history_print(fsg_history_t *h, dict_t *dict)
 {
     int bpidx, bp;
     
+    (void)dict;
     for (bpidx = 0; bpidx < blkarray_list_n_valid(h->entries); bpidx++) {
         bp = bpidx;
         printf("History entry: ");
