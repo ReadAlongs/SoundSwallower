@@ -208,12 +208,19 @@ extern "C" {
     ARG_BOOLEAN, \
     "no", \
     "Remove DC offset from each frame" }, \
-                                          \
-  { "-verbose", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Show input filenames" } \
-  
+  { "-remove_noise", \
+          ARG_BOOLEAN, \
+          "no", \
+          "UNSUPPORTED option, do not use" }, \
+  { "-remove_silence", \
+          ARG_BOOLEAN, \
+          "no", \
+          "UNSUPPORTED option, do not use" }, \
+  { "-verbose",                                 \
+          ARG_BOOLEAN,                          \
+          "no",                                 \
+          "Show input filenames" }
+
   
 /** MFCC computation type. */
 typedef float32 mfcc_t;

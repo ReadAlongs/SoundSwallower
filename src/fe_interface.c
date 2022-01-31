@@ -60,6 +60,14 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
 {
     int j, frate;
 
+    if (cmd_ln_boolean_r(config, "-remove_noise")) {
+        E_ERROR("-remove_noise is no longer supported");
+        return -1;
+    }
+    if (cmd_ln_boolean_r(config, "-remove_silence")) {
+        E_ERROR("-remove_silence is no longer supported");
+        return -1;
+    }
     fe->config = cmd_ln_retain(config);
     fe->sampling_rate = cmd_ln_float32_r(config, "-samprate");
     frate = cmd_ln_int32_r(config, "-frate");
