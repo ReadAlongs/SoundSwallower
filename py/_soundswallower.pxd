@@ -90,5 +90,4 @@ cdef extern from "soundswallower/pocketsphinx.h":
                      char *fdictfile, char *format)
     int ps_save_dict(ps_decoder_t *ps, char *dictfile, char *format)
     int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
-    int ps_get_in_speech(ps_decoder_t *ps)
     

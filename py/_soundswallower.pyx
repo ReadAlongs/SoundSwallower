@@ -391,6 +391,3 @@ cdef class Decoder:
         itor = SegmentIterator()
         itor.set_iter(first_seg)
         return itor
-
-    def get_in_speech(self):
-        return ps_get_in_speech(self.ps)
