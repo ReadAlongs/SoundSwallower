@@ -198,6 +198,9 @@ cdef class Config:
         else:
             cmd_ln_set_str_r(self.cmd_ln, key.encode('utf-8'), val.encode('utf-8'))
 
+    def exists(self, key):
+        return key in self
+
     def __contains__(self, key):
         if len(key) > 0 and key[0] != '-':
             dash_key = "-" + key
