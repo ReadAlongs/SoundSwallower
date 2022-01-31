@@ -25,6 +25,8 @@ static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(1.17)
 };
 
+#define NUM_BEST_SEN 270
+
 int
 main(int argc, char *argv[])
 {
@@ -38,7 +40,7 @@ main(int argc, char *argv[])
     size_t nread, nsamps;
     int nfr;
     int frame_counter;
-    int bestsen1[270];
+    int bestsen1[NUM_BEST_SEN];
 
     lmath = logmath_init(1.0001, 0, 0);
     config = cmd_ln_init(NULL, ps_args(), TRUE,
@@ -85,14 +87,15 @@ main(int argc, char *argv[])
                 E_INFO("Frame %d best senone %d score %d\n",
                        frame_idx, best_senid, best_score);
                 TEST_EQUAL(frame_counter, frame_idx);
-                if (frame_counter < 190)
+                if (frame_counter < NUM_BEST_SEN)
                     bestsen1[frame_counter] = best_score;
                 ++frame_counter;
                 frame_idx = -1;
             }
         }
     }
-    TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Updated to match pocketsphinx 0.7 (no silence removal) */
+    TEST_EQUAL(1, acmod_end_utt(acmod));
     nread = 0;
     {
         int16 best_score;
@@ -103,7 +106,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             E_INFO("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 bestsen1[frame_counter] = best_score;
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -133,7 +136,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             E_INFO("Frame %d best senone %d score %d\n",
                frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -168,7 +171,7 @@ main(int argc, char *argv[])
             E_INFO("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
             TEST_EQUAL(frame_counter, frame_idx);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             ++frame_counter;
             frame_idx = -1;
@@ -187,7 +190,7 @@ main(int argc, char *argv[])
             E_INFO("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
             TEST_EQUAL(frame_counter, frame_idx);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             ++frame_counter;
             frame_idx = -1;
@@ -220,7 +223,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             E_INFO("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -240,7 +243,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             E_INFO("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;

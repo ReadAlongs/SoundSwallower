@@ -181,8 +181,10 @@ ps_default_search_args(cmd_ln_t *config)
 static void
 ps_free_searches(ps_decoder_t *ps)
 {
-    ps_search_free(ps->search);
-    ps->search = NULL;
+    if (ps->search) {
+        ps_search_free(ps->search);
+        ps->search = NULL;
+    }
 }
 
 int
@@ -361,7 +363,10 @@ ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
 {
     ps_search_t *search;
     search = fsg_search_init(name, fsg, ps->config, ps->acmod, ps->dict, ps->d2p);
-    ps_search_free(ps->search);
+    if (search == NULL)
+        return -1;
+    if (ps->search)
+        ps_search_free(ps->search);
     ps->search = search;
     return 0;
 }
@@ -450,7 +455,6 @@ ps_load_dict(ps_decoder_t *ps, char const *dictfile,
 {
     dict2pid_t *d2p;
     dict_t *dict;
-    hash_iter_t *search_it;
     cmd_ln_t *newconfig;
 
     /* Create a new scratch config to load this dict (so existing one
@@ -506,9 +510,8 @@ ps_add_word(ps_decoder_t *ps,
 {
     int32 wid;
     s3cipid_t *pron;
-    hash_iter_t *search_it;
     char **phonestr, *tmp;
-    int np, i, rv;
+    int np, i;
 
     /* Parse phones into an array of phone IDs. */
     tmp = ckd_salloc(phones);
@@ -701,6 +704,9 @@ ps_search_forward(ps_decoder_t *ps)
     nfr = 0;
     while (ps->acmod->n_feat_frame > 0) {
         int k;
+        if ((k = ps_search_step(ps->search,
+                                ps->acmod->output_frame)) < 0)
+            return k;
         acmod_advance(ps->acmod);
         ++ps->n_frame;
         ++nfr;
@@ -799,7 +805,7 @@ ps_process_cep(ps_decoder_t *ps,
 int
 ps_end_utt(ps_decoder_t *ps)
 {
-    int rv, i;
+    int rv;
 
     if (ps->acmod->state == ACMOD_ENDED || ps->acmod->state == ACMOD_IDLE) {
 	E_ERROR("Utterance is not started\n");

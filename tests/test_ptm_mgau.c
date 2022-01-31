@@ -62,7 +62,8 @@ run_acmod_test(acmod_t *acmod)
 			}
 		}
 	}
-	TEST_EQUAL(0, acmod_end_utt(acmod));
+	/* Match pocketsphinx-0.7 as we do not remove silence anymore */
+	TEST_EQUAL(1, acmod_end_utt(acmod));
 	nread = 0;
 	{
 		int16 best_score;

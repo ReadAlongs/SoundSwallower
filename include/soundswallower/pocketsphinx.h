@@ -202,9 +202,7 @@ int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_stri
  *
  * @param mllr The new transform to use, or NULL to update the existing
  *              transform.  The decoder retains ownership of this pointer,
- *              so you should not attempt to free it manually.  Use
- *              ps_mllr_retain() if you wish to reuse it
- *              elsewhere.
+ *              so you can free it if you no longer need it.
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */

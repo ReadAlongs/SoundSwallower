@@ -320,7 +320,7 @@ acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr)
 {
     if (acmod->mllr)
         ps_mllr_free(acmod->mllr);
-    acmod->mllr = mllr;
+    acmod->mllr = ps_mllr_retain(mllr);
     ps_mgau_transform(acmod->mgau, mllr);
 
     return mllr;

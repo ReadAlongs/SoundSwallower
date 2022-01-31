@@ -252,10 +252,8 @@ enum fe_error_e {
  * Initialize a front-end object from a command-line parse.
  *
  * @param config Command-line object, as returned by cmd_ln_parse_r()
- *               or cmd_ln_parse_file().  Ownership of this object is
- *               claimed by the fe_t, so you must not attempt to free
- *               it manually.  Use cmd_ln_retain() if you wish to
- *               reuse it.
+ *               or cmd_ln_parse_file().  Ownership is retained by the
+ *               fe_t, so you may free this if you no longer need it.
  * @return Newly created front-end object.
  */
 fe_t *fe_init_auto_r(cmd_ln_t *config);
@@ -264,7 +262,7 @@ fe_t *fe_init_auto_r(cmd_ln_t *config);
  * Retrieve the command-line object used to initialize this front-end.
  *
  * @return command-line object for this front-end.  This pointer is
- *         retained by the fe_t, so you should not attempt to free it
+ *         owned by the fe_t, so you should not attempt to free it
  *         manually.
  */
 cmd_ln_t *fe_get_config(fe_t *fe);

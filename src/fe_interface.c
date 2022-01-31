@@ -60,7 +60,7 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
 {
     int j, frate;
 
-    fe->config = config;
+    fe->config = cmd_ln_retain(config);
     fe->sampling_rate = cmd_ln_float32_r(config, "-samprate");
     frate = cmd_ln_int32_r(config, "-frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {

@@ -25,6 +25,8 @@ static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(1.17)
 };
 
+#define NUM_BEST_SEN 270
+
 int
 main(int argc, char *argv[])
 {
@@ -37,7 +39,7 @@ main(int argc, char *argv[])
     size_t nread, nsamps;
     int nfr;
     int frame_counter;
-    int bestsen1[270];
+    int bestsen1[NUM_BEST_SEN];
 
     lmath = logmath_init(1.0001, 0, 0);
     config = cmd_ln_init(NULL, ps_args(), TRUE,
@@ -85,14 +87,15 @@ main(int argc, char *argv[])
                 printf("Frame %d best senone %d score %d\n",
                        frame_idx, best_senid, best_score);
                 TEST_EQUAL(frame_counter, frame_idx);
-                if (frame_counter < 190)
+                if (frame_counter < NUM_BEST_SEN)
                     bestsen1[frame_counter] = best_senid;
                 ++frame_counter;
                 frame_idx = -1;
             }
         }
     }
-    TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Match pocketsphinx-0.7 as we do not remove silence anymore */
+    TEST_EQUAL(1, acmod_end_utt(acmod));
     nread = 0;
     acmod_process_raw(acmod, NULL, &nread, FALSE);
     {
@@ -104,7 +107,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             printf("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 bestsen1[frame_counter] = best_senid;
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -124,7 +127,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             printf("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < 190)
+            if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL(best_senid, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
