@@ -12,11 +12,6 @@ To force-align text to audio:
 
   soundswallower --align input.txt input.wav
 
-To locate a list of keywords:
-
-  soundswallower -k word1 -k word2 -k word3 input.wav
-  soundswallower --keywords keywords.txt input.wav
-
 To use a different model:
 
   soundswallower --model fr-fr ...
@@ -53,10 +48,6 @@ def make_argparse():
     parser.add_argument("-o", "--output",
                         help="Filename for output (default is standard output")
     grammars = parser.add_mutually_exclusive_group(required=True)
-    grammars.add_argument("-k", "--keyword", action='append',
-                          help="One or more keywords to spot in input audio.")
-    grammars.add_argument("-l", "--keywords",
-                          help="File listing keywords, one per line.")
     grammars.add_argument("-a", "--align", help="Input text for force alignment.")
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     parser.add_argument_group(grammars)
@@ -100,8 +91,6 @@ def make_decoder_config(args):
 
     if args.grammar is not None:
         config.set_string("-jsgf", args.grammar)
-    elif args.keywords:
-        config.set_string("-kws", args.keywords)
         
     return config
 
@@ -175,10 +164,6 @@ def decode_file(decoder, config, args, input_file):
         raise RuntimeError("Decoding produced only noise or silence segments, "
                            "please examine dictionary and input audio and text.")
 
-    # For some reason the keyword search results are backwards. This
-    # should get fixed in kws_search.c but for now we'll fix it here.
-    if args.keywords is not None or args.keyword:
-        results = results[::-1]
     return results
 
 
@@ -204,15 +189,7 @@ def main(argv=None):
     config = make_decoder_config(args)
     if args.write_config:
         write_config(config, args.output)
-    # FIXME: These two should be doable without temporary files, but
-    # we need to improve the decoder API somewhat for that.
-    if args.keyword:
-        kws_temp = tempfile.NamedTemporaryFile(mode="w")
-        for k in args.keyword:
-            print(("%s\n" % k), file=kws_temp)
-        kws_temp.flush()
-        config.set_string("-kws", kws_temp.name)
-    elif args.align:
+    if args.align:
         words = []
         with open(args.align) as fh:
             words = fh.read().strip().split()

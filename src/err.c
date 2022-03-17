@@ -54,24 +54,7 @@
 static FILE*  logfp = NULL;
 static int    logfp_disabled = FALSE;
 
-#if defined(__ANDROID__)
-#include <android/log.h>
-static void
-err_logcat_cb(void* user_data, err_lvl_t level, const char *fmt, ...);
-#elif defined(_WIN32_WCE)
-#include <windows.h>
-#define vsnprintf _vsnprintf
-static void
-err_wince_cb(void* user_data, err_lvl_t level, const char *fmt, ...);
-#endif
-
-#if defined(__ANDROID__)
-static err_cb_f err_cb = err_logcat_cb;
-#elif defined(_WIN32_WCE)
-static err_cb_f err_cb = err_wince_cb;
-#else
 static err_cb_f err_cb = err_logfp_cb;
-#endif
 static void* err_user_data;
 
 void
@@ -104,53 +87,6 @@ err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
     }
 }
 
-#ifdef _WIN32_WCE /* No strerror for WinCE, so a separate implementation */
-void
-err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
-{
-    static const char *err_prefix[ERR_MAX] = {
-        "DEBUG", "INFO", "INFOCONT", "WARN", "ERROR", "FATAL"
-    };
-
-    va_list ap;
-    LPVOID error_wstring;
-    DWORD error;
-    char msg[1024];
-    char error_string[1024];
-
-    if (!err_cb)
-        return;
-
-    error = GetLastError();
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-                  FORMAT_MESSAGE_FROM_SYSTEM | 
-                  FORMAT_MESSAGE_IGNORE_INSERTS,
-                  NULL,
-                  error,
-                  0, // Default language
-                  (LPTSTR) &error_wstring,
-                  0,
-                  NULL);
-    wcstombs(error_string, error_wstring, 1023);
-    LocalFree(error_wstring);
-
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap);
-    va_end(ap);
-
-    if (path) {
-        const char *fname = path2basename(path);
-        if (lvl == ERR_INFOCONT)
-    	    err_cb(err_user_data, lvl, "%s(%ld): %s: %s\n", fname, ln, msg, error_string);
-        else if (lvl == ERR_INFO)
-            err_cb(err_user_data, lvl, "%s: %s(%ld): %s: %s\n", err_prefix[lvl], fname, ln, msg, error_string);
-        else
-    	    err_cb(err_user_data, lvl, "%s: \"%s\", line %ld: %s: %s\n", err_prefix[lvl], fname, ln, msg, error_string);
-    } else {
-        err_cb(err_user_data, lvl, "%s: %s\n", msg, error_string);
-    }
-}
-#else
 void
 err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
@@ -182,41 +118,7 @@ err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
         err_cb(err_user_data, lvl, "%s: %s\n", msg, strerror(local_errno));
     }
 }
-#endif
 
-#if defined(__ANDROID__)
-static void
-err_logcat_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
-{
-    static const int android_level[ERR_MAX] = {ANDROID_LOG_DEBUG, ANDROID_LOG_INFO,
-         ANDROID_LOG_INFO, ANDROID_LOG_WARN, ANDROID_LOG_ERROR, ANDROID_LOG_ERROR};
-
-    va_list ap;
-    va_start(ap, fmt);
-    __android_log_vprint(android_level[lvl], "cmusphinx", fmt, ap);
-    va_end(ap);
-}
-#elif defined(_WIN32_WCE)
-static void
-err_wince_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
-{
-    char msg[1024];
-    WCHAR *wmsg;
-    size_t size;
-    va_list ap;
-
-    va_start(ap, fmt);
-    _vsnprintf(msg, sizeof(msg), fmt, ap);
-    va_end(ap);
-
-    size = mbstowcs(NULL, msg, 0) + 1;
-    wmsg = ckd_calloc(size, sizeof(*wmsg));
-    mbstowcs(wmsg, msg, size);
-
-    OutputDebugStringW(wmsg);
-    ckd_free(wmsg);
-}
-#else
 void
 err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
 {
@@ -234,7 +136,6 @@ err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
     va_end(ap);
     fflush(fp);
 }
-#endif
 
 int
 err_set_logfile(const char *path)
@@ -245,14 +146,14 @@ err_set_logfile(const char *path)
         return -1;
     oldfp = err_get_logfp();
     err_set_logfp(newfp);
-    if (oldfp != NULL && oldfp != stdout && oldfp != stderr)
-        fclose(oldfp);
     return 0;
 }
 
 void
 err_set_logfp(FILE *stream)
 {
+    if (logfp != NULL && logfp != stdout && logfp != stderr)
+        fclose(logfp);
     if (stream == NULL) {
 	logfp_disabled = TRUE;
 	logfp = NULL;
