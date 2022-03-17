@@ -71,12 +71,7 @@ namespace pocketsphinxjs {
     Recognizer(const Config&);
     ReturnType reInit(const Config&);
     ReturnType addWords(const std::vector<Word>&);
-    ReturnType addGrammar(Integers&, const Grammar&);
-    ReturnType addKeyword(Integers&, const std::string&);
-    // Kept for backward compatibility, use switchSearch
-    // instead
-    ReturnType switchGrammar(int);
-    ReturnType switchSearch(int);
+    ReturnType setGrammar(const Grammar&);
     std::string getHyp();
     ReturnType getHypseg(Segmentation&);
     ReturnType start();
@@ -89,11 +84,9 @@ namespace pocketsphinxjs {
     ReturnType init(const Config&);
     bool isValidParameter(const std::string&, const std::string&);
     void cleanup();
-    StringsListType grammar_names;
     bool is_fsg;
     bool is_recording;
     std::string current_hyp;
-    int32_t grammar_index;
     fsg_model_t * current_grammar;
     ps_decoder_t * decoder;
     logmath_t * logmath;
@@ -124,11 +117,8 @@ namespace pocketsphinxjs {
  * var transitions = new Module.VectorTransitions();
  * transitions.push_back({from: 0, to: 1, word: "HELLO"});
  * transitions.push_back({from: 1, to: 2, word: "WORLD"});
- * var ids = new Module.Integers();
- * recognizer.addGrammar(ids, {start: 1, end: 2, numStates: 3, transitions: transitions});
+ * recognizer.setGrammar({start: 1, end: 2, numStates: 3, transitions: transitions});
  * transitions.delete();
- * var id = ids.get(0);
- * ids.delete();
  * var length = 100;
  * recognizer.start();
  * var buffer = new Module.AudioBuffer();
@@ -192,10 +182,7 @@ EMSCRIPTEN_BINDINGS(recognizer) {
     .constructor<const ps::Config&>()
     .function("reInit", &ps::Recognizer::reInit)
     .function("addWords", &ps::Recognizer::addWords)
-    .function("addGrammar", &ps::Recognizer::addGrammar)
-    .function("addKeyword", &ps::Recognizer::addKeyword)
-    .function("switchGrammar", &ps::Recognizer::switchGrammar)
-    .function("switchSearch", &ps::Recognizer::switchSearch)
+    .function("setGrammar", &ps::Recognizer::setGrammar)
     .function("getHyp", &ps::Recognizer::getHyp)
     .function("getHypseg", &ps::Recognizer::getHypseg)
     .function("start", &ps::Recognizer::start)

@@ -7,7 +7,7 @@ if (typeof Module === 'undefined') Module = eval('(function() { try { return Mod
 
 /**
 *
-* We can not interact with emscripten using unicide strings
+* We can not interact with emscripten using unicode strings
 * so we need to manually encode and decode them.
 * Thanks to:
 * https://gist.github.com/chrisveness/bcb00eb717e6382c5608
@@ -75,17 +75,14 @@ startup(function(event) {
     case 'addWords':
 	addWords(event.data.data, event.data.callbackId);
 	break;
-    case 'addGrammar':
-	addGrammar(event.data.data, event.data.callbackId);
+    case 'setGrammar':
+	setGrammar(event.data.data, event.data.callbackId);
 	break;
     case 'lookupWord':
 	lookupWord(event.data.data, event.data.callbackId);
 	break;
     case 'lookupWords':
 	lookupWords(event.data.data, event.data.callbackId);
-	break;
-    case 'addKeyword':
-	addKeyword(event.data.data, event.data.callbackId);
 	break;
     case 'start':
 	start(event.data.data);
@@ -190,7 +187,7 @@ function addWords(data, clbId) {
     } else post({status: "error", command: "addWords", code: "js-no-recognizer"});
 }
 
-function addGrammar(data, clbId) {
+function setGrammar(data, clbId) {
     var output;
     if (recognizer) {
 	if (data.hasOwnProperty('numStates') && data.numStates > 0 &&
@@ -207,15 +204,13 @@ function addGrammar(data, clbId) {
 		    transitions.push_back(t);
 		}
 	    }
-	    var id_v = new Module.Integers();
-	    output = recognizer.addGrammar(id_v, {start: data.start, end: data.end, numStates: data.numStates, transitions: transitions});
-	    if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "addGrammar", code: output});
-	    else post({id: clbId, data: id_v.get(0), status: "done", command: "addGrammar"});
+	    output = recognizer.setGrammar({start: data.start, end: data.end, numStates: data.numStates, transitions: transitions});
+	    if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "setGrammar", code: output});
+	    else post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	    transitions.delete();
-	    id_v.delete();
-	} else post({status: "error", command: "addGrammar", code: "js-data"});
+	} else post({status: "error", command: "setGrammar", code: "js-data"});
 
-    } else post({status: "error", command: "addGrammar", code: "js-no-recognizer"});
+    } else post({status: "error", command: "setGrammar", code: "js-no-recognizer"});
 }
 
 function lookupWord(data, clbId) {
@@ -236,20 +231,6 @@ function lookupWords(data, clbId) {
 	post({id: clbId, data: output, status: "done", command: "lookupWords"});
     } else post({status: "error", command: "lookupWords", code: "js-no-recognizer"});
 };
-
-function addKeyword(data, clbId) {
-    var output;
-    if (recognizer) {
-	if (data.length > 0) {
-	    var id_v = new Module.Integers();
-	    output = recognizer.addKeyword(id_v, data);
-	    if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "addKeyword", code: output});
-	    else post({id: clbId, data: id_v.get(0), status: "done", command: "addKeyword"});
-	    id_v.delete();
-	} else post({status: "error", command: "addKeyword", code: "js-data"});
-
-    } else post({status: "error", command: "addKeyword", code: "js-no-recognizer"});
-}
 
 function start(id) {
     if (recognizer) {

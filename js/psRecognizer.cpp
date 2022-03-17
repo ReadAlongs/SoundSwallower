@@ -5,12 +5,12 @@
 #include "psRecognizer.h"
 
 namespace pocketsphinxjs {
-  Recognizer::Recognizer(): is_fsg(true), is_recording(false), current_hyp(""), grammar_index(0) {
+  Recognizer::Recognizer(): is_fsg(true), is_recording(false), current_hyp("") {
     Config c;
     if (init(c) != SUCCESS) cleanup();
   }
 
-  Recognizer::Recognizer(const Config& config) : is_fsg(true), is_recording(false), current_hyp(""), grammar_index(0) {
+  Recognizer::Recognizer(const Config& config) : is_fsg(true), is_recording(false), current_hyp("") {
     if (init(config) != SUCCESS) cleanup();
   }
 
@@ -30,12 +30,9 @@ namespace pocketsphinxjs {
     return SUCCESS;
   }
 
-  ReturnType Recognizer::addGrammar(Integers& id, const Grammar& grammar) {
+  ReturnType Recognizer::setGrammar(const Grammar& grammar) {
     if (decoder == NULL) return BAD_STATE;
-    std::ostringstream grammar_name;
-    grammar_name << grammar_index;
-    grammar_names.push_back(grammar_name.str());
-    current_grammar = fsg_model_init(grammar_names.back().c_str(), logmath, 1.0, grammar.numStates);
+    current_grammar = fsg_model_init("_default", logmath, 1.0, grammar.numStates);
     if (current_grammar == NULL)
       return RUNTIME_ERROR;
     current_grammar->start_state = grammar.start;
@@ -48,55 +45,16 @@ namespace pocketsphinxjs {
     }
     fsg_model_add_silence(current_grammar, "<sil>", -1, 1.0);
 
-    if(ps_set_fsg(decoder, grammar_names.back().c_str(), current_grammar)) {
-      return RUNTIME_ERROR;
-    }
-    if (id.size() == 0) id.push_back(grammar_index);
-    else id.at(0) = grammar_index;
-    grammar_index++;
-    // We switch to the newly added grammar right away
-    if (ps_set_search(decoder, grammar_names.back().c_str())) {
+    if(ps_set_fsg(decoder, "_default", current_grammar)) {
       return RUNTIME_ERROR;
     }
     return SUCCESS;
   }
 
-
-  ReturnType Recognizer::addKeyword(Integers& id, const std::string& keyphrase) {
-    if (decoder == NULL) return BAD_STATE;
-    std::ostringstream search_name;
-    search_name << grammar_index;
-    grammar_names.push_back(search_name.str());
-    if(ps_set_keyphrase(decoder, grammar_names.back().c_str(), keyphrase.c_str())) {
-      return RUNTIME_ERROR;
-    }
-    if (id.size() == 0) id.push_back(grammar_index);
-    else id.at(0) = grammar_index;
-    grammar_index++;
-    // We switch to the newly added search right away
-    if (ps_set_search(decoder, grammar_names.back().c_str())) {
-      return RUNTIME_ERROR;
-    }
-    return SUCCESS;
-  }
-
-
-  ReturnType Recognizer::switchGrammar(int id) {
-    return switchSearch(id);
-  }
-
-  ReturnType Recognizer::switchSearch(int id) {
-    if (decoder == NULL) return BAD_STATE;
-    if ((id < 0) || (id >= grammar_names.size())) return BAD_ARGUMENT;
-    if(ps_set_search(decoder, grammar_names.at(id).c_str())) {
-      return RUNTIME_ERROR;
-    }
-    return SUCCESS;
-  }
 
   ReturnType Recognizer::start() {
     if ((decoder == NULL) || (is_recording)) return BAD_STATE;
-    if ((ps_start_utt(decoder) < 0) || (ps_start_stream(decoder) < 0)) {
+    if ((ps_start_utt(decoder) < 0)) {
       return RUNTIME_ERROR;
     }
     current_hyp = "";
@@ -181,8 +139,6 @@ namespace pocketsphinxjs {
 	"Print word times in file transcription." },
       CMDLN_EMPTY_OPTION
     };
-    grammar_names.push_back("_default");
-    grammar_index++;
     StringsMapType parameters;
     for (int i=0 ; i< config.size() ; ++i)
       parameters[config[i].key] = config[i].value;
@@ -191,6 +147,7 @@ namespace pocketsphinxjs {
       parameters["-hmm"] = default_acoustic_model;
     if (parameters.find("-bestpath") == parameters.end())
       parameters["-bestpath"] = "yes";
+    // No longer used, but we will set them just in case
     if (parameters.find("-remove_noise") == parameters.end())
       parameters["-remove_noise"] = "no";
     if (parameters.find("-remove_silence") == parameters.end())

@@ -11,10 +11,10 @@ provide a fast implementation of large-vocabulary continuous speech
 recognition, but rather to provide a *small* implementation of simple,
 useful speech technologies.
 
-With that in mind the current version is limited to keyword spotting,
-finite-state grammar recognition and force alignment.  In addition,
-the eternally problematic and badly-designed audio library as well as
-all other external dependencies have been removed.
+With that in mind the current version is limited to finite-state
+grammar recognition.  In addition, the eternally problematic and
+badly-designed audio library as well as all other external
+dependencies have been removed.
 
 Currently SoundSwallower can be built in several different ways. To
 build the C shared library and binaries, run CMake in the standard way:
@@ -32,6 +32,8 @@ To build the JavaScript library, use CMake with Emscripten:
 	cd jsbuild
 	emcmake cmake ..
 	make
+	
+NOTE! The JavaScript library has not been tested at this time.
 
 To build the Python extension, use setup.py in the standard way:
 

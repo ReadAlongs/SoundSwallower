@@ -20,8 +20,14 @@ CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 
 option(WITH_PTM_MGAU "Enable special phonetically-tied mixture code" ON)
 option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" OFF)
-# deprecating this was really stupid, cmake
-test_big_endian(WORDS_BIGENDIAN)
+# Testing endianness is stupidly hard with CMake
+if(EMSCRIPTEN)
+  # FIXME: and doesn't work at all with emscripten, maybe it's just
+  # always little-endian?
+  set(WORDS_BIGENDIAN 0)
+else()
+  test_big_endian(WORDS_BIGENDIAN)
+endif()
 
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)

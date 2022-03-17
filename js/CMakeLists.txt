@@ -1,4 +1,4 @@
-add_executable(ssjs js/psRecognizer.cpp)
+add_executable(ssjs psRecognizer.cpp)
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(ssjs soundswallower)
 target_compile_options(soundswallower PRIVATE -Oz)
