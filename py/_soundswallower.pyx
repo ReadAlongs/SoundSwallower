@@ -276,7 +276,7 @@ cdef class Segment:
         self.word = ps_seg_word(self.seg).decode('utf-8')
         ps_seg_frames(self.seg, &sf, &ef)
         self.start_frame = sf
-        self.end_frame = sf
+        self.end_frame = ef
         self.prob = ps_seg_prob(self.seg, &ascr, &lscr, &lback)
         self.ascore = ascr
         self.lscore = lscr
