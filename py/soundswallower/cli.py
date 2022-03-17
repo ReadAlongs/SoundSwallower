@@ -62,42 +62,31 @@ def make_decoder_config(args):
         with open(args.config) as fh:
             json_config = json.load(fh)
             for key, value in json_config.items():
-                if not key.startswith('-'):
-                    key = "-%s" % key
-                # FIXME: right away here's a problem with the dumb cmd_ln API
-                if isinstance(value, bool):
-                    config.set_boolean(key, value)
-                elif isinstance(value, int):
-                    config.set_int(key, value)
-                elif isinstance(value, float):
-                    # FIXME: in particular, we want -cepinit to
-                    # actually be a list of floats, which it isn't
-                    config.set_float(key, value)
-                else:
-                    config.set_string(key, value)
+                config[key] = value
     model_path = ss.get_model_path()
     if args.model in os.listdir(model_path):
-        config.set_string("-hmm", os.path.join(model_path, args.model))
-        config.set_string("-dict", os.path.join(model_path,
-                                                args.model + '.dict'))
+        config["hmm"] = os.path.join(model_path, args.model)
+        config["dict"] = os.path.join(model_path,
+                                      args.model + '.dict')
     else:
-        config.set_string("-hmm", args.model)
-        config.set_string("-dict", os.path.normpath(args.model) + '.dict')
+        config["hmm"] = args.model
+        config["dict"] = os.path.normpath(args.model) + '.dict'
     # FIXME: This actually should be in addition to the built-in
     # dictionary, or we should have G2P support, which shouldn't be
     # all that hard, we hope.
     if args.dict is not None:
-        config.set_string("-dict", args.dict)
+        config["dict"] = args.dict
 
     if args.grammar is not None:
-        config.set_string("-jsgf", args.grammar)
-        
+        config["jsgf"] = args.grammar
+
     return config
 
 
 def write_config(config, output=None):
     """Write the full configuraiton as JSON to output file or standard output."""
     config_dict = {}
+    # FIXNE: Not yet implemented, requires iteration over config
     pass
 
 
@@ -124,7 +113,7 @@ def decode_file(decoder, config, args, input_file):
     # Reinitialize the decoder if necessary
     if sample_rate != config.get_float("-samprate"):
         logging.info("Setting sample rate to %d", sample_rate)
-        config.set_float("-samprate", sample_rate)
+        config["samprate"] = sample_rate
         # Calculate the minimum required FFT size for the sample rate
         frame_points = int(sample_rate * config.get_float("-wlen"))
         fft_size = 1
@@ -133,7 +122,7 @@ def decode_file(decoder, config, args, input_file):
         if fft_size > config.get_int("-nfft"):
             logging.info("Increasing FFT size to %d for sample rate %d",
                          fft_size, sample_rate)
-            config.set_int("-nfft", fft_size)
+            config["nfft"] = fft_size
         decoder.reinit(config)
     frame_size = 1.0 / config.get_int('-frate')
 
@@ -195,7 +184,7 @@ def main(argv=None):
             words = fh.read().strip().split()
         fsg_temp = tempfile.NamedTemporaryFile(mode="w")
         make_fsg(fsg_temp, words)
-        config.set_string("-fsg", fsg_temp.name)
+        config["fsg"] = fsg_temp.name
     decoder = ss.Decoder(config)
     results = []
     for input_file in args.inputs:
