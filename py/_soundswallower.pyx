@@ -250,10 +250,10 @@ cdef class Config:
             raise ValueError("Unable to handle parameter type %d" % at.type)
 
     def __iter__(self):
-        pass
+        raise NotImplementedError("iteration over Config not yet implemented")
 
     def __len__(self):
-        return 69
+        raise NotImplementedError("length of Config not yet implemented")
 
 
 cdef class Segment:
