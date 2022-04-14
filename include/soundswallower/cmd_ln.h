@@ -62,6 +62,7 @@
 #include <stdarg.h>
 
 #include <soundswallower/prim_type.h>
+#include <soundswallower/hash_table.h>
 
 /**
  * @file cmd_ln.h
@@ -158,9 +159,14 @@ typedef struct cmd_ln_val_s {
 
 /**
  * @struct cmd_ln_t
- * Opaque structure used to hold the results of command-line parsing.
+ * Structure (no longer opaque) used to hold the results of command-line parsing.
  */
-typedef struct cmd_ln_s cmd_ln_t;
+typedef struct cmd_ln_s {
+    int refcount;
+    hash_table_t *ht;
+    char **f_argv;
+    uint32 f_argc;
+} cmd_ln_t;
 
 /**
  * Create a cmd_ln_t from NULL-terminated list of arguments.

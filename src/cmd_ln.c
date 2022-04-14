@@ -76,16 +76,8 @@
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/hash_table.h>
 #include <soundswallower/case.h>
 #include <soundswallower/strfuncs.h>
-
-struct cmd_ln_s {
-    int refcount;
-    hash_table_t *ht;
-    char **f_argv;
-    uint32 f_argc;
-};
 
 static void
 arg_dump_r(cmd_ln_t *, FILE *, arg_t const *, int32);
