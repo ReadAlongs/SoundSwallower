@@ -12,4 +12,4 @@ docker run -v $PWD:$PWD -w $PWD -it quay.io/pypa/manylinux1_x86_64 /opt/python/c
 docker pull quay.io/pypa/manylinux2014_x86_64
 docker run -v $PWD:$PWD -w $PWD -it quay.io/pypa/manylinux2014_x86_64 /opt/python/cp310-cp310/bin/pip wheel dist/soundswallower-$VERSION.zip
 for w in *.whl; do docker run -v $PWD:$PWD -w $PWD -it quay.io/pypa/manylinux2014_x86_64 auditwheel repair $w; done
-twine upload wheelhouse/*.whl
+
