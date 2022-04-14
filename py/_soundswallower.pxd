@@ -30,9 +30,20 @@ cdef extern from "soundswallower/logmath.h":
     int logmath_get_zero(logmath_t *lmath)
 
 
+cdef extern from "soundswallower/hash_table.h":
+    ctypedef struct hash_table_t:
+        pass
+    ctypedef struct hash_entry_t:
+        const char *key
+    ctypedef struct hash_iter_t:
+        hash_entry_t *ent
+    hash_iter_t *hash_table_iter(hash_table_t *h)
+    hash_iter_t *hash_table_iter_next(hash_iter_t *h)
+    const char *hash_entry_key(hash_entry_t *ent)
+
 cdef extern from "soundswallower/cmd_ln.h":
     ctypedef struct cmd_ln_t:
-        pass
+        hash_table_t *ht
     ctypedef struct arg_t:
         pass
     cdef enum:

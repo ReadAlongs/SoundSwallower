@@ -1,19 +1,11 @@
+- Test JavaScript for alignment
+
 - Default configuration
 
 - Make a segmentation of something (goforward.wav will do)
   - In a notebook!!!
   - Implement code needed to create a state sequence from it
   - Either in C or in Cython, look and see...
-
-- Next: dig up Python libraries (I think they are in SphinxTrain?)
-  and repackage them here
-  - Make a notebook and screw around with them
-  - Really wish I knew where my thesis code went :(
-
-
-- Needs
-  - Extract MFCCs in the format used by a model (any given PS model)
-  - Loaders for this format in Python/NumPy (have these already somewhere)
 
 - Look at use case in readalongs.align
   - Refactor it

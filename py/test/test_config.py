@@ -31,7 +31,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import unittest
-from soundswallower import Config
+import os
+from soundswallower import Config, Decoder, get_model_path
 
 
 class TestConfig(unittest.TestCase):
@@ -94,6 +95,48 @@ class TestConfigHash(unittest.TestCase):
         self.assertEqual(config['rawlogdir'], None)
         self.assertEqual(config['backtrace'], False)
         self.assertEqual(config['feat'], '1s_c_d_dd')
+
+
+DATADIR = os.path.join(os.path.dirname(__file__),
+                       "..", "..", "tests", "data")
+
+
+class TestConfigIter(unittest.TestCase):
+    def test_config__iter(self):
+        config = Config()
+        default_len = len(config)
+        for key in config:
+            self.assertTrue(key in config)
+        for key, value in config.items():
+            self.assertTrue(key in config)
+            self.assertEqual(config[key], value)
+        config = Decoder.default_config()
+        self.assertEqual(default_len, len(config))
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config['logfn'] = '/dev/null'
+        self.assertEqual(default_len, len(config))
+        for key in config:
+            self.assertTrue(key in config)
+        for key, value in config.items():
+            self.assertTrue(key in config)
+            self.assertEqual(config[key], value)
+        self.assertIsNone(config["mdef"])
+        # Now check weird extra value stuff.  Length should never change
+        _ = Decoder(config)
+        # But mdef, etc, should be filled in
+        default_mdef = config["mdef"]
+        self.assertIsNotNone(default_mdef)
+        # And we should get them for dash and underscore versions too
+        self.assertEqual(default_mdef, config["-mdef"])
+        self.assertEqual(default_mdef, config["_mdef"])
+        self.assertEqual(default_len, len(config))
+        for key in config:
+            self.assertTrue(key in config)
+        for key, value in config.items():
+            self.assertTrue(key in config)
+            self.assertEqual(config[key], value)
 
 
 if __name__ == '__main__':

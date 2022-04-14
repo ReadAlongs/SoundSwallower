@@ -201,60 +201,104 @@ cdef class Config:
     def exists(self, key):
         return key in self
 
+    cdef _normalize_key(self, key):
+        # Note, returns a Python bytes string, to avoid unsafe temps
+        if len(key) > 0:
+            if key[0] == "_":
+                # Ask for underscore, get underscore
+                return key.encode('utf-8')
+            elif key[0] == "-":
+                # Ask for dash, get underscore or dash
+                under_key = ("_" + key[1:]).encode('utf-8')
+                if cmd_ln_exists_r(self.cmd_ln, under_key):
+                    return under_key
+                else:
+                    return key.encode('utf-8')
+            else:
+                # No dash or underscore, try underscore, then dash
+                under_key = ("_" + key).encode('utf-8')
+                if cmd_ln_exists_r(self.cmd_ln, under_key):
+                    return under_key
+                dash_key = ("-" + key).encode('utf-8')
+                if cmd_ln_exists_r(self.cmd_ln, dash_key):
+                    return dash_key
+        return key.encode('utf-8')
+
+    cdef _normalize_ckey(self, const char *ckey):
+        key = ckey.decode('utf-8')
+        if len(key) == 0:
+            return key
+        if key[0] in "-_":
+            return key[1:]
+
     def __contains__(self, key):
-        if len(key) > 0 and key[0] != '-':
-            dash_key = "-" + key
-            if cmd_ln_exists_r(self.cmd_ln, dash_key.encode('utf-8')):
-                return True
-        return cmd_ln_exists_r(self.cmd_ln, key.encode('utf-8'))
+        return cmd_ln_exists_r(self.cmd_ln, self._normalize_key(key))
 
     def __getitem__(self, key):
+        cdef const char *cval
         cdef cmd_ln_val_t *at;
-        if len(key) > 0 and key[0] != '-':
-            dash_key = "-" + key
-            if cmd_ln_exists_r(self.cmd_ln, dash_key.encode('utf-8')):
-                key = dash_key
-        at = cmd_ln_access_r(self.cmd_ln, key.encode('utf-8'))
+        ckey = self._normalize_key(key)
+        at = cmd_ln_access_r(self.cmd_ln, ckey)
         if at == NULL:
             raise KeyError("Unknown key %s" % key)
         elif at.type & ARG_STRING:
-            return self.get_string(key)
+            cval = cmd_ln_str_r(self.cmd_ln, ckey)
+            if cval == NULL:
+                return None
+            else:
+                return cval.decode('utf-8')
         elif at.type & ARG_INTEGER:
-            return self.get_int(key)
+            return cmd_ln_int_r(self.cmd_ln, ckey)
         elif at.type & ARG_FLOATING:
-            return self.get_float(key)
+            return cmd_ln_float_r(self.cmd_ln, ckey)
         elif at.type & ARG_BOOLEAN:
-            return self.get_boolean(key)
+            return cmd_ln_int_r(self.cmd_ln, ckey) != 0
         else:
             raise ValueError("Unable to handle parameter type %d" % at.type)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, val):
         cdef cmd_ln_val_t *at;
-        if len(key) > 0 and key[0] != '-':
-            dash_key = "-" + key
-            if cmd_ln_exists_r(self.cmd_ln, dash_key.encode('utf-8')):
-                key = dash_key
-        at = cmd_ln_access_r(self.cmd_ln, key.encode('utf-8'))
+        ckey = self._normalize_key(key)
+        at = cmd_ln_access_r(self.cmd_ln, ckey)
         if at == NULL:
             # FIXME: for now ... but should handle this
             raise KeyError("Unknown key %s" % key)
         elif at.type & ARG_STRING:
-            self.set_string(key, value)
+            if val is None:
+                cmd_ln_set_str_r(self.cmd_ln, ckey, NULL)
+            else:
+                cmd_ln_set_str_r(self.cmd_ln, ckey, val.encode('utf-8'))
         elif at.type & ARG_INTEGER:
-            self.set_int(key, value)
+            cmd_ln_set_int_r(self.cmd_ln, ckey, val)
         elif at.type & ARG_FLOATING:
-            self.set_float(key, value)
+            cmd_ln_set_float_r(self.cmd_ln, ckey, val)
         elif at.type & ARG_BOOLEAN:
-            self.set_boolean(key, value)
+            cmd_ln_set_int_r(self.cmd_ln, ckey, val != 0)
         else:
             raise ValueError("Unable to handle parameter type %d" % at.type)
 
     def __iter__(self):
-        raise NotImplementedError("iteration over Config not yet implemented")
+        cdef hash_table_t *ht = self.cmd_ln.ht
+        cdef hash_iter_t *itor
+        cdef const char *ckey
+        keys = set()
+        itor = hash_table_iter(self.cmd_ln.ht)
+        while itor != NULL:
+            ckey = hash_entry_key(itor.ent)
+            key = self._normalize_ckey(ckey)
+            keys.add(key)
+            itor = hash_table_iter_next(itor)
+        return iter(keys)
+
+    def items(self):
+        keys = list(self)
+        for key in keys:
+            yield (key, self[key])
 
     def __len__(self):
-        raise NotImplementedError("length of Config not yet implemented")
-
+        # Incredibly, the only way to do this, but necessary also
+        # because of dash and underscore magic.
+        return sum(1 for _ in self)
 
 cdef class Segment:
     cdef ps_seg_t *seg
