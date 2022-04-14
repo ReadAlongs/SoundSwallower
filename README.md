@@ -73,7 +73,7 @@ If you don't have Conda, then what you will need to do is:
  - create and activate a virtual environment using your Python binary,
    which may or may not be in your AppData directory:
 
-        `%USERPROFILE%\AppData\Local\Programs\Python\Python310\python -m venv py310
+        %USERPROFILE%\AppData\Local\Programs\Python\Python310\python -m venv py310
         py310\scripts\activate
  
  - now you can build wheels with pip, using the same method mentioned above.
