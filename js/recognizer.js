@@ -232,14 +232,8 @@ function lookupWords(data, clbId) {
     } else post({status: "error", command: "lookupWords", code: "js-no-recognizer"});
 };
 
-function start(id) {
+function start() {
     if (recognizer) {
-	var output;
-	output = recognizer.switchSearch(parseInt(id));
-	if (output != Module.ReturnType.SUCCESS) {
-	    post({status: "error", command: "switchgrammar", code: output});
-	    return;
-	}
 	output = recognizer.start();
 	if (output != Module.ReturnType.SUCCESS)
 	    post({status: "error", command: "start", code: output});

@@ -33,9 +33,9 @@
 		]
 	    });
 	};
-	this.start = function(data) {
+	this.start = function() {
 	    this.consumers.forEach(function(consumer, y, z) {
-                consumer.postMessage({ command: 'start', data: data });
+                consumer.postMessage({ command: 'start' });
 		recording = true;
 		return true;
 	    });
