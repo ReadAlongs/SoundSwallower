@@ -2,13 +2,11 @@ add_executable(ssjs psRecognizer.cpp)
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(ssjs soundswallower)
 target_compile_options(soundswallower PRIVATE -Oz)
-target_compile_options(ssjs PRIVATE --bind -Oz)
-target_link_options(ssjs PRIVATE --bind -Oz)
-# FIXME: Need to optimize with recognizer.js to get only what we need
-target_link_options(ssjs PRIVATE "SHELL:-s FORCE_FILESYSTEM=1")
-target_link_options(ssjs PRIVATE "SHELL:-s TOTAL_MEMORY=100663296")
-target_link_options(ssjs PRIVATE "SHELL:-s ERROR_ON_UNDEFINED_SYMBOLS=0")
-target_link_options(ssjs PRIVATE "SHELL:--memory-init-file 0")
+target_compile_options(ssjs PRIVATE -Oz)
+target_link_options(ssjs PRIVATE
+  -lembind -Oz -sFORCE_FILESYSTEM=1
+  -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432
+  $<$<CONFIG:DEBUG>:-gsource-map --source-map-base=/js/>)
 target_include_directories(
   ssjs PRIVATE ${PYTHON_INCLUDE_DIR}
   ssjs PRIVATE ${PROJECT_SOURCE_DIR}/src
