@@ -20,7 +20,7 @@ Compiling SoundSwallower
 ========================
 
 Currently SoundSwallower can be built in several different ways. To
-build the C shared library and binaries, run CMake in the standard way:
+build the C shared library, run CMake in the standard way:
 
 	mkdir build
 	cd build
@@ -28,6 +28,32 @@ build the C shared library and binaries, run CMake in the standard way:
 	make
 	make test
 	make install
+
+Note that this isn't terribly useful as there is no command-line
+frontend.  You probably want to target JavaScript or Python.
+
+Installing the Python module and CLI
+====================================
+
+The SoundSwallower command-line is a Python module
+(soundswallower.cli) and can be installed using `setup.py` or `pip`.
+It is highly recommended to do this in a `virtualenv`.  You can simply
+install it from PyPI:
+
+    pip install soundswallower
+	
+Or compile from source:
+
+	pip install .
+
+For development, you can install it in-place, but please make sure to
+remove any existing global installation:
+
+    pip uninstall soundswallower
+	python setup.py develop
+
+Compiling to JavaScript/WebAssembly
+===================================
 
 To build the JavaScript library, use CMake with Emscripten:
 
