@@ -1,5 +1,5 @@
 SoundSwallower: an even smaller speech recognizer
--------------------------------------------------
+=================================================
 
 "Time and change have a voice; eternity is silent. The human ear is
 always searching for one or the other."
@@ -33,7 +33,7 @@ Note that this isn't terribly useful as there is no command-line
 frontend.  You probably want to target JavaScript or Python.
 
 Installing the Python module and CLI
-====================================
+------------------------------------
 
 The SoundSwallower command-line is a Python module
 (soundswallower.cli) and can be installed using `setup.py` or `pip`.
@@ -53,7 +53,7 @@ remove any existing global installation:
 	python setup.py develop
 
 Compiling to JavaScript/WebAssembly
-===================================
+-----------------------------------
 
 To build the JavaScript library, use CMake with Emscripten:
 
