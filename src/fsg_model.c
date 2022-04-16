@@ -377,7 +377,7 @@ fsg_model_word_id(fsg_model_t * fsg, char const *word)
         if (0 == strcmp(fsg->vocab[wid], word))
             break;
     }
-    /* If not found, add this to the vocab. */
+    /* If not found, return an error. */
     if (wid == fsg->n_word)
         return -1;
     return wid;

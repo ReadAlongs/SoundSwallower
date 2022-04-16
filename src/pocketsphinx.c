@@ -490,7 +490,8 @@ ps_load_dict(ps_decoder_t *ps, char const *dictfile,
     ps->d2p = d2p;
 
     /* And tell all searches to reconfigure themselves. */
-    ps_search_reinit(ps->search, ps->dict, ps->d2p);
+    if (ps->search)
+        ps_search_reinit(ps->search, ps->dict, ps->d2p);
 
     return 0;
 }
@@ -545,7 +546,10 @@ ps_add_word(ps_decoder_t *ps,
     /* Now we also have to add it to dict2pid. */
     dict2pid_add_word(ps->d2p, wid);
 
-    if (update) {
+    /* Reconfigure the search object, if any. */
+    if (ps->search && update) {
+        /* Note, this is not an error if there is no ps->search, we
+         * will have updated the dictionary anyway. */
         ps_search_reinit(ps->search, ps->dict, ps->d2p);
     }
 
@@ -701,6 +705,11 @@ ps_search_forward(ps_decoder_t *ps)
 {
     int nfr;
 
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return -1;
+    }
     nfr = 0;
     while (ps->acmod->n_feat_frame > 0) {
         int k;
@@ -807,6 +816,11 @@ ps_end_utt(ps_decoder_t *ps)
 {
     int rv;
 
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return -1;
+    }
     if (ps->acmod->state == ACMOD_ENDED || ps->acmod->state == ACMOD_IDLE) {
 	E_ERROR("Utterance is not started\n");
 	return -1;
@@ -860,6 +874,11 @@ ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score)
 {
     char const *hyp;
 
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return NULL;
+    }
     ptmr_start(&ps->perf);
     hyp = ps_search_hyp(ps->search, out_best_score);
     ptmr_stop(&ps->perf);
@@ -871,6 +890,11 @@ ps_get_prob(ps_decoder_t *ps)
 {
     int32 prob;
 
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return -1;
+    }
     ptmr_start(&ps->perf);
     prob = ps_search_prob(ps->search);
     ptmr_stop(&ps->perf);
@@ -882,6 +906,11 @@ ps_seg_iter(ps_decoder_t *ps)
 {
     ps_seg_t *itor;
 
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return NULL;
+    }
     ptmr_start(&ps->perf);
     itor = ps_search_seg_iter(ps->search);
     ptmr_stop(&ps->perf);
@@ -925,6 +954,11 @@ ps_seg_free(ps_seg_t *seg)
 ps_lattice_t *
 ps_get_lattice(ps_decoder_t *ps)
 {
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
+        return NULL;
+    }
     return ps_search_lattice(ps->search);
 }
 
@@ -936,8 +970,11 @@ ps_nbest(ps_decoder_t *ps)
     void *lmset;
     float32 lwf;
 
-    if (ps->search == NULL)
+    if (ps->search == NULL) {
+        E_ERROR("No search module is selected, did you forget to "
+                "specify a language model or grammar?\n");
         return NULL;
+    }
     if ((dag = ps_get_lattice(ps)) == NULL)
         return NULL;
 
