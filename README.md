@@ -1,9 +1,9 @@
 SoundSwallower: an even smaller speech recognizer
 =================================================
 
-"Time and change have a voice; eternity is silent. The human ear is
-always searching for one or the other."
-- Leena Krohn, *Datura, or a delusion we all see*
+> "Time and change have a voice; eternity is silent. The human ear is
+> always searching for one or the other."<br>
+> Leena Krohn, *Datura, or a delusion we all see*
 
 SoundSwallower is a refactored version of PocketSphinx intended
 primarily for embedding in web applications.  The goal is not to
