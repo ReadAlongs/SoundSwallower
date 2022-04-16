@@ -49,16 +49,13 @@ function Utf8Decode(strUtf) {
 
 function startup(onMessage) {
     const self = this;
-    self.onmessage = function(event) {
+    self.onmessage = async function(event) {
         var soundswallowerJS = (event.data && 'soundswallower.js' in event.data) ? event.data['soundswallower.js'] : 'soundswallower.js';
-	// FIXME: We should really just require or import it, any compatible browser should support that.
+	// FIXME: We should maybe just require or import it?
 	importScripts(soundswallowerJS);
-	const factory = Module;
-	factory().then(function(instance) {
-	    ssjs = instance;
-            self.onmessage = onMessage;
-            self.postMessage({});
-        });
+	ssjs = await Module()
+        self.onmessage = onMessage;
+        self.postMessage({});
     };
 }
 
