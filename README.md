@@ -41,16 +41,25 @@ in the `jsbuild` directory, which you can then include in your
 projects.  By default this is compiled with `-sMODULARIZE=1`, meaning
 that `require('soundswallower.js')` in Node.js will return a
 constructor, which, when called, returns a promise that is resolved
-after the WASM is loaded and the compiled code is ready to be invoked.
+after the WASM is loaded and the compiled code is ready to be invoked,
+e.g.:
+
+    const ssjs = await require("js/soundswallower.js");
+	let config = new ssjs.Config();
+	let recognizer = new ssjs.Recognizer(config);
+	// etc, etc...
+
 For web applications, this constructor will be available as `Module`
 in the global namespace after loading `soundswallower.js`, from a Web
-Worker, for instance, and you can call it asynchronously to get an
-instance of the compiled code, for example:
+Worker, for instance, and you can also call this asynchronously to get the
+instance, for example:
 
-	importScripts("js/soundswallower.js");
-	const ssjs = await Module();
-    config = ssjs.Config();
-	// etc, etc...
+	(async () => {
+		importScripts("js/soundswallower.js");
+		const ssjs = await Module();
+		let config = new ssjs.Config();
+		// etc, etc...
+	})();
 
 There may be a better way to do this, but I am not yet knowledgeable
 enough in JavaScript to say what it is.
