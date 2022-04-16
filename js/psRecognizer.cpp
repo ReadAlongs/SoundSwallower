@@ -25,7 +25,10 @@ namespace pocketsphinxjs {
     for (int i=0 ; i<words.size() ; ++i) {
       // This case is not properly handeled by ps_add_word, so we treat it separately
       if (words.at(i).pronunciation.size() == 0) return RUNTIME_ERROR;
-      if (ps_add_word(decoder, words.at(i).word.c_str(), words.at(i).pronunciation.c_str(), 1) < 0) return RUNTIME_ERROR;
+      if (ps_add_word(decoder, words.at(i).word.c_str(),
+		      words.at(i).pronunciation.c_str(),
+		      (i == words.size() - 1)) < 0)
+	return RUNTIME_ERROR;
     }
     return SUCCESS;
   }
@@ -38,8 +41,15 @@ namespace pocketsphinxjs {
     current_grammar->start_state = grammar.start;
     current_grammar->final_state = grammar.end;
     for (int i=0;i<grammar.transitions.size();i++) {
-      if ((grammar.transitions.at(i).word.size() > 0) && (ps_lookup_word(decoder, grammar.transitions.at(i).word.c_str())))
-	fsg_model_trans_add(current_grammar, grammar.transitions.at(i).from, grammar.transitions.at(i).to, grammar.transitions.at(i).logp, fsg_model_word_add(current_grammar, grammar.transitions.at(i).word.c_str()));
+      if ((grammar.transitions.at(i).word.size() > 0)
+	  && (ps_lookup_word(decoder, grammar.transitions.at(i).word.c_str()))) {
+	int word_id = fsg_model_word_add(current_grammar,
+					 grammar.transitions.at(i).word.c_str());
+	fsg_model_trans_add(current_grammar,
+			    grammar.transitions.at(i).from,
+			    grammar.transitions.at(i).to,
+			    grammar.transitions.at(i).logp, word_id);
+      }
       else
 	fsg_model_null_trans_add(current_grammar, grammar.transitions.at(i).from, grammar.transitions.at(i).to, grammar.transitions.at(i).logp);
     }
