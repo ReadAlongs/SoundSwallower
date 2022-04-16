@@ -2,8 +2,8 @@
 // Copyright © 2013-2017 Sylvain Chevalier
 // MIT license, see LICENSE for details
 
-var Module;
-if (typeof Module === 'undefined') Module = eval('(function() { try { return Module || {} } catch(e) { return {} } })()');
+// After loading emscripten module, the instance will be stored here.
+var ssjs;
 
 /**
 *
@@ -13,7 +13,7 @@ if (typeof Module === 'undefined') Module = eval('(function() { try { return Mod
 * https://gist.github.com/chrisveness/bcb00eb717e6382c5608
 *
 */
-
+// FIXME: This stuff is no longer necessary
 function Utf8Encode(strUni) {
     var strUtf = strUni.replace(
         /[\u0080-\u07ff]/g,  // U+0080 - U+07FF => 2 bytes 110yyyyy, 10zzzzzz
@@ -48,16 +48,17 @@ function Utf8Decode(strUtf) {
 }
 
 function startup(onMessage) {
+    const self = this;
     self.onmessage = function(event) {
         var soundswallowerJS = (event.data && 'soundswallower.js' in event.data) ? event.data['soundswallower.js'] : 'soundswallower.js';
-        var soundswallowerWASM = (event.data && 'soundswallower.wasm' in event.data) ? event.data['soundswallower.wasm'] : '/js/soundswallower.wasm';
-        // Case of compilation to WebAssembly, this is an absolute path
-        Module['locateFile'] = function() {return soundswallowerWASM;}
-        Module['onRuntimeInitialized'] = function() {
+	// FIXME: We should really just require or import it, any compatible browser should support that.
+	importScripts(soundswallowerJS);
+	const factory = Module;
+	factory().then(function(instance) {
+	    ssjs = instance;
             self.onmessage = onMessage;
             self.postMessage({});
-        };
-	importScripts(soundswallowerJS);
+        });
     };
 }
 
@@ -65,9 +66,6 @@ startup(function(event) {
     switch(event.data.command){
     case 'initialize':
 	initialize(event.data.data, event.data.callbackId);
-	break;
-    case 'load':
-	load(event.data.data, event.data.callbackId);
 	break;
     case 'lazyLoad':
 	lazyLoad(event.data.data, event.data.callbackId);
@@ -116,8 +114,8 @@ function segToArray(segmentation) {
 
 
 function initialize(data, clbId) {
-    var config = new Module.Config();
-    buffer = new Module.AudioBuffer();
+    var config = new ssjs.Config();
+    buffer = new ssjs.AudioBuffer();
     if (data) {
 	while (data.length > 0) {
 	    var p = data.pop();
@@ -131,24 +129,15 @@ function initialize(data, clbId) {
     var output;
     if(recognizer) {
 	output = recognizer.reInit(config);
-	if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "initialize", code: output});
+	if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "initialize", code: output});
 	else post({status: "done", command: "initialize", id: clbId});
     } else {
-	recognizer = new Module.Recognizer(config);
-	segmentation = new Module.Segmentation();
-	if (recognizer === undefined) post({status: "error", command: "initialize", code: Module.ReturnType.RUNTIME_ERROR});
+	recognizer = new ssjs.Recognizer(config);
+	segmentation = new ssjs.Segmentation();
+	if (recognizer === undefined) post({status: "error", command: "initialize", code: ssjs.ReturnType.RUNTIME_ERROR});
 	else post({status: "done", command: "initialize", id: clbId});
     }
     config.delete();
-}
-
-function load(data, clbId) {
-    try {
-	importScripts.apply(this, data);
-	post({status: "done", command: "load", id: clbId});
-    } catch(e) {
-	post({status: "error", command: "load", code: "NETWORK_ERROR"});
-    }
 }
 
 function lazyLoad(data, clbId) {
@@ -158,30 +147,30 @@ function lazyLoad(data, clbId) {
     data['files'].forEach(function(file) {files.push([file[0], file[1], file[2]]);});
     var preloadFiles = function() {
 	folders.forEach(function(folder) {
-	    Module['FS_createPath'](folder[0], folder[1], true, true);
+	    ssjs['FS_createPath'](folder[0], folder[1], true, true);
 	});
 	files.forEach(function(file) {
-	    Module['FS_createLazyFile'](file[0], file[1], file[2], true, true);
+	    ssjs['FS_createLazyFile'](file[0], file[1], file[2], true, true);
 	});
     };
-    if (Module['calledRun']) {
+    if (ssjs['calledRun']) {
 	preloadFiles();
     } else {
-	if (!Module['preRun']) Module['preRun'] = [];
-	Module["preRun"].push(preloadFiles); // FS is not initialized yet, wait for it
+	if (!ssjs['preRun']) ssjs['preRun'] = [];
+	ssjs["preRun"].push(preloadFiles); // FS is not initialized yet, wait for it
     }
     post({status: "done", command: "lazyLoad", id: clbId});
 }
 
 function addWords(data, clbId) {
     if (recognizer) {
-	var words = new Module.VectorWords();
+	var words = new ssjs.VectorWords();
 	for (var i = 0 ; i < data.length ; i++) {
 	    var w = data[i];
 	    if (w.length == 2) words.push_back([Utf8Encode(w[0]), w[1]]);
 	}
 	var output = recognizer.addWords(words);
-	if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "addWords", code: output});
+	if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "addWords", code: output});
 	else post({id: clbId});
 	words.delete();
     } else post({status: "error", command: "addWords", code: "js-no-recognizer"});
@@ -194,7 +183,7 @@ function setGrammar(data, clbId) {
 	    data.hasOwnProperty('start') &&
 	    data.hasOwnProperty('end') &&
 	    data.hasOwnProperty('transitions') && data.transitions.length > 0) {
-	    var transitions = new Module.VectorTransitions();
+	    var transitions = new ssjs.VectorTransitions();
 	    while (data.transitions.length > 0) {
 		var t = data.transitions.pop();
 		if (t.hasOwnProperty('from') && t.hasOwnProperty('to')) {
@@ -205,7 +194,7 @@ function setGrammar(data, clbId) {
 		}
 	    }
 	    output = recognizer.setGrammar({start: data.start, end: data.end, numStates: data.numStates, transitions: transitions});
-	    if (output != Module.ReturnType.SUCCESS) post({status: "error", command: "setGrammar", code: output});
+	    if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "setGrammar", code: output});
 	    else post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	    transitions.delete();
 	} else post({status: "error", command: "setGrammar", code: "js-data"});
@@ -235,7 +224,7 @@ function lookupWords(data, clbId) {
 function start() {
     if (recognizer) {
 	output = recognizer.start();
-	if (output != Module.ReturnType.SUCCESS)
+	if (output != ssjs.ReturnType.SUCCESS)
 	    post({status: "error", command: "start", code: output});
     } else {
 	post({status: "error", command: "start", code: "js-no-recognizer"});
@@ -245,7 +234,7 @@ function start() {
 function stop() {
     if (recognizer) {
 	var output = recognizer.stop();
-	if (output != Module.ReturnType.SUCCESS)
+	if (output != ssjs.ReturnType.SUCCESS)
 	    post({status: "error", command: "stop", code: output});
 	else {
 	    recognizer.getHypseg(segmentation);
@@ -265,7 +254,7 @@ function process(array) {
 	for (var i = 0 ; i < array.length ; i++)
 	    buffer.set(i, array[i]);
 	var output = recognizer.process(buffer);
-	if (output != Module.ReturnType.SUCCESS)
+	if (output != ssjs.ReturnType.SUCCESS)
 	    post({status: "error", command: "process", code: output});
 	else {
 	    recognizer.getHypseg(segmentation);

@@ -42,8 +42,6 @@
           recognizer.onmessage = function(event) {
               onReady(recognizer);
           };
-          // As arguments, you can pass non-default path to pocketsphinx.js and pocketsphinx.wasm:
-          // recognizer.postMessage({'pocketsphinx.wasm': '/path/to/pocketsphinx.wasm', 'pocketsphinx.js': '/path/to/pocketsphinx.js'});
           recognizer.postMessage({});
       };
 
@@ -197,7 +195,18 @@
       };
 
       // This grammar recognizes digits
-      var grammarDigits = {numStates: 1, start: 0, end: 0, transitions: [{from: 0, to: 0, word: "ONE"},{from: 0, to: 0, word: "TWO"},{from: 0, to: 0, word: "THREE"},{from: 0, to: 0, word: "FOUR"},{from: 0, to: 0, word: "FIVE"},{from: 0, to: 0, word: "SIX"},{from: 0, to: 0, word: "SEVEN"},{from: 0, to: 0, word: "EIGHT"},{from: 0, to: 0, word: "NINE"},{from: 0, to: 0, word: "ZERO"}]};
+      var grammarDigits = {
+	  numStates: 1, start: 0, end: 0,
+	  transitions: [{from: 0, to: 0, word: "ONE"},
+			{from: 0, to: 0, word: "TWO"},
+			{from: 0, to: 0, word: "THREE"},
+			{from: 0, to: 0, word: "FOUR"},
+			{from: 0, to: 0, word: "FIVE"},
+			{from: 0, to: 0, word: "SIX"},
+			{from: 0, to: 0, word: "SEVEN"},
+			{from: 0, to: 0, word: "EIGHT"},
+			{from: 0, to: 0, word: "NINE"},
+			{from: 0, to: 0, word: "ZERO"}]};
       // This grammar recognizes a few cities names
       var grammarCities = {numStates: 1, start: 0, end: 0, transitions: [{from: 0, to: 0, word: "NEW-YORK"}, {from: 0, to: 0, word: "NEW-YORK-CITY"}, {from: 0, to: 0, word: "PARIS"}, {from: 0, to: 0, word: "SHANGHAI"}, {from: 0, to: 0, word: "SAN-FRANCISCO"}, {from: 0, to: 0, word: "LONDON"}, {from: 0, to: 0, word: "BERLIN"}]};
       var grammars = {"Digits": grammarDigits, "Cities": grammarCities};
