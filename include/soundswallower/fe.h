@@ -66,7 +66,7 @@ extern "C" {
 }
 #endif
 
-#ifdef WORDS_BIGENDIAN
+#if WORDS_BIGENDIAN
 #define NATIVE_ENDIAN "big"
 #else
 #define NATIVE_ENDIAN "little"

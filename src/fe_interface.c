@@ -83,10 +83,12 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
         fe->dither = 1;
         fe->dither_seed = cmd_ln_int32_r(config, "-seed");
     }
-#ifdef WORDS_BIGENDIAN
-    fe->swap = strcmp("big", cmd_ln_str_r(config, "-input_endian")) == 0 ? 0 : 1;
+#if WORDS_BIGENDIAN
+    /* i.e. if input_endian is *not* "big", then fe->swap is true. */
+    fe->swap = strcmp("big", cmd_ln_str_r(config, "-input_endian"));
 #else        
-    fe->swap = strcmp("little", cmd_ln_str_r(config, "-input_endian")) == 0 ? 0 : 1;
+    /* and vice versa */
+    fe->swap = strcmp("little", cmd_ln_str_r(config, "-input_endian"));
 #endif
     fe->window_length = cmd_ln_float32_r(config, "-wlen");
     fe->pre_emphasis_alpha = cmd_ln_float32_r(config, "-alpha");

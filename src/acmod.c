@@ -435,8 +435,7 @@ acmod_end_utt(acmod_t *acmod)
     if (acmod->mfcfh) {
         int32 outlen, rv;
         outlen = (ftell(acmod->mfcfh) - 4) / 4;
-        if (!WORDS_BIGENDIAN)
-            SWAP_INT32(&outlen);
+        SWAP_BE_32(&outlen);
         /* Try to seek and write */
         if ((rv = fseek(acmod->mfcfh, 0, SEEK_SET)) == 0) {
             fwrite(&outlen, 4, 1, acmod->mfcfh);
@@ -466,22 +465,22 @@ acmod_log_mfc(acmod_t *acmod,
 
     n = n_frames * feat_cepsize(acmod->fcb);
     /* Swap bytes. */
-    if (!WORDS_BIGENDIAN) {
-        for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+#if !WORDS_BIGENDIAN
+    for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
             SWAP_INT32(ptr + i);
-        }
     }
+#endif
     /* Write features. */
     if (fwrite(cep[0], sizeof(mfcc_t), n, acmod->mfcfh) != n) {
         E_ERROR_SYSTEM("Failed to write %d values to log file", n);
     }
 
     /* Swap them back. */
-    if (!WORDS_BIGENDIAN) {
-        for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
-            SWAP_INT32(ptr + i);
-        }
+#if !WORDS_BIGENDIAN
+    for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+        SWAP_INT32(ptr + i);
     }
+#endif
     return 0;
 }
 

@@ -79,7 +79,7 @@
 			  SWAP_INT32(low);  SWAP_INT32(high);\
 			  temp = *low; *low = *high; *high = temp;}
 
-#ifdef WORDS_BIGENDIAN
+#if WORDS_BIGENDIAN
 #define SWAP_BE_64(x)
 #define SWAP_BE_32(x)
 #define SWAP_BE_16(x)
