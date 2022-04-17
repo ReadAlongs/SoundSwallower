@@ -51,34 +51,52 @@ remove any existing global installation:
 
     pip uninstall soundswallower
 	python setup.py develop
+	
+The command-line supports JSGF grammars and word-level force
+alignment for one or more input files, for example:
+
+	soundswallower --align tests/data/goforward.txt tests/data/goforward.wav
+	soundswallower --align-text "go forward ten meters" tests/data/goforward.wav
+	soundswallower --grammar tests/data/goforward.gram tests/data/goforward.wav
+
+Note that multiple input files are not particularly useful for
+`--align` or `--align-text` as they will simply (try to) align the
+same text to each file.  The output results (a list of time-aligned
+words) can be written to a JSON file with `--output`.
 
 Compiling to JavaScript/WebAssembly
 -----------------------------------
 
-To build the JavaScript library, use CMake with Emscripten:
+To build the JavaScript library, use CMake with
+[Emscripten](https://emscripten.org/):
 
 	mkdir jsbuild
 	cd jsbuild
 	emcmake cmake ..
-	make
+	emmake make
 	
 This will create `js/soundswallower.js` and `js/soundswallower.wasm`
 in the `jsbuild` directory, which you can then include in your
-projects.  By default this is compiled with `-sMODULARIZE=1`, meaning
-that `require('soundswallower.js')` in Node.js will return a
-constructor, which, when called, returns a promise that is resolved
-after the WASM is loaded and the compiled code is ready to be invoked,
-e.g.:
+projects.  It will also set up this directory to run a trivial demo
+application, which you can launch with `server.py`, and access at
+[http://localhost:8000](http://localhost:8000/).  It seems to work
+fine with recent versions of Chrome, Firefox, and Edge.
+
+By default the library is compiled with `-sMODULARIZE=1`,
+meaning that `require('soundswallower.js')` in Node.js will return a
+factory function, which, when called, returns a promise that is
+resolved after the WASM is loaded and the compiled code is ready to be
+invoked, e.g.:
 
     const ssjs = await require("js/soundswallower.js");
 	let config = new ssjs.Config();
 	let recognizer = new ssjs.Recognizer(config);
 	// etc, etc...
 
-For web applications, this constructor will be available as `Module`
-in the global namespace after loading `soundswallower.js`, from a Web
-Worker, for instance, and you can also call this asynchronously to get the
-instance, for example:
+For web applications, this function will be available as `Module` in
+the global namespace after loading `soundswallower.js`, from a Web
+Worker, for instance, and you can also call this asynchronously to get
+the instance, for example:
 
 	(async () => {
 		importScripts("js/soundswallower.js");
@@ -115,19 +133,19 @@ magic.
 
 If you don't have Conda, then what you will need to do is:
 
- - install Visual Studio build tools, unfortunately a direct link does
-   not seem to exist, but you can find them under
-   https://visualstudio.microsoft.com/downloads/ - The 2019 version is
-   probably the optimal one to use as it is compatible with all recent
-   versions of Windows.
- - install the version of Python you wish to use.
- - launch the Visual Studio command-line prompt from the Start menu.
-   Note that if your Python is 64-bit (recommended), you must be sure
-   to launch the "x64 Native Command Line Prompt".
- - create and activate a virtual environment using your Python binary,
-   which may or may not be in your AppData directory:
+- Install Visual Studio build tools.  Unfortunately, a direct link
+  does not seem to exist, but you can find them under [Microsoft's
+  downloads page](https://visualstudio.microsoft.com/downloads/). The
+  2019 version is probably the optimal one to use as it is compatible
+  with all recent versions of Windows.
+- Install the version of Python you wish to use.
+- Launch the Visual Studio command-line prompt from the Start menu.
+  Note that if your Python is 64-bit (recommended), you must be sure
+  to launch the "x64 Native Command Line Prompt".
+- Create and activate a virtual environment using your Python binary,
+  which may or may not be in your AppData directory:
 
         %USERPROFILE%\AppData\Local\Programs\Python\Python310\python -m venv py310
         py310\scripts\activate
  
- - now you can build wheels with pip, using the same method mentioned above.
+- now you can build wheels with pip, using the same method mentioned above.
