@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-VERSION=0.1.3
+VERSION=0.1.4
 
 rm -f *.whl dist/*
 python setup.py sdist --formats=zip,gztar
