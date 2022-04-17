@@ -29,6 +29,7 @@ import argparse
 import tempfile
 import json
 import wave
+import sys
 import os
 
 
@@ -47,8 +48,10 @@ def make_argparse():
                         "(or standard output if none given) and exit.")
     parser.add_argument("-o", "--output",
                         help="Filename for output (default is standard output")
-    grammars = parser.add_mutually_exclusive_group(required=True)
-    grammars.add_argument("-a", "--align", help="Input text for force alignment.")
+    grammars = parser.add_mutually_exclusive_group()
+    grammars.add_argument("-a", "--align", help="Input text file for force alignment.")
+    grammars.add_argument("-t", "--align-text",
+                          help="Input text for force alignment.")
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     parser.add_argument_group(grammars)
     return parser
@@ -63,6 +66,7 @@ def make_decoder_config(args):
             json_config = json.load(fh)
             for key, value in json_config.items():
                 config[key] = value
+    print(config["cmninit"])
     model_path = ss.get_model_path()
     if args.model in os.listdir(model_path):
         config["hmm"] = os.path.join(model_path, args.model)
@@ -85,9 +89,13 @@ def make_decoder_config(args):
 
 def write_config(config, output=None):
     """Write the full configuraiton as JSON to output file or standard output."""
-    config_dict = {}
-    # FIXNE: Not yet implemented, requires iteration over config
-    pass
+    if output is not None:
+        outfh = open(output, "wt")
+    else:
+        outfh = sys.stdout
+    json.dump(dict(config.items()), outfh)
+    if output is not None:
+        outfh.close()
 
 
 def get_audio_data(input_file):
@@ -176,12 +184,21 @@ def main(argv=None):
     parser = make_argparse()
     args = parser.parse_args(argv)
     config = make_decoder_config(args)
-    if args.write_config:
-        write_config(config, args.output)
-    if args.align:
+    if args.write_config is not None:
+        write_config(config, args.write_config)
+    words = None
+    if args.align_text:
+        words = args.align_text.split()
+    elif args.align:
         words = []
         with open(args.align) as fh:
             words = fh.read().strip().split()
+    elif args.grammar:
+        pass
+    else:
+        # Nothing to do!
+        return
+    if words is not None:
         fsg_temp = tempfile.NamedTemporaryFile(mode="w")
         make_fsg(fsg_temp, words)
         config["fsg"] = fsg_temp.name
