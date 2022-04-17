@@ -82,33 +82,7 @@ application, which you can launch with `server.py`, and access at
 [http://localhost:8000](http://localhost:8000/).  It seems to work
 fine with recent versions of Chrome, Firefox, and Edge.
 
-By default the library is compiled with `-sMODULARIZE=1`,
-meaning that `require('soundswallower.js')` in Node.js will return a
-factory function, which, when called, returns a promise that is
-resolved after the WASM is loaded and the compiled code is ready to be
-invoked, e.g.:
-
-    const ssjs = await require("js/soundswallower.js");
-	let config = new ssjs.Config();
-	let recognizer = new ssjs.Recognizer(config);
-	// etc, etc...
-
-For web applications, this function will be available as `Module` in
-the global namespace after loading `soundswallower.js`, from a Web
-Worker, for instance, and you can also call this asynchronously to get
-the instance, for example:
-
-	(async () => {
-		importScripts("js/soundswallower.js");
-		const ssjs = await Module();
-		let config = new ssjs.Config();
-		// etc, etc...
-	})();
-
-There may be a better way to do this, but I am not yet knowledgeable
-enough in JavaScript to say what it is.
-
-The JavaScript API will probably change soon.
+For more details on JavaScript, see [the js README](/js/README.md).
 
 Creating binary distributions for Python
 ========================================
