@@ -792,10 +792,10 @@ fsg_model_free(fsg_model_t * fsg)
         ckd_free(fsg->vocab[i]);
     for (i = 0; i < fsg->n_state; ++i)
         trans_list_free(fsg, i);
-    ckd_free(fsg->lmath);
     ckd_free(fsg->trans);
     ckd_free(fsg->vocab);
     listelem_alloc_free(fsg->link_alloc);
+    logmath_free(fsg->lmath);
     bitvec_free(fsg->silwords);
     bitvec_free(fsg->altwords);
     ckd_free(fsg->name);
