@@ -23,6 +23,11 @@ class TestDecoder(unittest.TestCase):
             decoder.process_raw(buf, full_utt=True)
             decoder.end_utt()
             self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
+            words = []
+            for seg in decoder.seg():
+                if seg.word != "(NULL)":
+                    words.append(seg.word)
+            self.assertEqual(words, "<sil> go forward ten meters <sil>".split())
 
     def test_live(self):
         config = Decoder.default_config()
