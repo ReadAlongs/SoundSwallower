@@ -82,8 +82,13 @@ cdef extern from "soundswallower/fsg_model.h":
     fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
                                 float lw, int n_state)
     fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath,
-                                    float lw);
+                                    float lw)
     int fsg_model_free(fsg_model_t *fsg);
+
+
+cdef extern from "soundswallower/jsgf.h":
+    fsg_model_t *jsgf_read_file(const char *name, logmath_t *lmath,
+                                float lw)
 
 
 cdef extern from "soundswallower/pocketsphinx.h":

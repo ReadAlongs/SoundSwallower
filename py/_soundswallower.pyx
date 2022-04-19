@@ -217,6 +217,17 @@ cdef class Hypothesis:
         self.prob = prob
 
 
+cdef class FsgModel:
+    cdef fsg_model_t *fsg
+
+    def __cinit__(self):
+        # Unsure this is the right way to do this.  The FsgModel
+        # constructor isn't meant to be called from Python.
+        self.fsg = NULL
+
+    def __dealloc__(self):
+        fsg_model_free(self.fsg)
+
 cdef class Decoder:
     cdef ps_decoder_t *ps
     cdef Config config
@@ -298,3 +309,23 @@ cdef class Decoder:
             seg.set_seg(itor, lmath)
             yield seg
             itor = ps_seg_next(itor)
+
+    def read_fsg(self, filename):
+        cdef logmath_t *lmath
+        cdef float lw
+
+        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lmath = ps_get_logmath(self.ps)
+        fsg = FsgModel()
+        fsg.fsg = fsg_model_readfile(filename, lmath, lw)
+        return fsg
+
+    def read_jsgf(self, filename):
+        cdef logmath_t *lmath
+        cdef float lw
+
+        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lmath = ps_get_logmath(self.ps)
+        fsg = FsgModel()
+        fsg.fsg = jsgf_read_file(filename, lmath, lw)
+        return fsg
