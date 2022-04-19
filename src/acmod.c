@@ -214,7 +214,7 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 
     acmod = ckd_calloc(1, sizeof(*acmod));
     acmod->config = cmd_ln_retain(config);
-    acmod->lmath = lmath;
+    acmod->lmath = logmath_retain(lmath);
     acmod->state = ACMOD_IDLE;
 
     /* Initialize feature computation. */
@@ -303,14 +303,11 @@ acmod_free(acmod_t *acmod)
     ckd_free(acmod->senone_active_vec);
     ckd_free(acmod->senone_active);
 
-    if (acmod->mdef)
-        bin_mdef_free(acmod->mdef);
-    if (acmod->tmat)
-        tmat_free(acmod->tmat);
-    if (acmod->mgau)
-        ps_mgau_free(acmod->mgau);
-    if (acmod->mllr)
-        ps_mllr_free(acmod->mllr);
+    bin_mdef_free(acmod->mdef);
+    tmat_free(acmod->tmat);
+    ps_mgau_free(acmod->mgau);
+    ps_mllr_free(acmod->mllr);
+    logmath_free(acmod->lmath);
 
     ckd_free(acmod);
 }

@@ -126,7 +126,7 @@ struct ps_mgau_s {
 #define ps_mgau_transform(mg, mllr)                                  \
     (*ps_mgau_base(mg)->vt->transform)(mg, mllr)
 #define ps_mgau_free(mg)                                  \
-    (*ps_mgau_base(mg)->vt->free)(mg)
+    if (mg) (*ps_mgau_base(mg)->vt->free)(mg)
 
 /**
  * Acoustic model structure.
