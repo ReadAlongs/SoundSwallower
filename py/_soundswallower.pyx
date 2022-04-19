@@ -284,11 +284,13 @@ cdef class Decoder:
 
     def seg(self):
         cdef ps_seg_t *itor
+        cdef logmath_t *lmath
         itor = ps_seg_iter(self.ps)
         if itor == NULL:
             raise RuntimeError, "Failed to create best path word segment iterator"
+        lmath = ps_get_logmath(self.ps)
         while itor != NULL:
             seg = Segment()
-            seg.set_seg(itor, ps_get_logmath(self.ps))
+            seg.set_seg(itor, lmath)
             yield seg
             itor = ps_seg_next(itor)
