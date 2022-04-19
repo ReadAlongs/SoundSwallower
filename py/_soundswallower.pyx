@@ -183,59 +183,27 @@ cdef class Config:
 
 
 cdef class Segment:
-    cdef ps_seg_t *seg
     cdef public str word
     cdef public int start_frame
     cdef public int end_frame
-    cdef public int ascore
-    cdef public int prob
-    cdef public int lscore
+    cdef public double ascore
+    cdef public double prob
+    cdef public double lscore
     cdef public int lback
 
-    def __init__(self):
-        self.seg = NULL
-
-    cdef set_seg(self, ps_seg_t *seg):
+    cdef set_seg(self, ps_seg_t *seg, logmath_t *lmath):
         cdef int ascr, lscr, lback
         cdef int sf, ef
-        self.seg = seg
-        self.word = ps_seg_word(self.seg).decode('utf-8')
-        ps_seg_frames(self.seg, &sf, &ef)
+
+        self.word = ps_seg_word(seg).decode('utf-8')
+        ps_seg_frames(seg, &sf, &ef)
         self.start_frame = sf
         self.end_frame = ef
-        self.prob = ps_seg_prob(self.seg, &ascr, &lscr, &lback)
-        self.ascore = ascr
-        self.lscore = lscr
+        self.prob = logmath_exp(lmath,
+                                ps_seg_prob(seg, &ascr, &lscr, &lback));
+        self.ascore = logmath_exp(lmath, ascr)
+        self.lscore = logmath_exp(lmath, lscr)
         self.lback = lback
-
-
-cdef class SegmentIterator:
-    cdef ps_seg_t *itor
-    cdef int first_seg
-
-    def __init__(self):
-        self.itor = NULL
-        self.first_seg = False
-
-    cdef set_iter(self, ps_seg_t *seg):
-        self.itor = seg
-        self.first_seg = True
-
-    def __iter__(self):
-        return self
-    
-    def __next__(self):
-        cdef Segment seg
-        if self.first_seg:
-            self.first_seg = False
-        else:
-            self.itor = ps_seg_next(self.itor)
-        if NULL == self.itor:
-            raise StopIteration
-        else:
-            seg = Segment()
-            seg.set_seg(self.itor)
-        return seg
 
 
 class Hypothesis:
@@ -295,7 +263,8 @@ cdef class Decoder:
              return None
         lmath = ps_get_logmath(self.ps)
         prob = ps_get_prob(self.ps)
-        return Hypothesis(hyp.decode('utf-8'), score,
+        return Hypothesis(hyp.decode('utf-8'),
+                          logmath_exp(lmath, score),
                           logmath_exp(lmath, prob))
 
     def get_prob(self):
@@ -314,12 +283,12 @@ cdef class Decoder:
         return ps_save_dict(self.ps, dictfile, format)
 
     def seg(self):
-        cdef int score
-        cdef ps_seg_t *first_seg
-        cdef SegmentIterator itor
-        first_seg = ps_seg_iter(self.ps)
-        if first_seg == NULL:
+        cdef ps_seg_t *itor
+        itor = ps_seg_iter(self.ps)
+        if itor == NULL:
             raise RuntimeError, "Failed to create best path word segment iterator"
-        itor = SegmentIterator()
-        itor.set_iter(first_seg)
-        return itor
+        while itor != NULL:
+            seg = Segment()
+            seg.set_seg(itor, ps_get_logmath(self.ps))
+            yield seg
+            itor = ps_seg_next(itor)
