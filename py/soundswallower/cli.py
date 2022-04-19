@@ -26,7 +26,6 @@ To use a custom dictionary:
 import soundswallower as ss
 import logging
 import argparse
-import tempfile
 import json
 import wave
 import sys
@@ -66,7 +65,6 @@ def make_decoder_config(args):
             json_config = json.load(fh)
             for key, value in json_config.items():
                 config[key] = value
-    print(config["cmninit"])
     model_path = ss.get_model_path()
     if args.model in os.listdir(model_path):
         config["hmm"] = os.path.join(model_path, args.model)
@@ -164,18 +162,15 @@ def decode_file(decoder, config, args, input_file):
     return results
 
 
-def make_fsg(outfh, words):
+def set_alignment_fsg(decoder, words):
     """Make an FSG for word-level "force-alignment" that is just a linear
     chain of all the words."""
-    outfh.write("""FSG_BEGIN align
-NUM_STATES %d
-START_STATE 0
-FINAL_STATE %d
-""" % (len(words) + 1, len(words)))
-    for i, w in enumerate(words):
-        outfh.write("TRANSITION %d %d 1.0 %s\n" % (i, i + 1, w))
-    outfh.write("FSG_END\n")
-    outfh.flush()
+    fsg = decoder.create_fsg("align",
+                             start_state=0, final_state=len(words),
+                             transitions=[(idx, idx + 1, 1.0, w)
+                                          for idx, w
+                                          in enumerate(words)])
+    decoder.set_fsg(fsg)
 
 
 def main(argv=None):
@@ -198,11 +193,9 @@ def main(argv=None):
     else:
         # Nothing to do!
         return
-    if words is not None:
-        fsg_temp = tempfile.NamedTemporaryFile(mode="w")
-        make_fsg(fsg_temp, words)
-        config["fsg"] = fsg_temp.name
     decoder = ss.Decoder(config)
+    if words is not None:
+        set_alignment_fsg(decoder, words)
     results = []
     for input_file in args.inputs:
         file_align = decode_file(decoder, config, args, input_file)
