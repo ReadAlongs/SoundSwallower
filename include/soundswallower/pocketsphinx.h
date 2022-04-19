@@ -202,34 +202,6 @@ int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_stri
 ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
 
 /**
- * Reload the pronunciation dictionary from a file.
- *
- * This function replaces the current pronunciation dictionary with
- * the one stored in dictfile.  This also causes the active search
- * module(s) to be reinitialized, in the same manner as calling
- * ps_add_word() with update=TRUE.
- *
- * @param dictfile Path to dictionary file to load.
- * @param fdictfile Path to filler dictionary to load, or NULL to keep
- *                  the existing filler dictionary.
- * @param format Format of the dictionary file, or NULL to determine
- *               automatically (currently unused,should be NULL)
- */
-int ps_load_dict(ps_decoder_t *ps, char const *dictfile,
-                 char const *fdictfile, char const *format);
-
-/**
- * Dump the current pronunciation dictionary to a file.
- *
- * This function dumps the current pronunciation dictionary to a tex
- *
- * @param dictfile Path to file where dictionary will be written.
- * @param format Format of the dictionary file, or NULL for the
- *               default (text) format (currently unused, should be NULL)
- */
-int ps_save_dict(ps_decoder_t *ps, char const *dictfile, char const *format);
-
-/**
  * Add a word to the pronunciation dictionary.
  *
  * This function adds a word to the pronunciation dictionary and the
@@ -542,7 +514,7 @@ void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
 
 /**
  * @mainpage PocketSphinx API Documentation
- * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
+ * @author David Huggins-Daines <dhuggins@gmail.com>
  * @author Alpha Cephei Inc.
  * @version 0.1
  * @date July, 2015

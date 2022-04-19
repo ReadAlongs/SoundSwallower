@@ -404,60 +404,6 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
 }
 
 int
-ps_load_dict(ps_decoder_t *ps, char const *dictfile,
-             char const *fdictfile, char const *format)
-{
-    dict2pid_t *d2p;
-    dict_t *dict;
-    cmd_ln_t *newconfig;
-
-    /* Create a new scratch config to load this dict (so existing one
-     * won't be affected if it fails) */
-    newconfig = cmd_ln_init(NULL, ps_args(), TRUE, NULL);
-    cmd_ln_set_boolean_r(newconfig, "-dictcase",
-                         cmd_ln_boolean_r(ps->config, "-dictcase"));
-    cmd_ln_set_str_r(newconfig, "-dict", dictfile);
-    if (fdictfile)
-        cmd_ln_set_str_extra_r(newconfig, "_fdict", fdictfile);
-    else
-        cmd_ln_set_str_extra_r(newconfig, "_fdict",
-                               cmd_ln_str_r(ps->config, "_fdict"));
-
-    /* Try to load it. */
-    if ((dict = dict_init(newconfig, ps->acmod->mdef)) == NULL) {
-        cmd_ln_free_r(newconfig);
-        return -1;
-    }
-
-    /* Reinit the dict2pid. */
-    if ((d2p = dict2pid_build(ps->acmod->mdef, dict)) == NULL) {
-        cmd_ln_free_r(newconfig);
-        return -1;
-    }
-
-    /* Success!  Update the existing config to reflect new dicts and
-     * drop everything into place. */
-    cmd_ln_free_r(newconfig);
-    dict_free(ps->dict);
-    ps->dict = dict;
-    dict2pid_free(ps->d2p);
-    ps->d2p = d2p;
-
-    /* And tell all searches to reconfigure themselves. */
-    if (ps->search)
-        ps_search_reinit(ps->search, ps->dict, ps->d2p);
-
-    return 0;
-}
-
-int
-ps_save_dict(ps_decoder_t *ps, char const *dictfile,
-             char const *format)
-{
-    return dict_write(ps->dict, dictfile, format);
-}
-
-int
 ps_add_word(ps_decoder_t *ps,
             char const *word,
             char const *phones,
