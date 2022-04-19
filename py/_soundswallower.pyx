@@ -217,16 +217,17 @@ cdef class Hypothesis:
         self.prob = prob
 
 
-cdef class FsgModel:
+cdef class _FsgModel:
     cdef fsg_model_t *fsg
 
     def __cinit__(self):
-        # Unsure this is the right way to do this.  The FsgModel
+        # Unsure this is the right way to do this.  The _FsgModel
         # constructor isn't meant to be called from Python.
         self.fsg = NULL
 
     def __dealloc__(self):
         fsg_model_free(self.fsg)
+
 
 cdef class Decoder:
     cdef ps_decoder_t *ps
@@ -302,7 +303,8 @@ cdef class Decoder:
         cdef logmath_t *lmath
         itor = ps_seg_iter(self.ps)
         if itor == NULL:
-            raise RuntimeError, "Failed to create best path word segment iterator"
+            raise RuntimeError(
+                "Failed to create best path word segment iterator")
         lmath = ps_get_logmath(self.ps)
         while itor != NULL:
             seg = Segment()
@@ -316,8 +318,11 @@ cdef class Decoder:
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = FsgModel()
-        fsg.fsg = fsg_model_readfile(filename, lmath, lw)
+        fsg = _FsgModel()
+        # FIXME: not the proper way to encode filenames on Windows, I think
+        fsg.fsg = fsg_model_readfile(filename.encode(), lmath, lw)
+        if fsg.fsg == NULL:
+            raise RuntimeError("Failed to read FSG from %s" % filename)
         return fsg
 
     def read_jsgf(self, filename):
@@ -326,6 +331,26 @@ cdef class Decoder:
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = FsgModel()
-        fsg.fsg = jsgf_read_file(filename, lmath, lw)
+        fsg = _FsgModel()
+        fsg.fsg = jsgf_read_file(filename.encode(), lmath, lw)
+        if fsg.fsg == NULL:
+            raise RuntimeError("Failed to read JSGF from %s" % filename)
         return fsg
+
+    def set_fsg(self, _FsgModel fsg, name=None):
+        if name is None:
+            name = fsg_model_name(fsg.fsg)
+        else:
+            name = name.encode("utf-8")
+        if ps_set_fsg(self.ps, name, fsg.fsg) != 0:
+            raise RuntimeError("Failed to set FSG in decoder")
+
+    def set_jsgf_file(self, filename, name="_default"):
+        if ps_set_jsgf_file(self.ps, name.encode("utf-8"),
+                            filename.encode()) != 0:
+            raise RuntimeError("Failed to set JSGF from %s" % filename)
+
+    def set_jsgf_string(self, jsgf, name="_default"):
+        if ps_set_jsgf_string(self.ps, name.encode("utf-8"),
+                              jsgf.encode()) != 0:
+            raise RuntimeError("Failed to parse JSGF in decoder")

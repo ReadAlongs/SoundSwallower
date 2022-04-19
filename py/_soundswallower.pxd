@@ -83,7 +83,8 @@ cdef extern from "soundswallower/fsg_model.h":
                                 float lw, int n_state)
     fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath,
                                     float lw)
-    int fsg_model_free(fsg_model_t *fsg);
+    const char *fsg_model_name(fsg_model_t *fsg)
+    int fsg_model_free(fsg_model_t *fsg)
 
 
 cdef extern from "soundswallower/jsgf.h":
@@ -117,3 +118,6 @@ cdef extern from "soundswallower/pocketsphinx.h":
                      char *fdictfile, char *format)
     int ps_save_dict(ps_decoder_t *ps, char *dictfile, char *format)
     int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
+    int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
+    int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
+    int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)

@@ -24,6 +24,7 @@ public <move2> = go <direction> <distance> [meter | meters];
 <distance> = one | two | three | four | five | six | seven | eight | nine | ten;
 """
 
+
 class TestDecodeFSG(unittest.TestCase):
     def _run_decode(self, decoder):
         with open(os.path.join(DATADIR, 'goforward.raw'), "rb") as fh:
