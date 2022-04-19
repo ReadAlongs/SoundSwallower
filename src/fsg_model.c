@@ -521,7 +521,7 @@ fsg_model_init(char const *name, logmath_t * lmath, float32 lw,
     fsg = ckd_calloc(1, sizeof(*fsg));
     fsg->refcount = 1;
     fsg->link_alloc = listelem_alloc_init(sizeof(fsg_link_t));
-    fsg->lmath = lmath;
+    fsg->lmath = logmath_retain(lmath);
     fsg->name = name ? ckd_salloc(name) : NULL;
     fsg->n_state = n_state;
     fsg->lw = lw;
@@ -792,6 +792,7 @@ fsg_model_free(fsg_model_t * fsg)
         ckd_free(fsg->vocab[i]);
     for (i = 0; i < fsg->n_state; ++i)
         trans_list_free(fsg, i);
+    ckd_free(fsg->lmath);
     ckd_free(fsg->trans);
     ckd_free(fsg->vocab);
     listelem_alloc_free(fsg->link_alloc);
