@@ -206,7 +206,11 @@ cdef class Segment:
         self.lback = lback
 
 
-class Hypothesis:
+cdef class Hypothesis:
+    cdef public str hypstr
+    cdef public double score
+    cdef public double prob
+
     def __init__(self, hypstr, score, prob):
         self.hypstr = hypstr
         self.score = score
