@@ -43,7 +43,6 @@ class TestDecodeFSG(unittest.TestCase):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         # Read a file that isn't a FSG
         with self.assertRaises(RuntimeError):
@@ -53,11 +52,32 @@ class TestDecodeFSG(unittest.TestCase):
         decoder.set_fsg(fsg)
         self._run_decode(decoder)
 
+    def test_fsg_creation(self):
+        config = Decoder.default_config()
+        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        decoder = Decoder(config)
+        num_transitions = [(4, 5, 0.1, num)
+                           for num
+                           in "one two three four five six seven eight nine ten"
+                           .split()]
+        fsg = decoder.create_fsg("turtle",
+                                 start_state=0, final_state=6,
+                                 transitions=[(0, 1, 1.0, "go"),
+                                              (1, 2, 0.5, "forward"),
+                                              (1, 3, 0.5, "backward"),
+                                              (2, 4, 1.0),
+                                              (3, 4, 1.0),
+                                              (5, 6, 0.1, "meter"),
+                                              (5, 6, 0.1, "meters")]
+                                 + num_transitions)
+        decoder.set_fsg(fsg)
+        self._run_decode(decoder)
+
     def test_jsgf_loading(self):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        #config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         # Read a file that isn't a JSGF
         with self.assertRaises(RuntimeError):
@@ -69,6 +89,6 @@ class TestDecodeFSG(unittest.TestCase):
         decoder.set_jsgf_string(JSGF)
         self._run_decode(decoder)
 
+
 if __name__ == "__main__":
     unittest.main()
-    

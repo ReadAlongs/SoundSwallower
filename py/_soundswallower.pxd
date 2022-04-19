@@ -77,7 +77,8 @@ cdef extern from "soundswallower/cmd_ln.h":
 
 cdef extern from "soundswallower/fsg_model.h":
     ctypedef struct fsg_model_t:
-        pass
+        int start_state
+        int final_state
 
     fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
                                 float lw, int n_state)
@@ -85,6 +86,16 @@ cdef extern from "soundswallower/fsg_model.h":
                                     float lw)
     const char *fsg_model_name(fsg_model_t *fsg)
     int fsg_model_free(fsg_model_t *fsg)
+
+    int fsg_model_word_add(fsg_model_t *fsg, const char *word)
+    int fsg_model_word_id(fsg_model_t *fsg, const char *word)
+    void fsg_model_trans_add(fsg_model_t * fsg,
+                             int source, int dest, int logp, int wid)
+    int fsg_model_null_trans_add(fsg_model_t * fsg, int source, int dest,
+                                 int logp)
+    int fsg_model_tag_trans_add(fsg_model_t * fsg, int source, int dest,
+                                int logp, int wid)
+    void fsg_model_writefile(fsg_model_t *fsg, const char *file)
 
 
 cdef extern from "soundswallower/jsgf.h":

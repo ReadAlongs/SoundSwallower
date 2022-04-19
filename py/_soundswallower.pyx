@@ -9,6 +9,7 @@
 # Author: David Huggins-Daines <dhdaines@gmail.com>
 
 from libc.stdlib cimport malloc, free
+import itertools
 cimport _soundswallower
 
 
@@ -337,6 +338,34 @@ cdef class Decoder:
             raise RuntimeError("Failed to read JSGF from %s" % filename)
         return fsg
 
+    def create_fsg(self, name, start_state, final_state, transitions):
+        cdef logmath_t *lmath
+        cdef float lw
+        cdef float silprob
+        cdef int wid
+
+        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        silprob = cmd_ln_float_r(self.config.cmd_ln, "-silprob")
+        lmath = ps_get_logmath(self.ps)
+        fsg = _FsgModel()
+        n_state = max(itertools.chain(*((t[0], t[1]) for t in transitions))) + 1
+        fsg.fsg = fsg_model_init(name.encode("utf-8"), lmath, lw, n_state)
+        fsg.fsg.start_state = start_state
+        fsg.fsg.final_state = final_state
+        for t in transitions:
+            source, dest, prob = t[0:3]
+            if len(t) > 3:
+                word = t[3]
+                wid = fsg_model_word_add(fsg.fsg, word.encode("utf-8"))
+                if wid == -1:
+                    raise RuntimeError("Failed to add word to FSG: %s" % word)
+                fsg_model_trans_add(fsg.fsg, source, dest,
+                                    logmath_log(lmath, prob), wid)
+            else:
+                fsg_model_null_trans_add(fsg.fsg, source, dest,
+                                         logmath_log(lmath, prob))
+        return fsg
+        
     def set_fsg(self, _FsgModel fsg, name=None):
         if name is None:
             name = fsg_model_name(fsg.fsg)
