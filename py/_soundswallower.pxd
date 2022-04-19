@@ -111,6 +111,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
     arg_t *ps_args()
     ps_decoder_t *ps_init(cmd_ln_t *config)
     int ps_free(ps_decoder_t *ps)
+    int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
     logmath_t *ps_get_logmath(ps_decoder_t *ps)
     int ps_start_utt(ps_decoder_t *ps)
     int ps_process_raw(ps_decoder_t *ps,
@@ -125,9 +126,6 @@ cdef extern from "soundswallower/pocketsphinx.h":
     void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
     int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr, int *out_lback)
     void ps_seg_free(ps_seg_t *seg)
-    int ps_load_dict(ps_decoder_t *ps, char *dictfile,
-                     char *fdictfile, char *format)
-    int ps_save_dict(ps_decoder_t *ps, char *dictfile, char *format)
     int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
     int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
     int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)

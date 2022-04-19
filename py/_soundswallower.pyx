@@ -232,7 +232,7 @@ cdef class _FsgModel:
 
 cdef class Decoder:
     cdef ps_decoder_t *ps
-    cdef Config config
+    cdef public Config config
 
     def __cinit__(self, *args, **kwargs):
         if len(args) == 1 and isinstance(args[0], Config):
@@ -254,6 +254,15 @@ cdef class Decoder:
     @classmethod
     def default_config(_):
         return Config()
+
+    def reinit(self, Config config=None):
+        cdef cmd_ln_t *cconfig
+        if config is None:
+            cconfig = NULL
+        else:
+            cconfig = config.cmd_ln
+        if ps_reinit(self.ps, cconfig) != 0:
+            raise RuntimeError("Failed to reinitialize decoder configuration")
 
     def start_utt(self):
         if ps_start_utt(self.ps) < 0:
@@ -292,12 +301,6 @@ cdef class Decoder:
 
     def add_word(self, word, phones, update=True):
         return ps_add_word(self.ps, word, phones, update)
-
-    def load_dict(self, dictfile, fdictfile=None, format=None):
-        return ps_load_dict(self.ps, dictfile, fdictfile, format)
-
-    def save_dict(self, dictfile, format=None):
-        return ps_save_dict(self.ps, dictfile, format)
 
     def seg(self):
         cdef ps_seg_t *itor
