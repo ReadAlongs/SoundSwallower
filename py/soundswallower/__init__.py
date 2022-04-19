@@ -1,6 +1,5 @@
 import os
 
-from ._soundswallower import LogMath
 from ._soundswallower import Config
 from ._soundswallower import Decoder
 

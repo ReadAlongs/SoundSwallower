@@ -13,8 +13,7 @@ cdef extern from "soundswallower/logmath.h":
         pass
     
     logmath_t *logmath_init(double base, int shift, int use_table)
-    logmath_t *logmath_retain(logmath_t *lmath)
-    bint logmath_free(logmath_t *lmath)
+    int logmath_free(logmath_t *lmath)
 
     int logmath_log(logmath_t *lmath, double p)
     double logmath_exp(logmath_t *lmath, int p)
@@ -41,6 +40,7 @@ cdef extern from "soundswallower/hash_table.h":
     hash_iter_t *hash_table_iter_next(hash_iter_t *h)
     const char *hash_entry_key(hash_entry_t *ent)
 
+
 cdef extern from "soundswallower/cmd_ln.h":
     ctypedef struct cmd_ln_t:
         hash_table_t *ht
@@ -62,7 +62,7 @@ cdef extern from "soundswallower/cmd_ln.h":
         
     cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, arg_t *defn,
                              int argc, char **argv, int strict)
-    void cmd_ln_free_r(cmd_ln_t *cmdln)
+    int cmd_ln_free_r(cmd_ln_t *cmdln)
 
     double cmd_ln_float_r(cmd_ln_t *cmdln, const char *name)
     long cmd_ln_int_r(cmd_ln_t *cmdln, const char *name)
@@ -75,6 +75,17 @@ cdef extern from "soundswallower/cmd_ln.h":
     int cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
 
 
+cdef extern from "soundswallower/fsg_model.h":
+    ctypedef struct fsg_model_t:
+        pass
+
+    fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
+                                float lw, int n_state)
+    fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath,
+                                    float lw);
+    int fsg_model_free(fsg_model_t *fsg);
+
+
 cdef extern from "soundswallower/pocketsphinx.h":
     ctypedef struct ps_decoder_t:
         pass
@@ -82,6 +93,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
         pass
     arg_t *ps_args()
     ps_decoder_t *ps_init(cmd_ln_t *config)
+    int ps_free(ps_decoder_t *ps)
     logmath_t *ps_get_logmath(ps_decoder_t *ps)
     int ps_start_utt(ps_decoder_t *ps)
     int ps_process_raw(ps_decoder_t *ps,
@@ -96,9 +108,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
     void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
     int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr, int *out_lback)
     void ps_seg_free(ps_seg_t *seg)
-    void ps_free(ps_decoder_t *ps)
     int ps_load_dict(ps_decoder_t *ps, char *dictfile,
                      char *fdictfile, char *format)
     int ps_save_dict(ps_decoder_t *ps, char *dictfile, char *format)
     int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
-    
