@@ -75,20 +75,6 @@ file_exists(const char *path)
     return (tmp != NULL);
 }
 
-#ifdef MODELDIR
-static int
-hmmdir_exists(const char *path)
-{
-    FILE *tmp;
-    char *mdef = string_join(path, "/mdef", NULL);
-
-    tmp = fopen(mdef, "rb");
-    if (tmp) fclose(tmp);
-    ckd_free(mdef);
-    return (tmp != NULL);
-}
-#endif
-
 static void
 ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
 	              const char *hmmdir, const char *file)
@@ -144,38 +130,6 @@ ps_expand_model_config(ps_decoder_t *ps)
     if (err_get_logfp() != NULL) {
 	cmd_ln_print_values_r(ps->config, err_get_logfp(), ps_args());
     }
-}
-
-/* Set default acoustic and language models if they are not defined in configuration. */
-void
-ps_default_search_args(cmd_ln_t *config)
-{
-#ifdef MODELDIR
-    const char *hmmdir = cmd_ln_str_r(config, "-hmm");
-    const char *lmfile = cmd_ln_str_r(config, "-lm");
-    const char *dictfile = cmd_ln_str_r(config, "-dict");
-
-    if (hmmdir == NULL && hmmdir_exists(MODELDIR "/en-us")) {
-        hmmdir = MODELDIR "/en-us";
-        cmd_ln_set_str_r(config, "-hmm", hmmdir);
-    }
-
-    if (lmfile == NULL && !cmd_ln_str_r(config, "-fsg")
-        && !cmd_ln_str_r(config, "-jsgf")
-        && !cmd_ln_str_r(config, "-lmctl")
-        && !cmd_ln_str_r(config, "-kws")
-        && !cmd_ln_str_r(config, "-keyphrase")
-        && !cmd_ln_str_r(config, "-alignctl")
-        && file_exists(MODELDIR "/en-us.lm.bin")) {
-        lmfile = MODELDIR "/en-us.lm.bin";
-        cmd_ln_set_str_r(config, "-lm", lmfile);
-    }
-
-    if (dictfile == NULL && file_exists(MODELDIR "/en-us.dict")) {
-        dictfile = MODELDIR "/en-us.dict";
-        cmd_ln_set_str_r(config, "-dict", dictfile);
-    }
-#endif
 }
 
 static void
