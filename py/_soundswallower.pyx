@@ -10,6 +10,8 @@
 
 from libc.stdlib cimport malloc, free
 import itertools
+import logging
+import soundswallower
 cimport _soundswallower
 
 
@@ -218,11 +220,11 @@ cdef class Hypothesis:
         self.prob = prob
 
 
-cdef class _FsgModel:
+cdef class FsgModel:
     cdef fsg_model_t *fsg
 
     def __cinit__(self):
-        # Unsure this is the right way to do this.  The _FsgModel
+        # Unsure this is the right way to do this.  The FsgModel
         # constructor isn't meant to be called from Python.
         self.fsg = NULL
 
@@ -322,7 +324,7 @@ cdef class Decoder:
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = _FsgModel()
+        fsg = FsgModel()
         # FIXME: not the proper way to encode filenames on Windows, I think
         fsg.fsg = fsg_model_readfile(filename.encode(), lmath, lw)
         if fsg.fsg == NULL:
@@ -335,7 +337,7 @@ cdef class Decoder:
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = _FsgModel()
+        fsg = FsgModel()
         fsg.fsg = jsgf_read_file(filename.encode(), lmath, lw)
         if fsg.fsg == NULL:
             raise RuntimeError("Failed to read JSGF from %s" % filename)
@@ -348,7 +350,7 @@ cdef class Decoder:
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = _FsgModel()
+        fsg = FsgModel()
         n_state = max(itertools.chain(*((t[0], t[1]) for t in transitions))) + 1
         fsg.fsg = fsg_model_init(name.encode("utf-8"), lmath, lw, n_state)
         fsg.fsg.start_state = start_state
@@ -390,12 +392,12 @@ cdef class Decoder:
                 raise RuntimeError("No public rules found in JSGF")
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
         lmath = ps_get_logmath(self.ps)
-        fsg = _FsgModel()
+        fsg = FsgModel()
         fsg.fsg = jsgf_build_fsg(jsgf, rule, lmath, lw)
         jsgf_grammar_free(jsgf)
         return fsg
 
-    def set_fsg(self, _FsgModel fsg, name=None):
+    def set_fsg(self, FsgModel fsg, name=None):
         if name is None:
             name = fsg_model_name(fsg.fsg)
         else:
@@ -413,3 +415,52 @@ cdef class Decoder:
             jsgf_string = jsgf_string.encode("utf-8")
         if ps_set_jsgf_string(self.ps, name.encode("utf-8"), jsgf_string) != 0:
             raise RuntimeError("Failed to parse JSGF in decoder")
+
+    def decode_file(self, input_file):
+        # Note that we always decode the entire file at once. It would
+        # have to be really huge for this to cause memory problems, in
+        # which case the decoder would explode anyway. Otherwise, CMN
+        # doesn't work as well, which causes unnecessary recognition
+        # errors.
+        data, sample_rate = soundswallower.get_audio_data(input_file)
+        if sample_rate is None:
+            sample_rate = self.config.get_float("-samprate")
+        # Reinitialize the decoder if necessary
+        if sample_rate != self.config.get_float("-samprate"):
+            logging.info("Setting sample rate to %d", sample_rate)
+            self.config["samprate"] = sample_rate
+            # Calculate the minimum required FFT size for the sample rate
+            frame_points = int(sample_rate * self.config.get_float("-wlen"))
+            fft_size = 1
+            while fft_size < frame_points:
+                fft_size = fft_size << 1
+            if fft_size > self.config.get_int("-nfft"):
+                logging.info("Increasing FFT size to %d for sample rate %d",
+                             fft_size, sample_rate)
+                self.config["nfft"] = fft_size
+            self.reinit()
+        frame_size = 1.0 / self.config.get_int('-frate')
+
+        self.start_utt()
+        self.process_raw(data, no_search=False, full_utt=True)
+        self.end_utt()
+
+        if not self.seg():
+            raise RuntimeError("Decoding produced no segments, "
+                               "please examine dictionary/grammar and input audio.")
+
+        segmentation = []
+        frame_size = 1.0 / self.config.get_int('-frate')
+        for seg in self.seg():
+            start = seg.start_frame * frame_size
+            end = (seg.end_frame + 1) * frame_size
+            if seg.word in ('<sil>', '[NOISE]', '(NULL)'):
+                continue
+            else:
+                segmentation.append((seg.word, start, end))
+
+        if len(segmentation) == 0:
+            raise RuntimeError("Decoding produced only noise or silence segments, "
+                               "please examine dictionary and input audio and text.")
+
+        return self.hyp().hypstr, segmentation

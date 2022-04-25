@@ -4,30 +4,29 @@
 input and outputs JSON (to standard output, or a file) containing a
 list of time alignments for recognized words.
 
-Basic usage, to recognize using a JSGF grammar:
+Basic usage, to recognize using a JSGF grammar::
 
   soundswallower --grammar input.gram audio.wav
 
-To force-align text to audio:
+To force-align text to audio::
 
   soundswallower --align input.txt input.wav
 
-To use a different model:
+To use a different model::
 
   soundswallower --model fr-fr ...
   soundswallower --model /path/to/model/
 
-To use a custom dictionary:
+To use a custom dictionary::
 
   soundswallower --dict /path/to/dictionary.dict
 
 """
 
-import soundswallower as ss
+from soundswallower import Decoder, get_model_path
 import logging
 import argparse
 import json
-import wave
 import sys
 import os
 
@@ -59,13 +58,13 @@ def make_argparse():
 def make_decoder_config(args):
     """Make a decoder configuration from command-line arguments, possibly
     including a JSON configuration file."""
-    config = ss.Decoder.default_config()
+    config = Decoder.default_config()
     if args.config is not None:
         with open(args.config) as fh:
             json_config = json.load(fh)
             for key, value in json_config.items():
                 config[key] = value
-    model_path = ss.get_model_path()
+    model_path = get_model_path()
     if args.model in os.listdir(model_path):
         config["hmm"] = os.path.join(model_path, args.model)
         config["dict"] = os.path.join(model_path,
@@ -94,72 +93,6 @@ def write_config(config, output=None):
     json.dump(dict(config.items()), outfh)
     if output is not None:
         outfh.close()
-
-
-def get_audio_data(input_file):
-    """Try to get single-channel audio data in the most portable way
-    possible."""
-    wavfile = wave.open(input_file)
-    if wavfile.getnchannels() != 1:
-        raise ValueError("Only supporting single-channel WAV")
-    data = wavfile.readframes(wavfile.getnframes())
-    sample_rate = wavfile.getframerate()
-    # FIXME: Do that above in a try block, then switch to pydub if failed
-    return data, sample_rate
-
-
-def decode_file(decoder, config, args, input_file):
-    """Decode one input audio file."""
-    # Note that we always decode the entire file at once. It would
-    # have to be really huge for this to cause memory problems, in
-    # which case the decoder would explode anyway. Otherwise, CMN
-    # doesn't work as well, which causes unnecessary recognition
-    # errors.
-    data, sample_rate = get_audio_data(input_file)
-    # Reinitialize the decoder if necessary
-    if sample_rate != config.get_float("-samprate"):
-        logging.info("Setting sample rate to %d", sample_rate)
-        config["samprate"] = sample_rate
-        # Calculate the minimum required FFT size for the sample rate
-        frame_points = int(sample_rate * config.get_float("-wlen"))
-        fft_size = 1
-        while fft_size < frame_points:
-            fft_size = fft_size << 1
-        if fft_size > config.get_int("-nfft"):
-            logging.info("Increasing FFT size to %d for sample rate %d",
-                         fft_size, sample_rate)
-            config["nfft"] = fft_size
-        decoder.reinit(config)
-    frame_size = 1.0 / config.get_int('-frate')
-
-    decoder.start_utt()
-    decoder.process_raw(data, no_search=False, full_utt=True)
-    decoder.end_utt()
-
-    if not decoder.seg():
-        raise RuntimeError("Decoding produced no segments, "
-                           "please examine dictionary/grammar and input audio.")
-
-    results = []
-    for seg in decoder.seg():
-        start = seg.start_frame * frame_size
-        end = (seg.end_frame + 1) * frame_size
-        if seg.word in ('<sil>', '[NOISE]'):
-            continue
-        else:
-            results.append({
-                "id": seg.word,
-                "start": start,
-                "end": end
-            })
-        logging.info("Segment: %s (%.3f : %.3f)",
-                     seg.word, start, end)
-
-    if len(results) == 0:
-        raise RuntimeError("Decoding produced only noise or silence segments, "
-                           "please examine dictionary and input audio and text.")
-
-    return results
 
 
 def set_alignment_fsg(decoder, words):
@@ -193,13 +126,15 @@ def main(argv=None):
     else:
         # Nothing to do!
         return
-    decoder = ss.Decoder(config)
+    decoder = Decoder(config)
     if words is not None:
         set_alignment_fsg(decoder, words)
     results = []
     for input_file in args.inputs:
-        file_align = decode_file(decoder, config, args, input_file)
-        results.append(file_align)
+        _, file_align = decoder.decode_file(input_file)
+        results.append([{"id": word,
+                         "start": start,
+                         "end": end} for word, start, end in file_align])
     if args.output is not None:
         with open(args.output, 'w') as outfh:
             json.dump(results, outfh)

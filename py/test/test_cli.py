@@ -10,7 +10,9 @@ DATADIR = os.path.join(os.path.dirname(__file__),
 
 
 class TestCLI(unittest.TestCase):
-    pass
+    cli.main(("--grammar", os.path.join(DATADIR, "goforward.gram"),
+              os.path.join(DATADIR, "goforward.wav"),
+              os.path.join(DATADIR, "goforward.raw")))
 
 
 if __name__ == "__main__":
