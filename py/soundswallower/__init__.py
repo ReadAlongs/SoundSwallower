@@ -51,8 +51,7 @@ def get_audio_data(input_file):
         input_file: Path to an audio file.
 
     Returns:
-        (Raw data as bytes, sample_rate) where `sample_rate` is None
-        for a raw file.
+        (bytes, int): Raw audio data, sampling rate or `None` for a raw file.
     """
     try:
         with wave.open(input_file) as wavfile:

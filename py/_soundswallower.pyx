@@ -378,7 +378,7 @@ cdef class Decoder:
         """Get current recognition hypothesis.
         
         Returns:
-            Current recognition output as a `Hypothesis` object.
+            Hypothesis: Current recognition output.
 
         """
         cdef const char *hyp
@@ -398,7 +398,7 @@ cdef class Decoder:
         """Posterior probability of current recogntion hypothesis.
 
         Returns:
-            (float) Posterior probability of current hypothesis.  FIXME:
+            float: Posterior probability of current hypothesis.  FIXME:
             At the moment this is almost certainly 1.0, as confidence
             estimation is not well supported.
 
@@ -428,7 +428,7 @@ cdef class Decoder:
         """Get current word segmentation.
         
         Returns:
-            Generator over word segmentation as `Segmentation` objects.
+            Iterable[Segmentation]: Generator over word segmentations
 
         """
         cdef ps_seg_t *itor
@@ -451,7 +451,7 @@ cdef class Decoder:
             filename(str): Path to FSG file.
 
         Returns:
-            (FsgModel): Newly loaded finite-state grammar.
+            FsgModel: Newly loaded finite-state grammar.
 
         """
         cdef logmath_t *lmath
@@ -476,7 +476,7 @@ cdef class Decoder:
             filename(str): Path to JSGF file.
 
         Returns:
-            (FsgModeL): Newly loaded finite-state grammar.
+            FsgModel: Newly loaded finite-state grammar.
 
         """
         cdef logmath_t *lmath
@@ -519,7 +519,7 @@ cdef class Decoder:
                                followed.
 
         Returns:
-            (FsgModel) Newly created finite-state grammar.
+            FsgModel: Newly created finite-state grammar.
 
         """
         cdef logmath_t *lmath
@@ -559,7 +559,7 @@ cdef class Decoder:
                                 bytes.
 
         Returns:
-            (FsgModel): Newly loaded finite-state grammar.
+            FsgModel: Newly loaded finite-state grammar.
 
         """
         cdef jsgf_t *jsgf
@@ -641,8 +641,8 @@ cdef class Decoder:
             input_file: Path to an audio file.
 
         Returns:
-            (recognized text, segmentation) where `segmentation` is
-            a list of (word, start_time, end_time) tuples.
+            (str, iterable[(str, float, float)]): Recognized text, Word
+                                                  segmentation.
 
         """
         data, sample_rate = soundswallower.get_audio_data(input_file)
