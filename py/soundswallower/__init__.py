@@ -3,9 +3,7 @@
 SoundSwallower is a small and not particularly powerful speech
 recognition engine for constrained grammars.  It can also be used to
 align text to audio.  Most of the functionality is contained in the
-`Decoder` class.
-
-Example::
+`Decoder` class.  Basic usage::
 
   from soundswallower import Decoder, get_model_path
   decoder = soundswallower.Decoder(hmm=get_model_path("en-us"),
