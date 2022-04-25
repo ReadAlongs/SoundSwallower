@@ -344,11 +344,9 @@ cdef class Decoder:
     def create_fsg(self, name, start_state, final_state, transitions):
         cdef logmath_t *lmath
         cdef float lw
-        cdef float silprob
         cdef int wid
 
         lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
-        silprob = cmd_ln_float_r(self.config.cmd_ln, "-silprob")
         lmath = ps_get_logmath(self.ps)
         fsg = _FsgModel()
         n_state = max(itertools.chain(*((t[0], t[1]) for t in transitions))) + 1
@@ -369,6 +367,34 @@ cdef class Decoder:
                                          logmath_log(lmath, prob))
         return fsg
         
+    def parse_jsgf(self, jsgf_string, toprule=None):
+        cdef jsgf_t *jsgf
+        cdef jsgf_rule_t *rule
+        cdef logmath_t *lmath
+        cdef float lw
+
+        if not isinstance(jsgf_string, bytes):
+            jsgf_string = jsgf_string.encode("utf-8")
+        jsgf = jsgf_parse_string(jsgf_string, NULL)
+        if jsgf == NULL:
+            raise RuntimeError("Failed to parse JSGF")
+        if toprule is not None:
+            rule = jsgf_get_rule(jsgf, toprule.encode('utf-8'))
+            if rule == NULL:
+                jsgf_grammar_free(jsgf)
+                raise RuntimeError("Failed to find top rule %s" % toprule)
+        else:
+            rule = jsgf_get_public_rule(jsgf)
+            if rule == NULL:
+                jsgf_grammar_free(jsgf)
+                raise RuntimeError("No public rules found in JSGF")
+        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lmath = ps_get_logmath(self.ps)
+        fsg = _FsgModel()
+        fsg.fsg = jsgf_build_fsg(jsgf, rule, lmath, lw)
+        jsgf_grammar_free(jsgf)
+        return fsg
+
     def set_fsg(self, _FsgModel fsg, name=None):
         if name is None:
             name = fsg_model_name(fsg.fsg)
@@ -382,7 +408,8 @@ cdef class Decoder:
                             filename.encode()) != 0:
             raise RuntimeError("Failed to set JSGF from %s" % filename)
 
-    def set_jsgf_string(self, jsgf, name="_default"):
-        if ps_set_jsgf_string(self.ps, name.encode("utf-8"),
-                              jsgf.encode()) != 0:
+    def set_jsgf_string(self, jsgf_string, name="_default"):
+        if not isinstance(jsgf_string, bytes):
+            jsgf_string = jsgf_string.encode("utf-8")
+        if ps_set_jsgf_string(self.ps, name.encode("utf-8"), jsgf_string) != 0:
             raise RuntimeError("Failed to parse JSGF in decoder")

@@ -99,8 +99,19 @@ cdef extern from "soundswallower/fsg_model.h":
 
 
 cdef extern from "soundswallower/jsgf.h":
+    ctypedef struct jsgf_t:
+        pass
+    ctypedef struct jsgf_rule_t:
+        pass
     fsg_model_t *jsgf_read_file(const char *name, logmath_t *lmath,
                                 float lw)
+    jsgf_t *jsgf_parse_string(const char *string, jsgf_t *parent)
+    const char *jsgf_grammar_name(jsgf_t *jsgf)
+    void jsgf_grammar_free(jsgf_t *jsgf)
+    jsgf_rule_t *jsgf_get_rule(jsgf_t *grammar, const char *name)
+    jsgf_rule_t *jsgf_get_public_rule(jsgf_t *grammar)
+    fsg_model_t *jsgf_build_fsg(jsgf_t *grammar, jsgf_rule_t *rule,
+                                logmath_t *lmath, float lw)
 
 
 cdef extern from "soundswallower/pocketsphinx.h":

@@ -7,7 +7,7 @@ from soundswallower import Decoder, get_model_path
 
 DATADIR = os.path.join(os.path.dirname(__file__),
                        "..", "..", "tests", "data")
-JSGF = """#JSGF V1.0;
+JSGF = b"""#JSGF V1.0;
 
 /**
  * JSGF Grammar for Turtle example
@@ -90,6 +90,10 @@ class TestDecodeFSG(unittest.TestCase):
         self._run_decode(decoder)
         # Try loading it as a string
         decoder.set_jsgf_string(JSGF)
+        self._run_decode(decoder)
+        # Try other way of loading it as a string
+        fsg = decoder.parse_jsgf(JSGF)
+        decoder.set_fsg(fsg)
         self._run_decode(decoder)
 
 
