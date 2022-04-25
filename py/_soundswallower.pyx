@@ -317,6 +317,13 @@ cdef class Decoder:
 
     @classmethod
     def default_config(_):
+        """Return default configuraiton.
+
+        Actually this does the same thing as just creating a `Config`.
+        
+        Returns:
+            Config: Newly created default configuration.
+        """
         return Config()
 
     def reinit(self, Config config=None):
