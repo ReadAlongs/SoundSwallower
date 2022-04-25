@@ -25,7 +25,7 @@ class TestDecoder(unittest.TestCase):
 
     def test_from_scratch(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          logfn="/dev/null")
+                          logfn="/dev/null", beam=0., wbeam=0., pbeam=0.)
         words = [("go", "G OW"),
                  ("forward", "F AO R W ER D"),
                  ("ten", "T EH N"),
