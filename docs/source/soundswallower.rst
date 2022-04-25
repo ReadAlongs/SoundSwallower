@@ -14,6 +14,7 @@ Module contents
 
 .. autoclass:: soundswallower.Config
    :members:
+   :no-undoc-members:
 
 .. autoclass:: soundswallower.FsgModel
    :members:

@@ -435,7 +435,7 @@ cdef class Decoder:
         """Get current word segmentation.
         
         Returns:
-            Iterable[Segmentation]: Generator over word segmentations
+            Iterable[Segmentation]: Generator over word segmentations.
 
         """
         cdef ps_seg_t *itor
@@ -648,7 +648,7 @@ cdef class Decoder:
             input_file: Path to an audio file.
 
         Returns:
-            (str, iterable[(str, float, float)]): Recognized text, Word
+            (str, Iterable[(str, float, float)]): Recognized text, Word
                                                   segmentation.
 
         """
