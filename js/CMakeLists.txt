@@ -1,12 +1,22 @@
-add_executable(ssjs psRecognizer.cpp)
+add_executable(ssjs soundswallower.c)
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(ssjs soundswallower)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
+# We have to export a few functions again here even though we already
+# exported them in the code, because WASM will remove them otherwise
+# (long-standing bug in Emscripten:
+# https://github.com/emscripten-core/emscripten/issues/6233)
 target_link_options(ssjs PRIVATE
-  -lembind -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
+  -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
   -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432
+  -sEXPORTED_FUNCTIONS=_ps_init,_ps_start_utt,_ps_end_utt
   $<$<CONFIG:DEBUG>:-gsource-map --source-map-base=/js/>)
+# See
+# https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
+# ...sure would be nice if this were FUCKING DOCUMENTED SOMEWHERE
+em_link_pre_js(ssjs pre_soundswallower.js)
+em_link_post_js(ssjs post_soundswallower.js)
 target_include_directories(
   ssjs PRIVATE ${PYTHON_INCLUDE_DIR}
   ssjs PRIVATE ${PROJECT_SOURCE_DIR}/src
@@ -33,4 +43,3 @@ add_custom_command(OUTPUT model
   ${CMAKE_SOURCE_DIR}/model
   ${CMAKE_BINARY_DIR}/model)
 add_custom_target(copy-webapp ALL DEPENDS ${WEBAPP_JS} ${WEBAPP_FILES} model)
-
