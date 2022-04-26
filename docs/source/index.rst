@@ -6,7 +6,8 @@ SoundSwallower Documentation
    :caption: Contents:
 
    readme
-   modules
+   readme.js
+   soundswallower
 
 Indices and tables
 ==================

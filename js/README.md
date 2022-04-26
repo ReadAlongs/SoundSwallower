@@ -11,22 +11,26 @@ factory function, which, when called, returns a promise that is
 resolved after the WASM is loaded and the compiled code is ready to be
 invoked, e.g.:
 
-    const ssjs = await require("js/soundswallower.js");
-	let config = new ssjs.Config();
-	let recognizer = new ssjs.Recognizer(config);
-	// etc, etc...
+```javascript
+const ssjs = await require("js/soundswallower.js");
+let config = new ssjs.Config();
+let recognizer = new ssjs.Recognizer(config);
+// etc, etc...
+```
 
 For web applications, this function will be available as `Module` in
 the global namespace after loading `soundswallower.js`, from a Web
 Worker, for instance, and you can also call this asynchronously to get
 the instance, for example:
 
-	(async () => {
-		importScripts("js/soundswallower.js");
-		const ssjs = await Module();
-		let config = new ssjs.Config();
-		// etc, etc...
-	})();
+```javascript
+(async () => {
+	importScripts("js/soundswallower.js");
+	const ssjs = await Module();
+	let config = new ssjs.Config();
+	// etc, etc...
+})();
+```
 
 There may be a better way to do this, but I am not yet knowledgeable
 enough in JavaScript to say what it is.
