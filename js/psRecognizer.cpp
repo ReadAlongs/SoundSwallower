@@ -147,9 +147,6 @@ namespace pocketsphinxjs {
     for (int i=0 ; i< config.size() ; ++i)
       parameters[config[i].key] = config[i].value;
     
-    if (parameters.find("-hmm") == parameters.end())
-      parameters["-hmm"] = default_acoustic_model;
-
     int argc = 2 * parameters.size();
     char ** argv = new char*[argc];
     int index = 0;

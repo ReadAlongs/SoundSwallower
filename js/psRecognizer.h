@@ -84,9 +84,6 @@ namespace pocketsphinxjs {
     fsg_model_t * current_grammar;
     ps_decoder_t * decoder;
     logmath_t * logmath;
-    std::string default_acoustic_model;
-    std::string default_language_model;
-    std::string default_dictionary;
  
   };
   
