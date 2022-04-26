@@ -18,11 +18,6 @@
 namespace pocketsphinxjs {
   typedef std::map<std::string, std::string> StringsMapType;
   typedef std::map<std::string, std::string>::iterator StringsMapIterator;
-  typedef std::vector<std::string> StringsListType;
-  typedef std::set<std::string> StringsSetType;
-  typedef std::vector<int> Integers;
-  typedef std::map<std::string, std::string> Dictionary;
-  
   enum ReturnType {
     SUCCESS,
     BAD_STATE,
@@ -84,16 +79,12 @@ namespace pocketsphinxjs {
     ReturnType init(const Config&);
     bool isValidParameter(const std::string&, const std::string&);
     void cleanup();
-    bool is_fsg;
     bool is_recording;
     std::string current_hyp;
     fsg_model_t * current_grammar;
     ps_decoder_t * decoder;
     logmath_t * logmath;
-    StringsSetType acoustic_models;
     std::string default_acoustic_model;
-    StringsSetType language_models;
-    StringsSetType dictionaries;
     std::string default_language_model;
     std::string default_dictionary;
  
@@ -169,7 +160,6 @@ EMSCRIPTEN_BINDINGS(recognizer) {
   emscripten::register_vector<ps::Word>("VectorWords");
   emscripten::register_vector<ps::ConfigItem>("Config");
   emscripten::register_vector<ps::SegItem>("Segmentation");
-  emscripten::register_vector<int>("Integers");
 
   emscripten::value_object<ps::Grammar>("Grammar")
     .field("start", &ps::Grammar::start)

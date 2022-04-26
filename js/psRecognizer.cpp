@@ -5,12 +5,12 @@
 #include "psRecognizer.h"
 
 namespace pocketsphinxjs {
-  Recognizer::Recognizer(): is_fsg(true), is_recording(false), current_hyp("") {
+  Recognizer::Recognizer(): is_recording(false), current_hyp("") {
     Config c;
     if (init(c) != SUCCESS) cleanup();
   }
 
-  Recognizer::Recognizer(const Config& config) : is_fsg(true), is_recording(false), current_hyp("") {
+  Recognizer::Recognizer(const Config& config) : is_recording(false), current_hyp("") {
     if (init(config) != SUCCESS) cleanup();
   }
 
@@ -51,7 +51,9 @@ namespace pocketsphinxjs {
 			    grammar.transitions.at(i).logp, word_id);
       }
       else
-	fsg_model_null_trans_add(current_grammar, grammar.transitions.at(i).from, grammar.transitions.at(i).to, grammar.transitions.at(i).logp);
+	fsg_model_null_trans_add(current_grammar, grammar.transitions.at(i).from,
+				 grammar.transitions.at(i).to,
+				 grammar.transitions.at(i).logp);
     }
     fsg_model_add_silence(current_grammar, "<sil>", -1, 1.0);
 
