@@ -287,7 +287,7 @@ cdef class Decoder:
         hmm(str): Path to directory containing acoustic model files.
         dict(str): Path to pronunciation dictionary.
         jsgf(str): Path to JSGF grammar file.
-        fsg(str): Path to FSG grammar file (only one of `jsgf` or `fsg` should
+        fsg(str): Path to FSG grammar file (only one of ``jsgf`` or ``fsg`` should
                   be specified).
         toprule(str): Name of top-level rule in JSGF file to use as entry point.
         samprate(float): Sampling rate for raw audio data.
@@ -636,7 +636,7 @@ cdef class Decoder:
         Currently supports single-channel WAV and raw audio files.  If
         the sampling rate for a WAV file differs from the one set in
         the decoder's configuration, the configuration will be updated
-        to match it (`-samprate` and possibly `-nfft` options).
+        to match it (``-samprate`` and possibly ``-nfft`` options).
 
         Note that we always decode the entire file at once. It would
         have to be really huge for this to cause memory problems, in

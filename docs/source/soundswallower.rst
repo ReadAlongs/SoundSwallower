@@ -1,16 +1,19 @@
 soundswallower package
 ======================
 
-Module contents
----------------
-
 .. automodule:: soundswallower
    :members:
    :undoc-members:
 
+Decoder class
+-------------
+
 .. autoclass:: soundswallower.Decoder
    :members:
    :undoc-members:
+
+Other classes
+-------------
 
 .. autoclass:: soundswallower.Config
    :members:
