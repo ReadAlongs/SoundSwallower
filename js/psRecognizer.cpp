@@ -143,27 +143,12 @@ namespace pocketsphinxjs {
   }
 
   ReturnType Recognizer::init(const Config& config) {
-    const arg_t cont_args_def[] = {
-      POCKETSPHINX_OPTIONS,
-      { "-time",
-	ARG_BOOLEAN,
-	"no",
-	"Print word times in file transcription." },
-      CMDLN_EMPTY_OPTION
-    };
     StringsMapType parameters;
     for (int i=0 ; i< config.size() ; ++i)
       parameters[config[i].key] = config[i].value;
     
     if (parameters.find("-hmm") == parameters.end())
       parameters["-hmm"] = default_acoustic_model;
-    if (parameters.find("-bestpath") == parameters.end())
-      parameters["-bestpath"] = "yes";
-    // No longer used, but we will set them just in case
-    if (parameters.find("-remove_noise") == parameters.end())
-      parameters["-remove_noise"] = "no";
-    if (parameters.find("-remove_silence") == parameters.end())
-      parameters["-remove_silence"] = "no";
 
     int argc = 2 * parameters.size();
     char ** argv = new char*[argc];
@@ -173,7 +158,7 @@ namespace pocketsphinxjs {
       argv[index++] = (char*) i->second.c_str();
     }
 
-    cmd_ln_t * cmd_line = cmd_ln_parse_r(NULL, cont_args_def, argc, argv, FALSE);
+    cmd_ln_t * cmd_line = cmd_ln_parse_r(NULL, ps_args(), argc, argv, FALSE);
     if (cmd_line == NULL) {
       delete [] argv;
       return RUNTIME_ERROR;
