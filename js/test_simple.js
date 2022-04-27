@@ -29,7 +29,6 @@ Module = {
 var ssjs; // Loaded below
 const fs = require('fs/promises');
 
-
 // Wrap in async function so we can wait for WASM load
 (async () => {
     ssjs = await require('./js/soundswallower.js')(Module);
@@ -38,9 +37,26 @@ const fs = require('fs/promises');
     ssjs.cmd_ln_set(config, "-dict", "en-us.dict");
     ssjs.cmd_ln_set(config, "-fsg", "goforward.fsg");
     let decoder = ssjs.ps_init(config);
-    ssjs.ps_start_utt(decoder);
     let pcm = await fs.readFile("../tests/data/goforward.raw");
-    ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, 0, 1);
+    ssjs.ps_start_utt(decoder);
+    ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
     ssjs.ps_end_utt(decoder);
     console.log(ssjs.ps_get_hyp(decoder, 0));
+    console.log(ssjs.ps_get_hypseg(decoder)); 
+    ssjs.ps_add_word(decoder, "_go", "G OW", 0);
+    ssjs.ps_add_word(decoder, "_forward", "F AO R W ER D", 0);
+    ssjs.ps_add_word(decoder, "_ten", "T EH N", 0);
+    ssjs.ps_add_word(decoder, "_meters", "M IY T ER Z", 1);
+    fsg = ssjs.ps_create_fsg(decoder, "goforward", 0, 4, [
+	{from: 0, to: 1, prob: 1.0, word: "_go"},
+	{from: 1, to: 2, prob: 1.0, word: "_forward"},
+	{from: 2, to: 3, prob: 1.0, word: "_ten"},
+	{from: 3, to: 4, prob: 1.0, word: "_meters"}
+    ]);
+    ssjs.ps_set_fsg(decoder, fsg);
+    ssjs.ps_start_utt(decoder);
+    ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
+    ssjs.ps_end_utt(decoder);
+    console.log(ssjs.ps_get_hyp(decoder, 0));
+    console.log(ssjs.ps_get_hypseg(decoder));
 })();
