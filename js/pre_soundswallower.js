@@ -97,13 +97,17 @@ Module.ps_create_fsg = function(decoder, name, start_state, final_state, transit
 		    [name, logmath, lw, n_state]);
     this._fsg_set_states(fsg, start_state, final_state);
     for (let t of transitions) {
-	let logprob = this._logmath_log(logmath, t.prob);
+	let logprob = 0;
+	if ('prob' in t) {
+	    logprob = this._logmath_log(logmath, t.prob);
+	}
 	if ('word' in t) {
 	    let wid = ccall('fsg_model_word_add', 'number',
 			    ['number', 'string'],
 			    [fsg, t.word]);
 	    if (wid == -1) {
-		throw new Error("Failed to add word "+t.word+" to FSG");
+		this._fsg_model_free(fsg);
+		return 0;
 	    }
 	    this._fsg_model_trans_add(fsg, t.from, t.to, logprob, wid);
 	}
