@@ -108,9 +108,7 @@ Module.ps_create_fsg = function(decoder, name, start_state, final_state, transit
 	    this._fsg_model_trans_add(fsg, t.from, t.to, logprob, wid);
 	}
 	else {
-	    if (this._fsg_model_null_trans_add(fsg, t.from, t.to, logprob) != 0) {
-		throw new Error("Failed to add null transition to FSG");
-	    }
+	    this._fsg_model_null_trans_add(fsg, t.from, t.to, logprob);
 	}
     }
     return fsg;
