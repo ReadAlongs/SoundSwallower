@@ -50,6 +50,8 @@ cdef class Config:
     iterated over in the same fashion.  However, attempting to access
     a parameter that does not already exist will raise a `KeyError`.
 
+    See :doc:`config_params` for a description of existing parameters.
+
  """
     cdef cmd_ln_t *cmd_ln
     
@@ -234,6 +236,8 @@ cdef class Config:
         cdef int base_type
         while arg != NULL and arg.name != NULL:
             name = arg.name.decode('utf-8')
+            if name[0] == '-':
+                name = name[1:]
             if arg.deflt == NULL:
                 default = None
             else:
@@ -320,10 +324,13 @@ cdef class FsgModel:
 cdef class Decoder:
     """Main class for speech recognition and alignment in SoundSwallower.
 
+    See :doc:`config_params` for a description of keyword arguments.
+
     Args:
         config(Config): Optional configuration object.  You can also
                         use keyword arguments, the most important of
-                        which are noted below.
+                        which are noted below.  See :doc:`config_params`
+                        for more information.
         hmm(str): Path to directory containing acoustic model files.
         dict(str): Path to pronunciation dictionary.
         jsgf(str): Path to JSGF grammar file.

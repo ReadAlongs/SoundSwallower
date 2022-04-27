@@ -143,7 +143,7 @@ class TestConfigDefn(unittest.TestCase):
     def test_config_describe(self):
         config = Config()
         for defn in config.describe():
-            if defn.name in ('-hmm', '-dict'):
+            if defn.name in ('hmm', 'dict'):
                 self.assertTrue(defn.required)
 
 

@@ -8,6 +8,7 @@ SoundSwallower Documentation
    readme
    readme.js
    soundswallower
+   config_params
 
 Indices and tables
 ==================
