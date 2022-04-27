@@ -22,12 +22,12 @@ Compiling SoundSwallower
 Currently SoundSwallower can be built in several different ways. To
 build the C shared library, run CMake in the standard way:
 
-	mkdir build
-	cd build
-	cmake ..
-	make
-	make test
-	make install
+    mkdir build
+    cd build
+    cmake ..
+    make
+    make test
+    make install
 
 Note that this isn't terribly useful as there is no command-line
 frontend.  You probably want to target JavaScript or Python.
@@ -41,23 +41,23 @@ It is highly recommended to do this in a `virtualenv`.  You can simply
 install it from PyPI:
 
     pip install soundswallower
-	
+
 Or compile from source:
 
-	pip install .
+    pip install .
 
 For development, you can install it in-place, but please make sure to
 remove any existing global installation:
 
     pip uninstall soundswallower
-	python setup.py develop
-	
+    python setup.py develop
+
 The command-line supports JSGF grammars and word-level force
 alignment for one or more input files, for example:
 
-	soundswallower --align tests/data/goforward.txt tests/data/goforward.wav
-	soundswallower --align-text "go forward ten meters" tests/data/goforward.wav
-	soundswallower --grammar tests/data/goforward.gram tests/data/goforward.wav
+    soundswallower --align tests/data/goforward.txt tests/data/goforward.wav
+    soundswallower --align-text "go forward ten meters" tests/data/goforward.wav
+    soundswallower --grammar tests/data/goforward.gram tests/data/goforward.wav
 
 Note that multiple input files are not particularly useful for
 `--align` or `--align-text` as they will simply (try to) align the
@@ -70,11 +70,11 @@ Compiling to JavaScript/WebAssembly
 To build the JavaScript library, use CMake with
 [Emscripten](https://emscripten.org/):
 
-	mkdir jsbuild
-	cd jsbuild
-	emcmake cmake ..
-	emmake make
-	
+    mkdir jsbuild
+    cd jsbuild
+    emcmake cmake ..
+    emmake make
+
 This will create `js/soundswallower.js` and `js/soundswallower.wasm`
 in the `jsbuild` directory, which you can then include in your
 projects.  It will also set up this directory to run a trivial demo
@@ -90,7 +90,7 @@ Creating binary distributions for Python
 To build the Python extension, I suggest using pip, as it will install
 the build dependencies:
 
-	pip wheel .
+    pip wheel .
 
 In all cases the resulting binary is self-contained and should not
 need any other components aside from the system libraries.  To create
@@ -121,5 +121,5 @@ If you don't have Conda, then what you will need to do is:
 
         %USERPROFILE%\AppData\Local\Programs\Python\Python310\python -m venv py310
         py310\scripts\activate
- 
+
 - now you can build wheels with pip, using the same method mentioned above.
