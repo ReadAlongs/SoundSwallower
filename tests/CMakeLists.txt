@@ -96,6 +96,7 @@ add_test(acmod test_acmod)
 add_test(acmod_grow test_acmod_grow)
 add_test(dict2pid test_dict2pid)
 add_test(dict test_dict)
+add_test(fe test_fe)
 add_test(feat_fe test_feat_fe)
 add_test(feat_live test_feat_live)
 # test_feat reqiures output FIXME
