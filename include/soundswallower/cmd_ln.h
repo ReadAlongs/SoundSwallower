@@ -166,6 +166,7 @@ typedef struct cmd_ln_s {
     hash_table_t *ht;
     char **f_argv;
     uint32 f_argc;
+    arg_t const *defn;
 } cmd_ln_t;
 
 /**

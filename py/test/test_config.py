@@ -139,5 +139,13 @@ class TestConfigIter(unittest.TestCase):
             self.assertEqual(config[key], value)
 
 
+class TestConfigDefn(unittest.TestCase):
+    def test_config_describe(self):
+        config = Config()
+        for defn in config.describe():
+            if defn.name in ('-hmm', '-dict'):
+                self.assertTrue(defn.required)
+
+
 if __name__ == '__main__':
     unittest.main()
