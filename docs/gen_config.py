@@ -39,7 +39,6 @@ for arg in config.describe():
     else:
         other.append(arg)
 required.sort(key=lambda a: a.name)
-other.sort(key=lambda a: a.name)
 kwargs = required + other
 
 print(PREAMBLE)
