@@ -48,7 +48,7 @@ cdef class Config:
 
     In general, a `Config` mostly acts like a dictionary, and can be
     iterated over in the same fashion.  However, attempting to access
-    a key that does not already exist will raise a `KeyError`.
+    a parameter that does not already exist will raise a `KeyError`.
 
  """
     cdef cmd_ln_t *cmd_ln

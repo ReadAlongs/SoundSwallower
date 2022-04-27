@@ -18,7 +18,10 @@ Roadmap:
   - Write API documentation
 - 0.3: fix various APIs and remove code
   - Logging... argh...
+  - Lattices, do they work?
   - FSG construction API is quite bad (no error handling for invalid
 	inputs, forgetting start/end state)
   - FSG and search names need to GTFO
+  - Various utility code that should not be in the core library,
+    e.g. reading/writing different file formats
 - 0.4: phone-level alignment
