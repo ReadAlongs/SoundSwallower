@@ -9,12 +9,16 @@ parameters, may change in a subsequent release of SoundSwallower.
 .. method:: Config(*args, **kwargs)
 
    Create a SoundSwallower configuration.  This constructor can be
-   called with a single argument, which is a list of command-line
-   arguments, in which case the parameter names should be prefixed
-   with a '-'.  Otherwise, pass the keyword arguments described below.
+   called with a list of arguments corresponding to a command-line, in
+   which case the parameter names should be prefixed with a '-'.
+   Otherwise, pass the keyword arguments described below.  For
+   example, the following invocations are equivalent::
 
-   The same argument can also be passed directly to the constructor
-   for `soundswallower.Decoder`.
+        config = Config("-hmm", "path/to/things", "-dict", "my.dict")
+        config = Config(hmm="path/to/things", dict="my.dict")
+
+   The same keyword arguments can also be passed directly to the
+   constructor for `soundswallower.Decoder`.
 
    :keyword str dict: Main pronunciation dictionary (lexicon) input file
    :keyword str hmm: Directory containing acoustic model files.

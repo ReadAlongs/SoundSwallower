@@ -24,9 +24,7 @@ Other classes
    :undoc-members:
 
 .. autoclass:: soundswallower.Segment
-   :members:
-   :undoc-members:
+   :no-members:
 
 .. autoclass:: soundswallower.Hypothesis
-   :members:
-   :undoc-members:
+   :no-members:
