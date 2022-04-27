@@ -349,7 +349,7 @@ cdef class Decoder:
                   be specified).
         toprule(str): Name of top-level rule in JSGF file to use as entry point.
         samprate(float): Sampling rate for raw audio data.
-        logfn(str): File to write log messages to (set to `os.path.devnull` to
+        logfn(str): File to write log messages to (set to `os.devnull` to
                     silence these messages)
 
     """
