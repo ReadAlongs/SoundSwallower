@@ -715,7 +715,7 @@ ps_process_cep(ps_decoder_t *ps,
 EXPORT int
 ps_end_utt(ps_decoder_t *ps)
 {
-    int rv;
+    int rv = 0;
 
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -732,14 +732,13 @@ ps_end_utt(ps_decoder_t *ps)
     if ((rv = ps_search_forward(ps)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
-    }
+    } 
     /* Finish main search. */
     if ((rv = ps_search_finish(ps->search)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
     }
     ptmr_stop(&ps->perf);
-
     /* Log a backtrace if requested. */
     if (cmd_ln_boolean_r(ps->config, "-backtrace")) {
         const char* hyp;

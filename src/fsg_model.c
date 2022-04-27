@@ -38,6 +38,7 @@
 #include <assert.h>
 
 /* SphinxBase headers. */
+#include <soundswallower/export.h>
 #include <soundswallower/err.h>
 #include <soundswallower/pio.h>
 #include <soundswallower/ckd_alloc.h>
@@ -110,7 +111,8 @@ nextline_str2words(FILE * fp, int32 * lineno,
     }
 }
 
-void
+/* FIXME: if from or to is greater than n_state, mysterious crash! */
+EXPORT void
 fsg_model_trans_add(fsg_model_t * fsg,
                     int32 from, int32 to, int32 logp, int32 wid)
 {
@@ -145,7 +147,7 @@ fsg_model_trans_add(fsg_model_t * fsg,
                             sizeof(link->to_state), gl);
 }
 
-int32
+EXPORT int32
 fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
                         int32 logp, int32 wid)
 {
@@ -191,7 +193,7 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
     return 1;
 }
 
-int32
+EXPORT int32
 fsg_model_null_trans_add(fsg_model_t * fsg, int32 from, int32 to,
                          int32 logp)
 {
@@ -367,7 +369,7 @@ fsg_arciter_free(fsg_arciter_t * itor)
     ckd_free(itor);
 }
 
-int
+EXPORT int
 fsg_model_word_id(fsg_model_t * fsg, char const *word)
 {
     int wid;
@@ -383,7 +385,7 @@ fsg_model_word_id(fsg_model_t * fsg, char const *word)
     return wid;
 }
 
-int
+EXPORT int
 fsg_model_word_add(fsg_model_t * fsg, char const *word)
 {
     int wid, old_size;
@@ -511,7 +513,7 @@ fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
 }
 
 
-fsg_model_t *
+EXPORT fsg_model_t *
 fsg_model_init(char const *name, logmath_t * lmath, float32 lw,
                int32 n_state)
 {
@@ -751,7 +753,7 @@ fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
     return fsg;
 }
 
-fsg_model_t *
+EXPORT fsg_model_t *
 fsg_model_retain(fsg_model_t * fsg)
 {
     ++fsg->refcount;
@@ -777,7 +779,7 @@ trans_list_free(fsg_model_t * fsg, int32 i)
     hash_table_free(fsg->trans[i].null_trans);
 }
 
-int
+EXPORT int
 fsg_model_free(fsg_model_t * fsg)
 {
     int i;
