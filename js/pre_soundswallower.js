@@ -12,49 +12,40 @@ Module.cmd_ln_init = function() {
 };
 Module.cmd_ln_type = cwrap('cmd_ln_type_r', 'number',
 			   ['number', 'string']);
-Module.cmd_ln_set_str = cwrap('cmd_ln_set_str_r', null,
-			      ['number', 'string', 'string']);
-Module.cmd_ln_get_str = cwrap('cmd_ln_str_r', 'string',
-			      ['number', 'string']);
-Module.cmd_ln_set_int = cwrap('cmd_ln_set_int_r', null,
-			      ['number', 'string', 'number']);
-Module.cmd_ln_get_int = cwrap('cmd_ln_int_r', 'number',
-			      ['number', 'string']);
-Module.cmd_ln_set_float = cwrap('cmd_ln_set_float_r', null,
-				['number', 'string', 'number']);
-Module.cmd_ln_get_float = cwrap('cmd_ln_float_r', 'number',
-				['number', 'string']);
 Module.cmd_ln_set = function(cmd_ln, key, val) {
-    let type = this.cmd_ln_type(cmd_ln, key);
+    let ckey = allocateUTF8OnStack(key);
+    let type = this._cmd_ln_type_r(cmd_ln, ckey);
     if (type == 0) {
 	throw new ReferenceError("Unknown cmd_ln parameter "+key);
     }
     if (type & ARG_STRING) {
-	this.cmd_ln_set_str(cmd_ln, key, val);
+	let cval = allocateUTF8OnStack(val);
+	this._cmd_ln_set_str_r(cmd_ln, ckey, cval);
     }
     else if (type & ARG_FLOATING) {
-	this.cmd_ln_set_float(cmd_ln, key, val);
+	this._cmd_ln_set_float_r(cmd_ln, ckey, val);
     }
     else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
-	this.cmd_ln_set_int(cmd_ln, key, val);
+	this._cmd_ln_set_int_r(cmd_ln, ckey, val);
     }
     else {
 	throw new TypeError("Unsupported type "+type+"for parameter"+key);
     }
 };
 Module.cmd_ln_get = function(cmd_ln, key) {
-    let type = this.cmd_ln_type(cmd_ln, key);
+    let ckey = allocateUTF8OnStack(key);
+    let type = this._cmd_ln_type_r(cmd_ln, ckey);
     if (type == 0) {
 	throw new ReferenceError("Unknown cmd_ln parameter "+key);
     }
     if (type & ARG_STRING) {
-	return this.cmd_ln_get_str(cmd_ln, key);
+	return this._cmd_ln_str_r(cmd_ln, ckey);
     }
     else if (type & ARG_FLOATING) {
-	return this.cmd_ln_get_float(cmd_ln, key);
+	return this._cmd_ln_float_r(cmd_ln, ckey);
     }
     else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
-	return this.cmd_ln_get_int(cmd_ln, key);
+	return this._cmd_ln_int_r(cmd_ln, ckey);
     }
     else {
 	throw new TypeError("Unsupported type "+type+" for parameter"+key);
@@ -66,7 +57,7 @@ Module.ps_get_hyp = cwrap('ps_get_hyp', 'string', ['number', 'number']);
 Module.ps_get_hypseg = function(decoder) {
     let itor = this._ps_seg_iter(decoder);
     let config = this._ps_get_config(decoder);
-    let frate = this.cmd_ln_get_int(config, "-frate");
+    let frate = this._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
     let seg = [];
     while (itor != 0) {
 	let frames = stackAlloc(8);
@@ -88,7 +79,7 @@ Module.ps_add_word = cwrap('ps_add_word', 'number',
 Module.ps_create_fsg = function(decoder, name, start_state, final_state, transitions) {
     let logmath = this._ps_get_logmath(decoder);
     let config = this._ps_get_config(decoder);
-    let lw = this.cmd_ln_get_float(config, "-lw");
+    let lw = this._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
     let n_state = 0;
     for (let t of transitions) {
 	n_state = Math.max(n_state, t.from, t.to);
