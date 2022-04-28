@@ -1,5 +1,7 @@
 // Preamble to SoundSwallower JS library, wraps some C functions
 
+// our classes use delete() following embind usage: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
+
 const ARG_INTEGER = (1 << 1);
 const ARG_FLOATING = (1 << 2);
 const ARG_STRING = (1 << 3);

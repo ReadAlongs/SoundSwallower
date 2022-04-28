@@ -1,14 +1,15 @@
 add_executable(ssjs soundswallower.c)
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
-target_link_libraries(ssjs soundswallower)
+# Have to use --whole-archive due to
+# https://github.com/emscripten-core/emscripten/issues/6233 (and see
+# also
+# https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#binding-libraries)
+target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
-# Have to use --whole-archive due to
-# https://github.com/emscripten-core/emscripten/issues/6233
 target_link_options(ssjs PRIVATE
   -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
   -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432
-  -Wl,--whole-archive
   $<$<CONFIG:DEBUG>:-gsource-map --source-map-base=/js/>)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
