@@ -92,8 +92,7 @@ ps_decoder_t *ps_init(cmd_ln_t *config);
  * object.
  *
  * @note The decoder retains ownership of the pointer
- * <code>config</code>, so you must not attempt to free it manually.
- * If you wish to reuse it elsewhere, call cmd_ln_retain() on it.
+ * <code>config</code>, so you should free it when no longer used.
  *
  * @param ps Decoder.
  * @param config An optional new configuration to use.  If this is
@@ -126,9 +125,7 @@ ps_decoder_t *ps_retain(ps_decoder_t *ps);
 /**
  * Finalize the decoder.
  *
- * This releases all resources associated with the decoder, including
- * any language models or grammars which have been added to it, and
- * the initial configuration object passed to ps_init().
+ * This releases all resources associated with the decoder.
  *
  * @param ps Decoder to be freed.
  * @return New reference count (0 if freed).
@@ -139,19 +136,19 @@ int ps_free(ps_decoder_t *ps);
  * Get the configuration object for this decoder.
  *
  * @return The configuration object for this decoder.  The decoder
- *         retains ownership of this pointer, so you should not
- *         attempt to free it manually.  Use cmd_ln_retain() if you
- *         wish to reuse it elsewhere.
+ *         owns this pointer, so you should not attempt to free it
+ *         manually.  Use cmd_ln_retain() if you wish to reuse it
+ *         elsewhere.
  */
 cmd_ln_t *ps_get_config(ps_decoder_t *ps);
 
 /**
  * Get the log-math computation object for this decoder.
  *
- * @return The log-math object for this decoder.  The decoder retains
- *         ownership of this pointer, so you should not attempt to
- *         free it manually.  Use logmath_retain() if you wish to
- *         reuse it elsewhere.
+ * @return The log-math object for this decoder.  The decoder owns
+ *         this pointer, so you should not attempt to free it
+ *         manually.  Use logmath_retain() if you wish to reuse it
+ *         elsewhere.
  */
 logmath_t *ps_get_logmath(ps_decoder_t *ps);
 
@@ -159,24 +156,27 @@ logmath_t *ps_get_logmath(ps_decoder_t *ps);
  * Get the feature extraction object for this decoder.
  *
  * @return The feature extraction object for this decoder.  The
- *         decoder retains ownership of this pointer, so you should
- *         not attempt to free it manually.  Use fe_retain() if you
- *         wish to reuse it elsewhere.
+ *         decoder owns this pointer, so you should not attempt to
+ *         free it manually.  Use fe_retain() if you wish to reuse it
+ *         elsewhere.
  */
 fe_t *ps_get_fe(ps_decoder_t *ps);
 
 /**
  * Get the dynamic feature computation object for this decoder.
  *
- * @return The dynamic feature computation object for this decoder.  The
- *         decoder retains ownership of this pointer, so you should
- *         not attempt to free it manually.  Use feat_retain() if you
- *         wish to reuse it elsewhere.
+ * @return The dynamic feature computation object for this decoder.
+ *         The decoder owns this pointer, so you should not attempt to
+ *         free it manually.  Use feat_retain() if you wish to reuse
+ *         it elsewhere.
  */
 feat_t *ps_get_feat(ps_decoder_t *ps);
 
 /**
  * Load new finite state grammar.
+ *
+ * @note The decoder retains ownership of the pointer
+ * <code>fsg</code>, so you should free it when no longer used.
  */
 int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg);
 
@@ -195,7 +195,7 @@ int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_stri
  *
  * @param mllr The new transform to use, or NULL to update the existing
  *              transform.  The decoder retains ownership of this pointer,
- *              so you can free it if you no longer need it.
+ *              so you should free it if you no longer need it.
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */
@@ -344,7 +344,8 @@ int ps_end_utt(ps_decoder_t *ps);
  * @param ps Decoder.
  * @param out_best_score Output: path score corresponding to returned string.
  * @return String containing best hypothesis at this point in
- *         decoding.  NULL if no hypothesis is available.
+ *         decoding.  NULL if no hypothesis is available.  This string is owned
+ *         by the decoder, so you should copy it if you need to hold onto it.
  */
 char const *ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score);
 
@@ -383,7 +384,7 @@ ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
  *
  * @param ps Decoder.
  * @return Iterator over the best hypothesis at this point in
- *         decoding.  NULL if no hypothesis is available.
+*         decoding.  NULL if no hypothesis is available.
  */
 ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
 

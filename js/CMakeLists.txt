@@ -3,18 +3,16 @@ set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(ssjs soundswallower)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
-# We have to export a few functions again here even though we already
-# exported them in the code, because WASM will remove them otherwise
-# (long-standing bug in Emscripten:
-# https://github.com/emscripten-core/emscripten/issues/6233)
+# Have to use --whole-archive due to
+# https://github.com/emscripten-core/emscripten/issues/6233
 target_link_options(ssjs PRIVATE
   -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
   -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432
-  -sEXPORTED_FUNCTIONS=_ps_init,_ps_start_utt,_ps_end_utt
+  -Wl,--whole-archive
   $<$<CONFIG:DEBUG>:-gsource-map --source-map-base=/js/>)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
-# ...sure would be nice if this were FUCKING DOCUMENTED SOMEWHERE
+# ...sure would be nice if this were documented
 em_link_pre_js(ssjs pre_soundswallower.js)
 em_link_post_js(ssjs post_soundswallower.js)
 target_include_directories(
@@ -31,7 +29,7 @@ foreach(webapp_file IN LISTS WEBAPP_JS)
     ${CMAKE_CURRENT_SOURCE_DIR}/${webapp_file}
     ${CMAKE_CURRENT_BINARY_DIR})
 endforeach()
-set(WEBAPP_FILES index.html server.py)
+set(WEBAPP_FILES index.html server.py test_simple.js)
 foreach(webapp_file IN LISTS WEBAPP_FILES)
   add_custom_command(OUTPUT ${webapp_file}
     COMMAND ${CMAKE_COMMAND} -E copy

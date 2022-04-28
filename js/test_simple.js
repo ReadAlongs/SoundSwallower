@@ -37,6 +37,7 @@ const fs = require('fs/promises');
     ssjs.cmd_ln_set(config, "-dict", "en-us.dict");
     ssjs.cmd_ln_set(config, "-fsg", "goforward.fsg");
     let decoder = ssjs.ps_init(config);
+    ssjs.cmd_ln_free(config); // has been retained by decoder
     let pcm = await fs.readFile("../tests/data/goforward.raw");
     ssjs.ps_start_utt(decoder);
     ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
@@ -54,9 +55,11 @@ const fs = require('fs/promises');
 	{from: 3, to: 4, prob: 1.0, word: "_meters"}
     ]);
     ssjs.ps_set_fsg(decoder, fsg);
+    ssjs.fsg_model_free(fsg); // has been retained by decoder
     ssjs.ps_start_utt(decoder);
     ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
     ssjs.ps_end_utt(decoder);
     console.log(ssjs.ps_get_hyp(decoder, 0));
     console.log(ssjs.ps_get_hypseg(decoder));
+    ssjs.ps_free(decoder);
 })();

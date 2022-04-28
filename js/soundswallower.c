@@ -1,12 +1,5 @@
 /**
  * soundswallower.c: Extra C code specific to SoundSwallower in JavaScript
- *
- * C:  -rw-rw-r-- 1 dhd dhd  80726 avr 26 21:13 soundswallower.js
- * -rwxrwxr-x 1 dhd dhd 204808 avr 26 21:13 soundswallower.wasm
- *
- * C++: -rw-rw-r-- 1 dhd dhd 119254 avr 26 09:34 soundswallower.js
- * -rwxrwxr-x 1 dhd dhd 231829 avr 26 09:34 soundswallower.wasm
- *
  */
 
 #include <emscripten.h>

@@ -1,10 +1,5 @@
 Roadmap:
 
-- 0.1.5:
-  - basic test of CLI DONE
-  - Travis-CI continuous integration DONE
-  - Documentation DONE
-  - More interesting test data
 - 0.2: new JavaScript API
   - Implement hypseg DONE
   - Implement FSG creation/setting DONE
