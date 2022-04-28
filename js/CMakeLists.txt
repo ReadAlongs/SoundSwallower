@@ -3,7 +3,7 @@ set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 target_link_libraries(ssjs soundswallower)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
-target_link_options(ssjs PRIVATE
+target_link_options(ssjs PRIVATE -Wl,--whole-archive
   -lembind -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
   -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432
   $<$<CONFIG:DEBUG>:-gsource-map --source-map-base=/js/>)
