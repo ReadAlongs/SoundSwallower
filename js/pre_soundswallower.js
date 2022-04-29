@@ -40,13 +40,16 @@ Module.cmd_ln_get = function(cmd_ln, key) {
 	throw new ReferenceError("Unknown cmd_ln parameter "+key);
     }
     if (type & ARG_STRING) {
-	return Module._cmd_ln_str_r(cmd_ln, ckey);
+	return UTF8ToString(Module._cmd_ln_str_r(cmd_ln, ckey));
     }
     else if (type & ARG_FLOATING) {
 	return Module._cmd_ln_float_r(cmd_ln, ckey);
     }
-    else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
+    else if (type & ARG_INTEGER) {
 	return Module._cmd_ln_int_r(cmd_ln, ckey);
+    }
+    else if (type & ARG_BOOLEAN) {
+	return Boolean(Module._cmd_ln_int_r(cmd_ln, ckey));
     }
     else {
 	throw new TypeError("Unsupported type "+type+" for parameter"+key);
