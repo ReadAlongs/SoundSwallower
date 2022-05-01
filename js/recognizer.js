@@ -52,18 +52,19 @@ var post = function(message) {
 var recognizer;
 
 function initialize(data, clbId) {
-    var config = ssjs.cmd_ln_init();
+    var config = new ssjs.Config();
     if (data) {
 	while (data.length > 0) {
 	    var p = data.pop();
 	    if (p.length == 2) {
-		ssjs.cmd_ln_set(config, p[0], p[1]);
+		config.set(p[0], p[1]);
 	    } else {
 		post({status: "error", command: "initialize", code: "js-data"});
 	    }
 	}
     }
-    recognizer = ssjs.ps_init(config);
+    recognizer = new ssjs.Decoder(config);
+    config.delete();
     if (recognizer === undefined) post({status: "error", command: "initialize", code: -1});
     else post({status: "done", command: "initialize", id: clbId});
 }
@@ -95,8 +96,7 @@ function addWords(data, clbId) {
 	for (var i = 0 ; i < data.length ; i++) {
 	    var w = data[i];
 	    if (w.length == 2) {
-		var rv = ssjs.ps_add_word(recognizer, w[0], w[1],
-					  (i == data.length - 1));
+		var rv = recognizer.add_word(w[0], w[1], (i == data.length - 1));
 		if (rv == -1)
 		    break;
 	    }
@@ -113,27 +113,28 @@ function setGrammar(data, clbId) {
 	    data.hasOwnProperty('start') &&
 	    data.hasOwnProperty('end') &&
 	    data.hasOwnProperty('transitions') && data.transitions.length > 0) {
-	    let fsg = ssjs.ps_create_fsg(recognizer, "_default",
-					 data.start, data.end,
-					 data.transitions);
-	    if (!fsg) {
-		output = -1;
+	    try {
+		let fsg = recognizer.create_fsg("_default",
+						data.start, data.end,
+						data.transitions);
+		recognizer.set_fsg(fsg);
+		post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	    }
-	    else {
-		output = ssjs.ps_set_fsg(recognizer, fsg);
+	    catch (e) {
+		post({status: "error", command: "setGrammar", code: e.message});
 	    }
-	    if (output != 0) post({status: "error", command: "setGrammar", code: output});
-	    else post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	} else post({status: "error", command: "setGrammar", code: "js-data"});
-
     } else post({status: "error", command: "setGrammar", code: "js-no-recognizer"});
 }
 
 function start() {
     if (recognizer) {
-	var output = ssjs.ps_start_utt(recognizer);
-	if (output != 0)
-	    post({status: "error", command: "start", code: output});
+	try {
+	    recognizer.start();
+	}
+	catch (e) {
+	    post({status: "error", command: "start", code: e.message});
+	}
     } else {
 	post({status: "error", command: "start", code: "js-no-recognizer"});
     }
@@ -141,13 +142,14 @@ function start() {
 
 function stop() {
     if (recognizer) {
-	var output = ssjs.ps_end_utt(recognizer);
-	if (output != 0)
-	    post({status: "error", command: "stop", code: output});
-	else {
-	    let hyp = ssjs.ps_get_hyp(recognizer, 0);
-	    let hypseg = ssjs.ps_get_hypseg(recognizer);
+	try {
+	    recognizer.stop();
+	    let hyp = recognizer.get_hyp();
+	    let hypseg = recognizer.get_hypseg();
 	    post({hyp: hyp, hypseg: hypseg, final: true});
+	}
+	catch (e) {
+	    post({status: "error", command: "stop", code: e.message});
 	}
     } else {
 	post({status: "error", command: "stop", code: "js-no-recognizer"});
@@ -156,16 +158,14 @@ function stop() {
 
 function process(array) {
     if (recognizer) {
-	let byte_array = new Int8Array(array.buffer);
-	var output = ssjs.ps_process_raw(recognizer, byte_array,
-					 byte_array.length / 2,
-					 false, false);
-	if (output < 0)
-	    post({status: "error", command: "process", code: output});
-	else {
-	    let hyp = ssjs.ps_get_hyp(recognizer, 0);
-	    let hypseg = ssjs.ps_get_hypseg(recognizer);
+	try {
+	    var output = recognizer.process_raw(array);
+	    let hyp = recognizer.get_hyp();
+	    let hypseg = recognizer.get_hypseg();
 	    post({hyp: hyp, hypseg: hypseg});
+	}
+	catch (e) {
+	    post({status: "error", command: "process", code: e.message});
 	}
     } else {
 	post({status: "error", command: "process", code: "js-no-recognizer"});
