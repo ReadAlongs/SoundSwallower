@@ -13,8 +13,7 @@ invoked, e.g.:
 
 ```javascript
 const ssjs = await require("js/soundswallower.js");
-let config = new ssjs.Config();
-let recognizer = new ssjs.Recognizer(config);
+let recognizer = new ssjs.Decoder({hmm: "en-us", dict: "en-us.dict"});
 // etc, etc...
 ```
 
@@ -34,9 +33,6 @@ the instance, for example:
 
 There may be a better way to do this, but I am not yet knowledgeable
 enough in JavaScript to say what it is.
-
-The JavaScript API will probably change soon, so it is, sadly, not
-documented here.
 
 The rest of this file is the documentation inherited from
 [pocketsphinx.js](http://syl22-00.github.io/pocketsphinx.js/) and will
