@@ -8,7 +8,6 @@ const ARG_STRING = (1 << 3);
 const ARG_BOOLEAN = (1 << 4);
 
 Module.Config = class {
-    cmd_ln = 0;
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
 	if (dict == undefined)
@@ -76,7 +75,6 @@ Module.Config = class {
 };
 
 Module.Decoder = class {
-    ps = 0;
     constructor(config) {
 	if (typeof(config) == 'object') {
 	    if ('cmd_ln' in config) {
