@@ -1,6 +1,6 @@
-// Preamble to SoundSwallower JS library, wraps some C functions
-
-// our classes use delete() following embind usage: https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
+// SoundSwallower JavaScript API code.
+// our classes use delete() following embind usage:
+// https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
 
 const ARG_INTEGER = (1 << 1);
 const ARG_FLOATING = (1 << 2);
@@ -13,7 +13,6 @@ Module.Config = class {
 	if (dict == undefined)
 	    return;
 	for (const key in dict) {
-	    console.log(key);
 	    if (key.startsWith('-'))
 		this.set(key, dict[key]);
 	    else
@@ -76,20 +75,13 @@ Module.Config = class {
 
 Module.Decoder = class {
     constructor(config) {
-	if (typeof(config) == 'object') {
-	    if ('cmd_ln' in config) {
-		this.ps = Module._ps_init(config.cmd_ln);
-	    }
-	    else {
-		config = new Module.Config(config);
-		this.ps = Module._ps_init(config.cmd_ln);
-		config.delete();
-	    }
+	if (config && typeof(config) == 'object' && 'cmd_ln' in config) {
+	    this.config = config;
+	    this.ps = Module._ps_init(this.config.cmd_ln);
 	}
 	else {
-	    let cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
-	    this.ps = Module._ps_init(cmd_ln);
-	    Module._cmd_ln_free_r(cmd_ln);		
+	    this.config = new Module.Config(...arguments);
+	    this.ps = Module._ps_init(this.config.cmd_ln);
 	}
 	if (this.ps == 0) {
 	    throw new Error("Failed to initialize decoder");
@@ -97,6 +89,7 @@ Module.Decoder = class {
     }
 
     delete() {
+	this.config.delete();
 	if (this.ps)
 	    Module._ps_free(this.ps);
 	this.ps = 0;
