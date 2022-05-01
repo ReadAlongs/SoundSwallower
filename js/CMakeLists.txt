@@ -15,7 +15,6 @@ target_link_options(ssjs PRIVATE
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
 em_link_pre_js(ssjs pre_soundswallower.js)
-em_link_post_js(ssjs post_soundswallower.js)
 target_include_directories(
   ssjs PRIVATE ${PYTHON_INCLUDE_DIR}
   ssjs PRIVATE ${PROJECT_SOURCE_DIR}/src

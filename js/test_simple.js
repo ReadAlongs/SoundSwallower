@@ -32,34 +32,33 @@ const fs = require('fs/promises');
 // Wrap in async function so we can wait for WASM load
 (async () => {
     ssjs = await require('./js/soundswallower.js')(Module);
-    let config = ssjs.cmd_ln_init();
-    ssjs.cmd_ln_set(config, "-hmm", "en-us");
-    ssjs.cmd_ln_set(config, "-dict", "en-us.dict");
-    ssjs.cmd_ln_set(config, "-fsg", "goforward.fsg");
-    let decoder = ssjs.ps_init(config);
-    ssjs.cmd_ln_free(config); // has been retained by decoder
+    let decoder = new ssjs.Decoder({
+	hmm: "en-us",
+	dict: "en-us.dict",
+	fsg: "goforward.fsg"
+    });
     let pcm = await fs.readFile("../tests/data/goforward.raw");
-    ssjs.ps_start_utt(decoder);
-    ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
-    ssjs.ps_end_utt(decoder);
-    console.log(ssjs.ps_get_hyp(decoder, 0));
-    console.log(ssjs.ps_get_hypseg(decoder)); 
-    ssjs.ps_add_word(decoder, "_go", "G OW", 0);
-    ssjs.ps_add_word(decoder, "_forward", "F AO R W ER D", 0);
-    ssjs.ps_add_word(decoder, "_ten", "T EH N", 0);
-    ssjs.ps_add_word(decoder, "_meters", "M IY T ER Z", 1);
-    fsg = ssjs.ps_create_fsg(decoder, "goforward", 0, 4, [
+    decoder.start();
+    decoder.process_raw(pcm, false, true);
+    decoder.stop();
+    console.log(decoder.get_hyp());
+    console.log(decoder.get_hypseg());
+    decoder.add_word("_go", "G OW", false);
+    decoder.add_word("_forward", "F AO R W ER D", false);
+    decoder.add_word("_ten", "T EH N", false);
+    decoder.add_word("_meters", "M IY T ER Z", true);
+    fsg = decoder.create_fsg("goforward", 0, 4, [
 	{from: 0, to: 1, prob: 1.0, word: "_go"},
 	{from: 1, to: 2, prob: 1.0, word: "_forward"},
 	{from: 2, to: 3, prob: 1.0, word: "_ten"},
 	{from: 3, to: 4, prob: 1.0, word: "_meters"}
     ]);
-    ssjs.ps_set_fsg(decoder, fsg);
-    ssjs.fsg_model_free(fsg); // has been retained by decoder
-    ssjs.ps_start_utt(decoder);
-    ssjs.ps_process_raw(decoder, pcm, pcm.length / 2, false, true);
-    ssjs.ps_end_utt(decoder);
-    console.log(ssjs.ps_get_hyp(decoder, 0));
-    console.log(ssjs.ps_get_hypseg(decoder));
-    ssjs.ps_free(decoder);
+    decoder.set_fsg(fsg);
+    fsg.delete() // has been retained by decoder
+    decoder.start();
+    decoder.process_raw(pcm, false, true);
+    decoder.stop();
+    console.log(decoder.get_hyp());
+    console.log(decoder.get_hypseg());
+    decoder.delete();
 })();

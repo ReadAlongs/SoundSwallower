@@ -812,7 +812,7 @@ cmd_ln_print_values_r(cmd_ln_t *cmdln, FILE *fp, arg_t const* defn)
     arg_dump_r(cmdln, fp, defn, FALSE);
 }
 
-int
+EXPORT int
 cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
 {
     void *val;
