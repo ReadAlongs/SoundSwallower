@@ -9,7 +9,16 @@ Roadmap:
   - Implement configuration from JSON/Object DONE
 	- Parameter normalization as in Python
 	- Return configuration as JSON
-	- To Proxy or not to Proxy?
+	- To Proxy or not to Proxy? NO, won't Proxy
+  - Async API
+	- we may still want to run it in a worker but this will mean less work later
+	- ps_init is a factory function so let's make it one in the API
+	- decompose ps_reinit into chain of promises
+	  - config -> lmath -> acmod -> dict -> d2p
+	  - all of these are async
+	  - some are long-running and need to be decomposed further
+		- acmod in particular:
+		  - fe -> feat -> mdef -> {tmat, mean, var} -> mgau
   - Very simple alignment example
 	- Load wave file into browser using readDataAsURL
 	- Enter text into a text field
@@ -20,6 +29,7 @@ Roadmap:
   - Write API documentation
 	- Manually in Sphinx-RST
 - 0.3: fix various Python APIs and remove code
+  - Translate back from JavaScript into Cython/Python ;)
   - FSG construction API is quite bad (no error handling for invalid
 	inputs, forgetting start/end state)
   - FSG and search names need to GTFO

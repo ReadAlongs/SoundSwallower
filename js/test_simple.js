@@ -44,6 +44,7 @@ var modinit = {
     const fs = await require('fs/promises');
     // Note that ssjs and modinit are (probably) the same object after this
     var ssjs = await require('./js/soundswallower.js')(modinit);
+    // FIXME: long-running synchronous code here
     let decoder = new ssjs.Decoder({
 	hmm: "en-us",
 	dict: "en-us.dict",
