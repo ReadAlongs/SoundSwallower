@@ -204,12 +204,6 @@ ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
 /**
  * Add a word to the pronunciation dictionary.
  *
- * This function adds a word to the pronunciation dictionary and the
- * current language model (but, obviously, not to the current FSG if
- * FSG mode is enabled).  If the word is already present in one or the
- * other, it does whatever is necessary to ensure that the word can be
- * recognized.
- *
  * @param word Word string to add.
  * @param phones Whitespace-separated list of phoneme strings
  *               describing pronunciation of <code>word</code>.
