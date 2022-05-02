@@ -77,7 +77,7 @@ var modinit = {
 	    decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
-	    assert.deepEqual(hypseg, [
+	    assert.deepStrictEqual(hypseg, [
 		{
 		    end: 0.45,
 		    start: 0,
