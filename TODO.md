@@ -19,6 +19,20 @@ Roadmap:
 	  - some are long-running and need to be decomposed further
 		- acmod in particular:
 		  - fe -> feat -> mdef -> {tmat, mean, var} -> mgau
+	- which methods will be async?
+	  - only the ones that do something async or have async dependencies
+	  - things that change decoder state also should be async
+	  - so start/stop should be async even though they do nothing heavy
+		- actually stop might do a lot of stuff if no_search=true
+	  - get_hyp and friends, obviously not
+	  - add_word, probably not
+		- but loading/creating a whole dictionary, obviously yes
+		- actually just need to fix this API
+		- make it add_words, which always updates, and is async
+	  - create_fsg, probably not
+		- but reading/parsing jsgf or fsg, probably yes
+		- again, things that change decoder state...
+	  - set_fsg, definitely yes
   - Very simple alignment example
 	- Load wave file into browser using readDataAsURL
 	- Enter text into a text field
