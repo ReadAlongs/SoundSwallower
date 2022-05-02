@@ -7,12 +7,12 @@ Roadmap:
   - Compare C and C++/embind sizes DONE
   - Wrap C API with JS objects, handle memory management DONE
   - Implement configuration from JSON/Object DONE
-	- Parameter normalization as in Python
-	- Return configuration as JSON
-	- To Proxy or not to Proxy? NO, won't Proxy
+	- Parameter normalization as in Python DONE
+	- Iteration over configuration DONE
   - Async API
 	- we may still want to run it in a worker but this will mean less work later
 	- ps_init is a factory function so let's make it one in the API
+	- note we can use async iterators to decompose some things
 	- decompose ps_reinit into chain of promises
 	  - config -> lmath -> acmod -> dict -> d2p
 	  - all of these are async
@@ -29,9 +29,10 @@ Roadmap:
 		- but loading/creating a whole dictionary, obviously yes
 		- actually just need to fix this API
 		- make it add_words, which always updates, and is async
-	  - create_fsg, probably not
+	  - create_fsg, probably not?
 		- but reading/parsing jsgf or fsg, probably yes
 		- again, things that change decoder state...
+		- see above about async iterators
 	  - set_fsg, definitely yes
   - Very simple alignment example
 	- Load wave file into browser using readDataAsURL

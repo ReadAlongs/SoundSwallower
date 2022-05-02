@@ -80,8 +80,10 @@ var modinit = {
 	it("Should iterate over known keys", () => {
 	    let conf = new ssjs.Config();
 	    let count = 0;
-	    for (key of conf) {
-		console.log(key, conf.get(key));
+	    for (const key of conf) {
+		let val = conf.get(key);
+		console.log(key);
+		assert.ok(val != undefined);
 		count++;
 	    }
 	    assert.ok(count > 0);
