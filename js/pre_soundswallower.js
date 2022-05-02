@@ -13,10 +13,7 @@ Module.Config = class {
 	if (dict == undefined)
 	    return;
 	for (const key in dict) {
-	    if (key.startsWith('-'))
-		this.set(key, dict[key]);
-	    else
-		this.set("-" + key, dict[key]);
+	    this.set(key, dict[key]);
 	}
     }
     delete() {
@@ -24,8 +21,34 @@ Module.Config = class {
 	    Module._cmd_ln_free_r(this.cmd_ln);
 	this.cmd_ln = 0;
     }
+    normalize_key(key) {
+	if (key.length > 0) {
+	    if (key[0] == '_') {
+		// Ask for underscore, get underscore
+		return key;
+	    }
+	    else if (key[0] == '-') {
+		// Ask for dash, get underscore or dash
+		const under_key = "_" + key.substr(1);
+		if (this.has(under_key))
+		    return under_key;
+		else
+		    return key;
+	    }
+	    else {
+		// No dash or underscore, try underscore then dash
+		const under_key = "_" + key;
+		if (this.has(under_key))
+		    return under_key;
+		const dash_key = "-" + key;
+		if (this.has(dash_key))
+		    return dash_key;
+		return key;
+	    }
+	}
+    }
     set(key, val) {
-	let ckey = allocateUTF8OnStack(key);
+	let ckey = allocateUTF8OnStack(this.normalize_key(key));
 	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
@@ -46,7 +69,7 @@ Module.Config = class {
 	return true;
     }
     get(key) {
-	let ckey = allocateUTF8OnStack(key);
+	let ckey = allocateUTF8OnStack(this.normalize_key(key));
 	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
