@@ -77,13 +77,13 @@ var modinit = {
 	});
     });
     describe("Test iteration on Config", () => {
-	it("Should iterate over known keys", () => {
+	it("Should iterate over known keys, which are all defined", () => {
 	    let conf = new ssjs.Config();
 	    let count = 0;
 	    for (const key of conf) {
 		let val = conf.get(key);
-		console.log(key);
-		assert.ok(val != undefined);
+		// It could be 0 or null, but it should be defined
+		assert.notStrictEqual(val, undefined);
 		count++;
 	    }
 	    assert.ok(count > 0);
