@@ -41,9 +41,11 @@ var modinit = {
 };
 
 (async () => {
+    before(async () => {
+	ssjs = await require('./js/soundswallower.js')(modinit);
+    });
     describe("Test initialization", () => {
-	it("Should load the WASM module", async () => {
-	    ssjs = await require('./js/soundswallower.js')(modinit);
+	it("Should load the WASM module", () => {
 	    assert.ok(ssjs);
 	});
     });
@@ -62,6 +64,12 @@ var modinit = {
 	    let conf = new ssjs.Config();
 	    conf.set("-hmm", "en-us");
 	    assert.ok(!conf.has('-foobiebletch'));
+	});
+	it("Should normalize keys without dash", () => {
+	    let conf = new ssjs.Config();
+	    conf.set("hmm", "en-us");
+	    assert.equal("en-us", conf.get("-hmm"));
+	    assert.equal("en-us", conf.get("hmm"));
 	});
     });
     describe("Test decoding", () => {
