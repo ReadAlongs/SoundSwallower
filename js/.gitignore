@@ -1,2 +1,7 @@
-soundswallower.js
-soundswallower.wasm
+js
+src
+node_modules
+pre_soundswallower_js_tracker.c
+model
+config.h
+Makefile
