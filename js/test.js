@@ -60,6 +60,10 @@ var modinit = {
 	    conf.set("-hmm", "en-us");
 	    assert.ok(conf.has('-hmm'));
 	});
+	it("Unset string key should have null value", () => {
+	    let conf = new ssjs.Config();
+	    assert.equal(null, conf.get('-dict'));
+	});
 	it("Should not contain -foobiebletch", () => {
 	    let conf = new ssjs.Config();
 	    conf.set("-hmm", "en-us");
@@ -70,6 +74,17 @@ var modinit = {
 	    conf.set("hmm", "en-us");
 	    assert.equal("en-us", conf.get("-hmm"));
 	    assert.equal("en-us", conf.get("hmm"));
+	});
+    });
+    describe("Test iteration on Config", () => {
+	it("Should iterate over known keys", () => {
+	    let conf = new ssjs.Config();
+	    let count = 0;
+	    for (key of conf) {
+		console.log(key, conf.get(key));
+		count++;
+	    }
+	    assert.ok(count > 0);
 	});
     });
     describe("Test decoding", () => {

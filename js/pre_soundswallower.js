@@ -47,6 +47,14 @@ Module.Config = class {
 	    }
 	}
     }
+    normalize_ckey(ckey) {
+	let key = UTF8ToString(ckey);
+	if (key.length == 0)
+	    return key;
+	else if (key[0] == '-' || key[0] == '_')
+	    return key.substr(1);
+	return key;
+    }
     set(key, val) {
 	let ckey = allocateUTF8OnStack(this.normalize_key(key));
 	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
@@ -75,7 +83,10 @@ Module.Config = class {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    return UTF8ToString(Module._cmd_ln_str_r(this.cmd_ln, ckey));
+	    let val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
+	    if (val == 0)
+		return null;
+	    return UTF8ToString(val);
 	}
 	else if (type & ARG_FLOATING) {
 	    return Module._cmd_ln_float_r(this.cmd_ln, ckey);
@@ -93,6 +104,19 @@ Module.Config = class {
     has(key) {
 	let ckey = allocateUTF8OnStack(key);
 	return Module._cmd_ln_exists_r(this.cmd_ln, ckey);
+    }
+    *[Symbol.iterator]() {
+	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
+	let seen = new Set();
+	while (itor != 0) {
+	    let ckey = Module._hash_iter_key(itor);
+	    let key = this.normalize_ckey(ckey);
+	    if (seen.has(key))
+		continue;
+	    seen.add(key);
+	    itor = Module._hash_table_iter_next(itor);
+	    yield key;
+	}
     }
 };
 

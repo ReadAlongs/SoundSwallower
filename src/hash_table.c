@@ -97,6 +97,7 @@
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/case.h>
+#include <soundswallower/export.h>
 
 
 #if 0
@@ -652,7 +653,7 @@ hash_table_iter(hash_table_t *h)
 	return hash_table_iter_next(itor);
 }
 
-hash_iter_t *
+EXPORT hash_iter_t *
 hash_table_iter_next(hash_iter_t *itor)
 {
 	/* If there is an entry, walk down its list. */
