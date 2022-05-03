@@ -28,7 +28,7 @@ foreach(webapp_file IN LISTS WEBAPP_JS)
   add_custom_command(OUTPUT ${webapp_file}
     COMMAND ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_SOURCE_DIR}/${webapp_file}
-    ${CMAKE_CURRENT_BINARY_DIR})
+    ${CMAKE_BINARY_DIR})
 endforeach()
 set(WEBAPP_FILES index.html server.py)
 foreach(webapp_file IN LISTS WEBAPP_FILES)
