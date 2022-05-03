@@ -245,16 +245,13 @@ ps_init(cmd_ln_t *config)
 {
     ps_decoder_t *ps;
     
-    if (!config) {
-	E_ERROR("No configuration specified");
-	return NULL;
-    }
-
     ps = ckd_calloc(1, sizeof(*ps));
     ps->refcount = 1;
-    if (ps_reinit(ps, config) < 0) {
-        ps_free(ps);
-        return NULL;
+    if (config) {
+        if (ps_reinit(ps, config) < 0) {
+            ps_free(ps);
+            return NULL;
+        }
     }
     return ps;
 }

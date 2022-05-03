@@ -80,7 +80,9 @@ typedef struct ps_seg_s ps_seg_t;
  * elsewere, you can free it.
  *
  * @param config a command-line structure, as created by
- * cmd_ln_parse_r() or cmd_ln_parse_file_r().
+ * cmd_ln_parse_r() or cmd_ln_parse_file_r().  If NULL, the
+ * decoder will be allocated but not initialized.  You can
+ * proceed to initialize it with ps_reinit().
  */
 ps_decoder_t *ps_init(cmd_ln_t *config);
 
