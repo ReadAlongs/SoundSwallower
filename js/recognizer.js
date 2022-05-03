@@ -9,10 +9,12 @@ var ssjs;
 function startup(onMessage) {
     const self = this;
     self.onmessage = async function(event) {
-        var soundswallowerJS = (event.data && 'soundswallower.js' in event.data) ? event.data['soundswallower.js'] : 'soundswallower.js';
-	// FIXME: We should maybe just require or import it?
-	importScripts(soundswallowerJS);
-	ssjs = await Module()
+	importScripts("js/soundswallower.js");
+	ssjs = await Module({
+	    locateFile(path, scriptDirectory) {
+		return scriptDirectory + "js/" + path;
+	    }
+	});
         self.onmessage = onMessage;
         self.postMessage({});
     };

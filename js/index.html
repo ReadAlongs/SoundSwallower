@@ -144,7 +144,7 @@
           outputContainer = document.getElementById("output");
           updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
           callbackManager = new CallbackManager();
-          spawnWorker("js/recognizer.js", function(worker) {
+          spawnWorker("recognizer.js", function(worker) {
               // This is the onmessage function, once the worker is fully loaded
               worker.onmessage = function(e) {
                   // This is the case when we have a callback id to be called
@@ -234,7 +234,7 @@
     </script>
     <!-- These are the two JavaScript files you must load in the HTML,
 	 The recognizer is loaded through a Web Worker -->
-    <script src="js/audioRecorder.js"></script>
-    <script src="js/callbackManager.js"></script>
+    <script src="audioRecorder.js"></script>
+    <script src="callbackManager.js"></script>
   </body>
 </html>
