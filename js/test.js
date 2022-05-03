@@ -99,7 +99,7 @@ var modinit = {
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm16, false, true);
+	    await decoder.process_raw(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
