@@ -1,5 +1,5 @@
 README File for JavaScript
 ==========================
 
-.. include:: ../../js/README.md
+.. include:: ../../README.js.md
    :parser: myst_parser.sphinx_
