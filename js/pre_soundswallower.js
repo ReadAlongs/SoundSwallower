@@ -157,7 +157,7 @@ Module.Decoder = class {
     process_raw(pcm, no_search=false, full_utt=false) {
 	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	let pcm_addr = Module._malloc(pcm_bytes);
-	let pcm_u8 = new Uint8Array(pcm);
+	let pcm_u8 = new Uint8Array(pcm.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
