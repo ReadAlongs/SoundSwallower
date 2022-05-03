@@ -264,6 +264,19 @@ cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous comma
 cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, char const *name);
 
 /**
+ * Access the type of a configuration parameter.
+ *
+ * This function is provided as a convenience for dynamically typed
+ * language bindings.
+ *
+ * @param cmdln Command-line object.
+ * @param name the command-line flag to retrieve.
+ * @return the type of the parameter (as a combination of the ARG_*
+ *         bits), or 0 if no such parameter exists.
+ */
+int cmd_ln_type_r(cmd_ln_t *cmdln, char const *name);
+
+/**
  * Retrieve a string from a command-line object.
  *
  * The command-line object retains ownership of this string, so you

@@ -29,7 +29,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-The JavaScript binding code is from pocketsphinx.js and is:
+The JavaScript audio and web worker code is from pocketsphinx.js and is:
 Copyright © 2013-2017 Sylvain Chevalier
 
 Permission is hereby granted, free of charge, to any person obtaining

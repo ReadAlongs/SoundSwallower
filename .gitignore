@@ -7,3 +7,9 @@ dist
 MANIFEST
 __pycache__
 jsbuild
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
+DartConfiguration.tcl
+cmake_install.cmake
+

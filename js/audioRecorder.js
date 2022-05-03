@@ -4,7 +4,7 @@
 // under the MIT license (Copyright © 2013 Matt Diamond).
 
 (function(window) {
-    var AUDIO_RECORDER_WORKER = 'js/audioRecorderWorker.js';
+    var AUDIO_RECORDER_WORKER = 'audioRecorderWorker.js';
     var AudioRecorder = function(source, cfg) {
 	this.consumers = [];
 	var config = cfg || {};

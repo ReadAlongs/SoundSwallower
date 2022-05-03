@@ -45,6 +45,7 @@
 #endif
 
 /* SphinxBase headers. */
+#include <soundswallower/export.h>
 #include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
@@ -141,7 +142,7 @@ ps_free_searches(ps_decoder_t *ps)
     }
 }
 
-int
+EXPORT int
 ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 {
     const char *path;
@@ -233,7 +234,7 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
     return 0;
 }
 
-ps_decoder_t *
+EXPORT ps_decoder_t *
 ps_init(cmd_ln_t *config)
 {
     ps_decoder_t *ps;
@@ -252,20 +253,20 @@ ps_init(cmd_ln_t *config)
     return ps;
 }
 
-arg_t const *
+EXPORT arg_t const *
 ps_args(void)
 {
     return ps_args_def;
 }
 
-ps_decoder_t *
+EXPORT ps_decoder_t *
 ps_retain(ps_decoder_t *ps)
 {
     ++ps->refcount;
     return ps;
 }
 
-int
+EXPORT int
 ps_free(ps_decoder_t *ps)
 {
     if (ps == NULL)
@@ -282,13 +283,13 @@ ps_free(ps_decoder_t *ps)
     return 0;
 }
 
-cmd_ln_t *
+EXPORT cmd_ln_t *
 ps_get_config(ps_decoder_t *ps)
 {
     return ps->config;
 }
 
-logmath_t *
+EXPORT logmath_t *
 ps_get_logmath(ps_decoder_t *ps)
 {
     return ps->lmath;
@@ -312,7 +313,7 @@ ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr)
     return acmod_update_mllr(ps->acmod, mllr);
 }
 
-int
+EXPORT int
 ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
 {
     ps_search_t *search;
@@ -364,7 +365,7 @@ ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
   return result;
 }
 
-int 
+EXPORT int 
 ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
 {
   fsg_model_t *fsg;
@@ -403,7 +404,7 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
   return result;
 }
 
-int
+EXPORT int
 ps_add_word(ps_decoder_t *ps,
             char const *word,
             char const *phones,
@@ -457,7 +458,7 @@ ps_add_word(ps_decoder_t *ps,
     return wid;
 }
 
-char *
+EXPORT char *
 ps_lookup_word(ps_decoder_t *ps, const char *word)
 {
     s3wid_t wid;
@@ -522,7 +523,7 @@ ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
     return total;
 }
 
-int
+EXPORT int
 ps_start_utt(ps_decoder_t *ps)
 {
     int rv;
@@ -644,7 +645,7 @@ ps_decode_senscr(ps_decoder_t *ps, FILE *senfh)
     return n_searchfr;
 }
 
-int
+EXPORT int
 ps_process_raw(ps_decoder_t *ps,
                int16 const *data,
                size_t n_samples,
@@ -711,10 +712,10 @@ ps_process_cep(ps_decoder_t *ps,
     return n_searchfr;
 }
 
-int
+EXPORT int
 ps_end_utt(ps_decoder_t *ps)
 {
-    int rv;
+    int rv = 0;
 
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -731,14 +732,13 @@ ps_end_utt(ps_decoder_t *ps)
     if ((rv = ps_search_forward(ps)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
-    }
+    } 
     /* Finish main search. */
     if ((rv = ps_search_finish(ps->search)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
     }
     ptmr_stop(&ps->perf);
-
     /* Log a backtrace if requested. */
     if (cmd_ln_boolean_r(ps->config, "-backtrace")) {
         const char* hyp;
@@ -769,7 +769,7 @@ ps_end_utt(ps_decoder_t *ps)
     return rv;
 }
 
-char const *
+EXPORT char const *
 ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score)
 {
     char const *hyp;
@@ -785,7 +785,7 @@ ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score)
     return hyp;
 }
 
-int32
+EXPORT int32
 ps_get_prob(ps_decoder_t *ps)
 {
     int32 prob;
@@ -801,7 +801,7 @@ ps_get_prob(ps_decoder_t *ps)
     return prob;
 }
 
-ps_seg_t *
+EXPORT ps_seg_t *
 ps_seg_iter(ps_decoder_t *ps)
 {
     ps_seg_t *itor;
@@ -817,26 +817,26 @@ ps_seg_iter(ps_decoder_t *ps)
     return itor;
 }
 
-ps_seg_t *
+EXPORT ps_seg_t *
 ps_seg_next(ps_seg_t *seg)
 {
     return ps_search_seg_next(seg);
 }
 
-char const *
+EXPORT char const *
 ps_seg_word(ps_seg_t *seg)
 {
     return seg->word;
 }
 
-void
+EXPORT void
 ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
 {
     if (out_sf) *out_sf = seg->sf;
     if (out_ef) *out_ef = seg->ef;
 }
 
-int32
+EXPORT int32
 ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr, int32 *out_lback)
 {
     if (out_ascr) *out_ascr = seg->ascr;
@@ -845,7 +845,7 @@ ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr, int32 *out_lback)
     return seg->prob;
 }
 
-void
+EXPORT void
 ps_seg_free(ps_seg_t *seg)
 {
     ps_search_seg_free(seg);

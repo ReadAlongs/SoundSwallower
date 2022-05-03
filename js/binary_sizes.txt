@@ -1,0 +1,15 @@
+C (Release, whole-archive):
+-rw-rw-r-- 1 dhd dhd  80762 avr 28 15:10 soundswallower.js
+-rwxrwxr-x 1 dhd dhd 204828 avr 28 15:10 soundswallower.wasm
+
+C++ (Release, whole-archive):
+-rw-rw-r-- 1 dhd dhd 126080 avr 28 15:08 soundswallower.js
+-rwxrwxr-x 1 dhd dhd 231990 avr 28 15:08 soundswallower.wasm
+
+C (Debug, whole-archive):
+-rw-rw-r-- 1 dhd dhd 177296 avr 28 15:07 soundswallower.js
+-rwxrwxr-x 1 dhd dhd 222072 avr 28 15:07 soundswallower.wasm
+
+C++ (Debug, whole-archive):
+-rw-rw-r-- 1 dhd dhd 244480 avr 28 14:45 soundswallower.js
+-rwxrwxr-x 1 dhd dhd 292446 avr 28 14:45 soundswallower.wasm

@@ -388,7 +388,6 @@ psubtree_add_trans(fsg_lextree_t *lextree,
                           fsg_model_word_str(lextree->fsg, wid));
     pronlen = dict_pronlen(lextree->dict, dictwid);
     assert(pronlen >= 1);
-
     assert(lclist[0] >= 0);     /* At least one phonetic context provided */
     assert(rclist[0] >= 0);
 

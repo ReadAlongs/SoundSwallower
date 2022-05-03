@@ -73,6 +73,7 @@
 #include <unistd.h>
 #endif
 
+#include <soundswallower/export.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
@@ -471,7 +472,7 @@ cmd_ln_val_free(cmd_ln_val_t *val)
 }
 
 
-cmd_ln_t *
+EXPORT cmd_ln_t *
 cmd_ln_parse_r(cmd_ln_t *inout_cmdln, const arg_t * defn,
                int32 argc, char *argv[], int strict)
 {
@@ -626,7 +627,7 @@ cmd_ln_parse_r(cmd_ln_t *inout_cmdln, const arg_t * defn,
     return NULL;
 }
 
-cmd_ln_t *
+EXPORT cmd_ln_t *
 cmd_ln_init(cmd_ln_t *inout_cmdln, const arg_t *defn, int32 strict, ...)
 {
     va_list args;
@@ -812,7 +813,7 @@ cmd_ln_print_values_r(cmd_ln_t *cmdln, FILE *fp, arg_t const* defn)
     arg_dump_r(cmdln, fp, defn, FALSE);
 }
 
-int
+EXPORT int
 cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
 {
     void *val;
@@ -832,7 +833,17 @@ cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
     return (cmd_ln_val_t *)val;
 }
 
-char const *
+EXPORT int
+cmd_ln_type_r(cmd_ln_t *cmdln, char const *name)
+{
+    cmd_ln_val_t *val = cmd_ln_access_r(cmdln, name);
+    if (val == NULL)
+        return 0;
+    return val->type;
+}
+
+
+EXPORT char const *
 cmd_ln_str_r(cmd_ln_t *cmdln, char const *name)
 {
     cmd_ln_val_t *val;
@@ -860,7 +871,7 @@ cmd_ln_str_list_r(cmd_ln_t *cmdln, char const *name)
     return (char const **)val->val.ptr;
 }
 
-long
+EXPORT long
 cmd_ln_int_r(cmd_ln_t *cmdln, char const *name)
 {
     cmd_ln_val_t *val;
@@ -874,7 +885,7 @@ cmd_ln_int_r(cmd_ln_t *cmdln, char const *name)
     return val->val.i;
 }
 
-double
+EXPORT double
 cmd_ln_float_r(cmd_ln_t *cmdln, char const *name)
 {
     cmd_ln_val_t *val;
@@ -888,7 +899,7 @@ cmd_ln_float_r(cmd_ln_t *cmdln, char const *name)
     return val->val.fl;
 }
 
-void
+EXPORT void
 cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str)
 {
     cmd_ln_val_t *val;
@@ -922,7 +933,7 @@ cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str)
     }
 }
 
-void
+EXPORT void
 cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv)
 {
     cmd_ln_val_t *val;
@@ -938,7 +949,7 @@ cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv)
     val->val.i = iv;
 }
 
-void
+EXPORT void
 cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv)
 {
     cmd_ln_val_t *val;
@@ -954,14 +965,14 @@ cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv)
     val->val.fl = fv;
 }
 
-cmd_ln_t *
+EXPORT cmd_ln_t *
 cmd_ln_retain(cmd_ln_t *cmdln)
 {
     ++cmdln->refcount;
     return cmdln;
 }
 
-int
+EXPORT int
 cmd_ln_free_r(cmd_ln_t *cmdln)
 {
     if (cmdln == NULL)

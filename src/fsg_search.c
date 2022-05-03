@@ -918,7 +918,7 @@ fsg_search_find_exit(fsg_search_t *fsgs, int frame_idx, int final, int32 *out_sc
 
         fl = fsg_hist_entry_fsglink(hist_entry);
         score = fsg_hist_entry_score(hist_entry);
-        
+
         if (fl == NULL)
 	    break;
 

@@ -1,27 +1,56 @@
 Roadmap:
 
-- 0.1.5:
-  - basic test of CLI DONE
-  - Travis-CI continuous integration DONE
-  - Documentation DONE
-  - More interesting test data
 - 0.2: new JavaScript API
   - Implement hypseg DONE
   - Implement FSG creation/setting DONE
   - Implement adding words DONE
   - Compare C and C++/embind sizes DONE
-	- C is 70k smaller
-	- implement same API with thin C++ bindings (no STL, no argv)
-	- embind may be more efficient due to no exporting
-  - Wrap C API with JS objects, handle memory management
-  - Implement configuration from JSON/Object
+  - Wrap C API with JS objects, handle memory management DONE
+  - Implement configuration from JSON/Object DONE
+	- Parameter normalization as in Python DONE
+	- Iteration over configuration DONE
+  - Fix logging
+	- Add -loglevel option
+  - Async API
+	- we may still want to run it in a worker but this will mean less work later
+	- ps_init is a factory function so let's make it one in the API
+	- note we can use async iterators to decompose some things
+	- decompose ps_reinit into chain of promises
+	  - config -> lmath -> acmod -> dict -> d2p
+	  - all of these are async
+	  - some are long-running and need to be decomposed further
+		- acmod in particular:
+		  - fe -> feat -> mdef -> {tmat, mean, var} -> mgau
+	- which methods will be async?
+	  - only the ones that do something async or have async dependencies
+	  - things that change decoder state also should be async
+	  - so start/stop should be async even though they do nothing heavy
+		- actually stop might do a lot of stuff if no_search=true
+	  - get_hyp and friends, obviously not
+	  - add_word, probably not
+		- but loading/creating a whole dictionary, obviously yes
+		- actually just need to fix this API
+		- make it add_words, which always updates, and is async
+	  - create_fsg, probably not?
+		- but reading/parsing jsgf or fsg, probably yes
+		- again, things that change decoder state...
+		- see above about async iterators
+	  - set_fsg, definitely yes
+  - Very simple alignment example
+	- Load wave file into browser using readDataAsURL
+	- Enter text into a text field
+	- Click align - show times, words become clickable
+  - NPM setup
+  - Write API tests
+	- Using what framework? MochaJS?
   - Write API documentation
-- 0.3: fix various APIs and remove code
-  - Logging... argh...
-  - Lattices, do they work?
+	- Manually in Sphinx-RST
+- 0.3: fix various Python APIs and remove code
+  - Translate back from JavaScript into Cython/Python ;)
   - FSG construction API is quite bad (no error handling for invalid
 	inputs, forgetting start/end state)
   - FSG and search names need to GTFO
-  - Various utility code that should not be in the core library,
-    e.g. reading/writing different file formats
+	- No, just need to synchronize them properly
+	- Useful to be able to identify an FSG object
+
 - 0.4: phone-level alignment

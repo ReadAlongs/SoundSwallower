@@ -1,68 +1,29 @@
 // Originally written by and
 // Copyright © 2013-2017 Sylvain Chevalier
 // MIT license, see LICENSE for details
+// Substantially revised by David Huggins-Daines
 
 // After loading emscripten module, the instance will be stored here.
 var ssjs;
 
-/**
-*
-* We can not interact with emscripten using unicode strings
-* so we need to manually encode and decode them.
-* Thanks to:
-* https://gist.github.com/chrisveness/bcb00eb717e6382c5608
-*
-*/
-// FIXME: This stuff is no longer necessary
-function Utf8Encode(strUni) {
-    var strUtf = strUni.replace(
-        /[\u0080-\u07ff]/g,  // U+0080 - U+07FF => 2 bytes 110yyyyy, 10zzzzzz
-        function(c) {
-            var cc = c.charCodeAt(0);
-            return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f); }
-    );
-    strUtf = strUtf.replace(
-        /[\u0800-\uffff]/g,  // U+0800 - U+FFFF => 3 bytes 1110xxxx, 10yyyyyy, 10zzzzzz
-        function(c) {
-            var cc = c.charCodeAt(0);
-            return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f); }
-    );
-    return strUtf;
-}
-
-function Utf8Decode(strUtf) {
-    // note: decode 3-byte chars first as decoded 2-byte strings could appear to be 3-byte char!
-    var strUni = strUtf.replace(
-        /[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g,  // 3-byte chars
-        function(c) {  // (note parentheses for precedence)
-            var cc = ((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | ( c.charCodeAt(2)&0x3f);
-            return String.fromCharCode(cc); }
-    );
-    strUni = strUni.replace(
-        /[\u00c0-\u00df][\u0080-\u00bf]/g,                 // 2-byte chars
-        function(c) {  // (note parentheses for precedence)
-            var cc = (c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f;
-            return String.fromCharCode(cc); }
-    );
-    return strUni;
-}
-
-function startup(onMessage) {
+async function startup(onMessage) {
     const self = this;
     self.onmessage = async function(event) {
-        var soundswallowerJS = (event.data && 'soundswallower.js' in event.data) ? event.data['soundswallower.js'] : 'soundswallower.js';
-	// FIXME: We should maybe just require or import it?
-	importScripts(soundswallowerJS);
-	ssjs = await Module()
+	importScripts("js/soundswallower.js");
+	ssjs = await Module({
+	    locateFile(path, scriptDirectory) {
+		return scriptDirectory + "js/" + path;
+	    }
+	});
         self.onmessage = onMessage;
         self.postMessage({});
     };
 }
 
-startup(function(event) {
+startup(async function(event) {
     switch(event.data.command){
     case 'initialize':
-	initialize(event.data.data, event.data.callbackId);
+	await initialize(event.data.data, event.data.callbackId);
 	break;
     case 'lazyLoad':
 	lazyLoad(event.data.data, event.data.callbackId);
@@ -71,22 +32,16 @@ startup(function(event) {
 	addWords(event.data.data, event.data.callbackId);
 	break;
     case 'setGrammar':
-	setGrammar(event.data.data, event.data.callbackId);
-	break;
-    case 'lookupWord':
-	lookupWord(event.data.data, event.data.callbackId);
-	break;
-    case 'lookupWords':
-	lookupWords(event.data.data, event.data.callbackId);
+	await setGrammar(event.data.data, event.data.callbackId);
 	break;
     case 'start':
-	start(event.data.data);
+	await start(event.data.data);
 	break;
     case 'stop':
-	stop();
+	await stop();
 	break;
     case 'process':
-	process(event.data.data);
+	await process(event.data.data);
 	break;
     }
 });
@@ -97,44 +52,24 @@ var post = function(message) {
 };
 
 var recognizer;
-var buffer;
-var segmentation;
 
-function segToArray(segmentation) {
-    var output = [];
-    for (var i = 0 ; i < segmentation.size() ; i++)
-	output.push({'word': Utf8Decode(segmentation.get(i).word),
-		     'start': segmentation.get(i).start,
-		     'end': segmentation.get(i).end});
-    return output;
-};
-
-
-function initialize(data, clbId) {
-    var config = new ssjs.Config();
-    buffer = new ssjs.AudioBuffer();
+async function initialize(data, clbId) {
+    let config = new ssjs.Config();
     if (data) {
 	while (data.length > 0) {
 	    var p = data.pop();
 	    if (p.length == 2) {
-		config.push_back([p[0],p[1]]);
+		config.set(p[0], p[1]);
 	    } else {
 		post({status: "error", command: "initialize", code: "js-data"});
 	    }
 	}
     }
-    var output;
-    if(recognizer) {
-	output = recognizer.reInit(config);
-	if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "initialize", code: output});
-	else post({status: "done", command: "initialize", id: clbId});
-    } else {
-	recognizer = new ssjs.Recognizer(config);
-	segmentation = new ssjs.Segmentation();
-	if (recognizer === undefined) post({status: "error", command: "initialize", code: ssjs.ReturnType.RUNTIME_ERROR});
-	else post({status: "done", command: "initialize", id: clbId});
-    }
+    recognizer = new ssjs.Decoder(config);
+    await recognizer.initialize();
     config.delete();
+    if (recognizer === undefined) post({status: "error", command: "initialize", code: -1});
+    else post({status: "done", command: "initialize", id: clbId});
 }
 
 function lazyLoad(data, clbId) {
@@ -144,10 +79,10 @@ function lazyLoad(data, clbId) {
     data['files'].forEach(function(file) {files.push([file[0], file[1], file[2]]);});
     var preloadFiles = function() {
 	folders.forEach(function(folder) {
-	    ssjs['FS_createPath'](folder[0], folder[1], true, true);
+	    ssjs.FS_createPath(folder[0], folder[1], true, true);
 	});
 	files.forEach(function(file) {
-	    ssjs['FS_createLazyFile'](file[0], file[1], file[2], true, true);
+	    ssjs.FS_createLazyFile(file[0], file[1], file[2], true, true);
 	});
     };
     if (ssjs['calledRun']) {
@@ -161,103 +96,80 @@ function lazyLoad(data, clbId) {
 
 function addWords(data, clbId) {
     if (recognizer) {
-	var words = new ssjs.VectorWords();
 	for (var i = 0 ; i < data.length ; i++) {
 	    var w = data[i];
-	    if (w.length == 2) words.push_back([Utf8Encode(w[0]), w[1]]);
+	    if (w.length == 2) {
+		var rv = recognizer.add_word(w[0], w[1], (i == data.length - 1));
+		if (rv == -1)
+		    break;
+	    }
 	}
-	var output = recognizer.addWords(words);
-	if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "addWords", code: output});
+	if (rv == -1) post({status: "error", command: "addWords", code: output});
 	else post({id: clbId});
-	words.delete();
     } else post({status: "error", command: "addWords", code: "js-no-recognizer"});
 }
 
-function setGrammar(data, clbId) {
+async function setGrammar(data, clbId) {
     var output;
     if (recognizer) {
 	if (data.hasOwnProperty('numStates') && data.numStates > 0 &&
 	    data.hasOwnProperty('start') &&
 	    data.hasOwnProperty('end') &&
 	    data.hasOwnProperty('transitions') && data.transitions.length > 0) {
-	    var transitions = new ssjs.VectorTransitions();
-	    while (data.transitions.length > 0) {
-		var t = data.transitions.pop();
-		if (t.hasOwnProperty('from') && t.hasOwnProperty('to')) {
-		    if (!t.hasOwnProperty('word')) t.word = "";
-		    if (!t.hasOwnProperty('logp')) t.logp = 0;
-		    t.word = Utf8Encode(t.word);
-		    transitions.push_back(t);
-		}
+	    try {
+		let fsg = recognizer.create_fsg("_default",
+						data.start, data.end,
+						data.transitions);
+		await recognizer.set_fsg(fsg);
+		post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	    }
-	    output = recognizer.setGrammar({start: data.start, end: data.end, numStates: data.numStates, transitions: transitions});
-	    if (output != ssjs.ReturnType.SUCCESS) post({status: "error", command: "setGrammar", code: output});
-	    else post({id: clbId, data: 0, status: "done", command: "setGrammar"});
-	    transitions.delete();
+	    catch (e) {
+		post({status: "error", command: "setGrammar", code: e.message});
+	    }
 	} else post({status: "error", command: "setGrammar", code: "js-data"});
-
     } else post({status: "error", command: "setGrammar", code: "js-no-recognizer"});
 }
 
-function lookupWord(data, clbId) {
+async function start() {
     if (recognizer) {
-	var output = recognizer.lookupWord(Utf8Encode(data));
-	post({id: clbId, data: output, status: "done", command: "lookupWord"});
-    } else post({status: "error", command: "lookupWord", code: "js-no-recognizer"});
-};
-
-function lookupWords(data, clbId) {
-    if (recognizer) {
-	var output = [];
-	data.forEach(function(word) {
-	    var wid = recognizer.lookupWord(Utf8Encode(word));
-	    if(wid && (output.indexOf(word) == -1))
-		output.push(word);
-	});
-	post({id: clbId, data: output, status: "done", command: "lookupWords"});
-    } else post({status: "error", command: "lookupWords", code: "js-no-recognizer"});
-};
-
-function start() {
-    if (recognizer) {
-	output = recognizer.start();
-	if (output != ssjs.ReturnType.SUCCESS)
-	    post({status: "error", command: "start", code: output});
+	try {
+	    await recognizer.start();
+	}
+	catch (e) {
+	    post({status: "error", command: "start", code: e.message});
+	}
     } else {
 	post({status: "error", command: "start", code: "js-no-recognizer"});
     }
 }
 
-function stop() {
+async function stop() {
     if (recognizer) {
-	var output = recognizer.stop();
-	if (output != ssjs.ReturnType.SUCCESS)
-	    post({status: "error", command: "stop", code: output});
-	else {
-	    recognizer.getHypseg(segmentation);
-	    post({hyp: Utf8Decode(recognizer.getHyp()),
-		  hypseg: segToArray(segmentation),
-		  final: true});
+	try {
+	    await recognizer.stop();
+	    let hyp = recognizer.get_hyp();
+	    let hypseg = recognizer.get_hypseg();
+	    post({hyp: hyp, hypseg: hypseg, final: true});
+	}
+	catch (e) {
+	    post({status: "error", command: "stop", code: e.message});
 	}
     } else {
 	post({status: "error", command: "stop", code: "js-no-recognizer"});
     }
 }
 
-function process(array) {
+async function process(array) {
     if (recognizer) {
-	while (buffer.size() < array.length)
-	    buffer.push_back(0);
-	for (var i = 0 ; i < array.length ; i++)
-	    buffer.set(i, array[i]);
-	var output = recognizer.process(buffer);
-	if (output != ssjs.ReturnType.SUCCESS)
-	    post({status: "error", command: "process", code: output});
-	else {
-	    recognizer.getHypseg(segmentation);
-	    post({hyp: Utf8Decode(recognizer.getHyp()),
-		  hypseg: segToArray(segmentation)});
-	    }
+	try {
+	    var output = await recognizer.process_raw(array);
+	    let hyp = recognizer.get_hyp();
+	    let hypseg = recognizer.get_hypseg();
+	    post({hyp: hyp, hypseg: hypseg});
+	}
+	catch (e) {
+	    post({status: "error", command: "process", code: e.message});
+	}
     } else {
 	post({status: "error", command: "process", code: "js-no-recognizer"});
     }
