@@ -43,7 +43,6 @@ class TestDecodeFSG(unittest.TestCase):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         # Read a file that isn't a FSG
         with self.assertRaises(RuntimeError):
@@ -57,7 +56,6 @@ class TestDecodeFSG(unittest.TestCase):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         num_transitions = [(4, 5, 0.1, num)
                            for num
@@ -80,7 +78,6 @@ class TestDecodeFSG(unittest.TestCase):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         # Read a file that isn't a JSGF
         with self.assertRaises(RuntimeError):

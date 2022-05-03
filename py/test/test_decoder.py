@@ -25,7 +25,7 @@ class TestDecoder(unittest.TestCase):
 
     def test_from_scratch(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          logfn="/dev/null", beam=0., wbeam=0., pbeam=0.)
+                          beam=0., wbeam=0., pbeam=0.)
         words = [("go", "G OW"),
                  ("forward", "F AO R W ER D"),
                  ("ten", "T EH N"),
@@ -45,8 +45,7 @@ class TestDecoder(unittest.TestCase):
     def test_reinit(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
                           fsg=os.path.join(DATADIR, 'goforward.fsg'),
-                          dict=os.path.join(DATADIR, 'turtle.dic'),
-                          logfn="/dev/null")
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
         self._run_decode(decoder)
         # Reinitialize with a bogus FSG that recognizes the wrong word
         decoder.config["fsg"] = os.path.join(DATADIR, 'goforward2.fsg')
@@ -60,7 +59,6 @@ class TestDecoder(unittest.TestCase):
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-fsg'] = os.path.join(DATADIR, 'goforward.fsg')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         self._run_decode(decoder)
 
@@ -69,10 +67,15 @@ class TestDecoder(unittest.TestCase):
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')
         config['-fsg'] = os.path.join(DATADIR, 'goforward.fsg')
         config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['-logfn'] = '/dev/null'
         decoder = Decoder(config)
         self._run_decode(decoder)
 
+    def test_loglevel(self):
+        Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="INFO");
+        with self.assertRaises(RuntimeError):
+            Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                    loglevel="FOOBIEBLETCH");
+        
 
 if __name__ == "__main__":
     unittest.main()

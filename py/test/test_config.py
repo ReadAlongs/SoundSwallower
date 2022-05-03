@@ -115,7 +115,6 @@ class TestConfigIter(unittest.TestCase):
         config['hmm'] = os.path.join(get_model_path(), 'en-us')
         config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
         config['dict'] = os.path.join(DATADIR, 'turtle.dic')
-        config['logfn'] = '/dev/null'
         self.assertEqual(default_len, len(config))
         for key in config:
             self.assertTrue(key in config)
@@ -143,7 +142,7 @@ class TestConfigDefn(unittest.TestCase):
     def test_config_describe(self):
         config = Config()
         for defn in config.describe():
-            if defn.name in ('hmm', 'dict'):
+            if defn.name == 'hmm':
                 self.assertTrue(defn.required)
 
 
