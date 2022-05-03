@@ -122,14 +122,23 @@ Module.Config = class {
 
 Module.Decoder = class {
     constructor(config) {
-	if (config && typeof(config) == 'object' && 'cmd_ln' in config) {
+	if (config && typeof(config) == 'object' && 'cmd_ln' in config)
 	    this.config = config;
-	    this.ps = Module._ps_init(this.config.cmd_ln);
-	}
-	else {
+	else
 	    this.config = new Module.Config(...arguments);
-	    this.ps = Module._ps_init(this.config.cmd_ln);
+	this.ps = 0;
+    }
+
+    async initialize(config) {
+	if (config !== undefined) {
+	    if (this.config)
+		this.config.delete();
+	    this.config = config;
 	}
+	if (this.ps)
+	    this.ps = Module._ps_reinit(this.ps, this.config.cmd_ln);
+	else
+	    this.ps = Module._ps_init(this.config.cmd_ln);
 	if (this.ps == 0) {
 	    throw new Error("Failed to initialize decoder");
 	}
@@ -142,19 +151,19 @@ Module.Decoder = class {
 	this.ps = 0;
     }
 
-    start() {
+    async start() {
 	if (Module._ps_start_utt(this.ps) < 0) {
 	    throw new Error("Failed to start utterance processing");
 	}
     }
 
-    stop() {
+    async stop() {
 	if (Module._ps_end_utt(this.ps) < 0) {
 	    throw new Error("Failed to stop utterance processing");
 	}
     }
 
-    process_raw(pcm, no_search=false, full_utt=false) {
+    async process_raw(pcm, no_search=false, full_utt=false) {
 	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	let pcm_addr = Module._malloc(pcm_bytes);
 	let pcm_u8 = new Uint8Array(pcm.buffer);
@@ -245,7 +254,7 @@ Module.Decoder = class {
 	    }
 	};
     }
-    set_fsg(fsg) {
+    async set_fsg(fsg) {
 	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {
 	    throw new Error("Failed to set FSG in decoder");
 	}

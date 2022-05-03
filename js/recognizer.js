@@ -6,7 +6,7 @@
 // After loading emscripten module, the instance will be stored here.
 var ssjs;
 
-function startup(onMessage) {
+async function startup(onMessage) {
     const self = this;
     self.onmessage = async function(event) {
 	importScripts("js/soundswallower.js");
@@ -20,10 +20,10 @@ function startup(onMessage) {
     };
 }
 
-startup(function(event) {
+startup(async function(event) {
     switch(event.data.command){
     case 'initialize':
-	initialize(event.data.data, event.data.callbackId);
+	await initialize(event.data.data, event.data.callbackId);
 	break;
     case 'lazyLoad':
 	lazyLoad(event.data.data, event.data.callbackId);
@@ -32,16 +32,16 @@ startup(function(event) {
 	addWords(event.data.data, event.data.callbackId);
 	break;
     case 'setGrammar':
-	setGrammar(event.data.data, event.data.callbackId);
+	await setGrammar(event.data.data, event.data.callbackId);
 	break;
     case 'start':
-	start(event.data.data);
+	await start(event.data.data);
 	break;
     case 'stop':
-	stop();
+	await stop();
 	break;
     case 'process':
-	process(event.data.data);
+	await process(event.data.data);
 	break;
     }
 });
@@ -53,8 +53,8 @@ var post = function(message) {
 
 var recognizer;
 
-function initialize(data, clbId) {
-    var config = new ssjs.Config();
+async function initialize(data, clbId) {
+    let config = new ssjs.Config();
     if (data) {
 	while (data.length > 0) {
 	    var p = data.pop();
@@ -66,6 +66,7 @@ function initialize(data, clbId) {
 	}
     }
     recognizer = new ssjs.Decoder(config);
+    await recognizer.initialize();
     config.delete();
     if (recognizer === undefined) post({status: "error", command: "initialize", code: -1});
     else post({status: "done", command: "initialize", id: clbId});
@@ -108,7 +109,7 @@ function addWords(data, clbId) {
     } else post({status: "error", command: "addWords", code: "js-no-recognizer"});
 }
 
-function setGrammar(data, clbId) {
+async function setGrammar(data, clbId) {
     var output;
     if (recognizer) {
 	if (data.hasOwnProperty('numStates') && data.numStates > 0 &&
@@ -119,7 +120,7 @@ function setGrammar(data, clbId) {
 		let fsg = recognizer.create_fsg("_default",
 						data.start, data.end,
 						data.transitions);
-		recognizer.set_fsg(fsg);
+		await recognizer.set_fsg(fsg);
 		post({id: clbId, data: 0, status: "done", command: "setGrammar"});
 	    }
 	    catch (e) {
@@ -129,10 +130,10 @@ function setGrammar(data, clbId) {
     } else post({status: "error", command: "setGrammar", code: "js-no-recognizer"});
 }
 
-function start() {
+async function start() {
     if (recognizer) {
 	try {
-	    recognizer.start();
+	    await recognizer.start();
 	}
 	catch (e) {
 	    post({status: "error", command: "start", code: e.message});
@@ -142,10 +143,10 @@ function start() {
     }
 }
 
-function stop() {
+async function stop() {
     if (recognizer) {
 	try {
-	    recognizer.stop();
+	    await recognizer.stop();
 	    let hyp = recognizer.get_hyp();
 	    let hypseg = recognizer.get_hypseg();
 	    post({hyp: hyp, hypseg: hypseg, final: true});
@@ -158,10 +159,10 @@ function stop() {
     }
 }
 
-function process(array) {
+async function process(array) {
     if (recognizer) {
 	try {
-	    var output = recognizer.process_raw(array);
+	    var output = await recognizer.process_raw(array);
 	    let hyp = recognizer.get_hyp();
 	    let hypseg = recognizer.get_hypseg();
 	    post({hyp: hyp, hypseg: hypseg});

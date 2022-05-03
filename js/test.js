@@ -1,5 +1,5 @@
 const assert = require('assert');
-const fs = require('fs');
+const fs = require('fs/promises');
 var ssjs;
 
 // Note that we could use NODERAWFS but the module would have to be
@@ -90,16 +90,17 @@ var modinit = {
 	});
     });
     describe("Test decoding", () => {
-	it('Should recognize "go forward ten meters"', () => {
+	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
 		hmm: "en-us",
 		dict: "en-us.dict",
 		fsg: "goforward.fsg"
 	    });
-	    let pcm = fs.readFileSync("../tests/data/goforward.raw");
-	    decoder.start();
-	    decoder.process_raw(pcm, false, true);
-	    decoder.stop();
+	    await decoder.initialize();
+	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    await decoder.start();
+	    await decoder.process_raw(pcm16, false, true);
+	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
 	    let hypseg_words = []
@@ -112,12 +113,27 @@ var modinit = {
 				    "(NULL)", "ten", "meters", "<sil>"]);
 	    decoder.delete();
 	});
+	it('Should accept Int16Array as well as UInt8Array', async () => {
+	    let decoder = new ssjs.Decoder({
+		hmm: "en-us",
+		dict: "en-us.dict",
+		fsg: "goforward.fsg"
+	    });
+	    await decoder.initialize();
+	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    let pcm16 = new Int16Array(pcm.buffer);
+	    await decoder.start();
+	    await decoder.process_raw(pcm16, false, true);
+	    await decoder.stop();
+	    assert.equal("go forward ten meters", decoder.get_hyp());
+	});
     });
     describe("Test dictionary and FSG", () => {
-	it('Should recognize "_go _forward _ten _meters"', () => {
+	it('Should recognize "_go _forward _ten _meters"', async () => {
 	    let decoder = new ssjs.Decoder({
 		hmm: "en-us"
 	    });
+	    await decoder.initialize();
 	    decoder.add_word("_go", "G OW", false);
 	    decoder.add_word("_forward", "F AO R W ER D", false);
 	    decoder.add_word("_ten", "T EH N", false);
@@ -128,12 +144,12 @@ var modinit = {
 		{from: 2, to: 3, prob: 1.0, word: "_ten"},
 		{from: 3, to: 4, prob: 1.0, word: "_meters"}
 	    ]);
-	    decoder.set_fsg(fsg);
+	    await decoder.set_fsg(fsg);
 	    fsg.delete() // has been retained by decoder
-	    let pcm = fs.readFileSync("../tests/data/goforward.raw");
-	    decoder.start();
-	    decoder.process_raw(pcm, false, true);
-	    decoder.stop();
+	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    await decoder.start();
+	    await decoder.process_raw(pcm, false, true);
+	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
 	    decoder.delete();
 	});
