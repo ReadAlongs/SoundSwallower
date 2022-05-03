@@ -127,24 +127,48 @@ Module.Decoder = class {
 	else
 	    this.config = new Module.Config(...arguments);
 	this.ps = Module._ps_init(0);
+	if (this.ps == 0)
+	    throw new Error("Failed to construct Decoder");
     }
 
     async initialize(config) {
+	if (this.ps == 0)
+	    throw new Error("Decoder was somehow not constructed (ps==0)");
+	async function init_config(ps, cmd_ln) {
+	    let rv = Module._ps_init_config(ps, cmd_ln);
+	    if (rv < 0)
+		throw new Error("Failed to initialize basic configuration");
+	}
+	async function init_cleanup(ps) {
+	    let rv = Module._ps_init_cleanup(ps);
+	    if (rv < 0)
+		throw new Error("Failed to clean up decoder internals");
+	}
+	async function init_acmod(ps) {
+	    let rv = Module._ps_init_acmod(ps);
+	    if (rv < 0)
+		throw new Error("Failed to initialize acoustic model");
+	}
+	async function init_dict(ps) {
+	    let rv = Module._ps_init_dict(ps);
+	    if (rv < 0)
+		throw new Error("Failed to initialize dictionaries");
+	}
+	async function init_grammar(ps) {
+	    let rv = Module._ps_init_grammar(ps);
+	    if (rv < 0)
+		throw new Error("Failed to initialize grammar");
+	}
 	if (config !== undefined) {
 	    if (this.config)
 		this.config.delete();
 	    this.config = config;
 	}
-	if (this.ps) {
-	    let rv = Module._ps_reinit(this.ps, this.config.cmd_ln);
-	    if (rv < 0)
-		throw new Error("Failed to initialize decoder");
-	}
-	else {
-	    this.ps = Module._ps_init(this.config.cmd_ln);
-	    if (this.ps == 0)
-		throw new Error("Failed to initialize decoder");
-	}
+	await init_config(this.ps, this.config.cmd_ln);
+	await init_cleanup(this.ps);
+	await init_acmod(this.ps);
+	await init_dict(this.ps);
+	await init_grammar(this.ps);
     }
 
     delete() {
