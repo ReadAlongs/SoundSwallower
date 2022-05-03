@@ -161,7 +161,7 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
         }
         loglevel = cmd_ln_str_r(ps->config, "-loglevel");
         if (loglevel) {
-            if (err_set_loglevel(loglevel) < 0) {
+            if (err_set_loglevel_str(loglevel) == NULL) {
                 E_ERROR("Invalid log level: %s\n", loglevel);
                 return -1;
             }
