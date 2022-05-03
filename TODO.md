@@ -10,7 +10,11 @@ Roadmap:
 	- Parameter normalization as in Python DONE
 	- Iteration over configuration DONE
   - Fix logging
-	- Add -loglevel option
+	- Add -loglevel option DONE
+  - NPM setup
+  - Write API tests DONE (in progress)
+  - Write API documentation
+	- Manually in Sphinx-RST? JSDoc?
   - Async API
 	- we may still want to run it in a worker but this will mean less work later
 	- ps_init is a factory function so let's make it one in the API
@@ -40,11 +44,6 @@ Roadmap:
 	- Load wave file into browser using readDataAsURL
 	- Enter text into a text field
 	- Click align - show times, words become clickable
-  - NPM setup
-  - Write API tests
-	- Using what framework? MochaJS?
-  - Write API documentation
-	- Manually in Sphinx-RST
 - 0.3: fix various Python APIs and remove code
   - Translate back from JavaScript into Cython/Python ;)
   - FSG construction API is quite bad (no error handling for invalid
