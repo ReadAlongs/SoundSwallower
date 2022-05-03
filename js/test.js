@@ -102,43 +102,14 @@ var modinit = {
 	    decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
-	    assert.deepStrictEqual(hypseg, [
-		{
-		    end: 0.45,
-		    start: 0,
-		    word: '<sil>'
-		},
-		{
-		    end: 0.62,
-		    start: 0.46,
-		    word: 'go'
-		},
-		{
-		    end: 1.16,
-		    start: 0.63,
-		    word: 'forward'
-		},
-		{
-		    end: 1.16,
-		    start: 1.16,
-		    word: '(NULL)'
-		},
-		{
-		    end: 1.53,
-		    start: 1.17,
-		    word: 'ten'
-		},
-		{
-		    end: 2.12,
-		    start: 1.54,
-		    word: 'meters'
-		},
-		{
-		    end: 2.77,
-		    start: 2.13,
-		    word: '<sil>'
-		}
-	    ]);
+	    let hypseg_words = []
+	    for (const seg of hypseg) {
+		assert.ok(seg.end >= seg.start);
+		hypseg_words.push(seg.word);
+	    }
+	    assert.deepStrictEqual(hypseg_words,
+				   ["<sil>", "go", "forward",
+				    "(NULL)", "ten", "meters", "<sil>"]);
 	    decoder.delete();
 	});
     });
