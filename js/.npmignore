@@ -1,0 +1,16 @@
+CMakeFiles
+CMakeCache.txt
+CMakeLists.txt
+DartConfiguration.tcl
+Testing/
+*.cmake
+Makefile
+*.a
+*.c
+*.h
+*~
+*.tgz
+*.tar.gz
+*.zip
+pre_soundswallower.js
+binary_sizes.txt
