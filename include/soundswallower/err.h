@@ -113,7 +113,7 @@ extern "C" {
 /**
  * Continue printing the information to standard error stream
  */
-#define E_INFOCONT(...)  err_msg(ERR_INFOCONT, NULL, 0, __VA_ARGS__)
+#define E_INFOCONT(...)  err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
 
 /**
  * Print logging information without filename.
@@ -123,7 +123,7 @@ extern "C" {
 /**
  * Debug is disabled by default
  */
-#ifdef SPHINX_DEBUG
+#ifdef DEBUG
 #define E_DEBUG(...) err_msg(ERR_DEBUG, NULL, 0, __VA_ARGS__)
 #else
 #define E_DEBUG(...)
@@ -132,23 +132,40 @@ extern "C" {
 typedef enum err_e {
     ERR_DEBUG,
     ERR_INFO,
-    ERR_INFOCONT,
     ERR_WARN,
     ERR_ERROR,
     ERR_FATAL,
     ERR_MAX
 } err_lvl_t;
 
-void
-err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
+void err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
 
-void
-err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
+void err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
 
-void
-err_logfp_cb(void * user_data, err_lvl_t level, const char *fmt, ...);
+void err_logfp_cb(void * user_data, err_lvl_t level, const char *fmt, ...);
 
 typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
+
+/**
+ * Set minimum logging level.
+ *
+ * @param lvl Level below which messages will not be logged (note
+ * ERR_DEBUG messages are not logged unless compiled in debugging
+ * mode)
+ * @return previous log level.
+ */
+int err_set_loglevel(err_lvl_t lvl);
+
+/**
+ * Set minimum logging levelfrom a string
+ *
+ * @param lvl Level below which messages will not be logged (note
+ * ERR_DEBUG messages are not logged unless compiled in debugging
+ * mode).  A string corresponding to the names in enum err_e, but
+ * without the leading "ERR_" prefix.
+ * @return previous log level string, or NULL for invalid argument.
+ */
+const char *err_set_loglevel_str(const char *lvl);
 
 /**
  * Sets function to output error messages. Use it to redirect the logging
@@ -158,16 +175,14 @@ typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
  * @param callback callback to pass messages too
  * @param user_data data to pass to callback
  */
-void
-err_set_callback(err_cb_f callback, void *user_data);
+void err_set_callback(err_cb_f callback, void *user_data);
 
 /**
  * Direct all logging to a given filehandle if default logfp callback is set.
  *
  * @param stream Filehandle to send log messages to, or NULL to disable logging.
  */
-void
-err_set_logfp(FILE *stream);
+void err_set_logfp(FILE *stream);
 
 /**
  * Get the current logging filehandle.
@@ -175,8 +190,7 @@ err_set_logfp(FILE *stream);
  * @return Current logging filehandle, NULL if logging is disabled. Initially
  * it returns stderr
  */
-FILE *
-err_get_logfp(void);
+FILE *err_get_logfp(void);
 
 /**
  * Append all log messages to a given file.
@@ -186,8 +200,7 @@ err_get_logfp(void);
  * @param path File path to send log messages to
  * @return 0 for success, <0 for failure (e.g. if file does not exist)
  */
-int
-err_set_logfile(const char *path);
+int err_set_logfile(const char *path);
 
 #ifdef __cplusplus
 }

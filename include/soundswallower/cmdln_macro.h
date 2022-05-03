@@ -62,6 +62,10 @@
             ARG_STRING,                                 \
             NULL,                                       \
             "File to write log messages in" },          \
+    { "-loglevel",                                       \
+            ARG_STRING,                                 \
+            NULL,                                       \
+            "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" },\
      { "-mfclogdir",                                    \
              ARG_STRING,                                \
              NULL,                                      \
@@ -179,7 +183,7 @@
 /** Command-line options for acoustic modeling */
 #define POCKETSPHINX_ACMOD_OPTIONS \
 { "-hmm",                                                                       \
-      REQARG_STRING,                                                            \
+      ARG_STRING,                                                               \
       NULL,                                                                     \
       "Directory containing acoustic model files."},                            \
 { "-featparams",                                                                \
