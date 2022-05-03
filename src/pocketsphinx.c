@@ -126,11 +126,6 @@ ps_expand_model_config(ps_decoder_t *ps)
             E_INFO("Parsed model-specific feature parameters from %s\n",
                     featparams);
     }
-
-    /* Print here because acmod_init might load feat.params file */
-    if (err_get_logfp() != NULL) {
-	cmd_ln_print_values_r(ps->config, err_get_logfp(), ps_args());
-    }
 }
 
 static void
@@ -155,10 +150,21 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 
     /* Set up logging. We need to do this earlier because we want to dump
      * the information to the configured log, not to the stderr. */
-    if (config && cmd_ln_str_r(ps->config, "-logfn")) {
-        if (err_set_logfile(cmd_ln_str_r(ps->config, "-logfn")) < 0) {
-            E_ERROR("Cannot redirect log output\n");
-    	    return -1;
+    if (config) {
+        const char *logfn, *loglevel;
+        logfn = cmd_ln_str_r(ps->config, "-logfn");
+        if (logfn) {
+            if (err_set_logfile(logfn) < 0) {
+                E_ERROR("Cannot redirect log output\n");
+                return -1;
+            }
+        }
+        loglevel = cmd_ln_str_r(ps->config, "-loglevel");
+        if (loglevel) {
+            if (err_set_loglevel(loglevel) < 0) {
+                E_ERROR("Invalid log level: %s\n", loglevel);
+                return -1;
+            }
         }
     }
     
