@@ -126,7 +126,7 @@ Module.Decoder = class {
 	    this.config = config;
 	else
 	    this.config = new Module.Config(...arguments);
-	this.ps = 0;
+	this.ps = Module._ps_init(0);
     }
 
     async initialize(config) {
@@ -135,12 +135,15 @@ Module.Decoder = class {
 		this.config.delete();
 	    this.config = config;
 	}
-	if (this.ps)
-	    this.ps = Module._ps_reinit(this.ps, this.config.cmd_ln);
-	else
+	if (this.ps) {
+	    let rv = Module._ps_reinit(this.ps, this.config.cmd_ln);
+	    if (rv < 0)
+		throw new Error("Failed to initialize decoder");
+	}
+	else {
 	    this.ps = Module._ps_init(this.config.cmd_ln);
-	if (this.ps == 0) {
-	    throw new Error("Failed to initialize decoder");
+	    if (this.ps == 0)
+		throw new Error("Failed to initialize decoder");
 	}
     }
 
