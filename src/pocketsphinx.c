@@ -181,6 +181,11 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
         ps->lmath = logmath_init
             ((float64)cmd_ln_float32_r(ps->config, "-logbase"), 0, TRUE);
     }
+
+    /* Initialize performance timer. */
+    ps->perf.name = "decode";
+    ptmr_init(&ps->perf);
+
     return 0;
 }
 
@@ -280,10 +285,6 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
     if (ps_init_grammar(ps) < 0)
         return -1;
     
-    /* Initialize performance timer. */
-    ps->perf.name = "decode";
-    ptmr_init(&ps->perf);
-
     return 0;
 }
 
