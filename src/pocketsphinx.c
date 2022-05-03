@@ -138,11 +138,8 @@ ps_free_searches(ps_decoder_t *ps)
 }
 
 EXPORT int
-ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
+ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
 {
-    const char *path;
-    int32 lw;
-
     if (config && config != ps->config) {
         cmd_ln_free_r(ps->config);
         ps->config = cmd_ln_retain(config);
@@ -175,6 +172,21 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
     /* Fill in some default arguments. */
     ps_expand_model_config(ps);
 
+    /* Logmath computation (used in acmod and search) */
+    if (ps->lmath == NULL
+        || (logmath_get_base(ps->lmath) !=
+            (float64)cmd_ln_float32_r(ps->config, "-logbase"))) {
+        if (ps->lmath)
+            logmath_free(ps->lmath);
+        ps->lmath = logmath_init
+            ((float64)cmd_ln_float32_r(ps->config, "-logbase"), 0, TRUE);
+    }
+    return 0;
+}
+
+EXPORT int
+ps_init_cleanup(ps_decoder_t *ps)
+{
     /* Free old searches (do this before other reinit) */
     ps_free_searches(ps);
 
@@ -190,28 +202,43 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
     dict2pid_free(ps->d2p);
     ps->d2p = NULL;
 
-    /* Logmath computation (used in acmod and search) */
-    if (ps->lmath == NULL
-        || (logmath_get_base(ps->lmath) !=
-            (float64)cmd_ln_float32_r(ps->config, "-logbase"))) {
-        if (ps->lmath)
-            logmath_free(ps->lmath);
-        ps->lmath = logmath_init
-            ((float64)cmd_ln_float32_r(ps->config, "-logbase"), 0,
-             cmd_ln_boolean_r(ps->config, "-bestpath"));
-    }
+    return 0;
+}
 
+EXPORT acmod_t *
+ps_init_acmod(ps_decoder_t *ps)
+{
+    if (ps->config == NULL)
+        return NULL;
+    if (ps->lmath == NULL)
+        return NULL;
     /* Acoustic model (this is basically everything that
      * uttproc.c, senscr.c, and others used to do) */
-    if ((ps->acmod = acmod_init(ps->config, ps->lmath, NULL, NULL)) == NULL)
-        return -1;
+    ps->acmod = acmod_init(ps->config, ps->lmath, NULL, NULL);
+    return ps->acmod;
+}
 
+EXPORT dict_t *
+ps_init_dict(ps_decoder_t *ps)
+{
+    if (ps->config == NULL)
+        return NULL;
+    if (ps->acmod == NULL)
+        return NULL;
     /* Dictionary and triphone mappings (depends on acmod). */
     /* FIXME: pass config, change arguments, implement LTS, etc. */
     if ((ps->dict = dict_init(ps->config, ps->acmod->mdef)) == NULL)
-        return -1;
+        return NULL;
     if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
-        return -1;
+        return NULL;
+    return ps->dict;
+}
+
+EXPORT int
+ps_init_grammar(ps_decoder_t *ps)
+{
+    const char *path;
+    int32 lw;
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
@@ -232,7 +259,27 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
         if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
             return -1;
     }
+    return  0;
+}
 
+EXPORT int
+ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
+{
+    if (ps_init_config(ps, config) < 0)
+        return -1;
+
+    if (ps_init_cleanup(ps) < 0)
+        return -1;
+
+    if (ps_init_acmod(ps) == NULL)
+        return -1;
+
+    if (ps_init_dict(ps) == NULL)
+        return -1;
+    
+    if (ps_init_grammar(ps) < 0)
+        return -1;
+    
     /* Initialize performance timer. */
     ps->perf.name = "decode";
     ptmr_init(&ps->perf);
