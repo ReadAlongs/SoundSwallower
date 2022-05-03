@@ -64,7 +64,7 @@
             "File to write log messages in" },          \
     { "-loglevel",                                       \
             ARG_STRING,                                 \
-            NULL,                                       \
+            "WARN",                                       \
             "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" },\
      { "-mfclogdir",                                    \
              ARG_STRING,                                \
@@ -168,7 +168,7 @@
 /** Command-line options for dictionaries. */
 #define POCKETSPHINX_DICT_OPTIONS \
     { "-dict",							\
-      REQARG_STRING,						\
+      ARG_STRING,						\
       NULL,							\
       "Main pronunciation dictionary (lexicon) input file" },	\
     { "-fdict",							\
@@ -183,7 +183,7 @@
 /** Command-line options for acoustic modeling */
 #define POCKETSPHINX_ACMOD_OPTIONS \
 { "-hmm",                                                                       \
-      ARG_STRING,                                                               \
+      REQARG_STRING,                                                            \
       NULL,                                                                     \
       "Directory containing acoustic model files."},                            \
 { "-featparams",                                                                \
