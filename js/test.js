@@ -94,7 +94,9 @@ var modinit = {
 	    let decoder = new ssjs.Decoder({
 		hmm: "en-us",
 		dict: "en-us.dict",
-		fsg: "goforward.fsg"
+		fsg: "goforward.fsg",
+		loglevel: "INFO",
+		backtrace: true
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward.raw");
