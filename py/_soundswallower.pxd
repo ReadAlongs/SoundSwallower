@@ -42,10 +42,14 @@ cdef extern from "soundswallower/hash_table.h":
 
 
 cdef extern from "soundswallower/cmd_ln.h":
+    ctypedef struct arg_t:
+        const char *name
+        int type
+        const char *deflt
+        const char *doc
     ctypedef struct cmd_ln_t:
         hash_table_t *ht
-    ctypedef struct arg_t:
-        pass
+        const arg_t *defn
     cdef enum:
         ARG_REQUIRED,
         ARG_INTEGER,
@@ -65,6 +69,7 @@ cdef extern from "soundswallower/cmd_ln.h":
     int cmd_ln_free_r(cmd_ln_t *cmdln)
 
     double cmd_ln_float_r(cmd_ln_t *cmdln, const char *name)
+    int cmd_ln_type_r(cmd_ln_t *cmdln, const char *name)
     long cmd_ln_int_r(cmd_ln_t *cmdln, const char *name)
     const char *cmd_ln_str_r(cmd_ln_t *cmdln, const char *name)
     void cmd_ln_set_str_r(cmd_ln_t *cmdln, const char *name, const char *str)

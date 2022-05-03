@@ -6,9 +6,9 @@ align text to audio.  Most of the functionality is contained in the
 `Decoder` class.  Basic usage::
 
   from soundswallower import Decoder, get_model_path
-  decoder = soundswallower.Decoder(hmm=get_model_path("en-us"),
-                                   dict=get_model_path("en-us.dict"),
-                                   jsgf="some_grammar_file.gram")
+  decoder = Decoder(hmm=get_model_path("en-us"),
+                    dict=get_model_path("en-us.dict"),
+                    jsgf="some_grammar_file.gram")
   hyp, seg = decoder.decode_file("example.wav")
   print("Recognized text:", hyp)
   for word, start, end in seg:
@@ -16,6 +16,7 @@ align text to audio.  Most of the functionality is contained in the
 
 """
 import wave
+import collections
 import os
 
 from ._soundswallower import Config
@@ -63,3 +64,12 @@ def get_audio_data(input_file):
     except wave.Error:
         with open(input_file, "rb") as rawfile:
             return rawfile.read(), None
+
+
+Arg = collections.namedtuple("Arg", ["name", "default", "doc", "type", "required"])
+Arg.__doc__ = "Description of a configuration parameter."
+Arg.name.__doc__ = "Parameter name (without leading dash)."
+Arg.default.__doc__ = "Default value of parameter."
+Arg.doc.__doc__ = "Description of parameter."
+Arg.type.__doc__ = "Type (as a Python type object) of parameter value."
+Arg.required.__doc__ = "Is this parameter required?"

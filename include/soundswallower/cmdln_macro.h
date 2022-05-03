@@ -179,7 +179,7 @@
 /** Command-line options for acoustic modeling */
 #define POCKETSPHINX_ACMOD_OPTIONS \
 { "-hmm",                                                                       \
-      ARG_STRING,                                                               \
+      REQARG_STRING,                                                            \
       NULL,                                                                     \
       "Directory containing acoustic model files."},                            \
 { "-featparams",                                                                \

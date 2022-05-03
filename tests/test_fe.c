@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include <soundswallower/fe.h>
+#include <soundswallower/err.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
 
@@ -35,7 +36,7 @@ main(int argc, char *argv[])
     TEST_EQUAL(frame_shift, DEFAULT_FRAME_SHIFT);
     TEST_EQUAL(frame_size, (int)(DEFAULT_WINDOW_LENGTH*DEFAULT_SAMPLING_RATE));
 
-    TEST_ASSERT(raw = fopen(TESTDATADIR "/chan3.raw", "rb"));
+    TEST_ASSERT(raw = fopen(TESTDATADIR "/goforward.raw", "rb"));
 
     TEST_EQUAL(0, fe_start_utt(fe));
     TEST_EQUAL(1024, fread(buf, sizeof(int16), 1024, raw));
@@ -49,68 +50,76 @@ main(int argc, char *argv[])
     inptr = &buf[0];
     nfr = 1;
 
-    printf("frame_size %d frame_shift %d\n", frame_size, frame_shift);
-    /* Process the first frame. */
+    /* Process the data, one frame at a time. */
+    E_INFO("Testing one frame at a time (1024 samples)\n");
+    E_INFO("frame_size %d frame_shift %d\n", frame_size, frame_shift);
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, &cepbuf1[0], &nfr) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, nfr);
-    /* First frame assumed to be unvoiced to init noise reduction */
-    TEST_EQUAL(nfr, 0);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, nfr);
+    TEST_EQUAL(nfr, 1);
+    TEST_EQUAL(inptr - buf, frame_size + frame_shift);
 
-    /* Note that this next one won't actually consume any frames
-     * of input, because it already got sufficient overflow
-     * samples last time around.  This is implementation-dependent
-     * so we shouldn't actually test for it. 
-     * First 1024 samples of chan3.raw is silence, nfr is expected to stay 0 */
     nfr = 1;
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, &cepbuf1[1], &nfr) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, nfr);
+    TEST_EQUAL(nfr, 1);
+    TEST_EQUAL(inptr - buf, frame_size + 2 * frame_shift);
     
     nfr = 1;
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, &cepbuf1[2], &nfr) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, nfr);
+    TEST_EQUAL(nfr, 1);
+    TEST_EQUAL(inptr - buf, frame_size + 3 * frame_shift);
 
+    /* Should consume all the input at this point. */
     nfr = 1;
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, &cepbuf1[3], &nfr) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, nfr);
+    TEST_EQUAL(nfr, 1);
+    TEST_EQUAL(inptr - buf, 1024);
+    TEST_EQUAL(nsamp, 0);
 
-    nfr = 1;
+    /* Should get a frame here due to overflow samples. */
     TEST_ASSERT(fe_end_utt(fe, cepbuf1[4], &nfr) >= 0);
-    printf("nfr %d\n", nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("fe_end_utt nfr %d\n", nfr);
+    TEST_EQUAL(nfr, 1);
 
-    /* What we *should* test is that the output we get by
-     * processing one frame at a time is exactly the same as what
-     * we get from doing them all at once.  So let's do that */
+    /* Test that the output we get by processing one frame at a time
+     * is exactly the same as what we get from doing them all at once. */
+    E_INFO("Testing all data at once (1024 samples)\n");
     cepbuf2 = ckd_calloc_2d(5, DEFAULT_NUM_CEPSTRA, sizeof(**cepbuf2));
     inptr = &buf[0];
     nfr = 5;
     nsamp = 1024;
     TEST_EQUAL(0, fe_start_utt(fe));
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cepbuf2, &nfr) >= 0);
-    /* First 1024 samples of chan3.raw is silence, nfr is expected to stay 0 */
-    printf("nfr %d\n", nfr);
-    TEST_EQUAL(nfr, 0);
-    nfr = 1;
+    E_INFO("fe_process_frames consumed nfr %d frames\n", nfr);
+    TEST_EQUAL(nfr, 4);
+    TEST_EQUAL(inptr - buf, 1024);
+    TEST_EQUAL(nsamp, 0);
+    /* And again, should get a frame here due to overflow samples. */
     TEST_ASSERT(fe_end_utt(fe, cepbuf2[4], &nfr) >= 0);
-    printf("nfr %d\n", nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("fe_end_utt nfr %d\n", nfr);
+    TEST_EQUAL(nfr, 1);
 
-    /* output features stored in cepbuf[4] by fe_end_utt 
-     * should be the same */
-    printf("%d: ", 4);
-    for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
-        printf("%.2f,%.2f ",
-               MFCC2FLOAT(cepbuf1[4][i]),
-               MFCC2FLOAT(cepbuf2[4][i]));
-        TEST_EQUAL_FLOAT(cepbuf1[4][i], cepbuf2[4][i]);
+    /* output features stored in cepbuf should be the same */
+    for (nfr = 0; nfr < 5; ++nfr) {
+      E_INFO("%d: ", nfr);
+      for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
+        E_INFOCONT("%.2f,%.2f ",
+		   MFCC2FLOAT(cepbuf1[nfr][i]),
+		   MFCC2FLOAT(cepbuf2[nfr][i]));
+        TEST_EQUAL_FLOAT(cepbuf1[nfr][i], cepbuf2[nfr][i]);
+      }
+      E_INFOCONT("\n");
     }
-    printf("\n");
-
+    
     /* Now, also test to make sure that even if we feed data in
      * little tiny bits we can still make things work. */
+    E_INFO("Testing inputs smaller than one frame (256 samples)\n");
     memset(cepbuf2[0], 0, 5 * DEFAULT_NUM_CEPSTRA * sizeof(**cepbuf2));
     inptr = &buf[0];
     cptr = &cepbuf2[0];
@@ -118,93 +127,101 @@ main(int argc, char *argv[])
     i = 5;
     nsamp = 256;
     TEST_EQUAL(0, fe_start_utt(fe));
+    /* Process up to 5 frames (that will not happen) */
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cptr, &i) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, i);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, i);
+    cptr += i;
+    /* Process up to however many frames are left to make 5 */
+    nfr -= i;
+    i = nfr;
+    nsamp = 256;
+    TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cptr, &i) >= 0);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, i);
     cptr += i;
     nfr -= i;
     i = nfr;
     nsamp = 256;
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cptr, &i) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, i);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, i);
     cptr += i;
     nfr -= i;
     i = nfr;
     nsamp = 256;
     TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cptr, &i) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, i);
+    E_INFO("updated inptr %ld remaining nsamp %ld processed nfr %d\n",
+	   inptr - buf, nsamp, i);
     cptr += i;
     nfr -= i;
-    i = nfr;
-    nsamp = 256;
-    TEST_ASSERT(fe_process_frames(fe, &inptr, &nsamp, cptr, &i) >= 0);
-    printf("inptr %ld nsamp %ld nfr %d\n", inptr - buf, nsamp, i);
-    cptr += i;
-    nfr -= i;
-    printf("nfr %d\n", nfr);
-    TEST_EQUAL(nfr, 5);
-    /* inptr contains unvoiced audio, 
-     * no out feature frames will be produced */
+    E_INFO("nfr %d\n", nfr);
+    /* We processed 1024 bytes, which should give us 4 frames */
+    TEST_EQUAL(nfr, 1);
     TEST_ASSERT(fe_end_utt(fe, *cptr, &nfr) >= 0);
-    printf("nfr %d\n", nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("nfr %d\n", nfr);
+    TEST_EQUAL(nfr, 1);
 
-    /* fe_process_frames overwrites features if frame is unvoiced, 
-     * so for cepbuf2 last frame is at 0 and previous are lost */
-    printf("%d: ", 4);
-    for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
-        printf("%.2f,%.2f ",
-               MFCC2FLOAT(cepbuf1[4][i]),
-               MFCC2FLOAT(cepbuf2[0][i]));
-        TEST_EQUAL_FLOAT(cepbuf1[4][i], cepbuf2[0][i]);
+    /* output features stored in cepbuf should be the same */
+    for (nfr = 0; nfr < 5; ++nfr) {
+      E_INFO("%d: ", nfr);
+      for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
+        E_INFOCONT("%.2f,%.2f ",
+		   MFCC2FLOAT(cepbuf1[nfr][i]),
+		   MFCC2FLOAT(cepbuf2[nfr][i]));
+        TEST_EQUAL_FLOAT(cepbuf1[nfr][i], cepbuf2[nfr][i]);
+      }
+      E_INFOCONT("\n");
     }
-    printf("\n");
 
     /* And now, finally, test fe_process_utt() */
+    E_INFO("Test fe_process_utt (apparently, it is deprecated)\n");
     inptr = &buf[0];
     i = 0;
     TEST_EQUAL(0, fe_start_utt(fe));
     TEST_ASSERT(fe_process_utt(fe, inptr, 256, &cptr, &nfr) >= 0);
-    printf("i %d nfr %d\n", i, nfr);
+    E_INFO("i %d nfr %d\n", i, nfr);
     if (nfr)
         memcpy(cepbuf2[i], cptr[0], nfr * DEFAULT_NUM_CEPSTRA * sizeof(**cptr));
     ckd_free_2d(cptr);
     i += nfr;
     inptr += 256;
     TEST_ASSERT(fe_process_utt(fe, inptr, 256, &cptr, &nfr) >= 0);
-    printf("i %d nfr %d\n", i, nfr);
+    E_INFO("i %d nfr %d\n", i, nfr);
     if (nfr)
         memcpy(cepbuf2[i], cptr[0], nfr * DEFAULT_NUM_CEPSTRA * sizeof(**cptr));
     ckd_free_2d(cptr);
     i += nfr;
     inptr += 256;
     TEST_ASSERT(fe_process_utt(fe, inptr, 256, &cptr, &nfr) >= 0);
-    printf("i %d nfr %d\n", i, nfr);
+    E_INFO("i %d nfr %d\n", i, nfr);
     if (nfr)
         memcpy(cepbuf2[i], cptr[0], nfr * DEFAULT_NUM_CEPSTRA * sizeof(**cptr));
     ckd_free_2d(cptr);
     i += nfr;
     inptr += 256;
     TEST_ASSERT(fe_process_utt(fe, inptr, 256, &cptr, &nfr) >= 0);
-    printf("i %d nfr %d\n", i, nfr);
+    E_INFO("i %d nfr %d\n", i, nfr);
     if (nfr)
         memcpy(cepbuf2[i], cptr[0], nfr * DEFAULT_NUM_CEPSTRA * sizeof(**cptr));
     ckd_free_2d(cptr);
     i += nfr;
     inptr += 256;
     TEST_ASSERT(fe_end_utt(fe, cepbuf2[i], &nfr) >= 0);
-    printf("i %d nfr %d\n", i, nfr);
-    TEST_EQUAL(nfr, 0);
+    E_INFO("i %d nfr %d\n", i, nfr);
+    TEST_EQUAL(nfr, 1);
 
-    /* fe_process_utt overwrites features if frame is unvoiced, 
-     * so for cepbuf2 last frame is at 0 and previous are lost */
-    printf("%d: ", 4);
-    for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
-        printf("%.2f,%.2f ",
-               MFCC2FLOAT(cepbuf1[4][i]),
-               MFCC2FLOAT(cepbuf2[0][i]));
-        TEST_EQUAL_FLOAT(cepbuf1[4][i], cepbuf2[0][i]);
+    /* output features stored in cepbuf should be the same */
+    for (nfr = 0; nfr < 5; ++nfr) {
+      E_INFO("%d: ", nfr);
+      for (i = 0; i < DEFAULT_NUM_CEPSTRA; ++i) {
+        E_INFOCONT("%.2f,%.2f ",
+		   MFCC2FLOAT(cepbuf1[nfr][i]),
+		   MFCC2FLOAT(cepbuf2[nfr][i]));
+        TEST_EQUAL_FLOAT(cepbuf1[nfr][i], cepbuf2[nfr][i]);
+      }
+      E_INFOCONT("\n");
     }
-    printf("\n");
 
     ckd_free_2d(cepbuf1);
     ckd_free_2d(cepbuf2);

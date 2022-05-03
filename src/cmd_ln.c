@@ -487,6 +487,7 @@ cmd_ln_parse_r(cmd_ln_t *inout_cmdln, const arg_t * defn,
     }
     else
         cmdln = inout_cmdln;
+    cmdln->defn = defn;
 
     /* Build a hash table for argument definitions */
     defidx = hash_table_new(50, 0);

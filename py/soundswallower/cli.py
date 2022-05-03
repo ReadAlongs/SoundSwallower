@@ -36,6 +36,8 @@ def make_argparse():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("inputs", nargs="*", help="Input files.")
+    parser.add_argument("--help-config", action="store_true",
+                        help="Print help for decoder configuration parameters.")
     parser.add_argument("--dict", help="Custom dictionary file.")
     parser.add_argument("--model",
                         help="Specific model, built-in or from directory.",
@@ -53,6 +55,19 @@ def make_argparse():
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     parser.add_argument_group(grammars)
     return parser
+
+
+def print_config_help():
+    """Describe the decoder configuration parameters."""
+    config = Decoder.default_config()
+    print("Configuration parameters:")
+    for defn in config.describe():
+        print("\t%s (%s%s%s):\n\t\t%s"
+              % (defn.name,
+                 defn.type.__name__,
+                 ", required" if defn.required else "",
+                 (", default: %s" % defn.default) if defn.default else "",
+                 defn.doc))
 
 
 def make_decoder_config(args):
@@ -111,6 +126,9 @@ def main(argv=None):
     logging.basicConfig(level=logging.INFO)
     parser = make_argparse()
     args = parser.parse_args(argv)
+    if args.help_config:
+        print_config_help()
+        sys.exit(0)
     config = make_decoder_config(args)
     if args.write_config is not None:
         write_config(config, args.write_config)

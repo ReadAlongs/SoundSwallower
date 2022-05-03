@@ -4,6 +4,7 @@ set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 # https://github.com/emscripten-core/emscripten/issues/6233 (and see
 # also
 # https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#binding-libraries)
+
 target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
