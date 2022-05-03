@@ -9,6 +9,8 @@ Roadmap:
   - Implement configuration from JSON/Object DONE
 	- Parameter normalization as in Python DONE
 	- Iteration over configuration DONE
+  - Fix logging
+	- Add -loglevel option
   - Async API
 	- we may still want to run it in a worker but this will mean less work later
 	- ps_init is a factory function so let's make it one in the API
