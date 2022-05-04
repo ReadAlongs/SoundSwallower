@@ -129,17 +129,16 @@
 
       // This initializes the recognizer. When it calls back, we add words
       var initRecognizer = function() {
-          // You can pass parameters to the recognizer, such as : {command: 'initialize', data: [["-hmm", "my_model"], ["-fwdflat", "no"]]}
           postRecognizerJob({command: 'initialize',
-			     data: [["-hmm", "en-us"],
-				    ["-dict","en-us.dict"]]},
+			     data: {hmm: "en-us",
+				    dict: "en-us.dict"}},
 			    function() {
 				feedWords(wordList);
 			    });
       };
 
-      // When the page is loaded, we spawn a new recognizer worker and call getUserMedia to
-      // request access to the microphone
+      // When the page is loaded, we spawn a new recognizer worker and
+      // call getUserMedia to request access to the microphone
       window.onload = function() {
           outputContainer = document.getElementById("output");
           updateStatus("Initializing web audio and speech recognizer, waiting for approval to access the microphone");
@@ -166,19 +165,8 @@
                   }
               };
               // Once the worker is fully loaded, we can call the initialize function
-              postRecognizerJob({command: 'lazyLoad',
-				 data: {folders: [["/", "en-us"]],
-					files: [
-                                            ["/", "en-us.dict", "../model/en-us.dict"],
-					    ["/en-us", "feat.params", "../model/en-us/feat.params"],
-					    ["/en-us", "mdef", "../model/en-us/mdef"],
-					    ["/en-us", "means", "../model/en-us/means"],
-					    ["/en-us", "noisedict", "../model/en-us/noisedict"],
-					    ["/en-us", "sendump", "../model/en-us/sendump"],
-					    ["/en-us", "transition_matrices", "../model/en-us/transition_matrices"],
-					    ["/en-us", "variances", "../model/en-us/variances"]
-					]}
-				}, initRecognizer);
+              postRecognizerJob({command: 'lazyLoadModel',
+				 data: "en-us"}, initRecognizer);
           });
 
 	  try {
