@@ -33,45 +33,39 @@ fulfilled with the actual module once the WASM code is fully loaded:
 This isn't wonderful, so it will probably change soon.
 
 Once you figure out how to get the module, you can try to initialize
-the recognizer and recognize some speech.  This requires, at a
-minimum, an acoustic model and a dictionary, which (FIXME!) will be
-included in this package as soon as I learn how to use NPM.  For the
-moment, you can either copy or link it to a checked-out copy of the
-GitHub repository, or export it like this:
+the recognizer and recognize some speech.  SoundSwallower is built
+with the "MEMFS" file system emulation, so you have to load these into
+Emscripten's virtual filesystem in order to access them.  This is done
+by calling the methods `FS_createPath` and either `FS_createLazyFile`
+or `FS_createPreloadedFile` on the module object with all of the
+directories and files you wish to access.
 
-	svn export https://github.com/ReadAlongs/SoundSwallower/trunk/model
+So, let's start over again.  Under Node.js, the model directory can be
+found using `require("soundswallower/model")`.  Then you have to
+preload them, which you can do by pre-populating the module object
+with a `preRun()` method before passing it to
+`require("soundswallower")`.  The exact incantation required, which
+will soon be automated for you, is:
 
-Now you have a `model` directory containing `en-us` (the acoustic
-model) and `en-us.dict` (the dictionary).  But... SoundSwallower is
-built with the "MEMFS" file system emulation, so you have to load
-these into Emscripten's virtual filesystem in order to access them.
-So, let's start over again.  On the Web, you have the option to
-"lazy-load" these from an URL, example coming soon.  Under Node.js,
-you have to preload them, which you can do by passing an object with a
-`preRun()` method when requiring.  The exact incantation required is:
+```js
+const ssjs = {
+    preRun() {
+        const model_dir = require('soundswallower/model');
+        ssjs.FS_createPath("/", "en-us", true, true);
 
-    const modinit = {
-        preRun() {
-    	modinit.FS_createPath("/", "en-us", true, true);
-    	modinit.FS_createPreloadedFile("/", "en-us.dict", "model/en-us.dict",
-    				      true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "transition_matrices",
-    				      "model/en-us/transition_matrices", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "feat.params",
-    				      "model/en-us/feat.params", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "mdef",
-    				      "model/en-us/mdef", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "means",
-    				      "model/en-us/means", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "noisedict",
-    				      "model/en-us/noisedict", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "sendump",
-    				      "model/en-us/sendump", true, true);
-    	modinit.FS_createPreloadedFile("/en-us", "variances",
-    				      "model/en-us/variances", true, true);
+        ssjs.FS_createPreloadedFile("/", "en-us.dict",
+                           model_dir + "/en-us.dict",
+                           true, true);
+        for (name of ["transition_matrices", "feat.params", "mdef",
+                  "means", "noisedict", "sendump", "variances"]) {
+            ssjs.FS_createPreloadedFile("/en-us", name,
+                           model_dir + "/en-us/" + name,
+                           true, true);
         }
-    };
-    const ssjs = await require('soundswallower')(modinit);
+    }
+};
+await require('soundswallower')(ssjs);
+```
 
 All this will become much easier soon!  I promise!  This promise will
 not be rejected!
@@ -81,27 +75,30 @@ state of the recognizer is an async function.  So everything except
 getting the current recognition result.  We follow the
 construct-then-initialize pattern:
 
-    let decoder = new ssjs.Decoder({
-		hmm: "en-us",
-		dict: "en-us.dict",
-		loglevel: "INFO",
-		backtrace: true
-    });
-    await decoder.initialize();
+```js
+let decoder = new ssjs.Decoder({
+    hmm: "en-us",
+    dict: "en-us.dict",
+    loglevel: "INFO",
+    backtrace: true
+});
+await decoder.initialize();
+```
 
 The `loglevel` and `backtrace` options will make it a bit more
 verbose, so you can be sure it's actually doing something.  Now we
 will create the world's stupidest grammar, which recognizes one
 sentence:
 
-    let fsg = decoder.create_fsg("goforward", 0, 4, [
-		{from: 0, to: 1, prob: 1.0, word: "go"},
-		{from: 1, to: 2, prob: 1.0, word: "forward"},
-		{from: 2, to: 3, prob: 1.0, word: "ten"},
-		{from: 3, to: 4, prob: 1.0, word: "meters"}
-    ]);
-    await decoder.set_fsg(fsg);
-    fsg.delete();
+```js
+let fsg = decoder.create_fsg("goforward", 0, 4, [
+    {from: 0, to: 1, prob: 1.0, word: "go"},
+    {from: 1, to: 2, prob: 1.0, word: "forward"},
+    {from: 2, to: 3, prob: 1.0, word: "ten"},
+    {from: 3, to: 4, prob: 1.0, word: "meters"}
+]);
+await decoder.set_fsg(fsg);
+```
 
 You should `delete()` it, unless of course you intend to create a
 bunch of them and swap them in and out.  It is also possible to parse
@@ -113,21 +110,27 @@ PCM audio
 file](https://github.com/ReadAlongs/SoundSwallower/raw/master/tests/data/goforward.raw)
 or record your own.  Now you can load it and recognize it with:
 
-    let pcm = await fs.readFile("goforward.raw");
-    await decoder.start();
-    await decoder.process_raw(pcm, false, true);
-    await decoder.stop();
+```js
+let pcm = await fs.readFile("goforward.raw");
+await decoder.start();
+await decoder.process_raw(pcm, false, true);
+await decoder.stop();
+```
 
 The results can be obtained with `get_hyp()` or in a more detailed
 format with time alignments using `get_hypseg()`.  These are not
 asynchronous methods, as they do not change the state of the decoder:
 
-    console.log(decoder.get_hyp());
+```js
+console.log(decoder.get_hyp());
+```
 
 Finally, if your program is long-running and you think you might make
 multiple recognizers, you ought to delete them, because JavaScript is
 awful:
 
-    decoder.delete();
+```js
+decoder.delete();
+```
 
 That's all for now!  A more user-friendly package is coming soon!
