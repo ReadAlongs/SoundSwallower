@@ -121,10 +121,12 @@ await decoder.stop();
 
 The results can be obtained with `get_hyp()` or in a more detailed
 format with time alignments using `get_hypseg()`.  These are not
-asynchronous methods, as they do not change the state of the decoder:
+asynchronous methods, as they do not depend on or change the state of
+the decoder:
 
 ```js
 console.log(decoder.get_hyp());
+console.log(decoder.get_hypseg());
 ```
 
 Finally, if your program is long-running and you think you might make
