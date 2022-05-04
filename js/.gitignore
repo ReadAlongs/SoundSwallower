@@ -6,3 +6,5 @@ model
 config.h
 Makefile
 Testing
+soundswallower.js
+soundswallower.wasm
