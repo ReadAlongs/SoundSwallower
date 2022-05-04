@@ -28,7 +28,9 @@ Emscripten, meaning that you must require it as a CommonJS or Node.js
 module, which returns a function that returns a promise that is
 fulfilled with the actual module once the WASM code is fully loaded:
 
-    const ssjs = await require('soundswallower')();
+```js
+const ssjs = await require('soundswallower')();
+```
 
 This isn't wonderful, so it will probably change soon.
 

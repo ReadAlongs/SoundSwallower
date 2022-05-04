@@ -7,6 +7,16 @@ const ARG_FLOATING = (1 << 2);
 const ARG_STRING = (1 << 3);
 const ARG_BOOLEAN = (1 << 4);
 
+// Monkey-patch the Browser so MEMFS works on Node.js and the Web
+// (see https://github.com/emscripten-core/emscripten/issues/16742)
+if (typeof(Browser) === 'undefined') {
+    Browser = {
+        handledByPreloadPlugin() {
+            return false;
+        }
+    }
+}
+
 Module.Config = class {
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);

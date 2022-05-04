@@ -1,34 +1,27 @@
 const assert = require('assert');
 const fs = require('fs/promises');
-var ssjs;
 
-// Note that we could use NODERAWFS but the module would have to be
-// recompiled for the browser.  So, we monkey-patch this so that
-// preloading files will work (see
-// https://github.com/emscripten-core/emscripten/issues/16742).  Note
-// also that we cannot use lazy loading as it corrupts binary files
-// (see https://github.com/emscripten-core/emscripten/issues/16740)
-Browser = {
-    handledByPreloadPlugin() {
-	return false;
-    }
-};
-// Emscripten will use this as the Module object inside ssjs.
-// Unfortunately preRun() is not called as a method, so we have to bind
-// the object to a name here in order to access the Emscripten runtime.
-var modinit = {
+/* Emscripten will use this as the Module object inside ssjs.
+   Unfortunately preRun() is not called as a method, so we bind
+   the name `ssjs` here already. */
+const ssjs = {
     preRun() {
+	/* Note that we could use NODERAWFS but the module would have
+	   to be recompiled for the browser.  Note also that we cannot
+	   use lazy loading as it corrupts binary files (see
+	   https://github.com/emscripten-core/emscripten/issues/16740) */
+	// FIXME: should require "soundswallower/model"
 	const model_dir = require('./model');
-	modinit.FS_createPath("/", "en-us", true, true);
+	ssjs.FS_createPath("/", "en-us", true, true);
 
-	modinit.FS_createPreloadedFile("/", "en-us.dict",
+	ssjs.FS_createPreloadedFile("/", "en-us.dict",
 				       model_dir + "/en-us.dict",
 				       true, true);
-	modinit.FS_createPreloadedFile("/", "goforward.fsg",
+	ssjs.FS_createPreloadedFile("/", "goforward.fsg",
 				      "../tests/data/goforward.fsg", true, true);
 	for (name of ["transition_matrices", "feat.params", "mdef",
 		      "means", "noisedict", "sendump", "variances"]) {
-	    modinit.FS_createPreloadedFile("/en-us", name,
+	    ssjs.FS_createPreloadedFile("/en-us", name,
 					   model_dir + "/en-us/" + name,
 					   true, true);
 	}
@@ -37,7 +30,8 @@ var modinit = {
 
 (async () => {
     before(async () => {
-	ssjs = await require('./soundswallower.js')(modinit);
+	// FIXME: should require "soundswallower"
+	await require('./soundswallower.js')(ssjs);
     });
     describe("Test initialization", () => {
 	it("Should load the WASM module", () => {
