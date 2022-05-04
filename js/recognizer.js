@@ -66,10 +66,13 @@ function lazyLoadModel(data, clbId) {
 	[dest_model_dir, "feat.params", src_model_dir + "/feat.params"],
 	[dest_model_dir, "mdef", src_model_dir + "/mdef"],
 	[dest_model_dir, "means", src_model_dir + "/means"],
-	[dest_model_dir, "noisedict", src_model_dir + "/noisedict"],
-	[dest_model_dir, "sendump", src_model_dir + "/sendump"],
 	[dest_model_dir, "transition_matrices", src_model_dir + "/transition_matrices"],
-	[dest_model_dir, "variances", src_model_dir + "/variances"]
+	[dest_model_dir, "variances", src_model_dir + "/variances"],
+	// may or may not exist
+	[dest_model_dir, "noisedict", src_model_dir + "/noisedict"],
+	// only one of these will actually be present and get loaded
+	[dest_model_dir, "sendump", src_model_dir + "/sendump"],
+	[dest_model_dir, "mixture_weights", src_model_dir + "/mixture_weights"]
     ];
     const preloadFiles = () => {
 	for (const folder of folders)
