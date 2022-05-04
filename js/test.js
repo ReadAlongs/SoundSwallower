@@ -18,31 +18,26 @@ Browser = {
 // the object to a name here in order to access the Emscripten runtime.
 var modinit = {
     preRun() {
+	const model_dir = require('./model');
 	modinit.FS_createPath("/", "en-us", true, true);
-	modinit.FS_createPreloadedFile("/", "en-us.dict", "../model/en-us.dict",
-				      true, true);
+
+	modinit.FS_createPreloadedFile("/", "en-us.dict",
+				       model_dir + "/en-us.dict",
+				       true, true);
 	modinit.FS_createPreloadedFile("/", "goforward.fsg",
 				      "../tests/data/goforward.fsg", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "transition_matrices",
-				      "../model/en-us/transition_matrices", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "feat.params",
-				      "../model/en-us/feat.params", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "mdef",
-				      "../model/en-us/mdef", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "means",
-				      "../model/en-us/means", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "noisedict",
-				      "../model/en-us/noisedict", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "sendump",
-				      "../model/en-us/sendump", true, true);
-	modinit.FS_createPreloadedFile("/en-us", "variances",
-				      "../model/en-us/variances", true, true);
+	for (name of ["transition_matrices", "feat.params", "mdef",
+		      "means", "noisedict", "sendump", "variances"]) {
+	    modinit.FS_createPreloadedFile("/en-us", name,
+					   model_dir + "/en-us/" + name,
+					   true, true);
+	}
     }
 };
 
 (async () => {
     before(async () => {
-	ssjs = await require('./js/soundswallower.js')(modinit);
+	ssjs = await require('./soundswallower.js')(modinit);
     });
     describe("Test initialization", () => {
 	it("Should load the WASM module", () => {
@@ -140,14 +135,14 @@ var modinit = {
 	    decoder.add_word("_forward", "F AO R W ER D", false);
 	    decoder.add_word("_ten", "T EH N", false);
 	    decoder.add_word("_meters", "M IY T ER Z", true);
-	    fsg = decoder.create_fsg("goforward", 0, 4, [
+	    let fsg = decoder.create_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 1.0, word: "_go"},
 		{from: 1, to: 2, prob: 1.0, word: "_forward"},
 		{from: 2, to: 3, prob: 1.0, word: "_ten"},
 		{from: 3, to: 4, prob: 1.0, word: "_meters"}
 	    ]);
 	    await decoder.set_fsg(fsg);
-	    fsg.delete() // has been retained by decoder
+	    fsg.delete(); // has been retained by decoder
 	    let pcm = await fs.readFile("../tests/data/goforward.raw");
 	    await decoder.start();
 	    await decoder.process_raw(pcm, false, true);
