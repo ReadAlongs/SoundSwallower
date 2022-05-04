@@ -8,7 +8,7 @@ SoundSwallower: an even smaller speech recognizer
 SoundSwallower is a refactored version of PocketSphinx intended for
 embedding in web applications.  The goal is not to provide a fast
 implementation of large-vocabulary continuous speech recognition, but
-rather to provide a *small*, *asynchronous*, implementation of simple,
+rather to provide a *small*, *asynchronous* implementation of simple,
 useful speech technologies.
 
 With that in mind the current version is limited to finite-state
@@ -19,9 +19,9 @@ Basic Usage
 
 The entire package is contained within a module compiled by
 Emscripten.  The NPM package includes only the compiled code, but you
-can rebuild it yourself using
-[https://github.com/ReadAlongs/SoundSwallower](the full source code
-from GitHub) which also includes C and Python implementations.
+can rebuild it yourself using [the full source code from
+GitHub](https://github.com/ReadAlongs/SoundSwallower) which also
+includes C and Python implementations.
 
 It follows the usual, somewhat idiosyncratic conventions of
 Emscripten, meaning that you must require it as a CommonJS or Node.js
@@ -105,15 +105,15 @@ sentence:
 
 You should `delete()` it, unless of course you intend to create a
 bunch of them and swap them in and out.  It is also possible to parse
-a grammar in [https://en.wikipedia.org/wiki/JSGF](JSGF) format,
+a grammar in [JSGF](https://en.wikipedia.org/wiki/JSGF) format,
 documentation coming soon.
 
-Okay, let's wreck a nice beach!  Grab
-[https://github.com/ReadAlongs/SoundSwallower/raw/master/tests/data/goforward.raw](this
-16kHz, 16-bit signed raw PCM audio file) or record your own.  Now you
-can load it and recognize it with:
+Okay, let's wreck a nice beach!  Grab [this 16kHz, 16-bit signed raw
+PCM audio
+file](https://github.com/ReadAlongs/SoundSwallower/raw/master/tests/data/goforward.raw)
+or record your own.  Now you can load it and recognize it with:
 
-    let pcm = await fs.readFile("../soundswallower/tests/data/goforward.raw");
+    let pcm = await fs.readFile("goforward.raw");
     await decoder.start();
     await decoder.process_raw(pcm, false, true);
     await decoder.stop();
