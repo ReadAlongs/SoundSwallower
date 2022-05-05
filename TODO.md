@@ -1,3 +1,9 @@
+Miscellaneous things to try:
+
+- Running G2P under Pyodide
+- Calling SoundSwallower-JS from Pyodide
+- Running ReadAlong-Studio under Pyodide
+
 Roadmap:
 
 - 0.2: new JavaScript API
