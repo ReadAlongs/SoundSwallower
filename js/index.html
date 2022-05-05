@@ -21,6 +21,36 @@
     <div id="current-status">Loading page</div>
 
     <script>
+      // Extra dictionary words
+      var wordList = [
+	  ["san_francisco", "S AE N F R AE N S IH S K OW"],
+	  ["new_york", "N UW Y AO R K"],
+	  // This salsa's made in...
+	  ["new_york_city", "N UW Y AO R K S IH T IY"]
+      ];
+      // This grammar recognizes digits
+      var grammarDigits = {
+	  numStates: 1, start: 0, end: 0,
+	  transitions: [{from: 0, to: 0, word: "one"},
+			{from: 0, to: 0, word: "two"},
+			{from: 0, to: 0, word: "three"},
+			{from: 0, to: 0, word: "four"},
+			{from: 0, to: 0, word: "five"},
+			{from: 0, to: 0, word: "six"},
+			{from: 0, to: 0, word: "seven"},
+			{from: 0, to: 0, word: "eight"},
+			{from: 0, to: 0, word: "nine"},
+			{from: 0, to: 0, word: "zero"}]};
+      // This grammar recognizes a few cities names
+      var grammarCities = {numStates: 1, start: 0, end: 0,
+			   transitions: [{from: 0, to: 0, word: "new_york"},
+					 {from: 0, to: 0, word: "new_york_city"},
+					 {from: 0, to: 0, word: "paris"},
+					 {from: 0, to: 0, word: "shanghai"},
+					 {from: 0, to: 0, word: "san_francisco"},
+					 {from: 0, to: 0, word: "london"},
+					 {from: 0, to: 0, word: "berlin"}]};
+      var grammars = {"Digits": grammarDigits, "Cities": grammarCities};
       // These will be initialized later
       var recognizer, recorder, callbackManager, outputContainer, audioContext;
       // Only when both recorder and recognizer do we have a ready application
@@ -189,36 +219,6 @@
 	  stopBtn.onclick = stopRecording;
       };
 
-      // Extra dictionary words
-      var wordList = [
-	  ["san_francisco", "S AE N F R AE N S IH S K OW"],
-	  ["new_york", "N UW Y AO R K"],
-	  // This salsa's made in...
-	  ["new_york_city", "N UW Y AO R K S IH T IY"]
-      ];
-      // This grammar recognizes digits
-      var grammarDigits = {
-	  numStates: 1, start: 0, end: 0,
-	  transitions: [{from: 0, to: 0, word: "one"},
-			{from: 0, to: 0, word: "two"},
-			{from: 0, to: 0, word: "three"},
-			{from: 0, to: 0, word: "four"},
-			{from: 0, to: 0, word: "five"},
-			{from: 0, to: 0, word: "six"},
-			{from: 0, to: 0, word: "seven"},
-			{from: 0, to: 0, word: "eight"},
-			{from: 0, to: 0, word: "nine"},
-			{from: 0, to: 0, word: "zero"}]};
-      // This grammar recognizes a few cities names
-      var grammarCities = {numStates: 1, start: 0, end: 0,
-			   transitions: [{from: 0, to: 0, word: "new_york"},
-					 {from: 0, to: 0, word: "new_york_city"},
-					 {from: 0, to: 0, word: "paris"},
-					 {from: 0, to: 0, word: "shanghai"},
-					 {from: 0, to: 0, word: "san_francisco"},
-					 {from: 0, to: 0, word: "london"},
-					 {from: 0, to: 0, word: "berlin"}]};
-      var grammars = {"Digits": grammarDigits, "Cities": grammarCities};
     </script>
     <!-- These are the two JavaScript files you must load in the HTML,
 	 The recognizer is loaded through a Web Worker -->

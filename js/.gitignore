@@ -8,3 +8,4 @@ Makefile
 Testing
 soundswallower.js
 soundswallower.wasm
+*.wasm.map

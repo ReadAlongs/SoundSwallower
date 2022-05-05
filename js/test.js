@@ -100,7 +100,7 @@ const ssjs = {
 		hypseg_words.push(seg.word);
 	    }
 	    assert.deepStrictEqual(hypseg_words,
-				   ["<sil>", "go", "forward",
+				   ["<sil>", "<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters", "<sil>"]);
 	    decoder.delete();
 	});
