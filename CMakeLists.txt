@@ -18,8 +18,8 @@ CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 
-option(WITH_PTM_MGAU "Enable special phonetically-tied mixture code" ON)
-option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" OFF)
+option(WITH_PTM_MGAU "Enable special phonetically-tied mixture code" OFF)
+option(WITH_S2_SEMI_MGAU "Enable special semi-continuous GMM code" ON)
 # Testing endianness is stupidly hard with CMake
 if(EMSCRIPTEN)
   # FIXME: and doesn't work at all with emscripten, maybe it's just
