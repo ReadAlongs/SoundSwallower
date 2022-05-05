@@ -21,7 +21,7 @@ class TestDecoder(unittest.TestCase):
             for seg in decoder.seg():
                 if seg.word != "(NULL)":
                     words.append(seg.word)
-            self.assertEqual(words, "<sil> go forward ten meters <sil>".split())
+            self.assertEqual(words, "<sil> <sil> go forward ten meters <sil>".split())
 
     def test_from_scratch(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
