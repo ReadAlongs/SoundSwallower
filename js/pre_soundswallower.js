@@ -297,3 +297,30 @@ Module.Decoder = class {
 	}
     }
 };
+
+Module.load_model = function(model_name, preload=false) {
+    const dest_model_dir = "/" + model_name;
+    const src_model_dir = "model/" + model_name;
+    const folders = [["/", model_name]];
+    const files = [
+        ["/", model_name + ".dict", src_model_dir + ".dict"],
+	[dest_model_dir, "feat.params", src_model_dir + "/feat.params"],
+	[dest_model_dir, "mdef", src_model_dir + "/mdef"],
+	[dest_model_dir, "means", src_model_dir + "/means"],
+	[dest_model_dir, "transition_matrices", src_model_dir + "/transition_matrices"],
+	[dest_model_dir, "variances", src_model_dir + "/variances"],
+	// may or may not exist
+	[dest_model_dir, "noisedict", src_model_dir + "/noisedict"],
+	// only one of these will actually be present and get loaded
+	[dest_model_dir, "sendump", src_model_dir + "/sendump"],
+	[dest_model_dir, "mixture_weights", src_model_dir + "/mixture_weights"]
+    ];
+    for (const folder of folders)
+	Module.FS_createPath(folder[0], folder[1], true, true);
+    for (const file of files) {
+	if (preload)
+	    Module.FS_createPreloadedFile(file[0], file[1], file[2], true, true);
+	else
+	    Module.FS_createLazyFile(file[0], file[1], file[2], true, true);
+    }
+};

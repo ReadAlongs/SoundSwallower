@@ -6,16 +6,18 @@
 // After loading emscripten module, the instance will be stored here.
 var ssjs;
 
-function startup(onMessage) {
-    this.onmessage = async (event) => {
-	importScripts("soundswallower.js");
-	ssjs = await Module();
-        this.onmessage = onMessage;
-        this.postMessage({});
-    };
+// Jump into async-landia... see you in a bit!
+startup(onMessage);
+
+async function startup(onMessage) {
+    importScripts("soundswallower.js");
+    ssjs = await Module();
+    this.onmessage = onMessage;
+    // Signal to the main thread that we are ready.
+    this.postMessage({});
 }
 
-startup(async (event) => {
+async function onMessage(event) {
     switch(event.data.command){
     case 'initialize':
 	await initialize(event.data.data, event.data.callbackId);
@@ -39,7 +41,7 @@ startup(async (event) => {
 	await process(event.data.data);
 	break;
     }
-});
+}
 
 // Make a shortcut for this.postMessage
 var mySelf = this;
@@ -57,36 +59,13 @@ async function initialize(data, clbId) {
 }
 
 function lazyLoadModel(data, clbId) {
-    const model_name = data;
-    const dest_model_dir = "/" + model_name;
-    const src_model_dir = "model/" + model_name;
-    const folders = [["/", model_name]];
-    const files = [
-        ["/", model_name + ".dict", src_model_dir + ".dict"],
-	[dest_model_dir, "feat.params", src_model_dir + "/feat.params"],
-	[dest_model_dir, "mdef", src_model_dir + "/mdef"],
-	[dest_model_dir, "means", src_model_dir + "/means"],
-	[dest_model_dir, "transition_matrices", src_model_dir + "/transition_matrices"],
-	[dest_model_dir, "variances", src_model_dir + "/variances"],
-	// may or may not exist
-	[dest_model_dir, "noisedict", src_model_dir + "/noisedict"],
-	// only one of these will actually be present and get loaded
-	[dest_model_dir, "sendump", src_model_dir + "/sendump"],
-	[dest_model_dir, "mixture_weights", src_model_dir + "/mixture_weights"]
-    ];
-    const preloadFiles = () => {
-	for (const folder of folders)
-	    ssjs.FS_createPath(folder[0], folder[1], true, true);
-	for (const file of files)
-	    ssjs.FS_createLazyFile(file[0], file[1], file[2], true, true);
-    };
-    if (ssjs['calledRun']) {
-	preloadFiles();
-    } else {
-	if (!ssjs['preRun']) ssjs['preRun'] = [];
-	ssjs["preRun"].push(preloadFiles); // FS is not initialized yet, wait for it
+    try {
+	ssjs.load_model(data);
+	post({status: "done", command: "lazyLoadModel", id: clbId});
     }
-    post({status: "done", command: "lazyLoadModel", id: clbId});
+    catch (e) {
+	post({status: "error", command: "lazyLoadModel", code: e.message});
+    }
 }
 
 function addWords(data, clbId) {
