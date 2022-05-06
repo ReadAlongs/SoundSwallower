@@ -24,28 +24,14 @@ Roadmap:
   - Async API
 	- we may still want to run it in a worker but this will mean less work later
 	- ps_init is a factory function so let's make it one in the API
-	- note we can use async iterators to decompose some things
-	- decompose ps_reinit into chain of promises
-	  - config -> lmath -> acmod -> dict -> d2p
-	  - all of these are async
+	- decompose ps_reinit into chain of promises DONE
 	  - some are long-running and need to be decomposed further
 		- acmod in particular:
 		  - fe -> feat -> mdef -> {tmat, mean, var} -> mgau
-	- which methods will be async?
-	  - only the ones that do something async or have async dependencies
-	  - things that change decoder state also should be async
-	  - so start/stop should be async even though they do nothing heavy
-		- actually stop might do a lot of stuff if no_search=true
-	  - get_hyp and friends, obviously not
-	  - add_word, probably not
-		- but loading/creating a whole dictionary, obviously yes
-		- actually just need to fix this API
-		- make it add_words, which always updates, and is async
-	  - create_fsg, probably not?
-		- but reading/parsing jsgf or fsg, probably yes
-		- again, things that change decoder state...
-		- see above about async iterators
-	  - set_fsg, definitely yes
+	  - note we can use async iterators to decompose some things
+  - Modernize PSJS example
+	- Have to still use web workers because of lazy loading (synchronous XHRs)
+	- Keep recognizer.js for the time being, then
   - Very simple alignment example
 	- Load wave file into browser using readDataAsURL
 	- Enter text into a text field
