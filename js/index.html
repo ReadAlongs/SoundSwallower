@@ -113,7 +113,7 @@
 
       // This starts recording. We first need to get the grammar to use
       var startRecording = function() {
-	  audioContext.resume()
+	  audioContext.resume();
           if (recorder && recorder.start()) displayRecording(true);
       };
 
@@ -150,7 +150,6 @@
 	  // Load the first grammar
 	  selectTag.onchange();
       };
-
       // This adds words to the recognizer. When it calls back, we are ready
       var feedWords = function(words) {
            postRecognizerJob({command: 'addWords', data: words},
