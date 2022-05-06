@@ -19,9 +19,9 @@ class TestDecoder(unittest.TestCase):
             self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
             words = []
             for seg in decoder.seg():
-                if seg.word != "(NULL)":
+                if seg.word not in ("<sil>", "(NULL)"):
                     words.append(seg.word)
-            self.assertEqual(words, "<sil> <sil> go forward ten meters <sil>".split())
+            self.assertEqual(words, "go forward ten meters".split())
 
     def test_from_scratch(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
@@ -71,7 +71,7 @@ class TestDecoder(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_loglevel(self):
-        Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="INFO");
+        Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="FATAL");
         with self.assertRaises(RuntimeError):
             Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
                     loglevel="FOOBIEBLETCH");

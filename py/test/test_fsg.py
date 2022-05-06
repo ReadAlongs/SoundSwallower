@@ -35,9 +35,9 @@ class TestDecodeFSG(unittest.TestCase):
             self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
             words = []
             for seg in decoder.seg():
-                if seg.word != "(NULL)":
+                if seg.word not in ("<sil>", "(NULL)"):
                     words.append(seg.word)
-            self.assertEqual(words, "<sil> go forward ten meters <sil>".split())
+            self.assertEqual(words, "go forward ten meters".split())
 
     def test_fsg_loading(self):
         config = Decoder.default_config()
