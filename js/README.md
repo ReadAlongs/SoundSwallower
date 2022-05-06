@@ -14,6 +14,63 @@ useful speech technologies.
 With that in mind the current version is limited to finite-state
 grammar recognition.
 
+Installation
+------------
+
+SoundSwallower can be installed in your NPM project:
+
+	# From the Internets
+	npm install soundswallower
+	
+You can also build and install it from source, provided you have
+Emscripten and CMake installed:
+
+	# From soundswallower/js
+	npm run build:dev
+	# From your project's directory
+	cd /path/to/my/project
+	npm link /path/to/soundswallower/js
+
+For use in Node.js, no other particular action is required on your
+part, though currently you will have to pre-load any model files you
+want to use, as described below.
+
+Because Webpack is blissfully unaware of all things
+Emscripten-related, you will need a number of extra incantations in
+your `webpack.config.js` if you want to include SoundSwallower in an
+application that uses it, and there seems to be [no way around this
+problem](https://github.com/webpack/webpack/issues/7352).  You will
+need to add this to the top of your `webpack.config.js`:
+
+```js
+const CopyPlugin = require("copy-webpack-plugin");
+const modelDir = require("soundswallower/model");
+```
+
+Then to the `plugins` section in `config` or `module.exports`
+(depending on how your config is structured):
+
+```js
+new CopyPlugin({
+    patterns: [
+		{ from: "node_modules/soundswallower/soundswallower.wasm*",
+		  to: "[name][ext]"},
+	{ from: modelDir,
+	   to: "model"},
+   ],
+}),
+```
+
+And finally to the `resolve` section:
+
+```js
+fallback: {
+	crypto: false,
+	fs: false,
+	path: false,
+},
+```
+
 Basic Usage
 -----------
 
@@ -46,31 +103,25 @@ So, let's start over again.  Under Node.js, the model directory can be
 found using `require("soundswallower/model")`.  Then you have to
 preload them, which you can do by pre-populating the module object
 with a `preRun()` method before passing it to
-`require("soundswallower")`.  The exact incantation required, which
-will soon be automated for you, is:
+`require("soundswallower")`.  The exact incantation required is:
 
 ```js
 const ssjs = {
     preRun() {
-        const model_dir = require('soundswallower/model');
-        ssjs.FS_createPath("/", "en-us", true, true);
-
-        ssjs.FS_createPreloadedFile("/", "en-us.dict",
-                           model_dir + "/en-us.dict",
-                           true, true);
-        for (name of ["transition_matrices", "feat.params", "mdef",
-                  "means", "noisedict", "sendump", "variances"]) {
-            ssjs.FS_createPreloadedFile("/en-us", name,
-                           model_dir + "/en-us/" + name,
-                           true, true);
-        }
+		ssjs.load_model("en-us", true);
     }
 };
 await require('soundswallower')(ssjs);
 ```
 
-All this will become much easier soon!  I promise!  This promise will
-not be rejected!
+On the Web, you can load a model at any time you like (the `false`
+here means it is not pre-loaded) *but* you can *only do this* from
+*within a Web Worker*.  In the near future models will get loaded with
+asynchronous JavaScript and this will cease to be a problem.
+
+```js
+ssjs.load_model("en-us", false);
+```
 
 Great, so let's initialize the recognizer.  Anything that changes the
 state of the recognizer is an async function.  So everything except
