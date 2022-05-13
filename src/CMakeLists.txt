@@ -44,21 +44,15 @@ set(SOURCES
   profile.c
   ps_lattice.c
   ps_mllr.c
+  ptm_mgau.c
+  s2_semi_mgau.c
   strfuncs.c
   tmat.c
   vector.c
   yin.c
   )
 
-if(WITH_PTM_MGAU)
-  set(PTM_SOURCES ptm_mgau.c)
-endif()
-
-if(WITH_S2_SEMI_MGAU)
-  set(S2_SEMI_SOURCES s2_semi_mgau.c)
-endif()
-
-add_library(soundswallower ${SOURCES} ${PTM_SOURCES} ${S2_SEMI_SOURCES})
+add_library(soundswallower ${SOURCES})
 set_property(TARGET soundswallower PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
   soundswallower PRIVATE ${CMAKE_BINARY_DIR} # for config.h
