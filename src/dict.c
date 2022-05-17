@@ -256,7 +256,7 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
     char const *dictfile = NULL, *fillerfile = NULL;
 
     if (config) {
-        dictfile = cmd_ln_str_r(config, "-dict");
+        dictfile = cmd_ln_str_r(config, "_dict");
         fillerfile = cmd_ln_str_r(config, "_fdict");
     }
 

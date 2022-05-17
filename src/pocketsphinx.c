@@ -118,6 +118,7 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
+    ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
 
     /* Look for feat.params in acoustic model dir. */
     if ((featparams = cmd_ln_str_r(ps->config, "_featparams"))) {
@@ -172,6 +173,9 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
     /* Fill in some default arguments. */
     ps_expand_model_config(ps);
 
+    /* Print out the config for logging. */
+    cmd_ln_log_values_r(ps->config, ps_args());
+    
     /* Logmath computation (used in acmod and search) */
     if (ps->lmath == NULL
         || (logmath_get_base(ps->lmath) !=
