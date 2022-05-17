@@ -7,21 +7,63 @@ const ARG_FLOATING = (1 << 2);
 const ARG_STRING = (1 << 3);
 const ARG_BOOLEAN = (1 << 4);
 
+const DEFAULT_MODEL = 'en-us';
+
+// User can specify a default model, or none at all
+if (typeof(Module.defaultModel) === 'undefined') {
+    Module.defaultModel = DEFAULT_MODEL;
+}
+
+// We may add to preRun so make it a list if it isn't one
+if (Module.preRun) {
+    if (typeof Module.preRun == 'function')
+	Module.preRun = [Module.preRun];
+}
+else {
+    Module.preRun = [];
+}
+
 // Monkey-patch the Browser so MEMFS works on Node.js and the Web
 // (see https://github.com/emscripten-core/emscripten/issues/16742)
 if (typeof(Browser) === 'undefined') {
+    const model_path = require("./model/index.js");
     Browser = {
         handledByPreloadPlugin() {
             return false;
         }
     }
+    // And pre-load the default model (if there is one)
+    if (Module.defaultModel != null) {
+	Module.preRun.push(function() {
+	    Module.load_model(Module.defaultModel,
+			      model_path + "/" + Module.defaultModel, true);
+	});
+    }
 }
+else {
+    // Lazy load the default model
+    if (Module.defaultModel !== null) {
+	Module.preRun.push(function() {
+	    Module.load_model(Module.defaultModel,
+			      Module.defaultModel, false);
+	});
+    }
+}
+
 
 Module.Config = class {
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
-	if (dict == undefined)
-	    return;
+	if (typeof(dict) === 'undefined') {
+	    if (Module.defaultModel !== null)
+		dict = { hmm: Module.defaultModel };
+	    else
+		return;
+	}
+	else if (Module.defaultModel !== null) {
+	    if (!("hmm" in dict))
+		dict.hmm = Module.defaultModel;
+	}
 	for (const key in dict) {
 	    this.set(key, dict[key]);
 	}
@@ -298,23 +340,44 @@ Module.Decoder = class {
     }
 };
 
-Module.load_model = function(model_name, preload=false) {
+Module.load_model = function(model_name, model_path, preload=false, dict_path=null) {
     const dest_model_dir = "/" + model_name;
-    const src_model_dir = "model/" + model_name;
     const folders = [["/", model_name]];
     const files = [
-        ["/", model_name + ".dict", src_model_dir + ".dict"],
-	[dest_model_dir, "feat.params", src_model_dir + "/feat.params"],
-	[dest_model_dir, "mdef", src_model_dir + "/mdef"],
-	[dest_model_dir, "means", src_model_dir + "/means"],
-	[dest_model_dir, "transition_matrices", src_model_dir + "/transition_matrices"],
-	[dest_model_dir, "variances", src_model_dir + "/variances"],
-	// may or may not exist
-	[dest_model_dir, "noisedict", src_model_dir + "/noisedict"],
-	// only one of these will actually be present and get loaded
-	[dest_model_dir, "sendump", src_model_dir + "/sendump"],
-	[dest_model_dir, "mixture_weights", src_model_dir + "/mixture_weights"]
+	[dest_model_dir, "feat.params", model_path + "/feat.params"],
+	[dest_model_dir, "mdef", model_path + "/mdef"],
+	[dest_model_dir, "means", model_path + "/means"],
+	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
+	[dest_model_dir, "variances", model_path + "/variances"],
+	[dest_model_dir, "noisedict", model_path + "/noisedict"],
     ];
+    if (preload) {
+	/* FIXME: This only works under Node.js, and it isn't correct
+	   as there is a race condition, but we are unable to catch
+	   errors from Emscripten's broken preloading code, so we
+	   have to do it this way @#$!@#$ */
+	const fs = require('fs');
+	const path = require('path');
+	const sendump_path = path.join(model_path, "sendump");
+	const mixw_path = path.join(model_path, "mixture_weights");
+	if (fs.statSync(sendump_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "sendump", sendump_path]);
+	if (fs.statSync(mixw_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "mixture_weights", mixw_path]);
+    }
+    else {
+	// only one of these will actually be present and get loaded,
+	// we can do this because of lazy loading.
+	files.push(
+	    [dest_model_dir, "sendump", model_path + "/sendump"],
+	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
+    }
+    if (dict_path !== null) {
+	files.push([dest_model_dir, "dict.txt", dict_path]);
+    }
+    else {
+	files.push([dest_model_dir, "dict.txt", model_path + "/dict.txt"]);
+    }
     for (const folder of folders)
 	Module.FS_createPath(folder[0], folder[1], true, true);
     for (const file of files) {
