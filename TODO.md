@@ -19,7 +19,7 @@ Code to rethink or eliminate:
 Roadmap:
 
 - 0.2: new JavaScript API
-  - Bring back arg_dump for INFO level logging
+  - Bring back arg_dump for INFO level logging DONE
   - Floating-point input to front-end
   - AudioWorklet implementation
   - Write API tests (in progress)
@@ -27,8 +27,8 @@ Roadmap:
 	- Use JSDoc and Sphinx-JS https://pypi.org/project/sphinx-js/
 	- Should be able to use this.foo = function() not Module.foo?
 	- sinon just assign to Module afterwards
-  - Dealing with models
-	- `load_module(module_name,module_url)`
+  - Dealing with models DONE
+	- not ideal on the Web, but it works
 
 - 0.3: fix various Python APIs and remove code
   - Translate back from JavaScript into Cython/Python ;)
