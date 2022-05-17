@@ -22,7 +22,6 @@ set(TESTS
   test_hash_iter.c
   test_heap.c
   test_jsgf.c
-  test_keyphrase.c
   test_lineiter.c
   test_listelem_alloc.c
   test_log_int16.c

@@ -25,7 +25,7 @@ main(int argc, char *argv[])
 	char buf[100];
 
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us.dict",
+						   "-dict", MODELDIR "/en-us/dict.txt",
 						   "_fdict", MODELDIR "/en-us/noisedict",
 						   NULL));
 
@@ -39,7 +39,7 @@ main(int argc, char *argv[])
 	       dict_wordid(dict, "ASDFASFASSD"));
 
 	TEST_EQUAL(0, dict_write(dict, "_cmu07a.dic", NULL));
-	fh_orig = fopen(MODELDIR "/en-us.dict", "r");
+	fh_orig = fopen(MODELDIR "/en-us/dict.txt", "r");
 	TEST_ASSERT(fh_orig != NULL);
 	fh = fopen("_cmu07a.dic", "r");
 	TEST_ASSERT(fh != NULL);

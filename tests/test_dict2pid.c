@@ -19,7 +19,7 @@ main(int argc, char *argv[])
 	cmd_ln_t *config;
 
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us.dict",
+						   "-dict", MODELDIR "/en-us/dict.txt",
 						   "_fdict", MODELDIR "/en-us/noisedict",
 						   NULL));
 	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
