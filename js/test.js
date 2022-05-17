@@ -1,36 +1,17 @@
 const assert = require('assert');
 const fs = require('fs/promises');
-
-/* Emscripten will use this as the Module object inside ssjs.
-   Unfortunately preRun() is not called as a method, so we bind
-   the name `ssjs` here already. */
 const ssjs = {
+    // Pre-load the grammar we use below
     preRun() {
-	/* Note that we could use NODERAWFS but the module would have
-	   to be recompiled for the browser.  Note also that we cannot
-	   use lazy loading as it corrupts binary files (see
-	   https://github.com/emscripten-core/emscripten/issues/16740) */
-	// FIXME: should require "soundswallower/model"
-	const model_dir = require('./model');
-	ssjs.FS_createPath("/", "en-us", true, true);
-
-	ssjs.FS_createPreloadedFile("/", "en-us.dict",
-				       model_dir + "/en-us.dict",
-				       true, true);
 	ssjs.FS_createPreloadedFile("/", "goforward.fsg",
-				      "../tests/data/goforward.fsg", true, true);
-	for (name of ["transition_matrices", "feat.params", "mdef",
-		      "means", "noisedict", "sendump", "variances"]) {
-	    ssjs.FS_createPreloadedFile("/en-us", name,
-					   model_dir + "/en-us/" + name,
-					   true, true);
-	}
+				    "../tests/data/goforward.fsg", true, true);
     }
 };
 
 (async () => {
     before(async () => {
-	// FIXME: should require "soundswallower"
+	// FIXME: should require "soundswallower" but we can't do that
+	// because NPM is badly broken by design
 	await require('./soundswallower.js')(ssjs);
     });
     describe("Test initialization", () => {
@@ -39,15 +20,25 @@ const ssjs = {
 	});
     });
     describe("Test get/set API", () => {
-	it("Should return en-us", () => {
+	it("Should return en-us.dict after setting", () => {
 	    let conf = new ssjs.Config();
-	    conf.set("-hmm", "en-us");
-	    assert.equal("en-us", conf.get("-hmm"));
+	    conf.set("-dict", "en-us.dict");
+	    assert.equal("en-us.dict", conf.get("-dict"));
 	});
-	it("Should contain -hmm", () => {
+	it("Should contain -dict after setting", () => {
 	    let conf = new ssjs.Config();
-	    conf.set("-hmm", "en-us");
+	    conf.set("-dict", "en-us.dict");
+	    assert.ok(conf.has('-dict'));
+	});
+	it("Should contain default -hmm", () => {
+	    let conf = new ssjs.Config();
 	    assert.ok(conf.has('-hmm'));
+	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
+	});
+	it("Should contain default -hmm when initialized", () => {
+	    let conf = new ssjs.Config({dict: "en-us.dict"});
+	    assert.ok(conf.has('-hmm'));
+	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
 	});
 	it("Unset string key should have null value", () => {
 	    let conf = new ssjs.Config();
@@ -81,8 +72,6 @@ const ssjs = {
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		hmm: "en-us",
-		dict: "en-us.dict",
 		fsg: "goforward.fsg",
 		loglevel: "INFO",
 		backtrace: true
@@ -106,8 +95,6 @@ const ssjs = {
 	});
 	it('Should accept Int16Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
-		hmm: "en-us",
-		dict: "en-us.dict",
 		fsg: "goforward.fsg"
 	    });
 	    await decoder.initialize();
@@ -121,9 +108,7 @@ const ssjs = {
     });
     describe("Test dictionary and FSG", () => {
 	it('Should recognize "_go _forward _ten _meters"', async () => {
-	    let decoder = new ssjs.Decoder({
-		hmm: "en-us"
-	    });
+	    let decoder = new ssjs.Decoder();
 	    await decoder.initialize();
 	    decoder.add_word("_go", "G OW", false);
 	    decoder.add_word("_forward", "F AO R W ER D", false);
