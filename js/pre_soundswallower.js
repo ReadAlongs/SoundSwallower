@@ -52,8 +52,24 @@ else if (typeof(Browser) === 'undefined') {
     }
 }
 
-
+/**
+ * Configuration object for SoundSwallower recognizer.
+ *
+ * There is a fixed set of configuration values, which can be iterated
+ * over using the iterator property.  Many have default values.
+ */
 class Config {
+    /**
+     * Create a configuration object.
+     * @param {Object} [dict] - Initial configuration parameters and
+     * values.  Some of the more common are noted below, the full list
+     * can be found at
+     * {@link https://soundswallower.readthedocs.io/en/latest/config_params.html}
+     * @param {string} [dict.hmm=Module.defaultModel] - Name of
+     * acoustic model, previously loaded using {@link load_model}.
+     * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
+     * @param {number} [dict.samprate=16000] - Sampling rate of input.
+     */
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
 	if (typeof(dict) === 'undefined') {
@@ -70,6 +86,9 @@ class Config {
 	    this.set(key, dict[key]);
 	}
     }
+    /**
+     * Free Emscripten memory associated with this {@link Config}.
+     */
     delete() {
 	if (this.cmd_ln)
 	    Module._cmd_ln_free_r(this.cmd_ln);
@@ -109,6 +128,12 @@ class Config {
 	    return key.substr(1);
 	return key;
     }
+    /**
+     * Set a configuration parameter.
+     * @param {string} key - Parameter name.
+     * @param {number|string} val - Parameter value.
+     * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
+     */
     set(key, val) {
 	let ckey = allocateUTF8OnStack(this.normalize_key(key));
 	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
@@ -130,6 +155,12 @@ class Config {
 	}
 	return true;
     }
+    /**
+     * Get a configuration parameter's value.
+     * @param {string} key - Parameter name.
+     * @returns {number|string} Parameter value.
+     * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
+     */
     get(key) {
 	let ckey = allocateUTF8OnStack(this.normalize_key(key));
 	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
@@ -155,6 +186,10 @@ class Config {
 	    throw new TypeError("Unsupported type "+type+" for parameter"+key);
 	}
     }
+    /**
+     * Test if a key is a known parameter.
+     * @param {string} key - Key whose existence to check.
+     */
     has(key) {
 	let ckey = allocateUTF8OnStack(key);
 	return Module._cmd_ln_exists_r(this.cmd_ln, ckey);
@@ -174,7 +209,19 @@ class Config {
     }
 };
 
+/**
+ * Speech recognizer object.
+ */
 class Decoder {
+    /**
+     * Create the decoder.
+     *
+     * This can be called with a previously created {@link Config}
+     * object, or with an Object containing configuration keys and
+     * values from which a {@link Config} will be created.
+     *
+     * @param {Object|Config} [config] - Configuration parameters.
+     */
     constructor(config) {
 	if (config && typeof(config) == 'object' && 'cmd_ln' in config)
 	    this.config = config;
@@ -184,7 +231,11 @@ class Decoder {
 	if (this.ps == 0)
 	    throw new Error("Failed to construct Decoder");
     }
-
+    /**
+     * (Re-)initialize the decoder.
+     * @param {Object|Config} [config] - New configuration parameters
+     * to apply, if desired.
+     */
     async initialize(config) {
 	if (this.ps == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
@@ -216,7 +267,10 @@ class Decoder {
 	if (config !== undefined) {
 	    if (this.config)
 		this.config.delete();
-	    this.config = config;
+	    if (typeof(config) == 'object' && 'cmd_ln' in config)
+		this.config = config;
+	    else
+		this.config = new Module.Config(...arguments);
 	}
 	await init_config(this.ps, this.config.cmd_ln);
 	await init_cleanup(this.ps);
@@ -225,6 +279,9 @@ class Decoder {
 	await init_grammar(this.ps);
     }
 
+    /**
+     * Release the Emscripten memory associated with a {@link Decoder}.
+     */
     delete() {
 	this.config.delete();
 	if (this.ps)
@@ -232,18 +289,27 @@ class Decoder {
 	this.ps = 0;
     }
 
+    /**
+     * Start processing input.
+     */
     async start() {
 	if (Module._ps_start_utt(this.ps) < 0) {
 	    throw new Error("Failed to start utterance processing");
 	}
     }
 
+    /**
+     * Finish processing input.
+     */
     async stop() {
 	if (Module._ps_end_utt(this.ps) < 0) {
 	    throw new Error("Failed to stop utterance processing");
 	}
     }
 
+    /**
+     * Process a block of audio PCM data.
+     */
     async process_raw(pcm, no_search=false, full_utt=false) {
 	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	let pcm_addr = Module._malloc(pcm_bytes);
@@ -259,11 +325,17 @@ class Decoder {
 	}
 	return rv;
     }
-    
+
+    /**
+     * Get the currently recognized text.
+     */
     get_hyp() {
 	return UTF8ToString(Module._ps_get_hyp(this.ps, 0));
     }
 
+    /**
+     * Get the current recognition result as a word segmentation.
+     */
     get_hypseg() {
 	let itor = Module._ps_seg_iter(this.ps);
 	let config = Module._ps_get_config(this.ps);
@@ -285,6 +357,9 @@ class Decoder {
 	return seg;
     }
 
+    /**
+     * Add a word to the pronunciation dictionary.
+     */
     async add_word(word, pron, update=true) {
 	let cword = allocateUTF8OnStack(word);
 	let cpron = allocateUTF8OnStack(pron);
@@ -295,6 +370,9 @@ class Decoder {
 	return wid;
     }
 
+    /**
+     * Create a finite-state grammar from a list of transitions.
+     */
     create_fsg(name, start_state, final_state, transitions) {
 	let logmath = Module._ps_get_logmath(this.ps);
 	let config = Module._ps_get_config(this.ps);
@@ -336,6 +414,9 @@ class Decoder {
 	};
     }
 
+    /**
+     * Create a grammar from JSGF.
+     */
     parse_jsgf(jsgf_string, toprule=null) {
 	let logmath = Module._ps_get_logmath(this.ps);
 	let config = Module._ps_get_config(this.ps);
@@ -367,6 +448,9 @@ class Decoder {
 	};
     }
 
+    /**
+     * Set the grammar for recognition.
+     */
     async set_fsg(fsg) {
 	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {
 	    throw new Error("Failed to set FSG in decoder");
@@ -374,6 +458,12 @@ class Decoder {
     }
 };
 
+/**
+ * Load a model into Emscripten's filesystem.
+ *
+ * Presently models must be made avaliable to the SoundSwallower C
+ * code using this function.
+ */
 function load_model(model_name, model_path, preload=false, dict_path=null) {
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
