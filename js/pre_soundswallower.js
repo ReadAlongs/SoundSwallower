@@ -23,9 +23,20 @@ else {
     Module.preRun = [];
 }
 
-// Monkey-patch the Browser so MEMFS works on Node.js and the Web
-// (see https://github.com/emscripten-core/emscripten/issues/16742)
-if (typeof(Browser) === 'undefined') {
+if (typeof window == 'object' || typeof importScripts == 'function') {
+    // Lazy load the default model when running on the web
+    if (Module.defaultModel !== null) {
+	// FIXME: Probably the wrong way to get the relative URL of
+	// the model...
+	const model_path = "model/" + Module.defaultModel;
+	Module.preRun.push(function() {
+	    Module.load_model(Module.defaultModel, model_path, false);
+	});
+    }
+}
+else if (typeof(Browser) === 'undefined') {
+    // Monkey-patch the Browser so MEMFS works on Node.js and the Web
+    // (see https://github.com/emscripten-core/emscripten/issues/16742)
     const model_path = require("./model/index.js");
     Browser = {
         handledByPreloadPlugin() {
@@ -37,15 +48,6 @@ if (typeof(Browser) === 'undefined') {
 	Module.preRun.push(function() {
 	    Module.load_model(Module.defaultModel,
 			      model_path + "/" + Module.defaultModel, true);
-	});
-    }
-}
-else {
-    // Lazy load the default model
-    if (Module.defaultModel !== null) {
-	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel,
-			      Module.defaultModel, false);
 	});
     }
 }
