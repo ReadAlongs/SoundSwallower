@@ -81,7 +81,7 @@ bom      [\xEF][\xBB][\xBF]
 <DECL>{token}    { yylval->name = strdup(yytext); return TOKEN; }
 <DECL>;          { BEGIN(INITIAL); return yytext[0]; }
 <DECL>{qstring}  { yylval->name = strdup(yytext); return TOKEN; }
-<DECL>{weight}   { yylval->weight = atof_c(yytext+1); return WEIGHT; }
+<DECL>{weight}   { yylval->weight = atof(yytext+1); return WEIGHT; }
 <DECL>.          return yytext[0];        /* Single-character tokens */
 
 %%

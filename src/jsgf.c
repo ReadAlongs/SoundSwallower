@@ -45,6 +45,7 @@
 #include <soundswallower/err.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/jsgf_internal.h>
+#include <soundswallower/export.h>
 
 #include "jsgf_parser.h"
 #include "jsgf_scanner.h"
@@ -104,7 +105,7 @@ jsgf_grammar_new(jsgf_t * parent)
     return grammar;
 }
 
-void
+EXPORT void
 jsgf_grammar_free(jsgf_t * jsgf)
 {
     /* FIXME: Probably should just use refcounting instead. */
@@ -465,7 +466,7 @@ jsgf_rule_iter(jsgf_t * grammar)
     return hash_table_iter(grammar->rules);
 }
 
-jsgf_rule_t *
+EXPORT jsgf_rule_t *
 jsgf_get_rule(jsgf_t * grammar, char const *name)
 {
     void *val;
@@ -480,7 +481,7 @@ jsgf_get_rule(jsgf_t * grammar, char const *name)
     return (jsgf_rule_t *) val;
 }
 
-jsgf_rule_t *
+EXPORT jsgf_rule_t *
 jsgf_get_public_rule(jsgf_t * grammar)
 {
     jsgf_rule_iter_t *itor;
@@ -584,7 +585,7 @@ jsgf_build_fsg_internal(jsgf_t * grammar, jsgf_rule_t * rule,
     return fsg;
 }
 
-fsg_model_t *
+EXPORT fsg_model_t *
 jsgf_build_fsg(jsgf_t * grammar, jsgf_rule_t * rule,
                logmath_t * lmath, float32 lw)
 {
@@ -936,7 +937,7 @@ jsgf_parse_file(const char *filename, jsgf_t * parent)
     return jsgf;
 }
 
-jsgf_t *
+EXPORT jsgf_t *
 jsgf_parse_string(const char *string, jsgf_t * parent)
 {
     yyscan_t yyscanner;
