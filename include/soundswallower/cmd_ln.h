@@ -407,19 +407,17 @@ int cmd_ln_exists_r(cmd_ln_t *cmdln, char const *name);
  * attributes as given in defn.
  *
  * @param cmdln command-line object
- * @param fp   output stream
  * @param defn array of argument name definitions.
  */
-void cmd_ln_print_help_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
+void cmd_ln_log_help_r (cmd_ln_t *cmdln, const arg_t *defn);
 
 /**
  * Print current configuration values and defaults.
  *
  * @param cmdln  command-line object
- * @param fp   output stream
  * @param defn array of argument name definitions.
  */
-void cmd_ln_print_values_r (cmd_ln_t *cmdln, FILE *fp, const arg_t *defn);
+void cmd_ln_log_values_r (cmd_ln_t *cmdln, const arg_t *defn);
 
 
 #ifdef __cplusplus
