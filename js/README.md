@@ -19,17 +19,17 @@ Installation
 
 SoundSwallower can be installed in your NPM project:
 
-	# From the Internets
-	npm install soundswallower
-	
+    # From the Internets
+    npm install soundswallower
+    
 You can also build and install it from source, provided you have
 Emscripten and CMake installed:
 
-	# From soundswallower/js
-	npm run build:dev
-	# From your project's directory
-	cd /path/to/my/project
-	npm link /path/to/soundswallower/js
+    # From soundswallower/js
+    npm run build:dev
+    # From your project's directory
+    cd /path/to/my/project
+    npm link /path/to/soundswallower/js
 
 For use in Node.js, no other particular action is required on your
 part, though currently you will have to pre-load any model files you
@@ -53,10 +53,10 @@ Then to the `plugins` section in `config` or `module.exports`
 ```js
 new CopyPlugin({
     patterns: [
-		{ from: "node_modules/soundswallower/soundswallower.wasm*",
-		  to: "[name][ext]"},
-	{ from: modelDir,
-	   to: "model"},
+        { from: "node_modules/soundswallower/soundswallower.wasm*",
+          to: "[name][ext]"},
+        { from: modelDir,
+          to: "model"},
    ],
 }),
 ```
@@ -64,12 +64,18 @@ new CopyPlugin({
 And finally to the `resolve` section:
 
 ```js
-fallback: {
-	crypto: false,
-	fs: false,
-	path: false,
-},
+resolve: {
+    fallback: {
+        crypto: false,
+        fs: false,
+        path: false,
+    }
+}
 ```
+
+Look at the [SoundSwallower-Demo
+repository](https://github.com/dhdaines/soundswallower-demo) for an
+example.
 
 Basic Usage
 -----------
@@ -122,13 +128,19 @@ await decoder.set_fsg(fsg);
 
 You should `delete()` it, unless of course you intend to create a
 bunch of them and swap them in and out.  It is also possible to parse
-a grammar in [JSGF](https://en.wikipedia.org/wiki/JSGF) format,
-documentation coming soon.
+a grammar in [JSGF](https://en.wikipedia.org/wiki/JSGF) format, see
+below for an example.
 
 Okay, let's wreck a nice beach!  Grab [this 16kHz, 16-bit signed raw
 PCM audio
 file](https://github.com/ReadAlongs/SoundSwallower/raw/master/tests/data/goforward.raw)
-or record your own.  Now you can load it and recognize it with:
+or record your own, using SoX, for example:
+
+```sh
+sox -c 1 -r 16000 -b 16 -d goforward.raw
+```
+
+Now you can load it and recognize it with:
 
 ```js
 let pcm = await fs.readFile("goforward.raw");
@@ -159,28 +171,39 @@ Loading models
 --------------
 
 By default, SoundSwallower will use a not particularly good acoustic
-model and a reasonable dictionary for US English.  Currently it will
-support any Sphinx format acoustic model, many of which are available
-for download at [the SourceForge
+model and a reasonable dictionary for US English.  A model for French
+is also available, which you can load by default by setting the
+`defaultModel` property in the module object before loading:
+
+```js
+const ssjs = {
+	defaultModel: "fr-fr"
+};
+await require('soundswallower')(ssjs);
+```
+Currently, it will also support any Sphinx format acoustic model, many of
+which are available for download at [the SourceForge
 page](https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/).
 
 On the web (see below for Node.js particularities), this can be done
 by calling the `load_model` method on the SoundSwallower module, with
-the base URL (usually relative) for the model as a parameter, e.g.:
+the base URL (usually relative) for the model as a parameter.
+IMPORTANT NOTE: For the moment, this only works from inside a web
+worker.
 
 ```js
 ssjs.load_model("some-model", "/assets/model/some-model", false);
 ```
 
-The model path can be a directory path on the local filesystem
-(for Node.js) or a relative or absolute URL (for the web).  This
-assumes that your dictionary is located in the file `dict.txt` undern
-the model path.  If not, you can pass the path to it as a fourth
-argument to `load_model`, e.g.:
+The model path can be a directory path on the local filesystem (for
+Node.js) or a relative or absolute URL (for the web).  This assumes
+that your dictionary is located in the file `dict.txt` underneath the
+model path.  If not, you can pass the path to it as a fourth argument
+to `load_model`, e.g.:
 
 ```js
 ssjs.load_model("some-model", "/assets/model/some-model", false,
-	            "alternate-dictionary.txt");
+                "alternate-dictionary.txt");
 ```
 
 On Node.js, currently you have to preload models, which you can do by
@@ -192,10 +215,47 @@ The exact incantation required is:
 ```js
 const ssjs = {
     preRun() {
-		ssjs.load_model(model_name, model_path, true);
+        ssjs.load_model(model_name, model_path, true);
     }
 };
 await require('soundswallower')(ssjs);
 ```
 
-Note also that preloading actually *only* works on Node.js.
+Note also that preloading actually *only* works on Node.js.  Perhaps
+in the future we will just make different libraries for Node and the
+Web seeing as using the same one in both places involves too many
+excessively annoying workarounds.
+
+Using grammars
+--------------
+
+We currently support JSGF for writing grammars.  You can parse one
+from a JavaScript string and set it in the decoder like this (a
+hypothetical pizza-ordering grammar):
+
+```js
+    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
+grammar pizza;
+public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
+<greeting> = hi | hello | yo | howdy;
+<want> = i want | gimme | give me | i'd like to order | order | i wanna;
+<quantity> = a | one | two | three | four | five;
+<size> = small | medium | large | extra large | x large | x l;
+<toppings> = [with] <topping> ([and] <topping>)*;
+<topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
+`);
+    await decoder.set_fsg(fsg);
+```
+
+Note that all the words in the grammar must first be defined in the
+dictionary.  You can add custom dictionary words using the `add_word`
+method on the `Decoder` object, as long as you speak ArpaBet (or
+whatever phoneset the acoustic model uses).  Grapheme-to-phoneme
+support may become possible in the near future.  If you are going to
+add a bunch of words, pass `false` as the third argument for all but
+the last one, as this will delay the reloading of the internal state.
+
+```js
+    await decoder.add_word("supercalifragilisticexpialidocious",
+	    "S UW P ER K AE L IH F R AE JH IH L IH S T IH K EH K S P IY AE L IH D OW SH Y UH S");
+```
