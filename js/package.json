@@ -1,6 +1,6 @@
 {
    "name": "soundswallower",
-   "version": "0.2.0-alpha4",
+   "version": "0.2.0-alpha5",
    "description": "An even smaller speech recognizer",
    "main": "soundswallower.js",
    "scripts": {
@@ -25,6 +25,7 @@
    },
    "homepage": "https://github.com/ReadAlongs/SoundSwallower#readme",
    "devDependencies": {
+      "jsdoc": "^3.6.10",
       "mocha": "^10.0.0"
    },
    "dependencies": {}
