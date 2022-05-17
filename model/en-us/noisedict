@@ -1,11 +1,5 @@
-++NOISE++                      +NOISE+
-++BREATH++                     +BREATH+
-++SMACK++                      +SMACK+
-++COUGH++                      +COUGH+
-++LAUGH++                      +LAUGH+
-++TONE++                       +TONE+
-++UH++                         +UH+
-++UM++                         +UM+
-</s>                           SIL
-<s>                            SIL
-<sil>                          SIL
+<s> SIL
+</s> SIL
+<sil> SIL
+[NOISE] +NSN+
+[SPEECH] +SPN+

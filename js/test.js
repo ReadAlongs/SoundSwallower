@@ -5,6 +5,7 @@ const ssjs = {
     preRun() {
 	ssjs.FS_createPreloadedFile("/", "goforward.fsg",
 				    "../tests/data/goforward.fsg", true, true);
+	ssjs.load_model("fr-fr", "model/fr-fr", true);
     }
 };
 
@@ -89,7 +90,7 @@ const ssjs = {
 		hypseg_words.push(seg.word);
 	    }
 	    assert.deepStrictEqual(hypseg_words,
-				   ["<sil>", "<sil>", "go", "forward",
+				   ["<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters", "<sil>"]);
 	    decoder.delete();
 	});
@@ -127,6 +128,40 @@ const ssjs = {
 	    await decoder.process_raw(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
+	    decoder.delete();
+	});
+    });
+    describe("Test other language", () => {
+	it('Should recognize "avance de dix mètres"', async () => {
+	    let decoder = new ssjs.Decoder({hmm: "fr-fr",
+					    backtrace: true,
+					    loglevel: "DEBUG"});
+	    await decoder.initialize();
+	    let fsg = decoder.create_fsg("goforward", 0, 4, [
+		{from: 0, to: 1, prob: 0.5, word: "avance"},
+		{from: 0, to: 1, prob: 0.5, word: "recule"},
+		{from: 1, to: 2, prob: 0.1, word: "d'"},
+		{from: 1, to: 2, prob: 0.9, word: "de"},
+		{from: 2, to: 3, prob: 0.1, word: "un"},
+		{from: 2, to: 3, prob: 0.1, word: "deux"},
+		{from: 2, to: 3, prob: 0.1, word: "trois"},
+		{from: 2, to: 3, prob: 0.1, word: "quatre"},
+		{from: 2, to: 3, prob: 0.1, word: "cinq"},
+		{from: 2, to: 3, prob: 0.1, word: "six"},
+		{from: 2, to: 3, prob: 0.1, word: "sept"},
+		{from: 2, to: 3, prob: 0.1, word: "huit"},
+		{from: 2, to: 3, prob: 0.1, word: "neuf"},
+		{from: 2, to: 3, prob: 0.1, word: "dix"},
+		{from: 3, to: 4, prob: 0.1, word: "mètre"},
+		{from: 3, to: 4, prob: 0.9, word: "mètres"}
+	    ]);
+	    await decoder.set_fsg(fsg);
+	    fsg.delete(); // has been retained by decoder
+	    let pcm = await fs.readFile("../tests/data/goforward_fr.raw");
+	    await decoder.start();
+	    await decoder.process_raw(pcm, false, true);
+	    await decoder.stop();
+	    assert.equal("avance de dix mètres", decoder.get_hyp());
 	    decoder.delete();
 	});
     });
