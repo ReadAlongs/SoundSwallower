@@ -1,18 +1,17 @@
-const assert = require('assert');
-const fs = require('fs/promises');
-const ssjs = {
-    // Pre-load the grammar we use below
-    preRun() {
-	ssjs.FS_createPreloadedFile("/", "goforward.fsg",
-				    "../tests/data/goforward.fsg", true, true);
-	ssjs.load_model("fr-fr", "model/fr-fr", true);
-    }
-};
-
 (async () => {
+    const assert = require('assert');
+    const fs = require('fs/promises');
+    const ssjs = {
+	// Pre-load the grammar we use below
+	preRun() {
+	    ssjs.FS_createPreloadedFile("/", "goforward.fsg",
+					"../tests/data/goforward.fsg", true, true);
+	    ssjs.FS_createPreloadedFile("/", "pizza.gram",
+					"../tests/data/pizza.gram", true, true);
+	    ssjs.load_model("fr-fr", "model/fr-fr", true);
+	}
+    };
     before(async () => {
-	// FIXME: should require "soundswallower" but we can't do that
-	// because NPM is badly broken by design
 	await require('./soundswallower.js')(ssjs);
     });
     describe("Test initialization", () => {
@@ -73,9 +72,7 @@ const ssjs = {
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
-		loglevel: "INFO",
-		backtrace: true
+		fsg: "goforward.fsg"
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward.raw");
@@ -111,10 +108,10 @@ const ssjs = {
 	it('Should recognize "_go _forward _ten _meters"', async () => {
 	    let decoder = new ssjs.Decoder();
 	    await decoder.initialize();
-	    decoder.add_word("_go", "G OW", false);
-	    decoder.add_word("_forward", "F AO R W ER D", false);
-	    decoder.add_word("_ten", "T EH N", false);
-	    decoder.add_word("_meters", "M IY T ER Z", true);
+	    await decoder.add_word("_go", "G OW", false);
+	    await decoder.add_word("_forward", "F AO R W ER D", false);
+	    await decoder.add_word("_ten", "T EH N", false);
+	    await decoder.add_word("_meters", "M IY T ER Z", true);
 	    let fsg = decoder.create_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 1.0, word: "_go"},
 		{from: 1, to: 2, prob: 1.0, word: "_forward"},
@@ -131,11 +128,9 @@ const ssjs = {
 	    decoder.delete();
 	});
     });
-    describe("Test other language", () => {
+    describe("Test loading model for other language", () => {
 	it('Should recognize "avance de dix mètres"', async () => {
-	    let decoder = new ssjs.Decoder({hmm: "fr-fr",
-					    backtrace: true,
-					    loglevel: "DEBUG"});
+	    let decoder = new ssjs.Decoder({hmm: "fr-fr"});
 	    await decoder.initialize();
 	    let fsg = decoder.create_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 0.5, word: "avance"},
@@ -162,6 +157,46 @@ const ssjs = {
 	    await decoder.process_raw(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("avance de dix mètres", decoder.get_hyp());
+	    decoder.delete();
+	});
+    });
+    describe("Test JSGF", () => {
+	it('Should recognize "gimme a large pizza with pineapple"', async () => {
+	    let decoder = new ssjs.Decoder({
+		jsgf: "pizza.gram",
+	    });
+	    await decoder.initialize();
+	    let pcm = await fs.readFile("../tests/data/pizza.raw");
+	    await decoder.start();
+	    await decoder.process_raw(pcm, false, true);
+	    await decoder.stop();
+	    assert.equal("gimme a large pizza with pineapple", decoder.get_hyp());
+	    decoder.delete();
+	});
+    });
+    describe("Test JSGF string", () => {
+	it('Should recognize "gimme a large pizza with pineapple"', async () => {
+	    let decoder = new ssjs.Decoder({
+		loglevel: "INFO",
+		backtrace: true
+	    });
+	    await decoder.initialize();
+	    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
+grammar pizza;
+public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
+<greeting> = hi | hello | yo | howdy;
+<want> = i want | gimme | give me | i'd like to order | order | i wanna;
+<quantity> = a | one | two | three | four | five;
+<size> = small | medium | large | extra large | x large | x l;
+<toppings> = [with] <topping> ([and] <topping>)*;
+<topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
+`);
+	    await decoder.set_fsg(fsg);
+	    let pcm = await fs.readFile("../tests/data/pizza.raw");
+	    await decoder.start();
+	    await decoder.process_raw(pcm, false, true);
+	    await decoder.stop();
+	    assert.equal("gimme a large pizza with pineapple", decoder.get_hyp());
 	    decoder.delete();
 	});
     });

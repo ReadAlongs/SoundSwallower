@@ -35,9 +35,9 @@ if (typeof window == 'object' || typeof importScripts == 'function') {
     }
 }
 else if (typeof(Browser) === 'undefined') {
+    const model_path = require("./model/index.js");
     // Monkey-patch the Browser so MEMFS works on Node.js and the Web
     // (see https://github.com/emscripten-core/emscripten/issues/16742)
-    const model_path = require("./model/index.js");
     Browser = {
         handledByPreloadPlugin() {
             return false;
@@ -53,7 +53,7 @@ else if (typeof(Browser) === 'undefined') {
 }
 
 
-Module.Config = class {
+class Config {
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
 	if (typeof(dict) === 'undefined') {
@@ -174,7 +174,7 @@ Module.Config = class {
     }
 };
 
-Module.Decoder = class {
+class Decoder {
     constructor(config) {
 	if (config && typeof(config) == 'object' && 'cmd_ln' in config)
 	    this.config = config;
@@ -285,7 +285,7 @@ Module.Decoder = class {
 	return seg;
     }
 
-    add_word(word, pron, update=true) {
+    async add_word(word, pron, update=true) {
 	let cword = allocateUTF8OnStack(word);
 	let cpron = allocateUTF8OnStack(pron);
 	let wid = Module._ps_add_word(this.ps, cword, cpron, update);
@@ -335,6 +335,38 @@ Module.Decoder = class {
 	    }
 	};
     }
+
+    parse_jsgf(jsgf_string, toprule=null) {
+	let logmath = Module._ps_get_logmath(this.ps);
+	let config = Module._ps_get_config(this.ps);
+	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	let cjsgf = allocateUTF8OnStack(jsgf_string);
+	let jsgf = Module._jsgf_parse_string(cjsgf, 0);
+	if (jsgf == 0)
+	    throw new Error("Failed to parse JSGF");
+	let rule;
+	if (toprule !== null) {
+	    let crule = allocateUTF8OnStack(toprule);
+	    rule = Module._jsgf_get_rule(jsgf, crule);
+	    if (rule == 0)
+		throw new Error("Failed to find top rule " + toprule);
+	}
+	else {
+	    rule = Module._jsgf_get_public_rule(jsgf);
+	    if (rule == 0)
+		throw new Error("No public rules found in JSGF");
+	}
+	let fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
+	Module._jsgf_grammar_free(jsgf);
+	return {
+	    fsg: fsg,
+	    delete() {
+		Module._fsg_model_free(this.fsg);
+		this.fsg = 0;
+	    }
+	};
+    }
+
     async set_fsg(fsg) {
 	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {
 	    throw new Error("Failed to set FSG in decoder");
@@ -342,7 +374,7 @@ Module.Decoder = class {
     }
 };
 
-Module.load_model = function(model_name, model_path, preload=false, dict_path=null) {
+function load_model(model_name, model_path, preload=false, dict_path=null) {
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
     const files = [
@@ -389,3 +421,7 @@ Module.load_model = function(model_name, model_path, preload=false, dict_path=nu
 	    Module.FS_createLazyFile(file[0], file[1], file[2], true, true);
     }
 };
+
+Module.Config = Config;
+Module.Decoder = Decoder;
+Module.load_model = load_model;
