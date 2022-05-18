@@ -192,30 +192,29 @@ IMPORTANT NOTE: For the moment, this only works from inside a web
 worker.
 
 ```js
-ssjs.load_model("some-model", "/assets/model/some-model", false);
+ssjs.load_model("some-model", "/assets/model/some-model");
 ```
 
 The model path can be a directory path on the local filesystem (for
 Node.js) or a relative or absolute URL (for the web).  This assumes
 that your dictionary is located in the file `dict.txt` underneath the
-model path.  If not, you can pass the path to it as a fourth argument
+model path.  If not, you can pass the path to it as a third argument
 to `load_model`, e.g.:
 
 ```js
-ssjs.load_model("some-model", "/assets/model/some-model", false,
+ssjs.load_model("some-model", "/assets/model/some-model",
                 "alternate-dictionary.txt");
 ```
 
 On Node.js, currently you have to preload models, which you can do by
 pre-populating the module object with a `preRun()` method before
-passing it to `require("soundswallower")`.  You will need to pass
-`true` as the third argument to `load_model` to force pre-loading.
-The exact incantation required is:
+passing it to `require("soundswallower").  The exact incantation
+required is:
 
 ```js
 const ssjs = {
     preRun() {
-        ssjs.load_model(model_name, model_path, true);
+        ssjs.load_model(model_name, model_path);
     }
 };
 await require('soundswallower')(ssjs);
@@ -224,7 +223,7 @@ await require('soundswallower')(ssjs);
 Note also that preloading actually *only* works on Node.js.  Perhaps
 in the future we will just make different libraries for Node and the
 Web seeing as using the same one in both places involves too many
-excessively annoying workarounds.
+incredibly annoying workarounds.
 
 Using grammars
 --------------

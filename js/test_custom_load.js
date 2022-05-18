@@ -8,7 +8,7 @@
 	    ssjs.FS_createPreloadedFile("/", "goforward.fsg",
 					"../tests/data/goforward.fsg", true, true);
 	    // Test loading a different dictionary
-	    ssjs.load_model("en-us", "model/en-us", true, "../tests/data/turtle.dic");
+	    ssjs.load_model("en-us", "model/en-us", "../tests/data/turtle.dic");
 	}
     };
     before(async () => {

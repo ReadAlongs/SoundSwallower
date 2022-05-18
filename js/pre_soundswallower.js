@@ -23,14 +23,19 @@ else {
     Module.preRun = [];
 }
 
-if (typeof window == 'object' || typeof importScripts == 'function') {
+// FIXME: Emscripten already defines something like this in its
+// runtime but I have no $#@! idea how to access its definition from a
+// pre-js, much like various other things, WTF.
+const RUNNING_ON_WEB = (typeof window == 'object'
+			|| typeof importScripts == 'function');
+if (RUNNING_ON_WEB) {
     // Lazy load the default model when running on the web
     if (Module.defaultModel !== null) {
 	// FIXME: Probably the wrong way to get the relative URL of
 	// the model...
 	const model_path = "model/" + Module.defaultModel;
 	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel, model_path, false);
+	    Module.load_model(Module.defaultModel, model_path);
 	});
     }
 }
@@ -47,7 +52,7 @@ else if (typeof(Browser) === 'undefined') {
     if (Module.defaultModel != null) {
 	Module.preRun.push(function() {
 	    Module.load_model(Module.defaultModel,
-			      model_path + "/" + Module.defaultModel, true);
+			      model_path + "/" + Module.defaultModel);
 	});
     }
 }
@@ -64,9 +69,9 @@ class Config {
      * @param {Object} [dict] - Initial configuration parameters and
      * values.  Some of the more common are noted below, the full list
      * can be found at
-     * {@link https://soundswallower.readthedocs.io/en/latest/config_params.html}
+     * https://soundswallower.readthedocs.io/en/latest/config_params.html
      * @param {string} [dict.hmm=Module.defaultModel] - Name of
-     * acoustic model, previously loaded using {@link load_model}.
+     * acoustic model, previously loaded using load_model().
      * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
      * @param {number} [dict.samprate=16000] - Sampling rate of input.
      */
@@ -87,7 +92,7 @@ class Config {
 	}
     }
     /**
-     * Free Emscripten memory associated with this {@link Config}.
+     * Free Emscripten memory associated with this Config.
      */
     delete() {
 	if (this.cmd_ln)
@@ -216,9 +221,9 @@ class Decoder {
     /**
      * Create the decoder.
      *
-     * This can be called with a previously created {@link Config}
+     * This can be called with a previously created Config
      * object, or with an Object containing configuration keys and
-     * values from which a {@link Config} will be created.
+     * values from which a Config will be created.
      *
      * @param {Object|Config} [config] - Configuration parameters.
      */
@@ -280,7 +285,7 @@ class Decoder {
     }
 
     /**
-     * Release the Emscripten memory associated with a {@link Decoder}.
+     * Release the Emscripten memory associated with a Decoder.
      */
     delete() {
 	this.config.delete();
@@ -464,7 +469,7 @@ class Decoder {
  * Presently models must be made avaliable to the SoundSwallower C
  * code using this function.
  */
-function load_model(model_name, model_path, preload=false, dict_path=null) {
+function load_model(model_name, model_path, dict_path=null) {
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
     const files = [
@@ -475,7 +480,16 @@ function load_model(model_name, model_path, preload=false, dict_path=null) {
 	[dest_model_dir, "variances", model_path + "/variances"],
 	[dest_model_dir, "noisedict", model_path + "/noisedict"],
     ];
-    if (preload) {
+    // Lazy-load on the Web, pre-load on Node, DWIM, quoi
+    if (RUNNING_ON_WEB) {
+	// only one of these will actually be present and get loaded,
+	// we can do this because of lazy loading.
+	files.push(
+	    [dest_model_dir, "sendump", model_path + "/sendump"],
+	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
+    }
+    else {
+	// Can't pre-load a file that doesn't exist :(
 	/* FIXME: This only works under Node.js, and it isn't correct
 	   as there is a race condition, but we are unable to catch
 	   errors from Emscripten's broken preloading code, so we
@@ -489,13 +503,6 @@ function load_model(model_name, model_path, preload=false, dict_path=null) {
 	if (fs.statSync(mixw_path, { throwIfNoEntry: false }))
 	    files.push([dest_model_dir, "mixture_weights", mixw_path]);
     }
-    else {
-	// only one of these will actually be present and get loaded,
-	// we can do this because of lazy loading.
-	files.push(
-	    [dest_model_dir, "sendump", model_path + "/sendump"],
-	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
-    }
     if (dict_path !== null) {
 	files.push([dest_model_dir, "dict.txt", dict_path]);
     }
@@ -505,10 +512,10 @@ function load_model(model_name, model_path, preload=false, dict_path=null) {
     for (const folder of folders)
 	Module.FS_createPath(folder[0], folder[1], true, true);
     for (const file of files) {
-	if (preload)
-	    Module.FS_createPreloadedFile(file[0], file[1], file[2], true, true);
-	else
+	if (RUNNING_ON_WEB)
 	    Module.FS_createLazyFile(file[0], file[1], file[2], true, true);
+	else
+	    Module.FS_createPreloadedFile(file[0], file[1], file[2], true, true);
     }
 };
 

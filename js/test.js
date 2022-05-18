@@ -8,7 +8,7 @@
 					"../tests/data/goforward.fsg", true, true);
 	    ssjs.FS_createPreloadedFile("/", "pizza.gram",
 					"../tests/data/pizza.gram", true, true);
-	    ssjs.load_model("fr-fr", "model/fr-fr", true);
+	    ssjs.load_model("fr-fr", "model/fr-fr");
 	}
     };
     before(async () => {
@@ -176,10 +176,7 @@
     });
     describe("Test JSGF string", () => {
 	it('Should recognize "gimme a large pizza with pineapple"', async () => {
-	    let decoder = new ssjs.Decoder({
-		loglevel: "INFO",
-		backtrace: true
-	    });
+	    let decoder = new ssjs.Decoder();
 	    await decoder.initialize();
 	    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
 grammar pizza;
@@ -192,6 +189,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 <topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
 	    await decoder.set_fsg(fsg);
+	    fsg.delete();
 	    let pcm = await fs.readFile("../tests/data/pizza.raw");
 	    await decoder.start();
 	    await decoder.process_raw(pcm, false, true);
