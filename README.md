@@ -82,7 +82,8 @@ application, which you can launch with `server.py`, and access at
 [http://localhost:8000](http://localhost:8000/).  It seems to work
 fine with recent versions of Chrome, Firefox, and Edge.
 
-For more details on JavaScript, see [the js README](/js/README.md).
+For more details on JavaScript, see
+[js/README.js](https://github.com/ReadAlongs/SoundSwallower/blob/master/js/README.md).
 
 Creating binary distributions for Python
 ========================================
@@ -95,7 +96,8 @@ the build dependencies:
 In all cases the resulting binary is self-contained and should not
 need any other components aside from the system libraries.  To create
 wheels that are compatible with multiple Linux distributions, see the
-instructions in [README.manylinux.md](/README.manylinux.md).
+instructions in
+[README.manylinux.md](https://github.com/ReadAlongs/SoundSwallower/blob/master/README.manylinux.md).
 
 Compiling on Windows in Visual Studio Code
 ==========================================
