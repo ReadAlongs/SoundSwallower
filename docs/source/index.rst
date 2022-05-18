@@ -6,8 +6,9 @@ SoundSwallower Documentation
    :caption: Contents:
 
    readme
-   readme.js
    soundswallower
+   readme.js
+   soundswallower.js
    config_params
 
 Indices and tables

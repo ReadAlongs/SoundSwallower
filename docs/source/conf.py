@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
     'myst_parser',
+    'sphinx_js',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -63,6 +64,8 @@ html_static_path = ['_static']
 
 
 # -- Extension configuration -------------------------------------------------
+
+js_source_path = "../../js"
 
 # -- Options for intersphinx extension ---------------------------------------
 
