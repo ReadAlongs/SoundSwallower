@@ -64,7 +64,14 @@ Using SoundSwallower under Node.js
 ----------------------------------
 
 Using SoundSwallower-JS in Node.js is mostly straightforward.  Here is
-a fairly minimal example:
+a fairly minimal example.  First you can record yourself saying some
+digits:
+
+.. code-block:: console
+
+   sox -c 1 -r 16000 -b 16 -d digits.raw
+
+Now run this with ``node``:
 
 .. code-block:: javascript
 
@@ -76,7 +83,8 @@ a fairly minimal example:
 	await decoder.initialize();
 	const grammar = decoder.parse_jsgf(`#JSGF V1.0;
     grammar digits;
-    public <digits> = one | two | three | four | five | six | seven | eight
+    public <digits> = <digit>*;
+    <digit> = one | two | three | four | five | six | seven | eight
 	| nine | ten | eleven;`); // It goes to eleven
 	// Anything that changes decoder state is asynchronous
 	await decoder.set_fsg(grammar);
@@ -85,7 +93,7 @@ a fairly minimal example:
 	grammar.delete();
 	// Default input is 16kHz, 16-bit integer PCM
 	const fs = require("fs/promises");
-	let pcm = await fs.readFile("../soundswallower/tests/data/goforward.raw");
+	let pcm = await fs.readFile("digits.raw");
 	// Start speech processing
 	await decoder.start();
 	// Takes a typed array, as returned by readFile
