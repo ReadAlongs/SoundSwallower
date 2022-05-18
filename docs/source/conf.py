@@ -48,7 +48,7 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-default_role = "any"
+default_role = "py:obj"
 
 # -- Options for HTML output -------------------------------------------------
 

@@ -22,13 +22,15 @@ Roadmap:
   - Bring back arg_dump for INFO level logging DONE
   - Floating-point input to front-end
   - AudioWorklet implementation
-  - Write API tests (in progress)
-  - Write API documentation
-	- Use JSDoc and Sphinx-JS https://pypi.org/project/sphinx-js/
-	- Should be able to use this.foo = function() not Module.foo?
-	- sinon just assign to Module afterwards
+    Default to pre-loading in Node and fix README.js DONE
+  - Write API tests DONE
+  - Write API documentation DONE
+	- Fix links in sphinx-js
+	- Fix names in sphinx-js
   - Dealing with models DONE
 	- not ideal on the Web, but it works
+  - Dealing with grammars as assets DONE
+  - Loading words from extra dictionary DONE
 
 - 0.3: fix various Python APIs and remove code
   - Translate back from JavaScript into Cython/Python ;)
