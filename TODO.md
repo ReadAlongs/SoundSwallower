@@ -21,14 +21,12 @@ Roadmap:
 - 0.2: new JavaScript API
   - Bring back arg_dump for INFO level logging DONE
   - Floating-point input to front-end
-  - AudioWorklet implementation
     Default to pre-loading in Node and fix README.js DONE
   - Write API tests DONE
   - Write API documentation DONE
-	- Fix links in sphinx-js
-	- Fix names in sphinx-js
+	- Fix links in sphinx-js DONE
+	- Fix names in sphinx-js DONE
   - Dealing with models DONE
-	- not ideal on the Web, but it works
   - Dealing with grammars as assets DONE
   - Loading words from extra dictionary DONE
 
