@@ -68,24 +68,24 @@ a fairly minimal example:
 
 .. code-block:: javascript
 
-   (async () => { // Wrap everything in an async function call
+    (async () => { // Wrap everything in an async function call
 	// Load the library and pre-load the default model
-	const ssjs = await require("soundswallower");
+	const ssjs = await require("soundswallower")();
 	const decoder = new ssjs.Decoder();
 	// Initialization is asynchronous
 	await decoder.initialize();
 	const grammar = decoder.parse_jsgf(`#JSGF V1.0;
-   grammar digits;
-   public <digits> = one | two | three | four | five | six | seven | eight
-       | nine | ten | eleven;`); // It goes to eleven
-        // Anything that changes decoder state is asynchronous
-        await decoder.set_fsg(fsg);
+    grammar digits;
+    public <digits> = one | two | three | four | five | six | seven | eight
+	| nine | ten | eleven;`); // It goes to eleven
+	// Anything that changes decoder state is asynchronous
+	await decoder.set_fsg(grammar);
 	// We must manually release memory, because JavaScript
 	// has no destructors, whose great idea was that?
-	fsg.delete();
+	grammar.delete();
 	// Default input is 16kHz, 16-bit integer PCM
 	const fs = require("fs/promises");
-	let pcm = await fs.readFile("/path/to/some/raw/data.raw");
+	let pcm = await fs.readFile("../soundswallower/tests/data/goforward.raw");
 	// Start speech processing
 	await decoder.start();
 	// Takes a typed array, as returned by readFile
@@ -96,7 +96,7 @@ a fairly minimal example:
 	console.log(decoder.get_hyp());
 	// Again we must manually release memory
 	decoder.delete();
-   })();
+    })();
 
 One caveat is that just as on the Web, configuration options such as
 ``hmm`` (for the acoustic model) or ``jsgf`` (for grammars) do not
