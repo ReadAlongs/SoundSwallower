@@ -6,7 +6,7 @@ build:
     python: "3.7"
     nodejs: "16"
   apt_packages:
-    jsdoc-toolkit
+    - jsdoc-toolkit
 
 sphinx:
   configuration: docs/source/conf.py
