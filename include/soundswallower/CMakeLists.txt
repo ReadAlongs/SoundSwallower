@@ -13,6 +13,7 @@ set(INCLUDES
   dict2pid.h
   dict.h
   err.h
+  export.h
   feat.h
   fe.h
   fe_internal.h
@@ -35,7 +36,6 @@ set(INCLUDES
   jsgf_internal.h
   listelem_alloc.h
   logmath.h
-  matrix.h
   mdef.h
   mmio.h
   ms_gauden.h
@@ -50,7 +50,6 @@ set(INCLUDES
   ps_lattice.h
   ps_lattice_internal.h
   ps_mllr.h
-  ps_search.h
   ptm_mgau.h
   s2_semi_mgau.h
   s3types.h
@@ -59,5 +58,6 @@ set(INCLUDES
   tmat.h
   vector.h
   yin.h
-)
+  acmod.h
+  )
 install(FILES ${INCLUDES} DESTINATION include)
