@@ -61,6 +61,17 @@ new CopyPlugin({
 }),
 ```
 
+Next to the `node` section, to prevent Webpack from mocking some
+Node.js global variables that will break WASM loading:
+
+```js
+    node: {
+	    global: false,
+	    __filename: false,
+	    __dirname: false,
+    },
+```
+
 And finally to the `resolve` section:
 
 ```js
