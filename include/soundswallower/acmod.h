@@ -217,6 +217,24 @@ typedef struct acmod_s acmod_t;
 acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
+ * Verify that feature extraction parameters are compatible with
+ * acoustic model.
+ *
+  * @param fe acoustic feature extraction module to verify.
+ * @return TRUE if compatible, FALSE otherwise
+ */
+int acmod_fe_mismatch(acmod_t *acmod, fe_t *fe);
+
+/**
+ * Verify that dynamic feature computation parameters are compatible
+ * with acoustic model.
+ *
+ * @param fcb dynamic feature computation module to verify.
+ * @return TRUE if compatible, FALSE otherwise
+ */
+int acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb);
+
+/**
  * Adapt acoustic model using a linear transform.
  *
  * @param mllr The new transform to use, or NULL to update the
