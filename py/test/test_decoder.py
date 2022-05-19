@@ -54,6 +54,18 @@ class TestDecoder(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self._run_decode(decoder)
         
+    def test_reinit_fe(self):
+        # Initialize with wrong sampling rate
+        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'),
+                          samprate=11025)
+        # Verify that reinit_fe does not break current grammar
+        fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.fsg'))
+        decoder.set_fsg(fsg);
+        decoder.config["samprate"] = 16000
+        decoder.reinit_fe();
+        self._run_decode(decoder)
+
     def test_turtle(self):
         config = Decoder.default_config()
         config['-hmm'] = os.path.join(get_model_path(), 'en-us')

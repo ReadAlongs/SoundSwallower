@@ -19,6 +19,8 @@ Code to rethink or eliminate:
 Roadmap:
 
 - 0.2: new JavaScript API
+  - Fix automatic -nfft and other ps_reinit problems DONE
+  - Implement automatic -nfft at fe init time
   - Bring back arg_dump for INFO level logging DONE
   - Floating-point input to front-end
     Default to pre-loading in Node and fix README.js DONE
@@ -37,5 +39,7 @@ Roadmap:
   - FSG and search names need to GTFO
 	- No, just need to synchronize them properly
 	- Useful to be able to identify an FSG object
+  - Remove all stdio from JavaScript version at least
+  - Remove superfluous I/O code in general
 
 - 0.4: phone-level alignment

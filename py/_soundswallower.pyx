@@ -402,6 +402,24 @@ cdef class Decoder:
         if ps_reinit(self.ps, cconfig) != 0:
             raise RuntimeError("Failed to reinitialize decoder configuration")
 
+    def reinit_fe(self, Config config=None):
+        """Reinitialize only the feature extraction.
+
+        Args:
+            config(Config): Optional new configuration to apply, otherwise
+                            the existing configuration in the `config`
+                            attribute will be reloaded.
+
+        """
+        cdef cmd_ln_t *cconfig
+        if config is None:
+            cconfig = NULL
+        else:
+            self.config = config
+            cconfig = config.cmd_ln
+        if ps_reinit_fe(self.ps, cconfig) == NULL:
+            raise RuntimeError("Failed to reinitialize feature extraction")
+
     def start_utt(self):
         """Start processing raw audio input.
 
@@ -726,7 +744,7 @@ cdef class Decoder:
                 logging.info("Increasing FFT size to %d for sample rate %d",
                              fft_size, sample_rate)
                 self.config["nfft"] = fft_size
-            self.reinit()
+            self.reinit_fe()
         frame_size = 1.0 / self.config.get_int('-frate')
 
         self.start_utt()

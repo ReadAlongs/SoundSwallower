@@ -105,6 +105,27 @@ ps_decoder_t *ps_init(cmd_ln_t *config);
 int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config);
 
 /**
+ * Reinitialize only the feature extractor with updated configuration.
+ *
+ * This function allows you to switch the feature extraction
+ * parameters without otherwise affecting the decoder configuration.
+ * For example, if you change the sample rate or the frame rate and do
+ * not need to reconfigure the rest of the decoder.
+ *
+ * @note The decoder retains ownership of the pointer
+ * <code>config</code>, so you should free it when no longer used.
+ *
+ * @param ps Decoder.
+ * @param config An optional new configuration to use.  If this is
+ *               NULL, the previous configuration will be reloaded,
+ *               with any changes to feature extraction applied.
+ * @return pointer to new feature extractor. The decoder owns this
+ *         pointer, so you should not attempt to free it manually.
+ *         Use fe_retain() if you wish to reuse it elsewhere.
+ */
+fe_t * ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config);
+
+/**
  * Returns the argument definitions used in ps_init().
  *
  * This is here to avoid exporting global data, which is problematic

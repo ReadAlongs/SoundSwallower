@@ -28,6 +28,9 @@ cdef extern from "soundswallower/logmath.h":
 
     int logmath_get_zero(logmath_t *lmath)
 
+cdef extern from "soundswallower/fe.h":
+    ctypedef struct fe_t:
+        pass
 
 cdef extern from "soundswallower/hash_table.h":
     ctypedef struct hash_table_t:
@@ -128,6 +131,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
     ps_decoder_t *ps_init(cmd_ln_t *config)
     int ps_free(ps_decoder_t *ps)
     int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
+    fe_t *ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
     logmath_t *ps_get_logmath(ps_decoder_t *ps)
     int ps_start_utt(ps_decoder_t *ps)
     int ps_process_raw(ps_decoder_t *ps,
