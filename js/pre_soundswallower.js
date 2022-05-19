@@ -256,12 +256,12 @@ class Decoder {
 	}
 	async function init_acmod(ps) {
 	    let rv = Module._ps_init_acmod(ps);
-	    if (rv < 0)
+	    if (rv == 0)
 		throw new Error("Failed to initialize acoustic model");
 	}
 	async function init_dict(ps) {
 	    let rv = Module._ps_init_dict(ps);
-	    if (rv < 0)
+	    if (rv == 0)
 		throw new Error("Failed to initialize dictionaries");
 	}
 	async function init_grammar(ps) {
