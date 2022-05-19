@@ -58,7 +58,7 @@ static const arg_t fe_args[] = {
 int
 fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
 {
-    int j, frate;
+    int j, frate, window_samples;
 
     if (cmd_ln_boolean_r(config, "-remove_noise")) {
         E_ERROR("-remove_noise is no longer supported");
@@ -96,19 +96,41 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
     fe->num_cepstra = (uint8)cmd_ln_int32_r(config, "-ncep");
     fe->fft_size = (int16)cmd_ln_int32_r(config, "-nfft");
 
-    /* Check FFT size, compute FFT order (log_2(n)) */
-    for (j = fe->fft_size, fe->fft_order = 0; j > 1; j >>= 1, fe->fft_order++) {
-        if (((j % 2) != 0) || (fe->fft_size <= 0)) {
-            E_ERROR("fft: number of points must be a power of 2 (is %d)\n",
-                    fe->fft_size);
+    window_samples = (int)(fe->window_length * fe->sampling_rate);
+    E_INFO("Frames are %d samples at intervals of %d\n",
+           window_samples, (int)(fe->sampling_rate / frate));
+    if (window_samples > MAX_INT16) {
+        /* This is extremely unlikely! */
+        E_ERROR("Frame size exceeds maximum FFT size (%d > %d)\n",
+                window_samples, MAX_INT16);
+        return -1;
+    }
+
+    /* Set FFT size automatically from window size. */
+    if (fe->fft_size == 0) {
+        fe->fft_order = 0;
+        fe->fft_size = (1<<fe->fft_order);
+        while (fe->fft_size < window_samples) {
+            fe->fft_order++;
+            fe->fft_size <<= 1;
+        }
+        E_INFO("FFT size automatically set to %d\n", fe->fft_size);
+    }
+    else {
+        /* Check FFT size, compute FFT order (log_2(n)) */
+        for (j = fe->fft_size, fe->fft_order = 0; j > 1; j >>= 1, fe->fft_order++) {
+            if (((j % 2) != 0) || (fe->fft_size <= 0)) {
+                E_ERROR("fft: number of points must be a power of 2 (is %d)\n",
+                        fe->fft_size);
+                return -1;
+            }
+        }
+        /* Verify that FFT size is greater or equal to window length. */
+        if (fe->fft_size < window_samples) {
+            E_ERROR("FFT: Number of points must be greater or "
+                    "equal to frame size\n");
             return -1;
         }
-    }
-    /* Verify that FFT size is greater or equal to window length. */
-    if (fe->fft_size < (int)(fe->window_length * fe->sampling_rate)) {
-        E_ERROR("FFT: Number of points must be greater or equal to frame size (%d samples)\n",
-                (int)(fe->window_length * fe->sampling_rate));
-        return -1;
     }
 
     fe->remove_dc = cmd_ln_boolean_r(config, "-remove_dc");

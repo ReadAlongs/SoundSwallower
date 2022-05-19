@@ -136,8 +136,8 @@ extern "C" {
    \
   { "-nfft", \
     ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_FFT_SIZE), \
-    "Size of FFT" }, \
+    "0", \
+    "Size of FFT, or 0 to set automatically (recommended)" }, \
    \
   { "-nfilt", \
     ARG_INTEGER, \
