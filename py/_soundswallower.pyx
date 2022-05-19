@@ -188,11 +188,11 @@ cdef class Config:
             if val is None:
                 cmd_ln_set_str_r(self.cmd_ln, ckey, NULL)
             else:
-                cmd_ln_set_str_r(self.cmd_ln, ckey, val.encode('utf-8'))
+                cmd_ln_set_str_r(self.cmd_ln, ckey, str(val).encode('utf-8'))
         elif at.type & ARG_INTEGER:
-            cmd_ln_set_int_r(self.cmd_ln, ckey, val)
+            cmd_ln_set_int_r(self.cmd_ln, ckey, int(val))
         elif at.type & ARG_FLOATING:
-            cmd_ln_set_float_r(self.cmd_ln, ckey, val)
+            cmd_ln_set_float_r(self.cmd_ln, ckey, float(val))
         elif at.type & ARG_BOOLEAN:
             cmd_ln_set_int_r(self.cmd_ln, ckey, val != 0)
         else:
@@ -712,7 +712,7 @@ cdef class Decoder:
         Currently supports single-channel WAV and raw audio files.  If
         the sampling rate for a WAV file differs from the one set in
         the decoder's configuration, the configuration will be updated
-        to match it (``-samprate`` and possibly ``-nfft`` options).
+        to match it.
 
         Note that we always decode the entire file at once. It would
         have to be really huge for this to cause memory problems, in
@@ -735,15 +735,6 @@ cdef class Decoder:
         if sample_rate != self.config.get_float("-samprate"):
             logging.info("Setting sample rate to %d", sample_rate)
             self.config["samprate"] = sample_rate
-            # Calculate the minimum required FFT size for the sample rate
-            frame_points = int(sample_rate * self.config.get_float("-wlen"))
-            fft_size = 1
-            while fft_size < frame_points:
-                fft_size = fft_size << 1
-            if fft_size > self.config.get_int("-nfft"):
-                logging.info("Increasing FFT size to %d for sample rate %d",
-                             fft_size, sample_rate)
-                self.config["nfft"] = fft_size
             self.reinit_fe()
         frame_size = 1.0 / self.config.get_int('-frate')
 

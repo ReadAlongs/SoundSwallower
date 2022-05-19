@@ -14,14 +14,14 @@ class TestCLI(unittest.TestCase):
         cli.main(("--grammar", os.path.join(DATADIR, "goforward.gram"),
                   os.path.join(DATADIR, "goforward.wav"),
                   os.path.join(DATADIR, "goforward.raw")))
-        self.assert_(True)
+        self.assertTrue(True)
 
     def test_cli_other_model(self):
         cli.main(("--grammar", os.path.join(DATADIR, "goforward_fr.gram"),
                   "--model", get_model_path("fr-fr"),
                   os.path.join(DATADIR, "goforward_fr.wav"),
                   os.path.join(DATADIR, "goforward_fr.raw")))
-        self.assert_(True)
+        self.assertTrue(True)
 
 
 if __name__ == "__main__":
