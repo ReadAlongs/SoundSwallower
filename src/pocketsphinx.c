@@ -199,18 +199,6 @@ ps_init_cleanup(ps_decoder_t *ps)
     /* Free old searches (do this before other reinit) */
     ps_free_searches(ps);
 
-    /* Free old acmod. */
-    acmod_free(ps->acmod);
-    ps->acmod = NULL;
-
-    /* Free old dictionary (must be done after the two things above) */
-    dict_free(ps->dict);
-    ps->dict = NULL;
-
-    /* Free d2p */
-    dict2pid_free(ps->d2p);
-    ps->d2p = NULL;
-
     return 0;
 }
 
@@ -221,6 +209,8 @@ ps_init_acmod(ps_decoder_t *ps)
         return NULL;
     if (ps->lmath == NULL)
         return NULL;
+    /* Free old acmod. */
+    acmod_free(ps->acmod);
     /* Acoustic model (this is basically everything that
      * uttproc.c, senscr.c, and others used to do) */
     ps->acmod = acmod_init(ps->config, ps->lmath, NULL, NULL);
@@ -234,6 +224,10 @@ ps_init_dict(ps_decoder_t *ps)
         return NULL;
     if (ps->acmod == NULL)
         return NULL;
+    /* Free old dictionary */
+    dict_free(ps->dict);
+    /* Free d2p */
+    dict2pid_free(ps->d2p);
     /* Dictionary and triphone mappings (depends on acmod). */
     /* FIXME: pass config, change arguments, implement LTS, etc. */
     if ((ps->dict = dict_init(ps->config, ps->acmod->mdef)) == NULL)
