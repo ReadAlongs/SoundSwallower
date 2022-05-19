@@ -43,6 +43,8 @@ def make_argparse():
                         help="Specific model, built-in or from directory.",
                         default='en-us')
     parser.add_argument("--config", help="JSON file with decoder configuration.")
+    parser.add_argument("-s", "--set", action="append",
+                        help="Set configuration parameter (KEY=VALUE).")
     parser.add_argument("--write-config",
                         help="Write full configuration as JSON to OUTPUT "
                         "(or standard output if none given) and exit.")
@@ -96,6 +98,10 @@ def make_decoder_config(args):
     if args.grammar is not None:
         config["jsgf"] = args.grammar
 
+    if args.set:
+        for kv in args.set:
+            key, value = kv.split('=')
+            config[key] = value
     return config
 
 
