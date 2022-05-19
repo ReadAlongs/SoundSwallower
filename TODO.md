@@ -20,7 +20,7 @@ Roadmap:
 
 - 0.2: new JavaScript API
   - Fix automatic -nfft and other ps_reinit problems DONE
-  - Implement automatic -nfft at fe init time
+  - Implement automatic -nfft at fe init time DONE
   - Bring back arg_dump for INFO level logging DONE
   - Floating-point input to front-end
     Default to pre-loading in Node and fix README.js DONE
