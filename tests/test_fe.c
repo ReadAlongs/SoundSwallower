@@ -27,6 +27,7 @@ main(int argc, char *argv[])
     int32 nfr, i;
     size_t nsamp;
 
+    err_set_loglevel_str("INFO");
     TEST_ASSERT(config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE));
     TEST_ASSERT(fe = fe_init_auto_r(config));
 
@@ -35,6 +36,7 @@ main(int argc, char *argv[])
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(frame_shift, DEFAULT_FRAME_SHIFT);
     TEST_EQUAL(frame_size, (int)(DEFAULT_WINDOW_LENGTH*DEFAULT_SAMPLING_RATE));
+
 
     TEST_ASSERT(raw = fopen(TESTDATADIR "/goforward.raw", "rb"));
 
