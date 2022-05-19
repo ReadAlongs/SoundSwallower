@@ -49,6 +49,7 @@
 #include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
+#include <soundswallower/acmod.h>
 #include <soundswallower/pio.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
