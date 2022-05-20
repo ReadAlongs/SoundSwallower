@@ -136,26 +136,35 @@ struct fe_s {
 
     /* Temporary buffers for processing. */
     /* FIXME: too many of these. */
-    int16 *spch;
+    union {
+        int16 *_int16;
+        float32 *_float32;
+    } spch;
     frame_t *frame;
     powspec_t *spec, *mfspec;
-    int16 *overflow_samps;
-    int16 num_overflow_samps;    
-    int16 pre_emphasis_prior;
+    union {
+        int16 *_int16;
+        float32 *_float32;
+    } overflow_samps;
+    int num_overflow_samps;    
+    union {
+        int16 _int16;
+        float32 _float32;
+    } pre_emphasis_prior;
+    int is_float32;
 };
 
 void fe_init_dither(int32 seed);
 
-/* Apply 1/2 bit noise to a buffer of audio. */
-int32 fe_dither(int16 *buffer, int32 nsamps);
-
 /* Load a frame of data into the fe. */
-int fe_read_frame(fe_t *fe, int16 const *in, int32 len);
+//int fe_read_frame(fe_t *fe, int16 const *in, int32 len);
 int fe_read_frame_int16(fe_t *fe, int16 const *in, int32 len);
+int fe_read_frame_float32(fe_t *fe, float32 const *in, int32 len);
 
 /* Shift the input buffer back and read more data. */
-int fe_shift_frame(fe_t *fe, int16 const *in, int32 len);
+//int fe_shift_frame(fe_t *fe, int16 const *in, int32 len);
 int fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len);
+int fe_shift_frame_float32(fe_t *fe, float32 const *in, int32 len);
 
 /* Process a frame of data into features. */
 void fe_write_frame(fe_t *fe, mfcc_t *fea);

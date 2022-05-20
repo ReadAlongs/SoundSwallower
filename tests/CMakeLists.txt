@@ -17,6 +17,7 @@ set(TESTS
   test_feat_fe.c
   test_feat_live.c
   test_fe.c
+  test_fe_float32.c
   test_filename.c
   test_fsg.c
   test_hash_iter.c

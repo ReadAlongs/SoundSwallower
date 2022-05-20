@@ -95,6 +95,7 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
 
     fe->num_cepstra = (uint8)cmd_ln_int32_r(config, "-ncep");
     fe->fft_size = (int16)cmd_ln_int32_r(config, "-nfft");
+    fe->is_float32 = cmd_ln_boolean_r(config, "-input_float32");
 
     window_samples = (int)(fe->window_length * fe->sampling_rate);
     E_INFO("Frames are %d samples at intervals of %d\n",
@@ -243,7 +244,7 @@ fe_init_auto_r(cmd_ln_t *config)
      */
     fe->frame_shift = (int32) (fe->sampling_rate / fe->frame_rate + 0.5);
     fe->frame_size = (int32) (fe->window_length * fe->sampling_rate + 0.5);
-    fe->pre_emphasis_prior = 0;
+    fe->pre_emphasis_prior._float32 = 0;
     fe->frame_counter = 0;
 
     if (fe->frame_size > (fe->fft_size)) {
@@ -258,7 +259,7 @@ fe_init_auto_r(cmd_ln_t *config)
         fe_init_dither(fe->dither_seed);
 
     /* establish buffers for overflow samps and hamming window */
-    fe->overflow_samps = ckd_calloc(fe->frame_size, sizeof(int16));
+    fe->overflow_samps._float32 = ckd_calloc(fe->frame_size, sizeof(float32));
     fe->hamming_window = ckd_calloc(fe->frame_size/2, sizeof(window_t));
 
     /* create hamming window */
@@ -282,7 +283,7 @@ fe_init_auto_r(cmd_ln_t *config)
 
     /* Create temporary FFT, spectrum and mel-spectrum buffers. */
     /* FIXME: Gosh there are a lot of these. */
-    fe->spch = ckd_calloc(fe->frame_size, sizeof(*fe->spch));
+    fe->spch._float32 = ckd_calloc(fe->frame_size, sizeof(*fe->spch._float32));
     fe->frame = ckd_calloc(fe->fft_size, sizeof(*fe->frame));
     fe->spec = ckd_calloc(fe->fft_size, sizeof(*fe->spec));
     fe->mfspec = ckd_calloc(fe->mel_fb->num_filters, sizeof(*fe->mfspec));
@@ -324,9 +325,18 @@ int32
 fe_start_utt(fe_t * fe)
 {
     fe->num_overflow_samps = 0;
-    memset(fe->overflow_samps, 0, fe->frame_size * sizeof(int16));
+    if (fe->is_float32) {
+        memset(fe->overflow_samps._float32, 0,
+               fe->frame_size * sizeof(*fe->overflow_samps._float32));
+        fe->pre_emphasis_prior._float32 = 0;
+    }
+    else {
+        // Does the same thing as above, but whatever...
+        memset(fe->overflow_samps._int16, 0,
+               fe->frame_size * sizeof(*fe->overflow_samps._int16));
+        fe->pre_emphasis_prior._int16 = 0;
+    }
     fe->start_flag = 1;
-    fe->pre_emphasis_prior = 0;
     return 0;
 }
 
@@ -349,7 +359,26 @@ fe_get_input_size(fe_t *fe, int *out_frame_shift,
 int32
 fe_process_frame(fe_t * fe, int16 const *spch, int32 nsamps, mfcc_t * fr_cep)
 {
-    fe_read_frame(fe, spch, nsamps);
+    if (fe->is_float32) {
+        E_ERROR("Called fe_process_frame when -input_float32 is true\n");
+        return -1;
+    }
+        
+    fe_read_frame_int16(fe, spch, nsamps);
+    fe_write_frame(fe, fr_cep);
+
+    return 1;
+}
+
+int32
+fe_process_frame_float32(fe_t * fe, float32 const *spch, int32 nsamps, mfcc_t * fr_cep)
+{
+    if (!fe->is_float32) {
+        E_ERROR("Called fe_process_frame_float32 when -input_float32 is false\n");
+        return -1;
+    }
+        
+    fe_read_frame_float32(fe, spch, nsamps);
     fe_write_frame(fe, fr_cep);
 
     return 1;
@@ -365,8 +394,12 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
 {                                                                       \
     int32 frame_count;                                                  \
     int outidx, i, n_overflow, orig_n_overflow;                         \
-    SPCH_TYPE const *orig_spch;                                             \
+    SPCH_TYPE const *orig_spch;                                         \
                                                                         \
+    if (fe->is_float32 != !strcmp(#SPCH_TYPE, "float32")) {             \
+        E_ERROR("Mismatch in input type for fe_process_frames_" #SPCH_TYPE "\n"); \
+        return -1;                                                      \
+    }                                                                   \
     /* In the special case where there is no output buffer, return the  \
      * maximum number of frames which would be generated. */            \
     if (buf_cep == NULL) {                                              \
@@ -383,8 +416,8 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
     if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size) { \
         if (*inout_nsamps > 0) {                                        \
             /* Append them to the overflow buffer. */                   \
-            memcpy(fe->overflow_samps + fe->num_overflow_samps,         \
-                   *inout_spch, *inout_nsamps * (sizeof(**inout_spch)));       \
+            memcpy(fe->overflow_samps._##SPCH_TYPE + fe->num_overflow_samps, \
+                   *inout_spch, *inout_nsamps * (sizeof(**inout_spch))); \
             fe->num_overflow_samps += *inout_nsamps;                    \
             /* Update input-output pointers and counters. */            \
             *inout_spch += *inout_nsamps;                               \
@@ -419,9 +452,9 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
         int offset = fe->frame_size - fe->num_overflow_samps;           \
                                                                         \
         /* Append start of spch to overflow samples to make a full frame. */ \
-        memcpy(fe->overflow_samps + fe->num_overflow_samps,             \
+        memcpy(fe->overflow_samps._##SPCH_TYPE + fe->num_overflow_samps, \
                *inout_spch, offset * sizeof(**inout_spch));             \
-        fe_read_frame_##SPCH_TYPE(fe, fe->overflow_samps, fe->frame_size);          \
+        fe_read_frame_##SPCH_TYPE(fe, fe->overflow_samps._##SPCH_TYPE, fe->frame_size); \
         assert(outidx < frame_count);                                   \
         fe_write_frame(fe, buf_cep[outidx]);                            \
         outidx++;                                                       \
@@ -431,7 +464,7 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
         fe->num_overflow_samps -= fe->frame_shift;                      \
     }                                                                   \
     else {                                                              \
-        fe_read_frame_##SPCH_TYPE(fe, *inout_spch, fe->frame_size);                 \
+        fe_read_frame_##SPCH_TYPE(fe, *inout_spch, fe->frame_size);     \
         assert(outidx < frame_count);                                   \
         fe_write_frame(fe, buf_cep[outidx]);                            \
         outidx++;                                                       \
@@ -444,7 +477,7 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
     for (i = 1; i < frame_count; ++i) {                                 \
         assert(*inout_nsamps >= (size_t)fe->frame_shift);               \
                                                                         \
-        fe_shift_frame_##SPCH_TYPE(fe, *inout_spch, fe->frame_shift);               \
+        fe_shift_frame_##SPCH_TYPE(fe, *inout_spch, fe->frame_shift);   \
         assert(outidx < frame_count);                                   \
         fe_write_frame(fe, buf_cep[outidx]);                            \
         outidx++;                                                       \
@@ -468,7 +501,7 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
             fe->num_overflow_samps = *inout_spch - orig_spch;           \
         fe->num_overflow_samps += n_overflow;                           \
         if (fe->num_overflow_samps > 0) {                               \
-            memcpy(fe->overflow_samps,                                  \
+            memcpy(fe->overflow_samps._##SPCH_TYPE,                     \
                    *inout_spch - (fe->frame_size - fe->frame_shift),    \
                    fe->num_overflow_samps * sizeof(**inout_spch));      \
             /* Update the input pointer to cover this stuff. */         \
@@ -479,14 +512,14 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
     else {                                                              \
         /* There is still some relevant data left in the overflow buffer. */ \
         /* Shift existing data to the beginning. */                     \
-        memmove(fe->overflow_samps,                                     \
-                fe->overflow_samps + orig_n_overflow - fe->num_overflow_samps, \
-                fe->num_overflow_samps * sizeof(*fe->overflow_samps));  \
+        memmove(fe->overflow_samps._##SPCH_TYPE,                        \
+                fe->overflow_samps._##SPCH_TYPE + orig_n_overflow - fe->num_overflow_samps, \
+                fe->num_overflow_samps * sizeof(*fe->overflow_samps._##SPCH_TYPE)); \
         /* Copy in whatever we had in the original speech buffer. */    \
         n_overflow = *inout_spch - orig_spch + *inout_nsamps;           \
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)       \
             n_overflow = fe->frame_size - fe->num_overflow_samps;       \
-        memcpy(fe->overflow_samps + fe->num_overflow_samps,             \
+        memcpy(fe->overflow_samps._##SPCH_TYPE + fe->num_overflow_samps, \
                orig_spch, n_overflow * sizeof(*orig_spch));             \
         fe->num_overflow_samps += n_overflow;                           \
         /* Advance the input pointers. */                               \
@@ -502,7 +535,7 @@ fe_process_frames_##SPCH_TYPE(fe_t *fe,                                 \
     return 0;                                                           \
 }
 PROCESS_FRAMES_IMPL(int16)
-//PROCESS_FRAMES_IMPL(float32)
+PROCESS_FRAMES_IMPL(float32)
 
 int
 fe_process_frames(fe_t *fe,
@@ -540,7 +573,12 @@ fe_end_utt(fe_t * fe, mfcc_t * cepvector, int32 * nframes)
 {
     /* Process any remaining data. */
     if (fe->num_overflow_samps > 0) {
-        fe_read_frame(fe, fe->overflow_samps, fe->num_overflow_samps);
+        if (fe->is_float32)
+            fe_read_frame_float32(fe, fe->overflow_samps._float32,
+                                  fe->num_overflow_samps);
+        else
+            fe_read_frame_int16(fe, fe->overflow_samps._int16,
+                                fe->num_overflow_samps);
         fe_write_frame(fe, cepvector);
         *nframes = 1;
     }
@@ -581,13 +619,13 @@ fe_free(fe_t * fe)
         ckd_free(fe->mel_fb->filt_coeffs);
         ckd_free(fe->mel_fb);
     }
-    ckd_free(fe->spch);
+    ckd_free(fe->spch._float32);
     ckd_free(fe->frame);
     ckd_free(fe->ccc);
     ckd_free(fe->sss);
     ckd_free(fe->spec);
     ckd_free(fe->mfspec);
-    ckd_free(fe->overflow_samps);
+    ckd_free(fe->overflow_samps._float32);
     ckd_free(fe->hamming_window);
     cmd_ln_free_r(fe->config);
     ckd_free(fe);

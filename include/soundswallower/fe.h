@@ -184,6 +184,11 @@ extern "C" {
     NATIVE_ENDIAN, \
     "Endianness of input data, big or little, ignored if NIST or MS Wav" }, \
    \
+  { "-input_float32", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Input is 32-bit floating point in [-1.0, 1.0]" }, \
+   \
   { "-warp_type", \
     ARG_STRING, \
     DEFAULT_WARP_TYPE, \
@@ -406,6 +411,18 @@ int fe_process_frames(fe_t *fe,
                       size_t *inout_nsamps,
                       mfcc_t **buf_cep,
                       int32 *inout_nframes);
+
+/** 
+ * Process a block of floating-point samples.
+ *
+ * See fe_process_frames(), except that the input is expected to be
+ * 32-bit floating point in the range of [-1.0, 1.0].
+ */
+int fe_process_frames_float32(fe_t *fe,
+                              float32 const **inout_spch,
+                              size_t *inout_nsamps,
+                              mfcc_t **buf_cep,
+                              int32 *inout_nframes);
 
 /** 
  * Process a block of samples, returning as many frames as possible.
