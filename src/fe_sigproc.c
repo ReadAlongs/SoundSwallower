@@ -398,6 +398,9 @@ fe_read_frame(fe_t * fe, int16 const *in, int32 len)
     return fe_read_frame_int16(fe, in, len);
 }
 
+#define FLOAT32_SCALE 32768.0
+#define FLOAT32_DITHER 1.0
+
 int
 fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
 {
@@ -415,10 +418,11 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
     if (fe->dither)
         for (i = 0; i < len; ++i)
             fe->spch._float32[i] =
-                (in[i] * 32768.0 + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+                (in[i] * FLOAT32_SCALE
+                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
     else
         for (i = 0; i < len; ++i)
-            fe->spch._float32[i] = in[i] * 32768.0;
+            fe->spch._float32[i] = in[i] * FLOAT32_SCALE;
 
     return fe_spch_to_frame(fe, len);
 }
@@ -481,10 +485,11 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
     if (fe->dither)
         for (i = 0; i < len; ++i)
             fe->spch._float32[i + offset] =
-                (in[i] * 32768.0 + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+                (in[i] * FLOAT32_SCALE
+                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
     else
         for (i = 0; i < len; ++i)
-            fe->spch._float32[i + offset] = in[i] * 32768.0;
+            fe->spch._float32[i + offset] = in[i] * FLOAT32_SCALE;
 
     return fe_spch_to_frame(fe, offset + len);
 }
