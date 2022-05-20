@@ -151,9 +151,11 @@ int32 fe_dither(int16 *buffer, int32 nsamps);
 
 /* Load a frame of data into the fe. */
 int fe_read_frame(fe_t *fe, int16 const *in, int32 len);
+int fe_read_frame_int16(fe_t *fe, int16 const *in, int32 len);
 
 /* Shift the input buffer back and read more data. */
 int fe_shift_frame(fe_t *fe, int16 const *in, int32 len);
+int fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len);
 
 /* Process a frame of data into features. */
 void fe_write_frame(fe_t *fe, mfcc_t *fea);

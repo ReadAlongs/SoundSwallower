@@ -331,7 +331,7 @@ fe_spch_to_frame(fe_t * fe, int len)
 }
 
 int
-fe_read_frame(fe_t * fe, int16 const *in, int32 len)
+fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int i;
 
@@ -352,7 +352,13 @@ fe_read_frame(fe_t * fe, int16 const *in, int32 len)
 }
 
 int
-fe_shift_frame(fe_t * fe, int16 const *in, int32 len)
+fe_read_frame(fe_t * fe, int16 const *in, int32 len)
+{
+    return fe_read_frame_int16(fe, in, len);
+}
+
+int
+fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int offset, i;
 
@@ -374,6 +380,12 @@ fe_shift_frame(fe_t * fe, int16 const *in, int32 len)
                 += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
 
     return fe_spch_to_frame(fe, offset + len);
+}
+
+int
+fe_shift_frame(fe_t * fe, int16 const *in, int32 len)
+{
+    return fe_shift_frame_int16(fe, in, len);
 }
 
 /**
