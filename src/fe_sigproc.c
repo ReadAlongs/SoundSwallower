@@ -251,7 +251,7 @@ fe_compute_melcosine(melfb_t * mel_fb)
 
 static void
 fe_pre_emphasis_int16(int16 const *in, frame_t * out, int32 len,
-                float32 factor, int16 prior)
+                      float32 factor, int16 prior)
 {
     int i;
 
@@ -271,7 +271,7 @@ fe_copy_to_frame_int16(int16 const *in, frame_t * out, int32 len)
 
 static void
 fe_pre_emphasis_float32(float32 const *in, frame_t * out, int32 len,
-                        float32 factor, int16 prior)
+                        float32 factor, float32 prior)
 {
     int i;
 
@@ -326,10 +326,10 @@ fe_hamming_window(frame_t * in, window_t * window, int32 in_len,
 }
 
 static int
-fe_spch_to_frame(fe_t * fe, int len, int is_float32)
+fe_spch_to_frame(fe_t * fe, int len)
 {
     /* Copy to the frame buffer. */
-    if (is_float32) {
+    if (fe->is_float32) {
         if (fe->pre_emphasis_alpha != 0.0) {
             fe_pre_emphasis_float32(fe->spch._float32, fe->frame, len,
                                     fe->pre_emphasis_alpha,
@@ -371,6 +371,11 @@ fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int i;
 
+    if (fe->is_float32) {
+        E_ERROR("Called fe_read_frame_int16 when -input_float32 is true\n");
+        return -1;
+    }
+
     if (len > fe->frame_size)
         len = fe->frame_size;
 
@@ -384,7 +389,7 @@ fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
         for (i = 0; i < len; ++i)
             fe->spch._int16[i] += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
 
-    return fe_spch_to_frame(fe, len, FALSE);
+    return fe_spch_to_frame(fe, len);
 }
 
 int
@@ -398,21 +403,36 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
 {
     int i;
 
+    if (!fe->is_float32) {
+        E_ERROR("Called fe_read_frame_float32 when -input_float32 is false\n");
+        return -1;
+    }
+
     if (len > fe->frame_size)
         len = fe->frame_size;
 
     /* Scale and dither if necessary. */
-    for (i = 0; i < len; ++i)
-        fe->spch._float32[i] += ((float32) in[i] * 32768.0
-                        + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+    if (fe->dither)
+        for (i = 0; i < len; ++i)
+            fe->spch._float32[i] =
+                (in[i] * 32768.0 + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+    else
+        for (i = 0; i < len; ++i)
+            fe->spch._float32[i] = in[i] * 32768.0;
 
-    return fe_spch_to_frame(fe, len, TRUE);
+    return fe_spch_to_frame(fe, len);
 }
 
 int
 fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int offset, i;
+
+    if (fe->is_float32) {
+        E_ERROR("Called fe_shift_frame_int16 when -input_float32 is true\n");
+        return -1;
+    }
+
 
     if (len > fe->frame_shift)
         len = fe->frame_shift;
@@ -431,7 +451,7 @@ fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
             fe->spch._int16[offset + i]
                 += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
 
-    return fe_spch_to_frame(fe, offset + len, FALSE);
+    return fe_spch_to_frame(fe, offset + len);
 }
 
 int
@@ -445,6 +465,11 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
 {
     int offset, i;
 
+    if (!fe->is_float32) {
+        E_ERROR("Called fe_read_frame_float32 when -input_float32 is false\n");
+        return -1;
+    }
+
     if (len > fe->frame_shift)
         len = fe->frame_shift;
     offset = fe->frame_size - fe->frame_shift;
@@ -453,11 +478,15 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
     memmove(fe->spch._float32, fe->spch._float32 + fe->frame_shift,
             offset * sizeof(*fe->spch._float32));
     /* Scale and dither if necessary. */
-    for (i = 0; i < len; ++i)
-        fe->spch._float32[i + offset] +=
-            (in[i] * 32768.0 + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+    if (fe->dither)
+        for (i = 0; i < len; ++i)
+            fe->spch._float32[i + offset] =
+                (in[i] * 32768.0 + ((!(s3_rand_int31() % 4)) ? 1.0 : 0.0));
+    else
+        for (i = 0; i < len; ++i)
+            fe->spch._float32[i + offset] = in[i] * 32768.0;
 
-    return fe_spch_to_frame(fe, offset + len, TRUE);
+    return fe_spch_to_frame(fe, offset + len);
 }
 
 /**
