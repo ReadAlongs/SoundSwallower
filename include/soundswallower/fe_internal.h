@@ -137,19 +137,19 @@ struct fe_s {
     /* Temporary buffers for processing. */
     /* FIXME: too many of these. */
     union {
-        int16 *_int16;
-        float32 *_float32;
+        int16 *s_int16;
+        float32 *s_float32;
     } spch;
     frame_t *frame;
     powspec_t *spec, *mfspec;
     union {
-        int16 *_int16;
-        float32 *_float32;
+        int16 *s_int16;
+        float32 *s_float32;
     } overflow_samps;
     int num_overflow_samps;    
     union {
-        int16 _int16;
-        float32 _float32;
+        int16 s_int16;
+        float32 s_float32;
     } pre_emphasis_prior;
     int is_float32;
 };
