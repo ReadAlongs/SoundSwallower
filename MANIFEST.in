@@ -5,6 +5,7 @@ include README.md
 include TODO.md
 include build_wheels.sh
 include config.h.in
+include requirements.txt
 include docs/Makefile
 include docs/gen_config.py
 include docs/make.bat
@@ -20,10 +21,7 @@ include include/soundswallower/*.h
 include js/CMakeLists.txt
 include js/README.md
 include js/*.js
-include js/*.py
-include js/index.html
-include js/psRecognizer.cpp
-include js/psRecognizer.h
+include js/*.json
 recursive-include model *
 include py/CMakeLists.txt
 include py/_soundswallower.pxd
