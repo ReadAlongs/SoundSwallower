@@ -1,9 +1,11 @@
 #JSGF V1.0;
 grammar pizza;
-public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
+public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
+       [(pizza | pizzas)] [<toppings>];
 <greeting> = hi | hello | yo | howdy;
 <want> = i want | gimme | give me | i'd like to order | order | i wanna;
 <quantity> = a | one | two | three | four | five;
 <size> = small | medium | large | extra large | x large | x l;
+<style> = hawaiian | veggie | vegetarian | margarita | meat lover's | all dressed;
 <toppings> = [with] <topping> ([and] <topping>)*;
-<topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
+<topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
