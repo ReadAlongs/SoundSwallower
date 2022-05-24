@@ -36,6 +36,7 @@ include pyproject.toml
 include setup.py
 include src/CMakeLists.txt
 include src/*.c
+include src/*.h
 include src/*.y
 include src/*.l
 include tests/CMakeLists.txt
