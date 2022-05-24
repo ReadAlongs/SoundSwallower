@@ -142,21 +142,20 @@ bunch of them and swap them in and out.  It is also possible to parse
 a grammar in [JSGF](https://en.wikipedia.org/wiki/JSGF) format, see
 below for an example.
 
-Okay, let's wreck a nice beach!  Grab [this 16kHz, 16-bit signed raw
-PCM audio
-file](https://github.com/ReadAlongs/SoundSwallower/raw/master/tests/data/goforward.raw)
-or record your own, using SoX, for example:
+Okay, let's wreck a nice beach!  Record yourself saying something,
+preferably the sentence "go forward ten meters", using SoX, for
+example:
 
 ```sh
-sox -c 1 -r 16000 -b 16 -d goforward.raw
+sox -c 1 -r 16000 -b 32 -e floating-point -d goforward.raw
 ```
 
 Now you can load it and recognize it with:
 
 ```js
-let pcm = await fs.readFile("goforward.raw");
+let audio = await fs.readFile("goforward.raw");
 await decoder.start();
-await decoder.process_raw(pcm, false, true);
+await decoder.process(audio, false, true);
 await decoder.stop();
 ```
 

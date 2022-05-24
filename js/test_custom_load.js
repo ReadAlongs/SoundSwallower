@@ -28,9 +28,9 @@
 		backtrace: true
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
@@ -41,7 +41,7 @@
 	    }
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
-				    "(NULL)", "ten", "meters", "<sil>"]);
+				    "(NULL)", "ten", "meters"]);
 	    decoder.delete();
 	});
     });

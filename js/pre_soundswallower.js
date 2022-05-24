@@ -237,9 +237,10 @@ class Decoder {
 	    throw new Error("Failed to construct Decoder");
     }
     /**
-     * (Re-)initialize the decoder.
+     * (Re-)initialize the decoder asynchronously.
      * @param {Object|Config} [config] - New configuration parameters
      * to apply, if desired.
+     * @returns {Promise} Promise resolved once decoder is ready.
      */
     async initialize(config) {
 	if (this.ps == 0)
@@ -295,7 +296,8 @@ class Decoder {
     }
 
     /**
-     * Start processing input.
+     * Start processing input asynchronously.
+     * @returns {Promise} Promise resolved once processing is started.
      */
     async start() {
 	if (Module._ps_start_utt(this.ps) < 0) {
@@ -304,7 +306,8 @@ class Decoder {
     }
 
     /**
-     * Finish processing input.
+     * Finish processing input asynchronously.
+     * @returns {Promise} Promise resolved once processing is finished.
      */
     async stop() {
 	if (Module._ps_end_utt(this.ps) < 0) {
@@ -313,17 +316,21 @@ class Decoder {
     }
 
     /**
-     * Process a block of audio PCM data.
+     * Process a block of audio data asynchronously.
+     * @param {Float32Array} pcm - Audio data, in float32 format, in
+     * the range [-1.0, 1.0].
+     * @returns {Promise<number>} Promise resolved to the number of
+     * frames processed.
      */
-    async process_raw(pcm, no_search=false, full_utt=false) {
+    async process(pcm, no_search=false, full_utt=false) {
 	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	let pcm_addr = Module._malloc(pcm_bytes);
 	let pcm_u8 = new Uint8Array(pcm.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
-	let rv = Module._ps_process_raw(this.ps, pcm_addr, pcm_bytes / 2,
-					no_search, full_utt);
+	let rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
+					    no_search, full_utt);
 	Module._free(pcm_addr);
 	if (rv < 0) {
 	    throw new Error("Utterance processing failed");
@@ -333,6 +340,7 @@ class Decoder {
 
     /**
      * Get the currently recognized text.
+     * @returns {string} Currently recognized text.
      */
     get_hyp() {
 	return UTF8ToString(Module._ps_get_hyp(this.ps, 0));
@@ -340,6 +348,8 @@ class Decoder {
 
     /**
      * Get the current recognition result as a word segmentation.
+     * @returns {Array<Object>} Array of Objects for the words
+     * recognized, each with the keys `word`, `start` and `end`.
      */
     get_hypseg() {
 	let itor = Module._ps_seg_iter(this.ps);
@@ -363,7 +373,12 @@ class Decoder {
     }
 
     /**
-     * Add a word to the pronunciation dictionary.
+     * Add a word to the pronunciation dictionary asynchronously.
+     * @param {string} word - Text of word to add.
+     * @param {string} pron - Pronunciation of word as space-separated list of phonemes.
+     * @param {number} update - Update decoder immediately (set to
+     * false when adding a list of words, except for the last word).
+     * @returns {Promise} - Promise resolved once word has been added.
      */
     async add_word(word, pron, update=true) {
 	let cword = allocateUTF8OnStack(word);
@@ -377,6 +392,15 @@ class Decoder {
 
     /**
      * Create a finite-state grammar from a list of transitions.
+     * @param {string} name - Name of grammar.
+     * @param {number} start_state - Index of starting state.
+     * @param {number} final_state - Index of ending state.
+     * @param {Array<Object>} transitions - Array of transitions, each
+     * of which is an Object with the keys `from`, `to`, `word`, and
+     * `prob`.  The word must exist in the dictionary.
+     * @returns {Object} Newly created grammar - you *must* free this
+     * by calling its delete() method once it is no longer needed,
+     * such as after passing to set_fsg().
      */
     create_fsg(name, start_state, final_state, transitions) {
 	let logmath = Module._ps_get_logmath(this.ps);
@@ -421,6 +445,12 @@ class Decoder {
 
     /**
      * Create a grammar from JSGF.
+     * @param {string} jsgf_string - String containing JSGF grammar.
+     * @param {string} [toprule] - Name of starting rule for grammar,
+     * if not specified, the first public rule will be used.
+     * @returns {Object} Newly created grammar - you *must* free this
+     * by calling its delete() method once it is no longer needed,
+     * such as after passing to set_fsg().
      */
     parse_jsgf(jsgf_string, toprule=null) {
 	let logmath = Module._ps_get_logmath(this.ps);
@@ -454,7 +484,11 @@ class Decoder {
     }
 
     /**
-     * Set the grammar for recognition.
+     * Set the grammar for recognition, asynchronously.
+     * @param {Object} fsg - Grammar produced by parse_jsgf() or
+     * create_fsg().  You must call its delete() method after
+     * passing it here if you do not intend to reuse it.
+     * @returns {Promise} Promise fulfilled once grammar is updated.
      */
     async set_fsg(fsg) {
 	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {

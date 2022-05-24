@@ -75,9 +75,9 @@
 		fsg: "goforward.fsg"
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	    let hypseg = decoder.get_hypseg();
@@ -88,18 +88,18 @@
 	    }
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
-				    "(NULL)", "ten", "meters", "<sil>"]);
+				    "(NULL)", "ten", "meters"]);
 	    decoder.delete();
 	});
-	it('Should accept Int16Array as well as UInt8Array', async () => {
+	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
 		fsg: "goforward.fsg"
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward.raw");
-	    let pcm16 = new Int16Array(pcm.buffer);
+	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm32 = new Float32Array(pcm.buffer);
 	    await decoder.start();
-	    await decoder.process_raw(pcm16, false, true);
+	    await decoder.process(pcm32, false, true);
 	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
 	});
@@ -120,9 +120,9 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward.raw");
+	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
 	    decoder.delete();
@@ -152,49 +152,51 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward_fr.raw");
+	    let pcm = await fs.readFile("../tests/data/goforward_fr-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("avance de dix mètres", decoder.get_hyp());
 	    decoder.delete();
 	});
     });
     describe("Test JSGF", () => {
-	it('Should recognize "gimme a large pizza with pineapple"', async () => {
+	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder({
 		jsgf: "pizza.gram",
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/pizza.raw");
+	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
-	    assert.equal("gimme a large pizza with pineapple", decoder.get_hyp());
+	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
 	    decoder.delete();
 	});
     });
     describe("Test JSGF string", () => {
-	it('Should recognize "gimme a large pizza with pineapple"', async () => {
+	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder();
 	    await decoder.initialize();
 	    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
 grammar pizza;
-public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
+public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
+       [(pizza | pizzas)] [<toppings>];
 <greeting> = hi | hello | yo | howdy;
 <want> = i want | gimme | give me | i'd like to order | order | i wanna;
 <quantity> = a | one | two | three | four | five;
 <size> = small | medium | large | extra large | x large | x l;
+<style> = hawaiian | veggie | vegetarian | margarita | meat lover's | all dressed;
 <toppings> = [with] <topping> ([and] <topping>)*;
-<topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
+<topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete();
-	    let pcm = await fs.readFile("../tests/data/pizza.raw");
+	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
 	    await decoder.start();
-	    await decoder.process_raw(pcm, false, true);
+	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
-	    assert.equal("gimme a large pizza with pineapple", decoder.get_hyp());
+	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
 	    decoder.delete();
 	});
     });
