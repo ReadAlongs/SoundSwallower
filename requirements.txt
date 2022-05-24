@@ -1,1 +1,2 @@
-scikit-build>=0.13
+scikit-build~=0.13
+Cython~=0.29.21
