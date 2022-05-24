@@ -50,11 +50,14 @@ def make_argparse():
                         "(or standard output if none given) and exit.")
     parser.add_argument("-o", "--output",
                         help="Filename for output (default is standard output")
+    parser.add_argument("-v", "--verbose",
+                        action="store_true", help="Be verbose.")
     grammars = parser.add_mutually_exclusive_group()
     grammars.add_argument("-a", "--align", help="Input text file for force alignment.")
     grammars.add_argument("-t", "--align-text",
                           help="Input text for force alignment.")
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
+    grammars.add_argument("-f", "--fsg", help="FSG file for recognition.")
     parser.add_argument_group(grammars)
     return parser
 
@@ -97,6 +100,13 @@ def make_decoder_config(args):
 
     if args.grammar is not None:
         config["jsgf"] = args.grammar
+
+    if args.fsg is not None:
+        config["fsg"] = args.fsg
+
+    if args.verbose:
+        config["loglevel"] = "INFO"
+        config["backtrace"] = True
 
     if args.set:
         for kv in args.set:
@@ -145,7 +155,7 @@ def main(argv=None):
         words = []
         with open(args.align) as fh:
             words = fh.read().strip().split()
-    elif args.grammar:
+    elif args.grammar or args.fsg:
         pass
     else:
         # Nothing to do!
