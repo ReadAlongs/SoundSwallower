@@ -455,7 +455,7 @@ acmod_log_mfc(acmod_t *acmod,
     n = n_frames * feat_cepsize(acmod->fcb);
     /* Swap bytes. */
 #if !WORDS_BIGENDIAN
-    for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+    for (i = 0; i < (n * sizeof(mfcc_t) / sizeof(int32)); ++i) {
             SWAP_INT32(ptr + i);
     }
 #endif
@@ -466,7 +466,7 @@ acmod_log_mfc(acmod_t *acmod,
 
     /* Swap them back. */
 #if !WORDS_BIGENDIAN
-    for (i = 0; i < (n * sizeof(mfcc_t)); ++i) {
+    for (i = 0; i < (n * sizeof(mfcc_t) / sizeof(int32)); ++i) {
         SWAP_INT32(ptr + i);
     }
 #endif
@@ -694,18 +694,23 @@ acmod_process_cep(acmod_t *acmod,
         inptr = (acmod->feat_outidx + acmod->n_feat_frame) % acmod->n_feat_alloc;
     }
 
+
+    /* FIXME: we can't split the last frame drop properly to be on the bounary, so just return */
+    if (inptr + nfeat > acmod->n_feat_alloc && acmod->state == ACMOD_ENDED) {
+	*inout_n_frames -= ncep;
+	*inout_cep += ncep;
+	return 0;
+    }
+
     /* Write them in two parts if there is wraparound. */
     if (inptr + nfeat > acmod->n_feat_alloc) {
         int32 ncep1 = acmod->n_feat_alloc - inptr;
-        int saved_state = acmod->state;
 
         /* Make sure we don't end the utterance here. */
-        if (acmod->state == ACMOD_ENDED)
-            acmod->state = ACMOD_PROCESSING;
         nfeat = feat_s2mfc2feat_live(acmod->fcb, *inout_cep,
                                      &ncep1,
                                      (acmod->state == ACMOD_STARTED),
-                                     (acmod->state == ACMOD_ENDED),
+                                     FALSE,
                                      acmod->feat_buf + inptr);
         if (nfeat < 0)
             return -1;
@@ -718,8 +723,6 @@ acmod_process_cep(acmod_t *acmod,
         *inout_n_frames -= ncep1;
         *inout_cep += ncep1;
         ncep -= ncep1;
-        /* Restore original state (could this really be the end) */
-        acmod->state = saved_state;
     }
 
     nfeat = feat_s2mfc2feat_live(acmod->fcb, *inout_cep,
@@ -782,17 +785,15 @@ acmod_read_senfh_header(acmod_t *acmod)
     for (i = 0; name[i] != NULL; ++i) {
         if (!strcmp(name[i], "n_sen")) {
             if (atoi(val[i]) != bin_mdef_n_sen(acmod->mdef)) {
-                E_ERROR("Number of senones in senone file (%d) does not "
-                        "match mdef (%d)\n", atoi(val[i]),
-                        bin_mdef_n_sen(acmod->mdef));
+                E_ERROR("Number of senones in senone file (%d) does not match mdef (%d)\n",
+                        atoi(val[i]), bin_mdef_n_sen(acmod->mdef));
                 goto error_out;
             }
         }
         if (!strcmp(name[i], "logbase")) {
-            if (fabs(atof(val[i]) - logmath_get_base(acmod->lmath)) > 0.001) {
-                E_ERROR("Logbase in senone file (%f) does not match acmod "
-                        "(%f)\n", atof(val[i]),
-                        logmath_get_base(acmod->lmath));
+            if (abs(atof(val[i]) - logmath_get_base(acmod->lmath)) > 0.001) {
+                E_ERROR("Logbase in senone file (%f) does not match acmod (%f)\n",
+                        atof(val[i]), logmath_get_base(acmod->lmath));
                 goto error_out;
             }
         }
