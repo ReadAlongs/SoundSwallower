@@ -69,7 +69,7 @@ digits:
 
 .. code-block:: console
 
-   sox -c 1 -r 16000 -b 16 -d digits.raw
+   sox -c 1 -r 16000 -b 32 -e floating-point -d digits.raw
 
 Now run this with ``node``:
 
@@ -91,13 +91,13 @@ Now run this with ``node``:
 	// We must manually release memory, because JavaScript
 	// has no destructors, whose great idea was that?
 	grammar.delete();
-	// Default input is 16kHz, 16-bit integer PCM
+	// Default input is 16kHz, 32-bit floating-point PCM
 	const fs = require("fs/promises");
 	let pcm = await fs.readFile("digits.raw");
 	// Start speech processing
 	await decoder.start();
 	// Takes a typed array, as returned by readFile
-	await decoder.process_raw(pcm);
+	await decoder.process(pcm);
 	// Finalize speech processing
 	await decoder.stop();
 	// Get recognized text (NOTE: synchronous method)
