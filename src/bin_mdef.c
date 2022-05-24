@@ -123,6 +123,7 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
     bmdef->ciname[0] = ckd_calloc(nchars, 1);
     strcpy(bmdef->ciname[0], mdef->ciphone[0].name);
     for (i = 1; i < bmdef->n_ciphone; ++i) {
+        assert(i > 0); /* No reason to imagine it wouldn't be, but... */
         bmdef->ciname[i] =
             bmdef->ciname[i - 1] + strlen(bmdef->ciname[i - 1]) + 1;
         strcpy(bmdef->ciname[i], mdef->ciphone[i].name);
@@ -401,8 +402,8 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
 
     /* Decide whether to read in the whole file or mmap it. */
     do_mmap = config ? cmd_ln_boolean_r(config, "-mmap") : TRUE;
-#ifdef __EMSCRIPTEN__
-    E_WARN("-mmap specified, but mmap() doesn't work in Emscripten. "
+#ifdef __EMSCRIPTEN__ /* don't want to use binary mdef in emscripten in any case... */
+    E_INFO("-mmap specified, but mmap() doesn't work in Emscripten. "
            "Will not memory-map.\n");
     do_mmap = FALSE;
 #endif
