@@ -72,6 +72,12 @@ extern "C" {
 #define NATIVE_ENDIAN "little"
 #endif
 
+#ifdef __EMSCRIPTEN__
+#define DEFAULT_IS_FLOAT32 "yes"
+#else
+#define DEFAULT_IS_FLOAT32 "no"
+#endif    
+
 /** Default number of samples per second. */
 #define DEFAULT_SAMPLING_RATE 16000
 /** Default number of frames per second. */
@@ -186,7 +192,7 @@ extern "C" {
    \
   { "-input_float32", \
     ARG_BOOLEAN, \
-    "no", \
+    DEFAULT_IS_FLOAT32, \
     "Input is 32-bit floating point in [-1.0, 1.0]" }, \
    \
   { "-warp_type", \
