@@ -70,19 +70,17 @@ Compiling to JavaScript/WebAssembly
 To build the JavaScript library, use CMake with
 [Emscripten](https://emscripten.org/):
 
-    mkdir jsbuild
-    cd jsbuild
+    cd js
     emcmake cmake ..
     emmake make
 
 This will create `js/soundswallower.js` and `js/soundswallower.wasm`
 in the `jsbuild` directory, which you can then include in your
-projects.  It will also set up this directory to run a trivial demo
-application, which you can launch with `server.py`, and access at
-[http://localhost:8000](http://localhost:8000/).  It seems to work
-fine with recent versions of Chrome, Firefox, and Edge.
+projects.  The demo application has been moved to
+https://github.com/dhdaines/soundswallower-demo in order to fully test
+NPM and Webpack integration.
 
-For more details on JavaScript, see
+For more details on the JavaScript implementation and API, see
 [js/README.js](https://github.com/ReadAlongs/SoundSwallower/blob/master/js/README.md).
 
 Creating binary distributions for Python
