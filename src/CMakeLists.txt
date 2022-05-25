@@ -32,6 +32,7 @@ set(SOURCES
   jsgf.c
   jsgf_parser.c
   jsgf_scanner.c
+  lda.c
   listelem_alloc.c
   logmath.c
   mdef.c

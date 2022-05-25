@@ -117,6 +117,7 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-mixw", "_mixw", hmmdir, "mixture_weights");
     ps_expand_file_config(ps, "-sendump", "_sendump", hmmdir, "sendump");
     ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
+    ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
     ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");

@@ -138,6 +138,15 @@ acmod_init_feat(acmod_t *acmod)
     if (acmod->fcb == NULL)
         return -1;
 
+    if (cmd_ln_str_r(acmod->config, "_lda")) {
+        E_INFO("Reading linear feature transformation from %s\n",
+               cmd_ln_str_r(acmod->config, "_lda"));
+        if (feat_read_lda(acmod->fcb,
+                          cmd_ln_str_r(acmod->config, "_lda"),
+                          cmd_ln_int32_r(acmod->config, "-ldadim")) < 0)
+            return -1;
+    }
+
     if (cmd_ln_str_r(acmod->config, "-svspec")) {
         int32 **subvecs;
         E_INFO("Using subvector specification %s\n",

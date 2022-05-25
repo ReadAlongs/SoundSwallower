@@ -937,6 +937,11 @@ feat_compute_utt(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 win, mfcc_t ***feat
 
     feat_print_dbg(fcb, feat, nfr - win * 2, "After dynamic feature computation");
 
+    if (fcb->lda) {
+        feat_lda_transform(fcb, feat, nfr - win * 2);
+        feat_print_dbg(fcb, feat, nfr - win * 2, "After LDA");
+    }
+
     if (fcb->subvecs) {
         feat_subvec_project(fcb, feat, nfr - win * 2);
         feat_print_dbg(fcb, feat, nfr - win * 2, "After subvector projection");
@@ -1353,6 +1358,9 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
         fcb->curpos %= LIVEBUFBLOCKSIZE;
     }
 
+    if (fcb->lda)
+        feat_lda_transform(fcb, ofeat, nfeatvec);
+
     if (fcb->subvecs)
         feat_subvec_project(fcb, ofeat, nfeatvec);
 
@@ -1389,6 +1397,8 @@ feat_free(feat_t * f)
     if (f->name) {
         ckd_free((void *) f->name);
     }
+    if (f->lda)
+        ckd_free_3d((void ***) f->lda);
 
     ckd_free(f->stream_len);
     ckd_free(f->sv_len);
