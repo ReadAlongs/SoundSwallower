@@ -243,7 +243,11 @@
 { "-logbase",                                                                   \
       ARG_FLOATING,                                                              \
       "1.0001",                                                                 \
-      "Base in which all log-likelihoods calculated" }
+      "Base in which all log-likelihoods calculated" },                         \
+{ "-cionly",                                                                      \
+      ARG_BOOLEAN,                                                              \
+      "no",                                                                    \
+      "Use only context-independent phones (faster, useful for alignment)" }    \
 
 #define CMDLN_EMPTY_OPTION { NULL, 0, NULL, NULL }
 
