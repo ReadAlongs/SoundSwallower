@@ -135,7 +135,6 @@ struct fe_s {
     window_t *hamming_window;
 
     /* Temporary buffers for processing. */
-    /* FIXME: too many of these. */
     union {
         int16 *s_int16;
         float32 *s_float32;
