@@ -112,7 +112,14 @@ class TestDecoder(unittest.TestCase):
                 os.path.join(DATADIR, "goforward4k.wav"))
             self._check_hyp(hyp, hypseg)
 
+    def test_decode_fail(self):
+        """Test failure to initialize (should not segfault!)"""
+        with self.assertRaises(RuntimeError):
+            _ = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                        fsg=os.path.join(DATADIR, 'goforward.fsg'),
+                        dict=os.path.join(DATADIR, 'turtle.dic'),
+                        samprate=4000)
+
 
 if __name__ == "__main__":
     unittest.main()
-    
