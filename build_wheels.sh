@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-VERSION=0.2.1
+VERSION=0.2.2
 U=$(id -u)
 G=$(id -g)
 
