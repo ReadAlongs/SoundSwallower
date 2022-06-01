@@ -16,11 +16,19 @@ class TestDecoder(unittest.TestCase):
             decoder.start_utt()
             decoder.process_raw(buf, full_utt=True)
             decoder.end_utt()
-            self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
+            self._check_hyp(decoder.hyp().hypstr, decoder.seg())
+
+    def _check_hyp(self, hyp, hypseg):
+            self.assertEqual(hyp, "go forward ten meters")
             words = []
-            for seg in decoder.seg():
-                if seg.word not in ("<sil>", "(NULL)"):
-                    words.append(seg.word)
+            try:
+                for seg in hypseg:
+                    if seg.word not in ("<sil>", "(NULL)"):
+                        words.append(seg.word)
+            except AttributeError:
+                for word, start, end in hypseg:
+                    if word not in ("<sil>", "(NULL)"):
+                        words.append(word)
             self.assertEqual(words, "go forward ten meters".split())
 
     def test_from_scratch(self):
@@ -61,9 +69,9 @@ class TestDecoder(unittest.TestCase):
                           samprate=11025)
         # Verify that reinit_fe does not break current grammar
         fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.fsg'))
-        decoder.set_fsg(fsg);
+        decoder.set_fsg(fsg)
         decoder.config["samprate"] = 16000
-        decoder.reinit_fe();
+        decoder.reinit_fe()
         self._run_decode(decoder)
 
     def test_turtle(self):
@@ -83,11 +91,27 @@ class TestDecoder(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_loglevel(self):
-        Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="FATAL");
+        Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="FATAL")
         with self.assertRaises(RuntimeError):
             Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                    loglevel="FOOBIEBLETCH");
-        
+                    loglevel="FOOBIEBLETCH")
+
+    def test_decode_file(self):
+        """Test decode_file on a variety of data."""
+        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
+        # Verify that decode_file does not break current grammar
+        fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.fsg'))
+        decoder.set_fsg(fsg)
+        hyp, hypseg = decoder.decode_file(
+            os.path.join(DATADIR, "goforward.wav"))
+        self._check_hyp(hyp, hypseg)
+        # Verify that decoding a too-narrow-band file will fail
+        with self.assertRaises(RuntimeError):
+            hyp, hypseg = decoder.decode_file(
+                os.path.join(DATADIR, "goforward4k.wav"))
+            self._check_hyp(hyp, hypseg)
+
 
 if __name__ == "__main__":
     unittest.main()
