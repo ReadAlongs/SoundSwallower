@@ -232,6 +232,7 @@ class Decoder {
 	    this.config = config;
 	else
 	    this.config = new Module.Config(...arguments);
+	this.initialized = false;
 	this.ps = Module._ps_init(0);
 	if (this.ps == 0)
 	    throw new Error("Failed to construct Decoder");
@@ -283,13 +284,33 @@ class Decoder {
 	await init_acmod(this.ps);
 	await init_dict(this.ps);
 	await init_grammar(this.ps);
+	this.initialized = true;
+    }
+
+    /**
+     * Throw an error if decoder is not initialized.
+     * @throws {Error} If decoder is not initialized.
+     */
+    assert_initialized() {
+	if (!this.initialized)
+	    throw new Error("Decoder not yet initialized");
+    }
+
+    /**
+     * Re-initialize only the audio feature extraction.
+     * @returns {Promise} Promise resolved once reinitialized.
+     */
+    async reinitialize_audio() {
+	this.assert_initialized();
+	Module._ps_reinit_fe(this.ps, 0);
     }
 
     /**
      * Release the Emscripten memory associated with a Decoder.
      */
     delete() {
-	this.config.delete();
+	if (this.config)
+	    this.config.delete();
 	if (this.ps)
 	    Module._ps_free(this.ps);
 	this.ps = 0;
@@ -300,6 +321,7 @@ class Decoder {
      * @returns {Promise} Promise resolved once processing is started.
      */
     async start() {
+	this.assert_initialized();
 	if (Module._ps_start_utt(this.ps) < 0) {
 	    throw new Error("Failed to start utterance processing");
 	}
@@ -310,6 +332,7 @@ class Decoder {
      * @returns {Promise} Promise resolved once processing is finished.
      */
     async stop() {
+	this.assert_initialized();
 	if (Module._ps_end_utt(this.ps) < 0) {
 	    throw new Error("Failed to stop utterance processing");
 	}
@@ -323,6 +346,7 @@ class Decoder {
      * frames processed.
      */
     async process(pcm, no_search=false, full_utt=false) {
+	this.assert_initialized();
 	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	let pcm_addr = Module._malloc(pcm_bytes);
 	let pcm_u8 = new Uint8Array(pcm.buffer);
@@ -343,6 +367,7 @@ class Decoder {
      * @returns {string} Currently recognized text.
      */
     get_hyp() {
+	this.assert_initialized();
 	return UTF8ToString(Module._ps_get_hyp(this.ps, 0));
     }
 
@@ -352,6 +377,7 @@ class Decoder {
      * recognized, each with the keys `word`, `start` and `end`.
      */
     get_hypseg() {
+	this.assert_initialized();
 	let itor = Module._ps_seg_iter(this.ps);
 	let config = Module._ps_get_config(this.ps);
 	let frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
@@ -373,6 +399,21 @@ class Decoder {
     }
 
     /**
+     * Look up a word in the pronunciation dictionary.
+     * @param {string} word - Text of word to look up.
+     * @returns {string} - Space-separated list of phones, or `null` if
+     * word is not in the dictionary.
+     */
+    lookup_word(word) {
+	this.assert_initialized();
+	let cword = allocateUTF8OnStack(word);
+	let cpron = Module._ps_lookup_word(this.ps, cword);
+	if (cpron == 0)
+	    return null;
+	return UTF8ToString(cpron);
+    }
+    
+    /**
      * Add a word to the pronunciation dictionary asynchronously.
      * @param {string} word - Text of word to add.
      * @param {string} pron - Pronunciation of word as space-separated list of phonemes.
@@ -381,6 +422,7 @@ class Decoder {
      * @returns {Promise} - Promise resolved once word has been added.
      */
     async add_word(word, pron, update=true) {
+	this.assert_initialized();
 	let cword = allocateUTF8OnStack(word);
 	let cpron = allocateUTF8OnStack(pron);
 	let wid = Module._ps_add_word(this.ps, cword, cpron, update);
@@ -403,6 +445,7 @@ class Decoder {
      * such as after passing to set_fsg().
      */
     create_fsg(name, start_state, final_state, transitions) {
+	this.assert_initialized();
 	let logmath = Module._ps_get_logmath(this.ps);
 	let config = Module._ps_get_config(this.ps);
 	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
@@ -453,6 +496,7 @@ class Decoder {
      * such as after passing to set_fsg().
      */
     parse_jsgf(jsgf_string, toprule=null) {
+	this.assert_initialized();
 	let logmath = Module._ps_get_logmath(this.ps);
 	let config = Module._ps_get_config(this.ps);
 	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
@@ -491,6 +535,7 @@ class Decoder {
      * @returns {Promise} Promise fulfilled once grammar is updated.
      */
     async set_fsg(fsg) {
+	this.assert_initialized();
 	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {
 	    throw new Error("Failed to set FSG in decoder");
 	}
