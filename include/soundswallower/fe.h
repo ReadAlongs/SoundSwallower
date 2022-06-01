@@ -79,7 +79,11 @@ extern "C" {
 #endif    
 
 /** Default number of samples per second. */
+#ifdef __EMSCRIPTEN__
+#define DEFAULT_SAMPLING_RATE 44100
+#else
 #define DEFAULT_SAMPLING_RATE 16000
+#endif
 /** Default number of frames per second. */
 #define DEFAULT_FRAME_RATE 100
 /** Default spacing between frame starts (equal to
@@ -88,7 +92,11 @@ extern "C" {
 /** Default size of each frame (410 samples @ 16000Hz). */
 #define DEFAULT_WINDOW_LENGTH 0.025625 
 /** Default number of FFT points. */
+#ifdef __EMSCRIPTEN__
+#define DEFAULT_FFT_SIZE 2048
+#else
 #define DEFAULT_FFT_SIZE 512
+#endif
 /** Default number of MFCC coefficients in output. */
 #define DEFAULT_NUM_CEPSTRA 13
 /** Default number of filter bands used to generate MFCCs. */

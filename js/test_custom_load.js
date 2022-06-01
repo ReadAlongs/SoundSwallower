@@ -25,7 +25,8 @@
 		// Need to specify this since we made defaultModel null
 		hmm: "en-us",
 		fsg: "goforward.fsg",
-		backtrace: true
+		backtrace: true,
+		samprate: 16000
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");

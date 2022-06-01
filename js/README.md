@@ -144,10 +144,12 @@ below for an example.
 
 Okay, let's wreck a nice beach!  Record yourself saying something,
 preferably the sentence "go forward ten meters", using SoX, for
-example:
+example.  Note that we record at 44.1kHz in 32-bit floating point
+format as this is the default under JavaScript (due to WebAudio
+limitations).
 
 ```sh
-sox -c 1 -r 16000 -b 32 -e floating-point -d goforward.raw
+sox -c 1 -r 44100 -b 32 -e floating-point -d goforward.raw
 ```
 
 Now you can load it and recognize it with:

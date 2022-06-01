@@ -31,8 +31,8 @@ parameters, may change in a subsequent release of SoundSwallower.
    :keyword float beam: Beam width applied to every frame in Viterbi search (smaller values mean wider beam), defaults to ``1e-48``
    :keyword float wbeam: Beam width applied to word exits, defaults to ``7e-29``
    :keyword float pbeam: Beam width applied to phone transitions, defaults to ``1e-48``
-   :keyword float samprate: Sampling rate, defaults to ``16000.0``
-   :keyword int nfft: Size of FFT, defaults to ``512``
+   :keyword float samprate: Sampling rate, defaults to ``16000.0`` in C and Python and ``44100.0`` in JavaScript
+   :keyword int nfft: Size of FFT, defaults to ``512`` in C and Python and ``2048`` in JavaScript
    :keyword str featparams: File containing feature extraction parameters.
    :keyword str mdef: Model definition input file
    :keyword str senmgau: Senone to codebook mapping input file (usually not needed)
@@ -80,6 +80,7 @@ parameters, may change in a subsequent release of SoundSwallower.
    :keyword int ncep: Number of cep coefficients, defaults to ``13``
    :keyword bool doublebw: Use double bandwidth filters (same center freq), defaults to ``False``
    :keyword int lifter: Length of sin-curve for liftering, or 0 for no liftering., defaults to ``0``
+   :keyword bool input_float32: Input is 32-bit floating point in [-1.0, 1.0], defaults to ``False`` in C and Python, ``True`` in JavaScript.
    :keyword str input_endian: Endianness of input data, big or little, ignored if NIST or MS Wav, defaults to ``little``
    :keyword str warp_type: Warping function type (or shape), defaults to ``inverse_linear``
    :keyword str warp_params: Parameters defining the warping function

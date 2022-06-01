@@ -65,11 +65,13 @@ Using SoundSwallower under Node.js
 
 Using SoundSwallower-JS in Node.js is mostly straightforward.  Here is
 a fairly minimal example.  First you can record yourself saying some
-digits:
+digits (note that we record in 32-bit floating-point at 44.1kHz, which
+is the default format for WebAudio and thus the default in
+SoundSwallower-JS as well):
 
 .. code-block:: console
 
-   sox -c 1 -r 16000 -b 32 -e floating-point -d digits.raw
+   sox -c 1 -r 44100 -b 32 -e floating-point -d digits.raw
 
 Now run this with ``node``:
 
