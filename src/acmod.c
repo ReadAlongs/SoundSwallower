@@ -306,7 +306,8 @@ acmod_free(acmod_t *acmod)
 
     bin_mdef_free(acmod->mdef);
     tmat_free(acmod->tmat);
-    ps_mgau_free(acmod->mgau);
+    if (acmod->mgau) /* FIXME: Should make this transparent */
+        ps_mgau_free(acmod->mgau);
     ps_mllr_free(acmod->mllr);
     logmath_free(acmod->lmath);
 
