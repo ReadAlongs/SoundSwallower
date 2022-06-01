@@ -64,6 +64,9 @@ Note that multiple input files are not particularly useful for
 same text to each file.  The output results (a list of time-aligned
 words) can be written to a JSON file with `--output`.
 
+See also the [full documentation of the Python
+API](https://soundswallower.readthedocs.io/en/latest/soundswallower.html).
+
 Compiling to JavaScript/WebAssembly
 -----------------------------------
 
@@ -76,12 +79,15 @@ To build the JavaScript library, use CMake with
 
 This will create `js/soundswallower.js` and `js/soundswallower.wasm`
 in the `jsbuild` directory, which you can then include in your
-projects.  The demo application has been moved to
-https://github.com/dhdaines/soundswallower-demo in order to fully test
-NPM and Webpack integration.
+projects.  Demo applications can be seen at
+https://github.com/dhdaines/alignment-demo and
+https://github.com/dhdaines/soundswallower-demo.
 
 For more details on the JavaScript implementation and API, see
 [js/README.js](https://github.com/ReadAlongs/SoundSwallower/blob/master/js/README.md).
+
+See also the [documentation of the JavaScript
+API](https://soundswallower.readthedocs.io/en/latest/soundswallower.js.html).
 
 Creating binary distributions for Python
 ========================================
