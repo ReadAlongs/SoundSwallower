@@ -511,15 +511,14 @@ cdef class Decoder:
         """Get current word segmentation.
         
         Returns:
-            Iterable[Segmentation]: Generator over word segmentations.
+            Iterable[Segment]: Generator over word segmentations.
 
         """
         cdef ps_seg_t *itor
         cdef logmath_t *lmath
         itor = ps_seg_iter(self.ps)
         if itor == NULL:
-            raise RuntimeError(
-                "Failed to create best path word segment iterator")
+            return
         lmath = ps_get_logmath(self.ps)
         while itor != NULL:
             seg = Segment()
