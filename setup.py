@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="soundswallower",
     license="MIT",
-    version="0.2.2",
+    version="0.2.3-alpha0",
     description="An even smaller speech recognizer",
     long_description=long_description,
     long_description_content_type="text/markdown",

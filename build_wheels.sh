@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-VERSION=0.2.2
+VERSION=0.2.3-alpha0
 U=$(id -u)
 G=$(id -g)
 
@@ -15,7 +15,7 @@ many2014_run() {
 
 python setup.py clean
 rm -rf *.whl dist/* _skbuild py/soundswallower.egg-info
-python setup.py sdist --formats=zip
+pip download -d dist soundswallower==$VERSION
 docker pull quay.io/pypa/manylinux1_x86_64
 many1_run /opt/python/cp39-cp39/bin/pip wheel dist/soundswallower-$VERSION.zip
 many1_run /opt/python/cp38-cp38/bin/pip wheel dist/soundswallower-$VERSION.zip
