@@ -37,7 +37,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Build
         run: |
-          (cd js && npm run build:prod)
+          (cd js && npm install && npm run build:prod)
       - name: Run tests
         run: |
           (cd js && npm test)
