@@ -36,9 +36,9 @@ Installing the Python module and CLI
 ------------------------------------
 
 The SoundSwallower command-line is a Python module
-(soundswallower.cli) and can be installed using `setup.py` or `pip`.
-It is highly recommended to do this in a `virtualenv`.  You can simply
-install it from PyPI:
+(soundswallower.cli) and can be installed using `pip`.  It is highly
+recommended to do this in a `virtualenv`.  You can simply install it
+from PyPI:
 
     pip install soundswallower
 
@@ -50,7 +50,7 @@ For development, you can install it in-place, but please make sure to
 remove any existing global installation:
 
     pip uninstall soundswallower
-    python setup.py develop
+    pip install -e .
 
 The command-line supports JSGF grammars and word-level force
 alignment for one or more input files, for example:
