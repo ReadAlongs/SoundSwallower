@@ -38,7 +38,7 @@
 
 /**
  * @file acmod.c Acoustic model structures for PocketSphinx.
- * @author David Huggins-Daines <dhuggins@cs.cmu.edu>
+ * @author David Huggins-Daines <dhdaines@gmail.com>
  */
 
 #include "config.h"
@@ -64,11 +64,17 @@ static int32 acmod_process_mfcbuf(acmod_t *acmod);
 static int
 acmod_init_am(acmod_t *acmod)
 {
-    char const *mdeffn, *tmatfn, *mllrfn;
+    char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
     /* Read model definition. */
     if ((mdeffn = cmd_ln_str_r(acmod->config, "_mdef")) == NULL) {
-        E_ERROR("Acoustic model definition is not specified neither with -mdef option nor with -hmm\n");
+        if ((hmmdir = cmd_ln_str_r(acmod->config, "-hmm")) == NULL)
+            E_ERROR("Acoustic model definition is not specified either "
+                    "with -mdef option or with -hmm\n");
+        else
+            E_ERROR("Folder '%s' does not contain acoustic model "
+                    "definition 'mdef'\n", hmmdir);
+
         return -1;
     }
 
@@ -205,6 +211,7 @@ acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
     /* Input vector dimension needs to be the same. */
     if (cmd_ln_int32_r(acmod->config, "-ceplen") != feat_cepsize(fcb))
         return TRUE;
+    /* FIXME: Need to check LDA and stuff too. */
     return FALSE;
 }
 
@@ -900,11 +907,13 @@ acmod_read_senfh_header(acmod_t *acmod)
     for (i = 0; name[i] != NULL; ++i) {
         if (!strcmp(name[i], "n_sen")) {
             if (atoi(val[i]) != bin_mdef_n_sen(acmod->mdef)) {
-                E_ERROR("Number of senones in senone file (%d) does not match mdef (%d)\n",
-                        atoi(val[i]), bin_mdef_n_sen(acmod->mdef));
+                E_ERROR("Number of senones in senone file (%d) does not "
+                        "match mdef (%d)\n", atoi(val[i]),
+                        bin_mdef_n_sen(acmod->mdef));
                 goto error_out;
             }
         }
+
         if (!strcmp(name[i], "logbase")) {
             if (fabs(atof(val[i]) - logmath_get_base(acmod->lmath)) > 0.001) {
                 E_ERROR("Logbase in senone file (%f) does not match acmod (%f)\n",

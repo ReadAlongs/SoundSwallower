@@ -94,7 +94,7 @@ main(int argc, char *argv[])
             }
         }
     }
-    /* Match pocketsphinx-0.7 as we do not remove silence anymore */
+    /* Match pocketsphinx-0.8 as we do not remove silence anymore */
     TEST_EQUAL(1, acmod_end_utt(acmod));
     nread = 0;
     acmod_process_raw(acmod, NULL, &nread, FALSE);
