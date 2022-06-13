@@ -28,3 +28,18 @@ jobs:
           pip install .
       - name: Run tests
         run: pytest
+  nodetest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Build Dependencies
+        uses: mymindstorm/setup-emsdk@v11
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        run: |
+          mkdir jsbuild
+          (cd jsbuild && cmake -DCMAKE_BUILD_TYPE=Debug ..)
+          (cd jsbuild && npm run build:prod)
+      - name: Run tests
+        run: |
+          (cd jsbuild && npm test)
