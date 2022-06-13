@@ -89,7 +89,6 @@ err_set_loglevel_str(char const *lvl)
     return NULL;
 }
 
-
 void
 err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
@@ -166,11 +165,10 @@ err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
 int
 err_set_logfile(const char *path)
 {
-    FILE *newfp, *oldfp;
+    FILE *newfp;
 
     if ((newfp = fopen(path, "a")) == NULL)
         return -1;
-    oldfp = err_get_logfp();
     err_set_logfp(newfp);
     return 0;
 }
