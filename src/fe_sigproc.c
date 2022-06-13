@@ -781,13 +781,14 @@ fe_dct3(fe_t * fe, const mfcc_t * mfcep, powspec_t * mflogspec)
     }
 }
 
-void
+int
 fe_write_frame(fe_t * fe, mfcc_t * feat)
 {
     fe_spec_magnitude(fe);
     fe_mel_spec(fe);
     fe_mel_cep(fe, feat);
     fe_lifter(fe, feat);
+    return 1;
 }
 
 

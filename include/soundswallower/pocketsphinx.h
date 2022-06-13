@@ -77,7 +77,7 @@ typedef struct ps_seg_s ps_seg_t;
  *
  * @note The decoder retains ownership of the pointer
  * <code>config</code>, so if you are not going to use it
- * elsewere, you can free it.
+ * elsewhere, you can free it.
  *
  * @param config a command-line structure, as created by
  * cmd_ln_parse_r() or cmd_ln_parse_file_r().  If NULL, the
@@ -401,7 +401,7 @@ ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
  *
  * @param ps Decoder.
  * @return Iterator over the best hypothesis at this point in
-*         decoding.  NULL if no hypothesis is available.
+ *         decoding.  NULL if no hypothesis is available.
  */
 ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
 
