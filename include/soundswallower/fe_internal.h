@@ -123,10 +123,6 @@ struct fe_s {
     float32 pre_emphasis_alpha;
     int32 dither_seed;
 
-    int16 frame_counter;
-    uint8 start_flag;
-    uint8 reserved;
-
     /* Twiddle factors for FFT. */
     frame_t *ccc, *sss;
     /* Mel filter parameters. */
@@ -166,7 +162,7 @@ int fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len);
 int fe_shift_frame_float32(fe_t *fe, float32 const *in, int32 len);
 
 /* Process a frame of data into features. */
-void fe_write_frame(fe_t *fe, mfcc_t *fea);
+int fe_write_frame(fe_t *fe, mfcc_t *fea);
 
 /* Initialization functions. */
 int32 fe_build_melfilters(melfb_t *MEL_FB);

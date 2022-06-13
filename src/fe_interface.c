@@ -202,7 +202,6 @@ fe_print_current(fe_t const *fe)
            fe->mel_fb->upper_filt_freq);
     E_INFO("\tNumber of filters:         %d\n", fe->mel_fb->num_filters);
     E_INFO("\tNumber of Overflow Samps:  %d\n", fe->num_overflow_samps);
-    E_INFO("\tStart Utt Status:          %d\n", fe->start_flag);
     E_INFO("Will %sremove DC offset at frame level\n",
            fe->remove_dc ? "" : "not ");
     if (fe->dither) {
@@ -245,7 +244,15 @@ fe_init_auto_r(cmd_ln_t *config)
     fe->frame_shift = (int32) (fe->sampling_rate / fe->frame_rate + 0.5);
     fe->frame_size = (int32) (fe->window_length * fe->sampling_rate + 0.5);
     fe->pre_emphasis_prior.s_float32 = 0;
-    fe->frame_counter = 0;
+
+    assert (fe->frame_shift > 1);
+    if (fe->frame_size < fe->frame_shift) {
+        E_ERROR
+            ("Frame size %d (-wlen) must be greater than frame shift %d (-frate)\n",
+             fe->frame_size, fe->frame_shift);
+        fe_free(fe);
+        return NULL;
+    }
 
     if (fe->frame_size > (fe->fft_size)) {
         E_ERROR
@@ -336,7 +343,6 @@ fe_start_utt(fe_t * fe)
                fe->frame_size * sizeof(*fe->overflow_samps.s_int16));
         fe->pre_emphasis_prior.s_int16 = 0;
     }
-    fe->start_flag = 1;
     return 0;
 }
 
@@ -359,15 +365,8 @@ fe_get_input_size(fe_t *fe, int *out_frame_shift,
 int32
 fe_process_frame(fe_t * fe, int16 const *spch, int32 nsamps, mfcc_t * fr_cep)
 {
-    if (fe->is_float32) {
-        E_ERROR("Called fe_process_frame when -input_float32 is true\n");
-        return -1;
-    }
-        
     fe_read_frame_int16(fe, spch, nsamps);
-    fe_write_frame(fe, fr_cep);
-
-    return 1;
+    return fe_write_frame(fe, fr_cep);
 }
 
 int32
@@ -588,7 +587,6 @@ fe_end_utt(fe_t * fe, mfcc_t * cepvector, int32 * nframes)
 
     /* reset overflow buffers... */
     fe->num_overflow_samps = 0;
-    fe->start_flag = 0;
 
     return 0;
 }
