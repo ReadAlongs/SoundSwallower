@@ -553,7 +553,6 @@ function load_model(model_name, model_path, dict_path=null) {
     const folders = [["/", model_name]];
     const files = [
 	[dest_model_dir, "feat.params", model_path + "/feat.params"],
-	[dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
 	[dest_model_dir, "means", model_path + "/means"],
 	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
 	[dest_model_dir, "variances", model_path + "/variances"],
@@ -564,6 +563,9 @@ function load_model(model_name, model_path, dict_path=null) {
 	// only one of these will actually be present and get loaded,
 	// we can do this because of lazy loading.
 	files.push(
+	    [dest_model_dir, "mdef", model_path + "/mdef"],
+	    [dest_model_dir, "mdef.txt", model_path + "/mdef.txt"],
+	    [dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
 	    [dest_model_dir, "sendump", model_path + "/sendump"],
 	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
     }
@@ -576,11 +578,20 @@ function load_model(model_name, model_path, dict_path=null) {
 	const fs = require('fs');
 	const path = require('path');
 	const sendump_path = path.join(model_path, "sendump");
-	const mixw_path = path.join(model_path, "mixture_weights");
 	if (fs.statSync(sendump_path, { throwIfNoEntry: false }))
 	    files.push([dest_model_dir, "sendump", sendump_path]);
+	const mixw_path = path.join(model_path, "mixture_weights");
 	if (fs.statSync(mixw_path, { throwIfNoEntry: false }))
 	    files.push([dest_model_dir, "mixture_weights", mixw_path]);
+	let mdef_path = path.join(model_path, "mdef.bin");
+	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "mdef.bin", mdef_path]);
+	mdef_path = path.join(model_path, "mdef.txt");
+	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "mdef.txt", mdef_path]);
+	mdef_path = path.join(model_path, "mdef");
+	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "mdef", mdef_path]);
     }
     if (dict_path !== null) {
 	files.push([dest_model_dir, "dict.txt", dict_path]);
