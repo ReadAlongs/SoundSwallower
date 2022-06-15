@@ -1178,11 +1178,6 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
         }
     }
     for (x = dag->start->exits; x; x = x->next) {
-        int32 n_used;
-        int16 to_is_fil;
-
-        to_is_fil = dict_filler_word(ps_search_dict(search), x->link->to->basewid) && x->link->to != dag->end;
-
         /* Best path points to dag->start, obviously. */
         x->link->path_scr = x->link->ascr;
         x->link->best_prev = NULL;
@@ -1193,7 +1188,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
     /* Traverse the edges in the graph, updating path scores. */
     for (link = ps_lattice_traverse_edges(dag, NULL, NULL);
          link; link = ps_lattice_traverse_next(dag, NULL)) {
-        int32 bprob, n_used;
+        int32 bprob;
         int32 w3_wid, w2_wid;
         int16 w3_is_fil, w2_is_fil;
         ps_latlink_t *prev_link;
@@ -1243,11 +1238,6 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
         /* Update scores for all paths exiting link->to. */
         for (x = link->to->exits; x; x = x->next) {
             int32 score;
-            int32 w1_wid;
-            int16 w1_is_fil;
-
-            w1_wid = x->link->to->basewid;
-            w1_is_fil = dict_filler_word(ps_search_dict(search), w1_wid) && x->link->to != dag->end;
 
             /* Update alpha with sum of previous alphas. */
             x->link->alpha = logmath_add(lmath, x->link->alpha, link->alpha + bprob);
@@ -1271,7 +1261,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
        final node. */
     dag->norm = logmath_get_zero(lmath);
     for (x = dag->end->entries; x; x = x->next) {
-        int32 bprob, n_used;
+        int32 bprob;
         int32 from_wid;
         int16 from_is_fil;
 
@@ -1319,7 +1309,6 @@ ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
     jprob = (dag->final_node_ascr << SENSCR_SHIFT) * ascale;
     while (link) {
         if (lmset) {
-            int lback;
             int32 from_wid, to_wid;
             int16 from_is_fil, to_is_fil;
 
@@ -1377,7 +1366,7 @@ ps_lattice_posterior(ps_lattice_t *dag, void *lmset,
     /* Accumulate backward probabilities for all links. */
     for (link = ps_lattice_reverse_edges(dag, NULL, NULL);
          link; link = ps_lattice_reverse_next(dag, NULL)) {
-        int32 bprob, n_used;
+        int32 bprob;
         int32 from_wid, to_wid;
         int16 from_is_fil, to_is_fil;
 
@@ -1494,8 +1483,6 @@ best_rem_score(ps_astar_t *nbest, ps_latnode_t * from)
     /* Best score from "from" to end of utt not known; compute from successors */
     bestscore = WORST_SCORE;
     for (x = from->exits; x; x = x->next) {
-        int32 n_used;
-
         score = best_rem_score(nbest, x->link->to);
         score += x->link->ascr;
         if (score BETTER_THAN bestscore)
@@ -1565,8 +1552,6 @@ path_extend(ps_astar_t *nbest, ps_latpath_t * path)
 
     /* Consider all successors of path->node */
     for (x = path->node->exits; x; x = x->next) {
-        int32 n_used;
-
         /* Skip successor if no path from it reaches the final node */
         if (x->link->to->info.rem_score <= WORST_SCORE)
             continue;
@@ -1635,7 +1620,6 @@ ps_astar_start(ps_lattice_t *dag,
     for (node = dag->nodes; node; node = node->next) {
         if (node->sf == sf) {
             ps_latpath_t *path;
-            int32 n_used;
 
             best_rem_score(nbest, node);
             path = listelem_malloc(nbest->latpath_alloc);
