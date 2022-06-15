@@ -106,7 +106,6 @@ if(EMSCRIPTEN)
   add_subdirectory(js)
 else() # not EMSCRIPTEN
   # Normal build and installation
-  option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
   add_library(soundswallower ${SOUNDSWALLOWER_SOURCES})
   set_property(TARGET soundswallower PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
   target_include_directories(soundswallower PRIVATE ${PROJECT_SOURCE_DIR}/src
@@ -116,11 +115,11 @@ else() # not EMSCRIPTEN
   if(MATH_LIBRARY)
     target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})
   endif()
-
   if(SKBUILD)
     # Specific configuration for Python extension build
     add_subdirectory(py)
   else() # not SKBUILD
+    option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
     add_subdirectory(include/soundswallower)
     if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
       add_subdirectory(tests)
