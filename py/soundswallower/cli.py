@@ -87,11 +87,9 @@ def make_decoder_config(args):
     model_path = get_model_path()
     if args.model in os.listdir(model_path):
         config["hmm"] = os.path.join(model_path, args.model)
-        config["dict"] = os.path.join(model_path,
-                                      args.model, 'dict.txt')
     else:
         config["hmm"] = args.model
-        config["dict"] = os.path.join(os.path.normpath(args.model), 'dict.txt')
+
     # FIXME: This actually should be in addition to the built-in
     # dictionary, or we should have G2P support, which shouldn't be
     # all that hard, we hope.
