@@ -547,6 +547,11 @@ class Decoder {
  *
  * Presently models must be made avaliable to the SoundSwallower C
  * code using this function.
+ *
+ * @param {string} model_name - Name to use for model in "hmm" parameter.
+ * @param {string} model_path - Filesystem path (under Node.js) or
+ *                              base URL (on the Web) of the model.
+ * @param {string} dict_path - Optional custom dictionary path.
  */
 function load_model(model_name, model_path, dict_path=null) {
     const dest_model_dir = "/" + model_name;
