@@ -101,13 +101,10 @@ list(TRANSFORM
   SOUNDSWALLOWER_SOURCES
   PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 
-if(SKBUILD)
-  # Specific configuration for Python extension build
-  add_subdirectory(py)
-elseif(EMSCRIPTEN)
+if(EMSCRIPTEN)
   # Specific configuration for JavaScript build
   add_subdirectory(js)
-else()
+else() # not EMSCRIPTEN
   # Normal build and installation
   option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
   add_library(soundswallower ${SOUNDSWALLOWER_SOURCES})
@@ -119,9 +116,15 @@ else()
   if(MATH_LIBRARY)
     target_link_libraries(soundswallower PUBLIC ${MATH_LIBRARY})
   endif()
-  add_subdirectory(include/soundswallower)
-  if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
-    add_subdirectory(tests)
-  endif()
-  install(TARGETS soundswallower DESTINATION lib)
-endif()
+
+  if(SKBUILD)
+    # Specific configuration for Python extension build
+    add_subdirectory(py)
+  else() # not SKBUILD
+    add_subdirectory(include/soundswallower)
+    if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+      add_subdirectory(tests)
+    endif()
+    install(TARGETS soundswallower DESTINATION lib)
+  endif() # not SKBUILD
+endif() # not EMSCRIPTEN
