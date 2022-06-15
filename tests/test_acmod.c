@@ -6,6 +6,7 @@
 #include <soundswallower/pocketsphinx.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/acmod.h>
+#include <soundswallower/err.h>
 
 #include "test_macros.h"
 
@@ -42,6 +43,7 @@ main(int argc, char *argv[])
     int frame_counter;
     int bestsen1[NUM_BEST_SEN];
 
+    err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
     config = cmd_ln_init(NULL, ps_args(), TRUE,
                  "-compallsen", "true",
@@ -56,7 +58,7 @@ main(int argc, char *argv[])
     TEST_ASSERT(config);
     cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
 
-    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef");
+    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef.bin");
     cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/means");
     cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/variances");
     cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/transition_matrices");

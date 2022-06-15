@@ -246,8 +246,8 @@ class Decoder {
     async initialize(config) {
 	if (this.ps == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
-	async function init_config(ps, cmd_ln) {
-	    let rv = Module._ps_init_config(ps, cmd_ln);
+	async function init_config(ps, config) {
+	    let rv = Module._ps_init_config(ps, config.cmd_ln);
 	    if (rv < 0)
 		throw new Error("Failed to initialize basic configuration");
 	}
@@ -256,17 +256,17 @@ class Decoder {
 	    if (rv < 0)
 		throw new Error("Failed to clean up decoder internals");
 	}
-	async function init_acmod(ps) {
+	async function init_acmod(ps, config) {
 	    let rv = Module._ps_init_acmod(ps);
 	    if (rv == 0)
 		throw new Error("Failed to initialize acoustic model");
 	}
-	async function init_dict(ps) {
+	async function init_dict(ps, config) {
 	    let rv = Module._ps_init_dict(ps);
 	    if (rv == 0)
 		throw new Error("Failed to initialize dictionaries");
 	}
-	async function init_grammar(ps) {
+	async function init_grammar(ps, config) {
 	    let rv = Module._ps_init_grammar(ps);
 	    if (rv < 0)
 		throw new Error("Failed to initialize grammar");
@@ -279,11 +279,11 @@ class Decoder {
 	    else
 		this.config = new Module.Config(...arguments);
 	}
-	await init_config(this.ps, this.config.cmd_ln);
+	await init_config(this.ps, this.config);
 	await init_cleanup(this.ps);
-	await init_acmod(this.ps);
-	await init_dict(this.ps);
-	await init_grammar(this.ps);
+	await init_acmod(this.ps, this.config);
+	await init_dict(this.ps, this.config);
+	await init_grammar(this.ps, this.config);
 	this.initialized = true;
     }
 
@@ -553,7 +553,7 @@ function load_model(model_name, model_path, dict_path=null) {
     const folders = [["/", model_name]];
     const files = [
 	[dest_model_dir, "feat.params", model_path + "/feat.params"],
-	[dest_model_dir, "mdef", model_path + "/mdef"],
+	[dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
 	[dest_model_dir, "means", model_path + "/means"],
 	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
 	[dest_model_dir, "variances", model_path + "/variances"],

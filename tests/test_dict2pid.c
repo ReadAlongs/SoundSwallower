@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 						   "-dict", MODELDIR "/en-us/dict.txt",
 						   "_fdict", MODELDIR "/en-us/noisedict",
 						   NULL));
-	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
+	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef.bin"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
 	TEST_ASSERT(d2p = dict2pid_build(mdef, dict));
 

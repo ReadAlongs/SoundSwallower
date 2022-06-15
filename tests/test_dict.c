@@ -30,7 +30,7 @@ main(int argc, char *argv[])
 						   NULL));
 
 	/* Test dictionary in standard fashion. */
-	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
+	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef.bin"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
 
 	printf("Word ID (CARNEGIE) = %d\n",
