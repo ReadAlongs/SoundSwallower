@@ -705,7 +705,7 @@ cdef class Decoder:
         if ps_set_jsgf_string(self.ps, name.encode("utf-8"), jsgf_string) != 0:
             raise RuntimeError("Failed to parse JSGF in decoder")
 
-    def decode_file(self, input_file):
+    def decode_file(self, input_file, include_silence=False):
         """Decode audio from a file in the filesystem.
 
         Currently supports single-channel WAV and raw audio files.  If
@@ -721,6 +721,7 @@ cdef class Decoder:
 
         Args:
             input_file: Path to an audio file.
+            include_silence: Include silence segments in output.
 
         Returns:
             (str, Iterable[(str, float, float)]): Recognized text, Word
@@ -750,7 +751,7 @@ cdef class Decoder:
         for seg in self.seg():
             start = seg.start_frame * frame_size
             end = (seg.end_frame + 1) * frame_size
-            if seg.word in ('<sil>', '[NOISE]', '(NULL)'):
+            if not include_silence and seg.word in ('<sil>', '[NOISE]', '(NULL)'):
                 continue
             else:
                 segmentation.append((seg.word, start, end))
