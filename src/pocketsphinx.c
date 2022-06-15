@@ -77,22 +77,31 @@ file_exists(const char *path)
     return (tmp != NULL);
 }
 
-static void
+static int
 ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
 	              const char *hmmdir, const char *file)
 {
     const char *val;
     if ((val = cmd_ln_str_r(ps->config, arg)) != NULL) {
+        E_INFO("Overriding %s from command line %s: %s\n",
+               extra_arg, arg, val);
 	cmd_ln_set_str_extra_r(ps->config, extra_arg, val);
     } else if (hmmdir == NULL) {
         cmd_ln_set_str_extra_r(ps->config, extra_arg, NULL);
     } else {
         char *tmp = string_join(hmmdir, "/", file, NULL);
-        if (file_exists(tmp))
+        if (file_exists(tmp)) {
+            E_INFO("Setting %s from %s: %s\n",
+                   extra_arg, hmmdir, file);
 	    cmd_ln_set_str_extra_r(ps->config, extra_arg, tmp);
-	else
+            ckd_free(tmp);
+            return TRUE;
+        }
+	else {
 	    cmd_ln_set_str_extra_r(ps->config, extra_arg, NULL);
-        ckd_free(tmp);
+            ckd_free(tmp);
+            return FALSE;
+        }
     }
 }
 
@@ -110,7 +119,10 @@ ps_expand_model_config(ps_decoder_t *ps)
 
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = cmd_ln_str_r(ps->config, "-hmm");
+    /* In reverse order of preference (i.e. mdef.bin will be preferred) */
     ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef");
+    ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.txt");
+    ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.bin");
     ps_expand_file_config(ps, "-mean", "_mean", hmmdir, "means");
     ps_expand_file_config(ps, "-var", "_var", hmmdir, "variances");
     ps_expand_file_config(ps, "-tmat", "_tmat", hmmdir, "transition_matrices");
