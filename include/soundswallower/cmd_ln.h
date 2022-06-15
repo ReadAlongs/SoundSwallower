@@ -231,6 +231,7 @@ cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-li
                                                    arguments, or no arguments? */
     );
 
+#ifndef __EMSCRIPTEN__
 /**
  * Parse an arguments file by deliminating on " \r\t\n" and putting each tokens
  * into an argv[] for cmd_ln_parse().
@@ -245,6 +246,7 @@ cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous comma
                               int32 strict         /**< In: Fail on duplicate or unknown
                                                      arguments, or no arguments? */
     );
+#endif /* not __EMSCRIPTEN__ */
 
 /**
  * Access the value and metadata for a configuration parameter.

@@ -41,6 +41,7 @@ if (RUNNING_ON_WEB) {
 }
 else if (typeof(Browser) === 'undefined') {
     const model_path = require("./model/index.js");
+    const path = require('path');
     // Monkey-patch the Browser so MEMFS works on Node.js and the Web
     // (see https://github.com/emscripten-core/emscripten/issues/16742)
     Browser = {
@@ -52,7 +53,7 @@ else if (typeof(Browser) === 'undefined') {
     if (Module.defaultModel != null) {
 	Module.preRun.push(function() {
 	    Module.load_model(Module.defaultModel,
-			      model_path + "/" + Module.defaultModel);
+			      path.join(model_path, Module.defaultModel));
 	});
     }
 }
@@ -124,6 +125,8 @@ class Config {
 		return key;
 	    }
 	}
+	else
+	    return "";
     }
     normalize_ckey(ckey) {
 	let key = UTF8ToString(ckey);
@@ -140,8 +143,9 @@ class Config {
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
     set(key, val) {
-	let ckey = allocateUTF8OnStack(this.normalize_key(key));
-	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
+	const nkey = this.normalize_key(key);
+	const ckey = allocateUTF8OnStack(nkey);
+	const type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
@@ -246,11 +250,6 @@ class Decoder {
     async initialize(config) {
 	if (this.ps == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
-	async function init_config(ps, config) {
-	    let rv = Module._ps_init_config(ps, config.cmd_ln);
-	    if (rv < 0)
-		throw new Error("Failed to initialize basic configuration");
-	}
 	async function init_cleanup(ps) {
 	    let rv = Module._ps_init_cleanup(ps);
 	    if (rv < 0)
@@ -279,7 +278,7 @@ class Decoder {
 	    else
 		this.config = new Module.Config(...arguments);
 	}
-	await init_config(this.ps, this.config);
+	await this.init_config()
 	await init_cleanup(this.ps);
 	await init_acmod(this.ps, this.config);
 	await init_dict(this.ps, this.config);
@@ -287,6 +286,37 @@ class Decoder {
 	this.initialized = true;
     }
 
+    /**
+     * Initialize decoder configuration.
+     */
+    async init_config() {
+	await this.init_featparams()
+	const rv = Module._ps_init_config(this.ps, this.config.cmd_ln);
+	if (rv < 0)
+	    throw new Error("Failed to initialize basic configuration");
+    }
+
+    /**
+     * Read feature parameters from acoustic model.
+     */
+    async init_featparams() {
+	var hmmpath;
+	if (RUNNING_ON_WEB) {
+	    /* Expect relative URL (FIXME: not true!) */
+	    hmmpath = this.config.get("hmm");
+	}
+	else {
+	    const model_path = require("./model/index.js");
+	    const path = require('path');
+	    hmmpath = path.join(model_path, this.config.get("hmm"));
+	}
+	const featparams = this.config.get("featparams") ?? hmmpath + "/feat.params";
+	for await (const [key, val] of read_featparams(featparams)) {
+	    if (this.config.has(key)) /* Sometimes it doesn't */
+		this.config.set(key, val);
+	}
+    }
+    
     /**
      * Throw an error if decoder is not initialized.
      * @throws {Error} If decoder is not initialized.
@@ -626,6 +656,45 @@ function load_model(model_name, model_path, dict_path=null) {
     }
 };
 
+/**
+ * Generate [key,value] pairs from feat.params file/URL.
+ */
+async function* read_featparams(featparams) {
+    let fpdata;
+    if (RUNNING_ON_WEB) {
+	const response = await fetch(featparams);
+	if (response.ok)
+	    fpdata = await response.text();
+	else
+	    throw new Error("Failed to fetch " + featparams + " :"
+			    + response.statusText);
+    }
+    else {
+	const fs = require("fs/promises");
+	fpdata = await fs.readFile(featparams, {encoding: "utf8"});
+    }
+    const line_re = /^.*$/mg;
+    const arg_re = /"([^"]*)"|'([^'])'|(\S+)/g;
+    let key = null;
+    for (const m of fpdata.matchAll(line_re)) {
+	const line = m[0].trim()
+	for (const arg of line.matchAll(arg_re)) {
+	    const token = arg[1] ?? arg[2] ?? arg[3];
+	    if (token == '#')
+		break;
+	    if (key !== null) {
+		yield [key, token]
+		key = null;
+	    }
+	    else
+		key = token;
+	}
+    }
+    if (key !== null)
+	throw new Error("Odd number of arguments in "+featparams);
+}
+
 Module.Config = Config;
 Module.Decoder = Decoder;
 Module.load_model = load_model;
+Module.read_featparams = read_featparams;

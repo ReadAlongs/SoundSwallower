@@ -638,6 +638,7 @@ cmd_ln_init(cmd_ln_t *inout_cmdln, const arg_t *defn, int32 strict, ...)
     return parse_options(inout_cmdln, defn, f_argc, f_argv, strict);
 }
 
+#ifndef __EMSCRIPTEN__
 cmd_ln_t *
 cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, const arg_t * defn, const char *filename, int32 strict)
 {
@@ -768,6 +769,7 @@ cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, const arg_t * defn, const char *filen
 
     return parse_options(inout_cmdln, defn, argc, f_argv, strict);
 }
+#endif /* not __EMSCRIPTEN__ */
 
 void
 cmd_ln_log_help_r(cmd_ln_t *cmdln, arg_t const* defn)

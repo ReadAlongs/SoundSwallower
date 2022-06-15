@@ -107,13 +107,6 @@ ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
     }
 }
 
-/* Feature and front-end parameters that may be in feat.params */
-static const arg_t feat_defn[] = {
-    waveform_to_cepstral_command_line_macro(),
-    cepstral_to_feature_command_line_macro(),
-    CMDLN_EMPTY_OPTION
-};
-
 static void
 ps_expand_model_config(ps_decoder_t *ps)
 {
@@ -132,17 +125,27 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-sendump", "_sendump", hmmdir, "sendump");
     ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
     ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
-    ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
     ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
 
+#ifndef __EMSCRIPTEN__
+    /* Done externally in JavaScript (above stuff will be too, soon) */
+    /* Feature and front-end parameters that may be in feat.params */
+    static const arg_t feat_defn[] = {
+    waveform_to_cepstral_command_line_macro(),
+    cepstral_to_feature_command_line_macro(),
+    CMDLN_EMPTY_OPTION
+    };
+
     /* Look for feat.params in acoustic model dir. */
+    ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     if ((featparams = cmd_ln_str_r(ps->config, "_featparams"))) {
         if (NULL !=
             cmd_ln_parse_file_r(ps->config, feat_defn, featparams, FALSE))
             E_INFO("Parsed model-specific feature parameters from %s\n",
                     featparams);
     }
+#endif /* not __EMSCRIPTEN__ */
 }
 
 static void
@@ -157,34 +160,38 @@ ps_free_searches(ps_decoder_t *ps)
 EXPORT int
 ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
 {
+    /* Set up logging. We do this immediately because we want to dump
+       the information to the configured log, not to the stderr. */
     if (config && config != ps->config) {
-        cmd_ln_free_r(ps->config);
-        ps->config = cmd_ln_retain(config);
-    }
-
-    /* Set up logging. We need to do this earlier because we want to dump
-     * the information to the configured log, not to the stderr. */
-    if (config) {
-        const char *logfn, *loglevel;
-        logfn = cmd_ln_str_r(ps->config, "-logfn");
+        const char *loglevel;
+#ifndef __EMSCRIPTEN__
+        const char *logfn;
+        logfn = cmd_ln_str_r(config, "-logfn");
         if (logfn) {
             if (err_set_logfile(logfn) < 0) {
                 E_ERROR("Cannot redirect log output\n");
                 return -1;
             }
         }
-        loglevel = cmd_ln_str_r(ps->config, "-loglevel");
+#endif /* not __EMSCRIPTEN__ */
+        loglevel = cmd_ln_str_r(config, "-loglevel");
         if (loglevel) {
             if (err_set_loglevel_str(loglevel) == NULL) {
                 E_ERROR("Invalid log level: %s\n", loglevel);
                 return -1;
             }
         }
+
+        cmd_ln_free_r(ps->config);
+        ps->config = cmd_ln_retain(config);
     }
     
+#ifndef __EMSCRIPTEN__
+    /* Debugging log directories */
     ps->mfclogdir = cmd_ln_str_r(ps->config, "-mfclogdir");
     ps->rawlogdir = cmd_ln_str_r(ps->config, "-rawlogdir");
     ps->senlogdir = cmd_ln_str_r(ps->config, "-senlogdir");
+#endif /* not __EMSCRIPTEN__ */
 
     /* Fill in some default arguments. */
     ps_expand_model_config(ps);
@@ -642,6 +649,7 @@ ps_start_utt(ps_decoder_t *ps)
     if ((rv = acmod_start_utt(ps->acmod)) < 0)
         return rv;
 
+#ifndef __EMSCRIPTEN__
     /* Start logging features and audio if requested. */
     if (ps->mfclogdir) {
         char *logfn = string_join(ps->mfclogdir, "/",
@@ -682,6 +690,7 @@ ps_start_utt(ps_decoder_t *ps)
         ckd_free(logfn);
         acmod_set_senfh(ps->acmod, senfh);
     }
+#endif /* not __EMSCRIPTEN__ */
 
     return ps_search_start(ps->search);
 }

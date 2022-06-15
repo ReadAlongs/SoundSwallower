@@ -69,11 +69,62 @@
 	    assert.ok(count > 0);
 	});
     });
+    function assert_feat_params(key, value) {
+	switch (key) {
+	case "-lowerf":
+	    assert.equal(value, "130");
+	    break;
+	case "-upperf":
+	    assert.equal(value, "3700");
+	    break;
+	case "-nfilt":
+	    assert.equal(value, "20");
+	    break;
+	case "-transform":
+	    assert.equal(value, "dct");
+	    break;
+	case "-lifter":
+	    assert.equal(value, "22");
+	    break;
+	case "-feat":
+	    assert.equal(value, "1s_c_d_dd");
+	    break;
+	case "-svspec":
+	    assert.equal(value, "0-12/13-25/26-38");
+	    break;
+	case "-agc":
+	    assert.equal(value, "none");
+	    break;
+	case "-cmn":
+	    assert.equal(value, "current");
+	    break;
+	case "-varnorm":
+	    assert.equal(value, "no");
+	    break;
+	case "-cmninit":
+	    assert.equal(value, "40,3,-1");
+	    break;
+	case "-model":
+	    assert.equal(value, "ptm");
+	    break;
+	}
+    }
+    describe("Test reading feat.params", () => {
+	it('Should parse feat.params', async () => {
+	    for await (const [key, value] of ssjs.read_featparams("test_feat.params")) {
+		assert_feat_params(key, value);
+	    }
+	    for await (const [key, value] of ssjs.read_featparams("test_feat2.params")) {
+		assert_feat_params(key, value);
+	    }
+	});
+    });
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
 		fsg: "goforward.fsg",
-		samprate: 16000
+		samprate: 16000,
+		loglevel: "INFO",
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
