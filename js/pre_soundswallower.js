@@ -560,13 +560,14 @@ function load_model(model_name, model_path, dict_path=null) {
     ];
     // Lazy-load on the Web, pre-load on Node, DWIM, quoi
     if (RUNNING_ON_WEB) {
-	// only one of these will actually be present and get loaded,
+	// only some of these will actually be present and get loaded,
 	// we can do this because of lazy loading.
 	files.push(
 	    [dest_model_dir, "mdef", model_path + "/mdef"],
 	    [dest_model_dir, "mdef.txt", model_path + "/mdef.txt"],
 	    [dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
 	    [dest_model_dir, "sendump", model_path + "/sendump"],
+	    [dest_model_dir, "phoneset.txt", model_path + "/phoneset.txt"],
 	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
     }
     else {
@@ -592,12 +593,23 @@ function load_model(model_name, model_path, dict_path=null) {
 	mdef_path = path.join(model_path, "mdef");
 	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
 	    files.push([dest_model_dir, "mdef", mdef_path]);
+	const phoneset_path = path.join(model_path, "phoneset.txt");
+	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
+	    files.push([dest_model_dir, "phoneset.txt", mdef_path]);
     }
     if (dict_path !== null) {
 	files.push([dest_model_dir, "dict.txt", dict_path]);
     }
     else {
-	files.push([dest_model_dir, "dict.txt", model_path + "/dict.txt"]);
+	if (RUNNING_ON_WEB)
+	    files.push([dest_model_dir, "dict.txt", model_path + "/dict.txt"]);
+	else {
+	    const fs = require('fs');
+	    const path = require('path');
+	    dict_path = path.join(model_path, "dict.txt");
+	    if (fs.statSync(dict_path, { throwIfNoEntry: false }))
+		files.push([dest_model_dir, "dict.txt", dict_path]);
+	}
     }
     for (const folder of folders)
 	Module.FS_createPath(folder[0], folder[1], true, true);
