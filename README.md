@@ -92,15 +92,16 @@ API](https://soundswallower.readthedocs.io/en/latest/soundswallower.js.html).
 Creating binary distributions for Python
 ========================================
 
-To build the Python extension, I suggest using pip, as it will install
-the build dependencies:
+To build the Python extension, I suggest using `build`, as it will
+ensure that everything is done in a totally clean environment.  Run
+this from the top-level directory
 
-    pip wheel .
+    python -m build
 
-In all cases the resulting binary is self-contained and should not
-need any other components aside from the system libraries.  To create
-wheels that are compatible with multiple Linux distributions, see the
-instructions in
+In all cases the resulting binary wheel (found in `dist`) is
+self-contained and should not need any other components aside from the
+system libraries.  To create wheels that are compatible with multiple
+Linux distributions, see the instructions in
 [README.manylinux.md](https://github.com/ReadAlongs/SoundSwallower/blob/master/README.manylinux.md).
 
 Compiling on Windows in Visual Studio Code

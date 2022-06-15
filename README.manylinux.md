@@ -18,6 +18,8 @@ PyPI:
 	docker run -v $PWD:$PWD -w $PWD/dist -it quay.io/pypa/manylinux2014_x86_64 /opt/python/cp310-cp310/bin/pip wheel soundswallower
 	for w in dist/*.whl; do docker run -v $PWD:$PWD -w $PWD -it quay.io/pypa/manylinux2014_x86_64 auditwheel repair $w; done
 
+The script `build_wheels.sh` is included to automate this somewhat.
+
 If you wish to use the current directory, replace `soundswallower`
 with `.` - likewise, it can also be replaced by the path to an
 existing source distribution or source tree.

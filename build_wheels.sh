@@ -1,7 +1,7 @@
 #!/bin/sh
 
 set -e
-VERSION=0.2.3-alpha0
+VERSION=0.2.3rc0
 U=$(id -u)
 G=$(id -g)
 
@@ -17,13 +17,12 @@ python setup.py clean
 rm -rf *.whl dist/* _skbuild py/soundswallower.egg-info
 pip download -d dist soundswallower==$VERSION
 docker pull quay.io/pypa/manylinux1_x86_64
-many1_run /opt/python/cp39-cp39/bin/pip wheel dist/soundswallower-$VERSION.zip
-many1_run /opt/python/cp38-cp38/bin/pip wheel dist/soundswallower-$VERSION.zip
-many1_run /opt/python/cp37-cp37m/bin/pip wheel dist/soundswallower-$VERSION.zip
+for version in cp39-cp39 cp38-cp38 cp37-cp37m; do
+    many1_run /opt/python/$version/bin/pip wheel dist/soundswallower-$VERSION.zip
+done
 docker pull quay.io/pypa/manylinux2014_x86_64
 many2014_run /opt/python/cp310-cp310/bin/pip wheel dist/soundswallower-$VERSION.zip
 for w in *.whl; do
-    docker run -v $PWD:$PWD -u $U:$G -w $PWD -it \
-	   quay.io/pypa/manylinux2014_x86_64 auditwheel repair $w
+    many2014_run auditwheel repair $w
 done
 
