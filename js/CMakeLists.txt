@@ -1,8 +1,6 @@
 add_executable(ssjs soundswallower.c ${SOUNDSWALLOWER_SOURCES})
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 set_property(TARGET ssjs PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set_property(TARGET ssjs PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 target_compile_options(ssjs PRIVATE -Oz)
 target_link_options(ssjs PRIVATE
   -Oz -sFORCE_FILESYSTEM=1 -sMODULARIZE=1
