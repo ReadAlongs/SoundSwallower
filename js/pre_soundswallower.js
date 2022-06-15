@@ -73,7 +73,7 @@ class Config {
      * @param {string} [dict.hmm=Module.defaultModel] - Name of
      * acoustic model, previously loaded using load_model().
      * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
-     * @param {number} [dict.samprate=16000] - Sampling rate of input.
+     * @param {number} [dict.samprate=44100] - Sampling rate of input.
      */
     constructor(dict) {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
