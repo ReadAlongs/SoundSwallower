@@ -121,7 +121,7 @@ ps_expand_model_config(ps_decoder_t *ps)
 
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = cmd_ln_str_r(ps->config, "-hmm");
-    /* In reverse order of preference (i.e. mdef.bin will be preferred) *
+    /* In reverse order of preference (i.e. mdef.bin will be preferred) */
     ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef");
     ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.txt");
     ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.bin");
