@@ -1,6 +1,8 @@
 add_executable(ssjs soundswallower.c)
 set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
 set_property(TARGET ssjs PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set_property(TARGET ssjs PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Have to use --whole-archive due to
 # https://github.com/emscripten-core/emscripten/issues/6233 (and see
 # also
