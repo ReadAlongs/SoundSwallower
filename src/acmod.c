@@ -61,7 +61,7 @@
 
 static int32 acmod_process_mfcbuf(acmod_t *acmod);
 
-static int
+int
 acmod_init_am(acmod_t *acmod)
 {
     char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
@@ -129,6 +129,15 @@ acmod_init_am(acmod_t *acmod)
         acmod_update_mllr(acmod, mllr);
     }
 
+    /* Set up senone computation. */
+    acmod->senone_scores = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
+                                                     sizeof(*acmod->senone_scores));
+    acmod->senone_active_vec = bitvec_alloc(bin_mdef_n_sen(acmod->mdef));
+    acmod->senone_active = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
+                                                     sizeof(*acmod->senone_active));
+    acmod->log_zero = logmath_get_zero(acmod->lmath);
+    acmod->compallsen = cmd_ln_boolean_r(acmod->config, "-compallsen");
+
     return 0;
 }
 
@@ -179,10 +188,6 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
         goto error_out;
     acmod->fcb = feat_retain(fcb);
 
-    /* Load acoustic model parameters. */
-    if (acmod_init_am(acmod) < 0)
-        goto error_out;
-
     /* The MFCC buffer needs to be at least as large as the dynamic
      * feature window.  */
     acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
@@ -195,14 +200,9 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
     acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
 
-    /* Senone computation stuff. */
-    acmod->senone_scores = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
-                                                     sizeof(*acmod->senone_scores));
-    acmod->senone_active_vec = bitvec_alloc(bin_mdef_n_sen(acmod->mdef));
-    acmod->senone_active = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
-                                                     sizeof(*acmod->senone_active));
-    acmod->log_zero = logmath_get_zero(acmod->lmath);
-    acmod->compallsen = cmd_ln_boolean_r(config, "-compallsen");
+    /* Load acoustic model parameters. */
+    if (acmod_init_am(acmod) < 0)
+        goto error_out;
     return acmod;
 
 error_out:
@@ -233,9 +233,12 @@ acmod_free(acmod_t *acmod)
         fclose(acmod->senfh);
 
     ckd_free(acmod->framepos);
-    ckd_free(acmod->senone_scores);
-    ckd_free(acmod->senone_active_vec);
-    ckd_free(acmod->senone_active);
+    if (acmod->senone_scores)
+        ckd_free(acmod->senone_scores);
+    if (acmod->senone_active_vec)
+        ckd_free(acmod->senone_active_vec);
+    if (acmod->senone_active)
+        ckd_free(acmod->senone_active);
 
     bin_mdef_free(acmod->mdef);
     tmat_free(acmod->tmat);
