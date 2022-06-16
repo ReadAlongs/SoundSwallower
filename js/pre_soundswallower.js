@@ -264,6 +264,8 @@ class Decoder {
 	    if (rv < 0)
 		throw new Error("Failed to clean up decoder internals");
 	})();
+	await this.init_fe();
+	await this.init_feat();
 	await this.init_acmod();
 	await this.init_dict();
 	await this.init_grammar();
@@ -302,6 +304,24 @@ class Decoder {
 	}
     }
     
+    /**
+     * Create front-end from configuration.
+     */
+    async init_fe() {
+	let rv = Module._ps_init_fe(this.ps);
+	if (rv == 0)
+	    throw new Error("Failed to initialize frontend");
+    }
+
+    /**
+     * Create dynamic feature module from configuration.
+     */
+    async init_feat() {
+	let rv = Module._ps_init_feat(this.ps);
+	if (rv == 0)
+	    throw new Error("Failed to initialize feature module");
+    }
+
     /**
      * Load acoustic model from configuration.
      */

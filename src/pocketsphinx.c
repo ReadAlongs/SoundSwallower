@@ -225,6 +225,26 @@ ps_init_cleanup(ps_decoder_t *ps)
     return 0;
 }
 
+EXPORT fe_t *
+ps_init_fe(ps_decoder_t *ps)
+{
+    if (ps->config == NULL)
+        return NULL;
+    fe_free(ps->fe);
+    ps->fe = fe_init(ps->config);
+    return ps->fe;
+}
+
+EXPORT feat_t *
+ps_init_feat(ps_decoder_t *ps)
+{
+    if (ps->config == NULL)
+        return NULL;
+    feat_free(ps->fcb);
+    ps->fcb = feat_init(ps->config);
+    return ps->fcb;
+}
+
 EXPORT acmod_t *
 ps_init_acmod(ps_decoder_t *ps)
 {
@@ -232,18 +252,11 @@ ps_init_acmod(ps_decoder_t *ps)
         return NULL;
     if (ps->lmath == NULL)
         return NULL;
-    /* Free old acmod. */
-    acmod_free(ps->acmod);
-
-    /* Initialize a new front end. */
-    ps->fe = fe_init(ps->config);
     if (ps->fe == NULL)
         return NULL;
-    /* Initialize feature computation. */
-    ps->fcb = feat_init(ps->config);
     if (ps->fcb == NULL)
         return NULL;
-
+    acmod_free(ps->acmod);
     ps->acmod = acmod_init(ps->config, ps->lmath, ps->fe, ps->fcb);
     return ps->acmod;
 }
@@ -325,16 +338,16 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 {
     if (ps_init_config(ps, config) < 0)
         return -1;
-
     if (ps_init_cleanup(ps) < 0)
         return -1;
-
+    if (ps_init_fe(ps) == NULL)
+        return -1;
+    if (ps_init_feat(ps) == NULL)
+        return -1;
     if (ps_init_acmod(ps) == NULL)
         return -1;
-
     if (ps_init_dict(ps) == NULL)
         return -1;
-    
     if (ps_init_grammar(ps) < 0)
         return -1;
     
@@ -399,18 +412,6 @@ EXPORT logmath_t *
 ps_get_logmath(ps_decoder_t *ps)
 {
     return ps->lmath;
-}
-
-fe_t *
-ps_get_fe(ps_decoder_t *ps)
-{
-    return ps->acmod->fe;
-}
-
-feat_t *
-ps_get_feat(ps_decoder_t *ps)
-{
-    return ps->acmod->fcb;
 }
 
 ps_mllr_t *
