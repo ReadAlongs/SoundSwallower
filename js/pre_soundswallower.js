@@ -311,9 +311,9 @@ class Decoder {
 	    hmmpath = path.join(model_path, this.config.get("hmm"));
 	}
 	const featparams = this.config.get("featparams") ?? hmmpath + "/feat.params";
-	for await (const [key, val] of read_featparams(featparams)) {
-	    if (this.config.has(key)) /* Sometimes it doesn't */
-		this.config.set(key, val);
+	for await (const pair of read_featparams(featparams)) {
+	    if (this.config.has(pair[0])) /* Sometimes it doesn't */
+		this.config.set(pair[0], pair[1]);
 	}
     }
     
@@ -683,7 +683,7 @@ async function* read_featparams(featparams) {
 	    if (token == '#')
 		break;
 	    if (key !== null) {
-		yield [key, token]
+		yield [key, token];
 		key = null;
 	    }
 	    else
