@@ -2,10 +2,11 @@ Roadmap:
 
 - 0.2.x: Size and speed optimizations for JS in particular, bug fixes
   - Add back LDA (DONE)
-  - Add phoneset description and IPA input (0.2.3)
-  - Add -cionly option (0.2.3)
-  - Direct load binary mdef files (0.2.3)
-  - Fully asynchronous initialization
+  - Add phoneset description and IPA input
+  - Add -cionly option
+  - Properly modularize JS code
+  - Fully async init and direct load binary files
+	- Go through all initialization code and pull out filesystem access
   - Preserve existing Python and JS API, remove everything else!
 
 - 0.3.x: New model format
