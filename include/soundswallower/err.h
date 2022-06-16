@@ -178,21 +178,6 @@ const char *err_set_loglevel_str(const char *lvl);
 void err_set_callback(err_cb_f callback, void *user_data);
 
 /**
- * Direct all logging to a given filehandle if default logfp callback is set.
- *
- * @param stream Filehandle to send log messages to, or NULL to disable logging.
- */
-void err_set_logfp(FILE *stream);
-
-/**
- * Get the current logging filehandle.
- *
- * @return Current logging filehandle, NULL if logging is disabled. Initially
- * it returns stderr
- */
-FILE *err_get_logfp(void);
-
-/**
  * Append all log messages to a given file.
  *
  * Previous logging filehandle is closed (unless it was stdout or stderr).

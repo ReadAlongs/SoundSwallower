@@ -148,32 +148,20 @@ void
 err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
 {
     va_list ap;
-    FILE *fp = err_get_logfp();
 
     (void)user_data;
     (void)lvl; /* FIXME?!?! */
     
-    if (!fp)
+    if (!logfp)
         return;
     
     va_start(ap, fmt);
-    vfprintf(fp, fmt, ap);
+    vfprintf(logfp, fmt, ap);
     va_end(ap);
-    fflush(fp);
+    fflush(logfp);
 }
 
-int
-err_set_logfile(const char *path)
-{
-    FILE *newfp;
-
-    if ((newfp = fopen(path, "a")) == NULL)
-        return -1;
-    err_set_logfp(newfp);
-    return 0;
-}
-
-void
+static void
 err_set_logfp(FILE *stream)
 {
     if (logfp != NULL && logfp != stdout && logfp != stderr)
@@ -188,15 +176,15 @@ err_set_logfp(FILE *stream)
     return;
 }
 
-FILE *
-err_get_logfp(void)
+int
+err_set_logfile(const char *path)
 {
-    if (logfp_disabled)
-	return NULL;
-    if (logfp == NULL)
-	return stderr;
+    FILE *newfp;
 
-    return logfp;
+    if ((newfp = fopen(path, "a")) == NULL)
+        return -1;
+    err_set_logfp(newfp);
+    return 0;
 }
 
 void
