@@ -256,8 +256,6 @@ cdef class Config:
                 arg_type = str
             elif base_type == ARG_BOOLEAN:
                 arg_type = bool
-            elif base_type == ARG_STRING_LIST:
-                arg_type = str
             else:
                 raise RuntimeError("Unknown type %d in argument %s"
                                    % (base_type, name))

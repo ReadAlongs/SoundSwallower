@@ -59,7 +59,6 @@ cdef extern from "soundswallower/cmd_ln.h":
         ARG_FLOATING,
         ARG_STRING,
         ARG_BOOLEAN,
-        ARG_STRING_LIST,
         REQARG_INTEGER,
         REQARG_FLOATING,
         REQARG_STRING,
