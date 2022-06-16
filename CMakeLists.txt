@@ -17,6 +17,7 @@ CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
 CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
+CHECK_SYMBOL_EXISTS(popen stdio.h HAVE_POPEN)
 
 # Testing endianness is stupidly hard with CMake
 if(EMSCRIPTEN)
