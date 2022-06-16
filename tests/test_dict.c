@@ -24,6 +24,7 @@ main(int argc, char *argv[])
 	char *space;
 	char buf[100];
 
+	(void)argc; (void)argv;
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
 						   "-dict", MODELDIR "/en-us/dict.txt",
 						   "_fdict", MODELDIR "/en-us/noisedict",

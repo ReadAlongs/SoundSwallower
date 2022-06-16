@@ -691,6 +691,7 @@ void
 ps_latnode_iter_free(ps_latnode_iter_t *itor)
 {
     /* Do absolutely nothing. */
+    (void)itor;
 }
 
 ps_latnode_t *
@@ -758,6 +759,7 @@ void
 ps_latlink_iter_free(ps_latlink_iter_t *itor)
 {
     /* Do absolutely nothing. */
+    (void)itor;
 }
 
 ps_latlink_t *

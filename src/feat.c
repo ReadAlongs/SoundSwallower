@@ -364,8 +364,8 @@ feat_array_alloc(feat_t * fcb, int32 nfr)
     k = 0;
     for (i = 0; i < fcb->n_stream; ++i)
         k += fcb->stream_len[i];
-    assert(k >= (int32)feat_dimension(fcb));
-    assert(k >= (int32)fcb->sv_dim);
+    assert((uint32)k >= feat_dimension(fcb));
+    assert(k >= fcb->sv_dim);
 
     feat =
         (mfcc_t ***) ckd_calloc_2d(nfr, feat_dimension1(fcb), sizeof(mfcc_t *));
@@ -398,7 +398,7 @@ feat_array_realloc(feat_t *fcb, mfcc_t ***old_feat, int32 ofr, int32 nfr)
     k = 0;
     for (i = 0; i < fcb->n_stream; ++i)
         k += fcb->stream_len[i];
-    assert(k >= (int)feat_dimension(fcb));
+    assert((uint32)k >= feat_dimension(fcb));
     assert(k >= fcb->sv_dim);
     
     new_feat = feat_array_alloc(fcb, nfr);
@@ -583,7 +583,7 @@ feat_1s_c_d_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 
     assert(fcb);
     assert(feat_n_stream(fcb) == 1);
-    assert(feat_stream_len(fcb, 0) == (uint32) feat_cepsize(fcb) * 3);
+    assert(feat_stream_len(fcb, 0) == (uint32)feat_cepsize(fcb) * 3);
     assert(feat_window_size(fcb) == FEAT_DCEP_WIN + 1);
 
     /* CEP */
@@ -816,7 +816,7 @@ feat_init(cmd_ln_t *config)
          */
         len = strlen(mtype);
         k = 0;
-        for (i = 1; i < (int32)len - 1; i++) {
+        for (i = 1; (size_t)i < len - 1; i++) {
             if (mtype[i] == ',') {
                 mtype[i] = ' ';
                 k++;
@@ -934,7 +934,7 @@ feat_print(feat_t * fcb, mfcc_t *** feat, int32 nfr, FILE * fp)
         for (j = 0; j < (uint32)feat_dimension1(fcb); j++) {
             fprintf(fp, "\t%2d:", j);
 
-            for (k = 0; k < (uint32)feat_dimension2(fcb, j); k++)
+            for (k = 0; k < feat_dimension2(fcb, j); k++)
                 fprintf(fp, " %8.4f", MFCC2FLOAT(feat[i][j][k]));
             fprintf(fp, "\n");
         }

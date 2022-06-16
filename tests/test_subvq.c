@@ -47,6 +47,7 @@ main(int argc, char *argv[])
 	cmd_ln_t *config;
 	feat_t *fcb;
 
+	(void)argc; (void)argv;
 	/* Test parsing of a subvector spec. */
 	subvecs = parse_subvecs(svspec);
 	TEST_ASSERT(subvecs);
@@ -82,7 +83,7 @@ main(int argc, char *argv[])
 
 	for (i = 0; i < 6; ++i) {
 		for (j = 0; j < feat_dimension1(fcb); ++j) {
-			for (k = 0; k < feat_dimension2(fcb, j); ++k) {
+		      for (k = 0; (uint32)k < feat_dimension2(fcb, j); ++k) {
 				printf("%.3f ", MFCC2FLOAT(out_feats[i][j][k]));
 			}
 			printf("\n");

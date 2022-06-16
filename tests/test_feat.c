@@ -46,6 +46,7 @@ main(int argc, char *argv[])
 	mfcc_t **in_feats, ***out_feats;
 	int32 i, j, ncep;
 
+	(void)argc; (void)argv;
 	/* Test "raw" features without concatenation */
 	config = cmd_ln_init(NULL, ps_args(), TRUE,
 			     "-feat", "13",

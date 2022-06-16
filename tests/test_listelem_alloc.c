@@ -19,6 +19,7 @@ main(int argc, char *argv[])
 	struct bogus *bogus1, *bogus2;
 	int i;
 
+	(void)argc; (void)argv;
 	TEST_ASSERT(le = listelem_alloc_init(sizeof(struct bogus)));
 	bogus1 = listelem_malloc(le);
 	bogus1->str = "hello";

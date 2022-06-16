@@ -152,6 +152,7 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
                         int32 logp, int32 wid)
 {
     fsg_link_t *link, *link2;
+    (void)wid;
 
     /* Check for transition probability */
     if (logp > 0) {

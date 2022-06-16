@@ -24,11 +24,12 @@ main(int argc, char *argv[])
     char const *hyp;
     int32 score, prob;
 
+    (void)argc; (void)argv;
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-samprate", "16000", NULL));
+		cmd_ln_init(NULL, ps_args(), TRUE,
+			    "-hmm", MODELDIR "/en-us",
+			    "-dict", TESTDATADIR "/turtle.dic",
+			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
 
     jsgf = jsgf_parse_file(TESTDATADIR "/goforward.gram", NULL);
@@ -51,11 +52,11 @@ main(int argc, char *argv[])
 
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-jsgf", TESTDATADIR "/goforward.gram",
-                "-samprate", "16000", NULL));
+		cmd_ln_init(NULL, ps_args(), TRUE,
+			    "-hmm", MODELDIR "/en-us",
+			    "-dict", TESTDATADIR "/turtle.dic",
+			    "-jsgf", TESTDATADIR "/goforward.gram",
+			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
@@ -68,12 +69,12 @@ main(int argc, char *argv[])
     cmd_ln_free_r(config);
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-jsgf", TESTDATADIR "/goforward.gram",
-                "-toprule", "goforward.move2",
-                "-samprate", "16000", NULL));
+		cmd_ln_init(NULL, ps_args(), TRUE,
+			    "-hmm", MODELDIR "/en-us",
+			    "-dict", TESTDATADIR "/turtle.dic",
+			    "-jsgf", TESTDATADIR "/goforward.gram",
+			    "-toprule", "goforward.move2",
+			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
@@ -86,11 +87,11 @@ main(int argc, char *argv[])
     fclose(rawfh);
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-jsgf", TESTDATADIR "/defective.gram",
-                NULL));
+		cmd_ln_init(NULL, ps_args(), TRUE,
+			    "-hmm", MODELDIR "/en-us",
+			    "-dict", TESTDATADIR "/turtle.dic",
+			    "-jsgf", TESTDATADIR "/defective.gram",
+			    NULL));
     TEST_ASSERT(NULL == ps_init(config));
     cmd_ln_free_r(config);
 

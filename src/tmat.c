@@ -92,6 +92,7 @@ tmat_chk_uppertri(tmat_t * tmat, logmath_t *lmath)
 {
     int32 i, src, dst;
 
+    (void) lmath;
     /* Check that each tmat is upper-triangular */
     for (i = 0; i < tmat->n_tmat; i++) {
         for (dst = 0; dst < tmat->n_state; dst++)
@@ -112,6 +113,7 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 {
     int32 i, src, dst;
 
+    (void) lmath;
     for (i = 0; i < tmat->n_tmat; i++) {
         for (src = 0; src < tmat->n_state; src++)
             for (dst = src + 3; dst <= tmat->n_state; dst++)

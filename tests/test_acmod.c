@@ -45,6 +45,7 @@ main(int argc, char *argv[])
     int frame_counter;
     int bestsen1[NUM_BEST_SEN];
 
+    (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
     config = cmd_ln_init(NULL, ps_args(), TRUE,

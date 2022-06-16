@@ -22,6 +22,7 @@ main(int argc, char *argv[])
     int32 score, prob;
     FILE *rawfh;
 
+    (void)argc; (void)argv;
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
                 "-hmm", MODELDIR "/en-us",

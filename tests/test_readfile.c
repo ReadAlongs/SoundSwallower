@@ -23,6 +23,7 @@ main(int argc, char *argv[])
     size_t nsamps;
     int16 *data;
     
+    (void)argc; (void)argv;
     data = bio_read_wavfile(TESTDATADIR, "goforward", ".wav", 44, FALSE, &nsamps);
     E_INFO("Read %d samples\n", nsamps);
     TEST_EQUAL(44580, nsamps);
