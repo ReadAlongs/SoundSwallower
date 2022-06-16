@@ -1444,13 +1444,16 @@ feat_free(feat_t * f)
     if (f->lda)
         ckd_free_3d((void ***) f->lda);
 
-    ckd_free(f->stream_len);
-    ckd_free(f->sv_len);
-    ckd_free(f->sv_buf);
+    if (f->stream_len)
+        ckd_free(f->stream_len);
+    if (f->sv_len)
+        ckd_free(f->sv_len);
+    if (f->sv_buf)
+        ckd_free(f->sv_buf);
     subvecs_free(f->subvecs);
 
-    cmn_free(f->cmn_struct);
-
+    if (f->cmn_struct)
+        cmn_free(f->cmn_struct);
     ckd_free(f);
     return 0;
 }
