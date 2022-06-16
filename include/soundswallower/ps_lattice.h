@@ -366,7 +366,7 @@ ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
  * @return Final link in best path, NULL on error.
  */
 ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
-                                  float32 lwf, float32 ascale);
+                                  float32 ascale);
 
 /**
  * Calculate link posterior probabilities on a word graph.

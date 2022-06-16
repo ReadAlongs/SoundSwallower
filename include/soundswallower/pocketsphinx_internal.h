@@ -103,7 +103,6 @@ struct ps_search_s {
     char *type;
     char *name;
     
-    ps_search_t *pls;      /**< Phoneme loop for lookahead. */
     cmd_ln_t *config;      /**< Configuration. */
     acmod_t *acmod;        /**< Acoustic model. */
     dict_t *dict;        /**< Pronunciation dictionary. */
@@ -129,7 +128,6 @@ struct ps_search_s {
 #define ps_search_dag(s) ps_search_base(s)->dag
 #define ps_search_last_link(s) ps_search_base(s)->last_link
 #define ps_search_post(s) ps_search_base(s)->post
-#define ps_search_lookahead(s) ps_search_base(s)->pls
 #define ps_search_n_words(s) ps_search_base(s)->n_words
 
 #define ps_search_type(s) ps_search_base(s)->type
@@ -186,11 +184,6 @@ struct ps_seg_s {
     int32 ascr;            /**< Acoustic score. */
     int32 lscr;            /**< Language model score. */
     int32 prob;            /**< Log posterior probability. */
-    /* This doesn't need to be 32 bits, so once the scores above are
-     * reduced to 16 bits (or less!), this will be too. */
-    int32 lback;           /**< Language model backoff. */
-    /* Not sure if this should be here at all. */
-    float32 lwf;           /**< Language weight factor (for second-pass searches) */
 };
 
 #define ps_search_seg_next(seg) (*(seg->vt->seg_next))(seg)

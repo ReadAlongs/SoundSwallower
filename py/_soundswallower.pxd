@@ -144,7 +144,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
     ps_seg_t *ps_seg_next(ps_seg_t *seg)
     const char *ps_seg_word(ps_seg_t *seg)
     void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
-    int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr, int *out_lback)
+    int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr)
     void ps_seg_free(ps_seg_t *seg)
     int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
     int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)

@@ -172,7 +172,6 @@ typedef struct ps_latpath_s {
 typedef struct ps_astar_s {
     ps_lattice_t *dag;
     void *lmset;
-    float32 lwf;
 
     frame_idx_t sf;
     frame_idx_t ef;
@@ -247,8 +246,7 @@ char const *ps_lattice_hyp(ps_lattice_t *dag, ps_latlink_t *link);
 /**
  * Get hypothesis segmentation iterator after bestpath search.
  */
-ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link,
-                              float32 lwf);
+ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link);
 
 /**
  * Begin N-Gram based A* search on a word graph.
@@ -261,7 +259,6 @@ ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link,
  */
 ps_astar_t *ps_astar_start(ps_lattice_t *dag,
                            void *lmset,
-                           float32 lwf,
                            int sf, int ef,
                            int w1, int w2);
 
@@ -285,7 +282,7 @@ char const *ps_astar_hyp(ps_astar_t *nbest, ps_latpath_t *path);
 /**
  * Get hypothesis segmentation from A* search.
  */
-ps_seg_t *ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path, float32 lwf);
+ps_seg_t *ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path);
 
 #ifdef __cplusplus
 } /* extern "C" */

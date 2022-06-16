@@ -283,7 +283,7 @@ cdef class Segment:
     cdef public double lscore
 
     cdef set_seg(self, ps_seg_t *seg, logmath_t *lmath):
-        cdef int ascr, lscr, lback
+        cdef int ascr, lscr
         cdef int sf, ef
 
         self.word = ps_seg_word(seg).decode('utf-8')
@@ -291,7 +291,7 @@ cdef class Segment:
         self.start_frame = sf
         self.end_frame = ef
         self.prob = logmath_exp(lmath,
-                                ps_seg_prob(seg, &ascr, &lscr, &lback));
+                                ps_seg_prob(seg, &ascr, &lscr));
         self.ascore = logmath_exp(lmath, ascr)
         self.lscore = logmath_exp(lmath, lscr)
 

@@ -43,22 +43,22 @@ main(int argc, char *argv[])
          seg = ps_seg_next(seg)) {
         char const *word;
         int sf, ef;
-        int32 post, lscr, ascr, lback;
+        int32 post, lscr, ascr;
 
         word = ps_seg_word(seg);
         ps_seg_frames(seg, &sf, &ef);
         if (sf == ef)
             continue;
-        post = ps_seg_prob(seg, &ascr, &lscr, &lback);
-        printf("%s (%d:%d) P(w|o) = %f ascr = %d lscr = %d lback = %d\n", word, sf, ef,
-               logmath_exp(ps_get_logmath(ps), post), ascr, lscr, lback);
+        post = ps_seg_prob(seg, &ascr, &lscr);
+        printf("%s (%d:%d) P(w|o) = %f ascr = %d lscr = %d\n", word, sf, ef,
+               logmath_exp(ps_get_logmath(ps), post), ascr, lscr);
     }
 
     /* Now get the DAG and play with it. */
     dag = ps_get_lattice(ps);
     ps_lattice_write(dag, "test_fsg.lat");
     printf("BESTPATH: %s\n",
-           ps_lattice_hyp(dag, ps_lattice_bestpath(dag, NULL, 1.0, 15.0)));
+           ps_lattice_hyp(dag, ps_lattice_bestpath(dag, NULL, 15.0)));
     ps_lattice_posterior(dag, NULL, 15.0);
     ps_free(ps);
     cmd_ln_free_r(config);

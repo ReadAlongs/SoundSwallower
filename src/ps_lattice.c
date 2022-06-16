@@ -945,7 +945,7 @@ static ps_segfuncs_t ps_lattice_segfuncs = {
 };
 
 ps_seg_t *
-ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link, float32 lwf)
+ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link)
 {
     dag_seg_t *itor;
     ps_latlink_t *l;
@@ -957,7 +957,6 @@ ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link, float32 lwf)
     itor = ckd_calloc(1, sizeof(*itor));
     itor->base.vt = &ps_lattice_segfuncs;
     itor->base.search = dag->search;
-    itor->base.lwf = lwf;
     itor->n_links = 0;
     itor->norm = dag->norm;
 
@@ -1155,7 +1154,7 @@ ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start)
  */
 ps_latlink_t *
 ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
-                    float32 lwf, float32 ascale)
+                    float32 ascale)
 {
     ps_search_t *search;
     ps_latnode_t *node;
@@ -1585,7 +1584,6 @@ path_extend(ps_astar_t *nbest, ps_latpath_t * path)
 ps_astar_t *
 ps_astar_start(ps_lattice_t *dag,
                void *lmset,
-               float32 lwf,
                int sf, int ef,
                int w1, int w2)
 {
@@ -1595,7 +1593,6 @@ ps_astar_start(ps_lattice_t *dag,
     nbest = ckd_calloc(1, sizeof(*nbest));
     nbest->dag = dag;
     nbest->lmset = lmset;
-    nbest->lwf = lwf;
     nbest->sf = sf;
     if (ef < 0)
         nbest->ef = dag->n_frames + 1;
@@ -1762,7 +1759,7 @@ static ps_segfuncs_t ps_astar_segfuncs = {
 };
 
 ps_seg_t *
-ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path, float32 lwf)
+ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path)
 {
     astar_seg_t *itor;
     ps_latpath_t *p;
@@ -1772,7 +1769,6 @@ ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path, float32 lwf)
     itor = ckd_calloc(1, sizeof(*itor));
     itor->base.vt = &ps_astar_segfuncs;
     itor->base.search = astar->dag->search;
-    itor->base.lwf = lwf;
     itor->n_nodes = itor->cur = 0;
     for (p = path; p; p = p->parent) {
         ++itor->n_nodes;

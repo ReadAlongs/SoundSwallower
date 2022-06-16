@@ -879,20 +879,20 @@ ps_end_utt(ps_decoder_t *ps)
         
         if (hyp != NULL) {
     	    E_INFO("%s (%d)\n", hyp, score);
-    	    E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s %-3s\n",
-                    "word", "start", "end", "pprob", "ascr", "lscr", "lback");
+    	    E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s\n",
+                    "word", "start", "end", "pprob", "ascr", "lscr");
     	    for (seg = ps_seg_iter(ps); seg;
         	 seg = ps_seg_next(seg)) {
     	        char const *word;
         	int sf, ef;
-        	int32 post, lscr, ascr, lback;
+        	int32 post, lscr, ascr;
 
         	word = ps_seg_word(seg);
         	ps_seg_frames(seg, &sf, &ef);
-        	post = ps_seg_prob(seg, &ascr, &lscr, &lback);
-        	E_INFO_NOFN("%-20s %-5d %-5d %-1.3f %-10d %-10d %-3d\n",
+        	post = ps_seg_prob(seg, &ascr, &lscr);
+        	E_INFO_NOFN("%-20s %-5d %-5d %-1.3f %-10d %-10d\n",
                     	    word, sf, ef, logmath_exp(ps_get_logmath(ps), post),
-                    	ascr, lscr, lback);
+                    	ascr, lscr);
     	    }
         }
     }
@@ -967,11 +967,10 @@ ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
 }
 
 EXPORT int32
-ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr, int32 *out_lback)
+ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr)
 {
     if (out_ascr) *out_ascr = seg->ascr;
     if (out_lscr) *out_lscr = seg->lscr;
-    if (out_lback) *out_lback = seg->lback;
     return seg->prob;
 }
 
@@ -998,7 +997,6 @@ ps_nbest(ps_decoder_t *ps)
     ps_lattice_t *dag;
     ps_astar_t *nbest;
     void *lmset;
-    float32 lwf;
 
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -1009,8 +1007,7 @@ ps_nbest(ps_decoder_t *ps)
         return NULL;
 
     lmset = NULL;
-    lwf = 1.0f;
-    nbest = ps_astar_start(dag, lmset, lwf, 0, -1, -1, -1);
+    nbest = ps_astar_start(dag, lmset, 0, -1, -1, -1);
     nbest = ps_nbest_next(nbest);
 
     return (ps_nbest_t *)nbest;
@@ -1052,7 +1049,7 @@ ps_nbest_seg(ps_nbest_t *nbest)
     if (nbest->top == NULL)
         return NULL;
 
-    return ps_astar_seg_iter(nbest, nbest->top, 1.0);
+    return ps_astar_seg_iter(nbest, nbest->top);
 }
 
 int

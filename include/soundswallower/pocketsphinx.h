@@ -449,16 +449,12 @@ void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef);
  *
  * @param out_ascr Output: acoustic model score for this segment.
  * @param out_lscr Output: language model score for this segment.
- * @param out_lback Output: language model backoff mode for this
- *                  segment (i.e. the number of words used in
- *                  calculating lscr).  This field is, of course, only
- *                  meaningful for N-Gram models.
  * @return Log posterior probability of current segment.  Log is
  *         expressed in the log-base used in the decoder.  To convert
  *         to linear floating-point, use logmath_exp(ps_get_logmath(),
  *         pprob).
  */
-int32 ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr, int32 *out_lback);
+int32 ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr);
 
 /**
  * Finish iterating over a word segmentation early, freeing resources.

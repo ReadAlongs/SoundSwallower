@@ -962,7 +962,7 @@ fsg_search_bestpath(ps_search_t *search, int32 *out_score, int backward)
 
     if (search->last_link == NULL) {
         search->last_link = ps_lattice_bestpath(search->dag, NULL,
-                                                1.0, fsgs->ascale);
+                                                fsgs->ascale);
         if (search->last_link == NULL)
             return NULL;
         /* Also calculate betas so we can fill in the posterior
@@ -1076,7 +1076,6 @@ fsg_seg_bp2itor(ps_seg_t *seg, fsg_hist_entry_t *hist_entry)
     if (seg->sf > seg->ef) seg->sf = seg->ef;
     seg->prob = 0; /* Bogus value... */
     /* "Language model" score = transition probability. */
-    seg->lback = 1;
     seg->lscr = fsg_link_logs2prob(hist_entry->fsglink) >> SENSCR_SHIFT;
     if (ph) {
         /* FIXME: Not sure exactly how cross-word triphones are handled. */
@@ -1137,7 +1136,7 @@ fsg_search_seg_iter(ps_search_t *search)
             return NULL;
         if ((link = fsg_search_bestpath(search, &out_score, TRUE)) == NULL)
             return NULL;
-        return ps_lattice_seg_iter(dag, link, 1.0);
+        return ps_lattice_seg_iter(dag, link);
     }
 
     /* Calling this an "iterator" is a bit of a misnomer since we have
@@ -1147,7 +1146,6 @@ fsg_search_seg_iter(ps_search_t *search)
     itor = ckd_calloc(1, sizeof(*itor));
     itor->base.vt = &fsg_segfuncs;
     itor->base.search = search;
-    itor->base.lwf = 1.0;
     itor->n_hist = 0;
     bp = bpidx;
     while (bp > 0) {
