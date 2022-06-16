@@ -126,18 +126,6 @@ vector_nz_floor(float32 * vec, int32 len, float64 flr)
 }
 
 
-void
-vector_print(FILE * fp, vector_t v, int32 dim)
-{
-    int32 i;
-
-    for (i = 0; i < dim; i++)
-        fprintf(fp, " %11.4e", v[i]);
-    fprintf(fp, "\n");
-    fflush(fp);
-}
-
-
 int32
 vector_is_zero(float32 * vec, int32 len)
 {

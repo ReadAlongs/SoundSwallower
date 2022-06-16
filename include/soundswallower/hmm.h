@@ -278,22 +278,6 @@ void hmm_enter(hmm_t *h, int32 score,
  * well.
 */
 int32 hmm_vit_eval(hmm_t *hmm);
-  
-
-/**
- * Like hmm_vit_eval, but dump HMM state and relevant senscr to fp first, for debugging;.
- */
-int32 hmm_dump_vit_eval(hmm_t *hmm,  /**< In/Out: HMM being updated */
-                        FILE *fp /**< An output file pointer */
-    );
-
-/** 
- * For debugging, dump the whole HMM out.
- */
-
-void hmm_dump(hmm_t *h,  /**< In/Out: HMM being updated */
-              FILE *fp /**< An output file pointer */
-    );
 
 
 #ifdef __cplusplus

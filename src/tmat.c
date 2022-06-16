@@ -63,26 +63,6 @@ static int32 tmat_chk_uppertri(tmat_t *tmat, logmath_t *lmath);
 
 static int32 tmat_chk_1skip(tmat_t *tmat, logmath_t *lmath);
 
-
-void
-tmat_dump(tmat_t * tmat, FILE * fp)
-{
-    int32 i, src, dst;
-
-    for (i = 0; i < tmat->n_tmat; i++) {
-        fprintf(fp, "TMAT %d = %d x %d\n", i, tmat->n_state,
-                tmat->n_state + 1);
-        for (src = 0; src < tmat->n_state; src++) {
-            for (dst = 0; dst <= tmat->n_state; dst++)
-                fprintf(fp, " %12d", tmat->tp[i][src][dst]);
-            fprintf(fp, "\n");
-        }
-        fprintf(fp, "\n");
-    }
-    fflush(fp);
-}
-
-
 /*
  * Check model tprob matrices that they conform to upper-triangular assumption;
  * i.e. no "backward" transitions allowed.

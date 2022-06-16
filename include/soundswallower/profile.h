@@ -121,12 +121,6 @@ pctr_t* pctr_new (
 void pctr_reset (pctr_t *ctr  /**< A pointer of a counter */
 	);
 
-/**
- * Print a counter
- */ 
-void pctr_print(FILE *fp,      /**< A file pointer */
-		pctr_t *ctr   /**< A pointer of a counter */
-	);
 
 /**
  * Increment a counter
@@ -183,15 +177,6 @@ void ptmr_init (ptmr_t *tmr /**< The timer*/
  * The array should be terminated with a sentinel with .name = NULL.
  */
 void ptmr_reset_all (ptmr_t *tmr /**< The timer*/
-	);
-
-/**
- * Print t_cpu for all timer modules in tmr[], normalized by norm (i.e., t_cpu/norm).
- * The array should be terminated with a sentinel with .name = NULL.
- */
-void ptmr_print_all (FILE *fp,    /**< The file pointer */
-		     ptmr_t *tmr, /**< The timer*/
-		     float64 norm
 	);
 
 

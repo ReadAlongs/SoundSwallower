@@ -175,15 +175,6 @@ fsg_model_t *jsgf_read_file(const char *file, logmath_t * lmath, float32 lw);
  */
 fsg_model_t *jsgf_read_string(const char *string, logmath_t * lmath, float32 lw);
 
-
-/**
- * Convert a JSGF rule to Sphinx FSG text form.
- *
- * This does a direct conversion without doing transitive closure on
- * null transitions and so forth.
- */
-int jsgf_write_fsg(jsgf_t *grammar, jsgf_rule_t *rule, FILE *outfh);
-
 #ifdef __cplusplus
 }
 #endif

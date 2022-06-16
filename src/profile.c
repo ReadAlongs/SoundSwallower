@@ -129,13 +129,6 @@ pctr_increment(pctr_t * ctr, int32 inc)
 }
 
 void
-pctr_print(FILE * fp, pctr_t * ctr)
-{
-    fprintf(fp, "CTR:");
-    fprintf(fp, "[%d %s]", ctr->count, ctr->name);
-}
-
-void
 pctr_free(pctr_t * pc)
 {
     if (pc) {
@@ -273,18 +266,6 @@ ptmr_reset_all(ptmr_t * tm)
     for (; tm->name; tm++)
         ptmr_reset(tm);
 }
-
-
-void
-ptmr_print_all(FILE * fp, ptmr_t * tm, float64 norm)
-{
-    if (norm != 0.0) {
-        norm = 1.0 / norm;
-        for (; tm->name; tm++)
-            fprintf(fp, "  %6.2fx %s", tm->t_cpu * norm, tm->name);
-    }
-}
-
 
 int32
 host_endian(void)

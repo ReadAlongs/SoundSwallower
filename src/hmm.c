@@ -110,60 +110,6 @@ hmm_deinit(hmm_t *hmm)
 }
 
 void
-hmm_dump(hmm_t * hmm,
-         FILE * fp)
-{
-    int32 i;
-
-    if (hmm_is_mpx(hmm)) {
-        fprintf(fp, "MPX   ");
-        for (i = 0; i < hmm_n_emit_state(hmm); i++)
-            fprintf(fp, " %11d", hmm_senid(hmm, i));
-        fprintf(fp, " ( ");
-        for (i = 0; i < hmm_n_emit_state(hmm); i++)
-            fprintf(fp, "%d ", hmm_ssid(hmm, i));
-        fprintf(fp, ")\n");
-    }
-    else {
-        fprintf(fp, "SSID  ");
-        for (i = 0; i < hmm_n_emit_state(hmm); i++)
-            fprintf(fp, " %11d", hmm_senid(hmm, i));
-        fprintf(fp, " (%d)\n", hmm_ssid(hmm, 0));
-    }
-
-    if (hmm->ctx->senscore) {
-        fprintf(fp, "SENSCR");
-        for (i = 0; i < hmm_n_emit_state(hmm); i++)
-            fprintf(fp, " %11d", hmm_senscr(hmm, i));
-        fprintf(fp, "\n");
-    }
-
-    fprintf(fp, "SCORES %11d", hmm_in_score(hmm));
-    for (i = 1; i < hmm_n_emit_state(hmm); i++)
-        fprintf(fp, " %11d", hmm_score(hmm, i));
-    fprintf(fp, " %11d", hmm_out_score(hmm));
-    fprintf(fp, "\n");
-
-    fprintf(fp, "HISTID %11d", hmm_in_history(hmm));
-    for (i = 1; i < hmm_n_emit_state(hmm); i++)
-        fprintf(fp, " %11d", hmm_history(hmm, i));
-    fprintf(fp, " %11d", hmm_out_history(hmm));
-    fprintf(fp, "\n");
-
-    if (hmm_in_score(hmm) > 0)
-        fprintf(fp,
-                "ALERT!! The input score %d is large than 0. Probably wrap around.\n",
-                hmm_in_score(hmm));
-    if (hmm_out_score(hmm) > 0)
-        fprintf(fp,
-                "ALERT!! The output score %d is large than 0. Probably wrap around\n.",
-                hmm_out_score(hmm));
-
-    fflush(fp);
-}
-
-
-void
 hmm_clear_scores(hmm_t * h)
 {
     int32 i;
@@ -801,22 +747,4 @@ hmm_vit_eval(hmm_t * hmm)
         else
             return hmm_vit_eval_anytopo(hmm);
     }
-}
-
-int32
-hmm_dump_vit_eval(hmm_t * hmm, FILE * fp)
-{
-    int32 bs = 0;
-
-    if (fp) {
-        fprintf(fp, "BEFORE:\n");
-        hmm_dump(hmm, fp);
-    }
-    bs = hmm_vit_eval(hmm);
-    if (fp) {
-        fprintf(fp, "AFTER:\n");
-        hmm_dump(hmm, fp);
-    }
-
-    return bs;
 }

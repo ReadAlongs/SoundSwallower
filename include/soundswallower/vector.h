@@ -82,10 +82,6 @@ void vector_nz_floor(vector_t v, int32 dim, float64 f);
 float64 vector_sum_norm(vector_t v, int32 dim);
 
 
-/* Print vector in one line, in %11.4e format, terminated by newline */
-void vector_print(FILE *fp, vector_t v, int32 dim);
-
-
 /* Return TRUE iff given vector is all 0.0 */
 int32 vector_is_zero (float32 *vec,	/* In: Vector to be checked */
 		      int32 len);	/* In: Length of above vector */

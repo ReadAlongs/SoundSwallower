@@ -72,15 +72,6 @@ tmat_t *tmat_init (char const *tmatfile,/**< In: input file */
 		   int32 breport      /**< In: whether reporting the process of tmat_t  */
     );
 					    
-
-
-/** Dumping the transition matrix for debugging */
-
-void tmat_dump (tmat_t *tmat,  /**< In: transition matrix */
-		FILE *fp       /**< In: file pointer */
-    );	
-
-
 /**
  * RAH, add code to remove memory allocated by tmat_init
  */
