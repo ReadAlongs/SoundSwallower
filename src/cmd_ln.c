@@ -81,7 +81,7 @@
 #include <soundswallower/strfuncs.h>
 
 static void
-arg_log_r(cmd_ln_t *, arg_t const *, int32);
+arg_log_r(cmd_ln_t *, arg_t const *, int32, int32);
 
 static cmd_ln_t *
 parse_options(cmd_ln_t *, const arg_t *, int32, char* [], int32);
@@ -221,7 +221,7 @@ arg_resolve_env(const char *str)
 }
 
 static void
-arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc)
+arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc, int32 lineno)
 {
     arg_t const **pos;
     int32 i, n;
@@ -238,7 +238,10 @@ arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc)
     n = arg_strlen(defn, &namelen, &deflen);
     namelen += 4;
     deflen += 4;
-    E_INFO("%-*s", namelen, "[NAME]");
+    if (lineno)
+        E_INFO("%-*s", namelen, "[NAME]");
+    else
+        E_INFOCONT("%-*s", namelen, "[NAME]");
     E_INFOCONT("%-*s", deflen, "[DEFLT]");
     if (doc) {
         E_INFOCONT("     [DESCR]\n");
@@ -250,7 +253,10 @@ arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc)
     /* Print current configuration, sorted by name */
     pos = arg_sort(defn, n);
     for (i = 0; i < n; i++) {
-        E_INFO("%-*s", namelen, pos[i]->name);
+        if (lineno)
+            E_INFO("%-*s", namelen, pos[i]->name);
+        else
+            E_INFOCONT("%-*s", namelen, pos[i]->name);
         if (pos[i]->deflt)
             E_INFOCONT("%-*s", deflen, pos[i]->deflt);
         else
@@ -297,7 +303,7 @@ arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc)
         E_INFOCONT("\n");
     }
     ckd_free(pos);
-    E_INFO("\n");
+    E_INFOCONT("\n");
 }
 
 static char **
@@ -777,7 +783,13 @@ cmd_ln_log_help_r(cmd_ln_t *cmdln, arg_t const* defn)
     if (defn == NULL)
         return;
     E_INFO("Arguments list definition:\n");
-    arg_log_r(cmdln, defn, TRUE);
+    if (cmdln == NULL) {
+        cmdln = cmd_ln_parse_r(NULL, defn, 0, NULL, FALSE);
+        arg_log_r(cmdln, defn, TRUE, FALSE);
+        cmd_ln_free_r(cmdln);
+    }
+    else
+        arg_log_r(cmdln, defn, TRUE, FALSE);
 }
 
 void
@@ -786,7 +798,7 @@ cmd_ln_log_values_r(cmd_ln_t *cmdln, arg_t const* defn)
     if (defn == NULL)
         return;
     E_INFO("Current configuration:\n");
-    arg_log_r(cmdln, defn, FALSE);
+    arg_log_r(cmdln, defn, FALSE, FALSE);
 }
 
 EXPORT int
