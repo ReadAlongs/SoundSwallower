@@ -51,11 +51,8 @@
 #include <soundswallower/filename.h>
 #include <soundswallower/ckd_alloc.h>
 
-static FILE*  logfp = NULL;
-static int    logfp_disabled = FALSE;
-
-static err_cb_f err_cb = err_logfp_cb;
-static void* err_user_data;
+static err_cb_f err_cb = err_stderr_cb;
+static void *err_user_data;
 static err_lvl_t min_loglevel = ERR_WARN;
 static const char *err_level[ERR_MAX] =
     {
@@ -145,51 +142,21 @@ err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 }
 
 void
-err_logfp_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
+err_stderr_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
 {
     va_list ap;
 
     (void)user_data;
-    (void)lvl; /* FIXME?!?! */
-    
-    if (!logfp)
-        return;
+    (void)lvl;
     
     va_start(ap, fmt);
-    vfprintf(logfp, fmt, ap);
+    vfprintf(stderr, fmt, ap);
     va_end(ap);
-    fflush(logfp);
-}
-
-static void
-err_set_logfp(FILE *stream)
-{
-    if (logfp != NULL && logfp != stdout && logfp != stderr)
-        fclose(logfp);
-    if (stream == NULL) {
-	logfp_disabled = TRUE;
-	logfp = NULL;
-	return;
-    }    
-    logfp_disabled = FALSE;
-    logfp = stream;
-    return;
-}
-
-int
-err_set_logfile(const char *path)
-{
-    FILE *newfp;
-
-    if ((newfp = fopen(path, "a")) == NULL)
-        return -1;
-    err_set_logfp(newfp);
-    return 0;
 }
 
 void
 err_set_callback(err_cb_f cb, void* user_data)
 {
     err_cb = cb;
-    err_user_data= user_data;
+    err_user_data = user_data;
 }

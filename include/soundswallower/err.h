@@ -121,7 +121,7 @@ extern "C" {
 #define E_INFO_NOFN(...)  err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
 
 /**
- * Debug is disabled by default
+ * Debug messages are disabled by default
  */
 #ifdef DEBUG
 #define E_DEBUG(...) err_msg(ERR_DEBUG, NULL, 0, __VA_ARGS__)
@@ -139,12 +139,21 @@ typedef enum err_e {
 } err_lvl_t;
 
 void err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
-
 void err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...);
 
-void err_logfp_cb(void * user_data, err_lvl_t level, const char *fmt, ...);
+/**
+ * Prototype for logging callback function.
+ *
+ * Note that lvl is passed for informative purposes only.  The
+ * callback will NOT be called for messages of lower priority than the
+ * current log level.
+ */
+typedef void (*err_cb_f)(void* user_data, err_lvl_t lvl, const char *fmt, ...);
 
-typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
+/**
+ * Default logging callback using stderr.
+ */
+void err_stderr_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...);
 
 /**
  * Set minimum logging level.
@@ -157,7 +166,7 @@ typedef void (*err_cb_f)(void* user_data, err_lvl_t, const char *, ...);
 int err_set_loglevel(err_lvl_t lvl);
 
 /**
- * Set minimum logging levelfrom a string
+ * Set minimum logging level from a string
  *
  * @param lvl Level below which messages will not be logged (note
  * ERR_DEBUG messages are not logged unless compiled in debugging
@@ -168,24 +177,16 @@ int err_set_loglevel(err_lvl_t lvl);
 const char *err_set_loglevel_str(const char *lvl);
 
 /**
- * Sets function to output error messages. Use it to redirect the logging
- * to your application. By default the handler which dumps messages to
- * stderr is set.
+ * Sets function to output error messages.
+ *
+ * Use it to redirect the logging to your application or language
+ * binding. By default, it uses err_stderr_cb() which prints messages
+ * to stderr.
  *
  * @param callback callback to pass messages too
  * @param user_data data to pass to callback
  */
 void err_set_callback(err_cb_f callback, void *user_data);
-
-/**
- * Append all log messages to a given file.
- *
- * Previous logging filehandle is closed (unless it was stdout or stderr).
- *
- * @param path File path to send log messages to
- * @return 0 for success, <0 for failure (e.g. if file does not exist)
- */
-int err_set_logfile(const char *path);
 
 #ifdef __cplusplus
 }

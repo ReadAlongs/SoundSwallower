@@ -164,16 +164,6 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
        the information to the configured log, not to the stderr. */
     if (config && config != ps->config) {
         const char *loglevel;
-#ifndef __EMSCRIPTEN__
-        const char *logfn;
-        logfn = cmd_ln_str_r(config, "-logfn");
-        if (logfn) {
-            if (err_set_logfile(logfn) < 0) {
-                E_ERROR("Cannot redirect log output\n");
-                return -1;
-            }
-        }
-#endif /* not __EMSCRIPTEN__ */
         loglevel = cmd_ln_str_r(config, "-loglevel");
         if (loglevel) {
             if (err_set_loglevel_str(loglevel) == NULL) {
@@ -186,13 +176,6 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
         ps->config = cmd_ln_retain(config);
     }
     
-#ifndef __EMSCRIPTEN__
-    /* Debugging log directories */
-    ps->mfclogdir = cmd_ln_str_r(ps->config, "-mfclogdir");
-    ps->rawlogdir = cmd_ln_str_r(ps->config, "-rawlogdir");
-    ps->senlogdir = cmd_ln_str_r(ps->config, "-senlogdir");
-#endif /* not __EMSCRIPTEN__ */
-
     /* Fill in some default arguments. */
     ps_expand_model_config(ps);
 
