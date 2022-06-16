@@ -282,7 +282,7 @@ enum fe_error_e {
  *               fe_t, so you may free this if you no longer need it.
  * @return Newly created front-end object.
  */
-fe_t *fe_init_auto_r(cmd_ln_t *config);
+fe_t *fe_init(cmd_ln_t *config);
 
 /**
  * Retrieve the command-line object used to initialize this front-end.

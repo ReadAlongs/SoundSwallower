@@ -17,6 +17,7 @@ main(int argc, char *argv[])
 {
 	static const arg_t fe_args[] = {
 		waveform_to_cepstral_command_line_macro(),
+		cepstral_to_feature_command_line_macro(),
 		{ NULL, 0, NULL, NULL }
 	};
 	FILE *raw;
@@ -35,9 +36,8 @@ main(int argc, char *argv[])
 	}
 
 	config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE);
-	fe = fe_init_auto_r(config);
-	fcb = feat_init("1s_c_d_dd", CMN_NONE, FALSE, AGC_NONE,
-			TRUE, fe_get_output_size(fe));
+	fe = fe_init(config);
+	fcb = feat_init(config);
 
 	/* Determine how much data and how many MFCC frames we need. */
 	fseek(raw, 0, SEEK_END);

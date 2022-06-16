@@ -234,9 +234,17 @@ ps_init_acmod(ps_decoder_t *ps)
         return NULL;
     /* Free old acmod. */
     acmod_free(ps->acmod);
-    /* Acoustic model (this is basically everything that
-     * uttproc.c, senscr.c, and others used to do) */
-    ps->acmod = acmod_init(ps->config, ps->lmath, NULL, NULL);
+
+    /* Initialize a new front end. */
+    ps->fe = fe_init(ps->config);
+    if (ps->fe == NULL)
+        return NULL;
+    /* Initialize feature computation. */
+    ps->fcb = feat_init(ps->config);
+    if (ps->fcb == NULL)
+        return NULL;
+
+    ps->acmod = acmod_init(ps->config, ps->lmath, ps->fe, ps->fcb);
     return ps->acmod;
 }
 
@@ -297,15 +305,19 @@ ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
         cmd_ln_free_r(ps->config);
         ps->config = cmd_ln_retain(config);
     }
-    if ((new_fe = fe_init_auto_r(ps->config)) == NULL)
+    if ((new_fe = fe_init(ps->config)) == NULL)
         return NULL;
     if (acmod_fe_mismatch(ps->acmod, new_fe)) {
         fe_free(new_fe);
         return NULL;
     }
+    fe_free(ps->fe);
+    ps->fe = new_fe;
+    /* FIXME: should be in an acmod_set_fe function */
     fe_free(ps->acmod->fe);
-    ps->acmod->fe = new_fe;
-    return new_fe;
+    ps->acmod->fe = fe_retain(ps->fe);
+
+    return ps->fe;
 }
 
 EXPORT int
@@ -368,6 +380,8 @@ ps_free(ps_decoder_t *ps)
     ps_free_searches(ps);
     dict_free(ps->dict);
     dict2pid_free(ps->d2p);
+    feat_free(ps->fcb);
+    fe_free(ps->fe);
     acmod_free(ps->acmod);
     logmath_free(ps->lmath);
     cmd_ln_free_r(ps->config);

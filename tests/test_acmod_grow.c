@@ -33,6 +33,8 @@ main(int argc, char *argv[])
     acmod_t *acmod;
     logmath_t *lmath;
     cmd_ln_t *config;
+    fe_t *fe;
+    feat_t *fcb;
     FILE *rawfh;
     int16 *buf;
     int16 const *bptr;
@@ -64,7 +66,9 @@ main(int argc, char *argv[])
     cmd_ln_set_str_extra_r(config, "_lda", NULL);
     cmd_ln_set_str_extra_r(config, "_senmgau", NULL);
 
-    TEST_ASSERT(acmod = acmod_init(config, lmath, NULL, NULL));
+    fe = fe_init(config);
+    fcb = feat_init(config);
+    TEST_ASSERT(acmod = acmod_init(config, lmath, fe, fcb));
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
 
     nsamps = 2048;

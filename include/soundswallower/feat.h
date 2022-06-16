@@ -254,9 +254,11 @@ void feat_array_free(mfcc_t ***feat);
 
 
 /**
- * Initialize feature module to use the selected type of feature stream.  
- * One-time only initialization at the beginning of the program.  Input type 
- * is a string defining the  kind of input->feature conversion desired:
+ * Initialize feature module to use the selected type of feature
+ * stream.  One-time only initialization at the beginning of the
+ * program.  Uses configuration parameters as defined in
+ * <cmdln_macro.h>. The `-type` is a string defining the kind of
+ * input->feature conversion desired:
  *
  * - "s2_4x":     s2mfc->Sphinx-II 4-feature stream,
  * - "1s_c_d_dd": s2mfc->Sphinx 3.x single feature stream,
@@ -268,19 +270,7 @@ void feat_array_free(mfcc_t ***feat);
  * @return (feat_t *) descriptor if successful, NULL if error.  Caller 
  * must not directly modify the contents of the returned value.
  */
-feat_t *feat_init(char const *type,/**< In: Type of feature stream */
-                  cmn_type_t cmn, /**< In: Type of cepstram mean normalization to 
-                                     be done before feature computation; can be 
-                                     CMN_NONE (for none) */
-                  int32 varnorm,  /**< In: (boolean) Whether variance 
-                                     normalization done on each utt; only 
-                                     applicable if CMN also done */
-                  int agc, 	 /**< UNUSED */
-                  int32 breport, /**< In: Whether to show a report for feat_t */
-                  int32 cepsize  /**< Number of components in the input vector
-                                    (or 0 for the default for this feature type,
-                                    which is usually 13) */
-    );
+feat_t * feat_init(cmd_ln_t *config);
 
 /**
  * Add an LDA transformation to the feature module from a file.

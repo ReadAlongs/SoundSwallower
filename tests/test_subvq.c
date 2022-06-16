@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 
+#include <soundswallower/pocketsphinx.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/ckd_alloc.h>
 
@@ -43,6 +44,7 @@ main(int argc, char *argv[])
 	static char const svspec[] = "1-12/14-25/0,13,26/27-38";
 	int32 **subvecs, i, j, k, ncep;
 	mfcc_t **in_feats, ***out_feats;
+	cmd_ln_t *config;
 	feat_t *fcb;
 
 	/* Test parsing of a subvector spec. */
@@ -62,7 +64,12 @@ main(int argc, char *argv[])
 	}
 
 	/* Create a 1s_c_d_dd feature stream and split it into subvectors. */
-	fcb = feat_init("1s_c_d_dd", CMN_NONE, 0, AGC_NONE, 1, 13);
+	config = cmd_ln_init(NULL, ps_args(), TRUE,
+			     "-feat", "1s_c_d_dd",
+			     "-cmn", "none",
+			     "-varnorm", "no",
+			     "-ceplen", "13", NULL);
+	fcb = feat_init(config);
 	TEST_ASSERT(fcb);
 	feat_set_subvecs(fcb, subvecs);
 

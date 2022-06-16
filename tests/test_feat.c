@@ -1,9 +1,11 @@
+/* -*- c-basic-offset: 8 -*- */
 #include "config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
+#include <soundswallower/pocketsphinx.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/ckd_alloc.h>
 
@@ -39,12 +41,18 @@ enum agc_type_e { AGC_NONE };
 int
 main(int argc, char *argv[])
 {
+	cmd_ln_t *config;
 	feat_t *fcb;
 	mfcc_t **in_feats, ***out_feats;
 	int32 i, j, ncep;
 
 	/* Test "raw" features without concatenation */
-	fcb = feat_init("13", CMN_NONE, 0, AGC_NONE, 1, 13);
+	config = cmd_ln_init(NULL, ps_args(), TRUE,
+			     "-feat", "13",
+			     "-cmn", "none",
+			     "-varnorm", "no",
+			     "-ceplen", "13", NULL);
+	fcb = feat_init(config);
 
 	in_feats = (mfcc_t **)ckd_alloc_2d_ptr(6, 13, data, sizeof(mfcc_t));
 	out_feats = (mfcc_t ***)ckd_calloc_3d(6, 1, 13, sizeof(mfcc_t));
@@ -62,7 +70,8 @@ main(int argc, char *argv[])
 	ckd_free_3d(out_feats);
 
 	/* Test "raw" features with concatenation */
-	fcb = feat_init("13:1", CMN_NONE, 0, AGC_NONE, 1, 13);
+	cmd_ln_set_str_r(config, "-feat", "13:1");
+	fcb = feat_init(config);
 
 	in_feats = (mfcc_t **)ckd_alloc_2d_ptr(6, 13, data, sizeof(mfcc_t));
 	out_feats = (mfcc_t ***)ckd_calloc_3d(8, 1, 39, sizeof(mfcc_t));
@@ -78,7 +87,8 @@ main(int argc, char *argv[])
 	feat_free(fcb);
 
 	/* Test 1s_c_d_dd features */
-	fcb = feat_init("1s_c_d_dd", CMN_NONE, 0, AGC_NONE, 1, 13);
+	cmd_ln_set_str_r(config, "-feat", "1s_c_d_dd");
+	fcb = feat_init(config);
 	ncep = 6;
 	feat_s2mfc2feat_live(fcb, in_feats, &ncep, 1, 1, out_feats);
 

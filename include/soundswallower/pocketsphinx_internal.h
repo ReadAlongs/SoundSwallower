@@ -199,8 +199,10 @@ struct ps_decoder_s {
     int refcount;      /**< Reference count. */
 
     /* Basic units of computation. */
+    fe_t *fe;          /**< Acoustic feature computation. */
+    feat_t *fcb;       /**< Dynamic feature computation. */
     acmod_t *acmod;    /**< Acoustic model. */
-    dict_t *dict;    /**< Pronunciation dictionary. */
+    dict_t *dict;      /**< Pronunciation dictionary. */
     dict2pid_t *d2p;   /**< Dictionary to senone mapping. */
     logmath_t *lmath;  /**< Log math computation. */
     ps_search_t *search;     /**< Main search object. */

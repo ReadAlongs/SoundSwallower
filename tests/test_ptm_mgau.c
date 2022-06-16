@@ -88,6 +88,8 @@ main(int argc, char *argv[])
 	logmath_t *lmath;
 	cmd_ln_t *config;
 	acmod_t *acmod;
+	fe_t *fe;
+	feat_t *fcb;
 	ps_mgau_t *ps;
 	ptm_mgau_t *s;
 	int i, lastcb;
@@ -108,7 +110,9 @@ main(int argc, char *argv[])
 	cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
 	
 	TEST_ASSERT(config);
-	TEST_ASSERT((acmod = acmod_init(config, lmath, NULL, NULL)));
+	fe = fe_init(config);
+	fcb = feat_init(config);
+	TEST_ASSERT((acmod = acmod_init(config, lmath, fe, fcb)));
 	TEST_ASSERT((ps = acmod->mgau));
 	TEST_EQUAL(0, strcmp(ps->vt->name, "ptm"));
 	s = (ptm_mgau_t *)ps;

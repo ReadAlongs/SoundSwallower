@@ -29,7 +29,7 @@ main(int argc, char *argv[])
 
     err_set_loglevel_str("INFO");
     TEST_ASSERT(config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE));
-    TEST_ASSERT(fe = fe_init_auto_r(config));
+    TEST_ASSERT(fe = fe_init(config));
 
     TEST_EQUAL(fe_get_output_size(fe), DEFAULT_NUM_CEPSTRA);
 

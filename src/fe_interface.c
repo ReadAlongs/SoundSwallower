@@ -224,7 +224,7 @@ fe_print_current(fe_t const *fe)
 }
 
 fe_t *
-fe_init_auto_r(cmd_ln_t *config)
+fe_init(cmd_ln_t *config)
 {
     fe_t *fe;
 

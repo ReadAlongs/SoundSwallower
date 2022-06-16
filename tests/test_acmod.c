@@ -39,6 +39,8 @@ main(int argc, char *argv[])
     int16 const *bptr;
     mfcc_t **cepbuf, **cptr;
     size_t nread, nsamps;
+    fe_t *fe;
+    feat_t *fcb;
     int nfr;
     int frame_counter;
     int bestsen1[NUM_BEST_SEN];
@@ -67,7 +69,9 @@ main(int argc, char *argv[])
     cmd_ln_set_str_extra_r(config, "_lda", NULL);
     cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
 
-    TEST_ASSERT(acmod = acmod_init(config, lmath, NULL, NULL));
+    fe = fe_init(config);
+    fcb = feat_init(config);
+    TEST_ASSERT(acmod = acmod_init(config, lmath, fe, fcb));
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
 
     nsamps = 2048;

@@ -1,9 +1,11 @@
+/* -*- c-basic-offset: 8 -*- */
 #include "config.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
+#include <soundswallower/pocketsphinx.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/ckd_alloc.h>
 #include "test_macros.h"
@@ -35,19 +37,24 @@ mfcc_t data[6][13] = {
 	  FLOAT2MFCC(-0.124), FLOAT2MFCC(-0.445), FLOAT2MFCC(-0.352), FLOAT2MFCC(-0.400)},
 };
 
-enum { AGC_NONE };
-
 int
 main(int argc, char *argv[])
 {
+	cmd_ln_t *config;
 	feat_t *fcb;
 	mfcc_t **in_feats, ***out_feats, ***out_feats2, ***optr;
 	int32 i, j, ncep, nfr, nfr1, nfr2;
 
+	(void)argc;(void)argv;
 	in_feats = (mfcc_t **)ckd_alloc_2d_ptr(6, 13, data, sizeof(mfcc_t));
 	out_feats = (mfcc_t ***)ckd_calloc_3d(8, 1, 39, sizeof(mfcc_t));
+	config = cmd_ln_init(NULL, ps_args(), TRUE,
+			     "-feat", "1s_c_d_dd",
+			     "-cmn", "none",
+			     "-varnorm", "no",
+			     "-ceplen", "13", NULL);
 	/* Test 1s_c_d_dd features */
-	fcb = feat_init("1s_c_d_dd", CMN_NONE, 0, AGC_NONE, 1, 13);
+	fcb = feat_init(config);
 	ncep = 6;
 	nfr1 = feat_s2mfc2feat_live(fcb, in_feats, &ncep, 1, 1, out_feats);
 	printf("Processed %d input %d output frames\n", ncep, nfr1);
@@ -61,7 +68,7 @@ main(int argc, char *argv[])
 	feat_free(fcb);
 
 	/* Test in "live" mode. */
-	fcb = feat_init("1s_c_d_dd", CMN_NONE, 0, AGC_NONE, 1, 13);
+	fcb = feat_init(config);
 	optr = out_feats2 = (mfcc_t ***)ckd_calloc_3d(8, 1, 39, sizeof(mfcc_t));
 	nfr2 = 0;
 	ncep = 2;

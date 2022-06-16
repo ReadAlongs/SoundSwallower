@@ -699,17 +699,19 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 feat_t *
-feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
-          int agc, int32 breport, int32 cepsize)
+feat_init(cmd_ln_t *config)
 {
     feat_t *fcb;
+    const char *type = cmd_ln_str_r(config, "-feat");
+    cmn_type_t cmn = cmn_type_from_str(cmd_ln_str_r(config,"-cmn"));
+    int varnorm = cmd_ln_boolean_r(config, "-varnorm");
+    int cepsize = cmd_ln_int32_r(config, "-ceplen");
 
     if (cepsize == 0)
         cepsize = 13;
-    if (breport)
-        E_INFO
-            ("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='none'\n",
-             type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no");
+    E_INFO
+        ("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='none'\n",
+         type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no");
 
     fcb = (feat_t *) ckd_calloc(1, sizeof(feat_t));
     fcb->refcount = 1;
@@ -859,11 +861,31 @@ feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
         ckd_free(wd);
     }
 
-    if (cmn != CMN_NONE)
+    /* Set up CMN initialization if requested */
+    if (cmn != CMN_NONE) {
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
+        if (cmd_ln_exists_r(config, "-cmninit")) {
+            char *c, *cc, *vallist;
+            int32 nvals;
+
+            vallist = ckd_salloc(cmd_ln_str_r(config, "-cmninit"));
+            c = vallist;
+            nvals = 0;
+            while (nvals < fcb->cmn_struct->veclen
+                   && (cc = strchr(c, ',')) != NULL) {
+                *cc = '\0';
+                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
+                c = cc + 1;
+                ++nvals;
+            }
+            if (nvals < fcb->cmn_struct->veclen && *c != '\0') {
+                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
+            }
+            ckd_free(vallist);
+        }
+    }
     fcb->cmn = cmn;
     fcb->varnorm = varnorm;
-    fcb->agc = agc;
     /*
      * Make sure this buffer is large enough to be used in feat_s2mfc2feat_block_utt()
      */
@@ -875,7 +897,29 @@ feat_init(char const *type, cmn_type_t cmn, int32 varnorm,
     fcb->tmpcepbuf = (mfcc_t** )ckd_calloc(2 * feat_window_size(fcb) + 1,
                                 sizeof(*fcb->tmpcepbuf));
 
+    /* Load LDA. */
+    if (cmd_ln_str_r(config, "_lda")) {
+        E_INFO("Reading linear feature transformation from %s\n",
+               cmd_ln_str_r(config, "_lda"));
+        if (feat_read_lda(fcb,
+                          cmd_ln_str_r(config, "_lda"),
+                          cmd_ln_int32_r(config, "-ldadim")) < 0)
+            goto error_out;
+    }
+    /* Set up subvector specification */
+    if (cmd_ln_str_r(config, "-svspec")) {
+        int32 **subvecs;
+        E_INFO("Using subvector specification %s\n",
+               cmd_ln_str_r(config, "-svspec"));
+        if ((subvecs = parse_subvecs(cmd_ln_str_r(config, "-svspec"))) == NULL)
+            goto error_out;
+        if ((feat_set_subvecs(fcb, subvecs)) < 0)
+            goto error_out;
+    }
     return fcb;
+ error_out:
+    feat_free(fcb);
+    return NULL;
 }
 
 
@@ -1434,7 +1478,7 @@ feat_report(feat_t * f)
         E_INFOCONT("\n");
     }
     E_INFO_NOFN("Whether CMN is used  = %d\n", f->cmn);
-    E_INFO_NOFN("Whether AGC is used  = %d\n", f->agc);
+    E_INFO_NOFN("Whether AGC is used  = no\n");
     E_INFO_NOFN("Whether variance is normalized = %d\n", f->varnorm);
     E_INFO_NOFN("\n");
 }

@@ -250,26 +250,6 @@ class Decoder {
     async initialize(config) {
 	if (this.ps == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
-	async function init_cleanup(ps) {
-	    let rv = Module._ps_init_cleanup(ps);
-	    if (rv < 0)
-		throw new Error("Failed to clean up decoder internals");
-	}
-	async function init_acmod(ps, config) {
-	    let rv = Module._ps_init_acmod(ps);
-	    if (rv == 0)
-		throw new Error("Failed to initialize acoustic model");
-	}
-	async function init_dict(ps, config) {
-	    let rv = Module._ps_init_dict(ps);
-	    if (rv == 0)
-		throw new Error("Failed to initialize dictionaries");
-	}
-	async function init_grammar(ps, config) {
-	    let rv = Module._ps_init_grammar(ps);
-	    if (rv < 0)
-		throw new Error("Failed to initialize grammar");
-	}
 	if (config !== undefined) {
 	    if (this.config)
 		this.config.delete();
@@ -278,11 +258,16 @@ class Decoder {
 	    else
 		this.config = new Module.Config(...arguments);
 	}
-	await this.init_config()
-	await init_cleanup(this.ps);
-	await init_acmod(this.ps, this.config);
-	await init_dict(this.ps, this.config);
-	await init_grammar(this.ps, this.config);
+	await this.init_config();
+	await (async () => {
+	    let rv = Module._ps_init_cleanup(this.ps);
+	    if (rv < 0)
+		throw new Error("Failed to clean up decoder internals");
+	})();
+	await this.init_acmod();
+	await this.init_dict();
+	await this.init_grammar();
+
 	this.initialized = true;
     }
 
@@ -317,6 +302,33 @@ class Decoder {
 	}
     }
     
+    /**
+     * Load acoustic model from configuration.
+     */
+    async init_acmod() {
+	let rv = Module._ps_init_acmod(this.ps);
+	if (rv == 0)
+	    throw new Error("Failed to initialize acoustic model");
+    }
+
+    /**
+     * Load dictionary from configuration.
+     */
+    async init_dict() {
+	let rv = Module._ps_init_dict(this.ps);
+	if (rv == 0)
+	    throw new Error("Failed to initialize dictionaries");
+    }
+
+    /**
+     * Load grammar from configuration.
+     */
+    async init_grammar() {
+	let rv = Module._ps_init_grammar(this.ps);
+	if (rv < 0)
+	    throw new Error("Failed to initialize grammar");
+    }
+
     /**
      * Throw an error if decoder is not initialized.
      * @throws {Error} If decoder is not initialized.

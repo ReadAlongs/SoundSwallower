@@ -205,14 +205,14 @@ typedef struct acmod_s acmod_t;
  *               Ownership of this pointer is retained by this object,
  *               so you may free it if you no longer need it.
  * @param lmath global log-math parameters.
- * @param fe a previously-initialized acoustic feature module to use,
- *           or NULL to create one automatically.  If this is supplied
- *           and its parameters do not match those in the acoustic
- *           model, this function will fail.  This pointer is retained.
- * @param fcb a previously-initialized dynamic feature module to use,
- *           or NULL to create one automatically.  If this is supplied
- *           and its parameters do not match those in the acoustic
- *           model, this function will fail.  This pointer is retained.
+ * @param fe a previously-initialized acoustic feature module to use.
+ *           If this is supplied and its parameters do not match those
+ *           in the acoustic model, this function will fail.  This
+ *           pointer is retained.
+ * @param fcb a previously-initialized dynamic feature module to use.
+ *           If this is supplied and its parameters do not match those
+ *           in the acoustic model, this function will fail.  This
+ *           pointer is retained.
  * @return a newly initialized acmod_t, or NULL on failure.
  */
 acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);

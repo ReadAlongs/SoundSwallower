@@ -132,60 +132,6 @@ acmod_init_am(acmod_t *acmod)
     return 0;
 }
 
-static int
-acmod_init_feat(acmod_t *acmod)
-{
-    acmod->fcb =
-        feat_init(cmd_ln_str_r(acmod->config, "-feat"),
-                  cmn_type_from_str(cmd_ln_str_r(acmod->config,"-cmn")),
-                  cmd_ln_boolean_r(acmod->config, "-varnorm"),
-                  0,
-                  1, cmd_ln_int32_r(acmod->config, "-ceplen"));
-    if (acmod->fcb == NULL)
-        return -1;
-
-    if (cmd_ln_str_r(acmod->config, "_lda")) {
-        E_INFO("Reading linear feature transformation from %s\n",
-               cmd_ln_str_r(acmod->config, "_lda"));
-        if (feat_read_lda(acmod->fcb,
-                          cmd_ln_str_r(acmod->config, "_lda"),
-                          cmd_ln_int32_r(acmod->config, "-ldadim")) < 0)
-            return -1;
-    }
-
-    if (cmd_ln_str_r(acmod->config, "-svspec")) {
-        int32 **subvecs;
-        E_INFO("Using subvector specification %s\n",
-               cmd_ln_str_r(acmod->config, "-svspec"));
-        if ((subvecs = parse_subvecs(cmd_ln_str_r(acmod->config, "-svspec"))) == NULL)
-            return -1;
-        if ((feat_set_subvecs(acmod->fcb, subvecs)) < 0)
-            return -1;
-    }
-
-    if (acmod->fcb->cmn_struct
-        && cmd_ln_exists_r(acmod->config, "-cmninit")) {
-        char *c, *cc, *vallist;
-        int32 nvals;
-
-        vallist = ckd_salloc(cmd_ln_str_r(acmod->config, "-cmninit"));
-        c = vallist;
-        nvals = 0;
-        while (nvals < acmod->fcb->cmn_struct->veclen
-               && (cc = strchr(c, ',')) != NULL) {
-            *cc = '\0';
-            acmod->fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-            c = cc + 1;
-            ++nvals;
-        }
-        if (nvals < acmod->fcb->cmn_struct->veclen && *c != '\0') {
-            acmod->fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-        }
-        ckd_free(vallist);
-    }
-    return 0;
-}
-
 int
 acmod_fe_mismatch(acmod_t *acmod, fe_t *fe)
 {
@@ -226,36 +172,16 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     acmod->state = ACMOD_IDLE;
 
     /* Initialize feature computation. */
-    if (fe) {
-        if (acmod_fe_mismatch(acmod, fe))
-            goto error_out;
-        fe_retain(fe);
-        acmod->fe = fe;
-    }
-    else {
-        /* Initialize a new front end. */
-        acmod->fe = fe_init_auto_r(config);
-        if (acmod->fe == NULL)
-            goto error_out;
-        if (acmod_fe_mismatch(acmod, acmod->fe))
-            goto error_out;
-    }
-    if (fcb) {
-        if (acmod_feat_mismatch(acmod, fcb))
-            goto error_out;
-        feat_retain(fcb);
-        acmod->fcb = fcb;
-    }
-    else {
-        /* Initialize a new fcb. */
-        if (acmod_init_feat(acmod) < 0)
-            goto error_out;
-    }
+    if (acmod_fe_mismatch(acmod, fe))
+        goto error_out;
+    acmod->fe = fe_retain(fe);
+    if (acmod_feat_mismatch(acmod, fcb))
+        goto error_out;
+    acmod->fcb = feat_retain(fcb);
 
     /* Load acoustic model parameters. */
     if (acmod_init_am(acmod) < 0)
         goto error_out;
-
 
     /* The MFCC buffer needs to be at least as large as the dynamic
      * feature window.  */
