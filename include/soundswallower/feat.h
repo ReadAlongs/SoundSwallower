@@ -309,52 +309,7 @@ void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
  */
 int feat_set_subvecs(feat_t *fcb, int32 **subvecs);
 
-/**
- * Print the given block of feature vectors to the given FILE.
- */
-void feat_print(feat_t *fcb,		/**< In: Descriptor from feat_init() */
-		mfcc_t ***feat,		/**< In: Feature data to be printed */
-		int32 nfr,		/**< In: Number of frames of feature data above */
-		FILE *fp		/**< In: Output file pointer */
-    );
-
   
-/**
- * Read a specified MFC file (or given segment within it), perform
- * CMN/AGC as indicated by <code>fcb</code>, and compute feature
- * vectors.  Feature vectors are computed for the entire segment
- * specified, by including additional surrounding or padding frames to
- * accommodate the feature windows.
- *
- * @return Number of frames of feature vectors computed if successful;
- * -1 if any error.  <code>If</code> feat is NULL, then no actual
- * computation will be done, and the number of frames which must be
- * allocated will be returned.
- * 
- * A note on how the file path is constructed: If the control file
- * already specifies extension or absolute path, then these are not
- * applied. The default extension is defined by the application.
- */
-int32 feat_s2mfc2feat(feat_t *fcb,	/**< In: Descriptor from feat_init() */
-		      const char *file,	/**< In: File to be read */
-		      const char *dir,	/**< In: Directory prefix for file, 
-					   if needed; can be NULL */
-		      const char *cepext,/**< In: Extension of the
-					   cepstrum file.It cannot be
-					   NULL */
-		      int32 sf, int32 ef,   /* Start/End frames
-                                               within file to be read. Use
-                                               0,-1 to process entire
-                                               file */
-		      mfcc_t ***feat,	/**< Out: Computed feature vectors; 
-					   caller must allocate this space */
-		      int32 maxfr	/**< In: Available space (number of frames) in 
-					   above feat array; it must be 
-					   sufficient to hold the result.
-                                           Pass -1 for no limit. */
-    );
-
-
 /**
  * Feature computation routine for live mode decoder.
  *

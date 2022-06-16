@@ -152,6 +152,25 @@ cep_dump_dbg(feat_t *fcb, mfcc_t **mfc, int32 nfr, const char *text)
     }
 }
 static void
+feat_print(feat_t * fcb, mfcc_t *** feat, int32 nfr, FILE * fp)
+{
+    uint32 i, j, k;
+
+    for (i = 0; i < (uint32)nfr; i++) {
+        fprintf(fp, "%8d:\n", i);
+
+        for (j = 0; j < (uint32)feat_dimension1(fcb); j++) {
+            fprintf(fp, "\t%2d:", j);
+
+            for (k = 0; k < feat_dimension2(fcb, j); k++)
+                fprintf(fp, " %8.4f", MFCC2FLOAT(feat[i][j][k]));
+            fprintf(fp, "\n");
+        }
+    }
+
+    fflush(fp);
+}
+static void
 feat_print_dbg(feat_t *fcb, mfcc_t ***feat, int32 nfr, const char *text)
 {
     E_INFO("%s\n", text);
@@ -922,27 +941,6 @@ feat_init(cmd_ln_t *config)
     return NULL;
 }
 
-
-void
-feat_print(feat_t * fcb, mfcc_t *** feat, int32 nfr, FILE * fp)
-{
-    uint32 i, j, k;
-
-    for (i = 0; i < (uint32)nfr; i++) {
-        fprintf(fp, "%8d:\n", i);
-
-        for (j = 0; j < (uint32)feat_dimension1(fcb); j++) {
-            fprintf(fp, "\t%2d:", j);
-
-            for (k = 0; k < feat_dimension2(fcb, j); k++)
-                fprintf(fp, " %8.4f", MFCC2FLOAT(feat[i][j][k]));
-            fprintf(fp, "\n");
-        }
-    }
-
-    fflush(fp);
-}
-
 static void
 feat_cmn(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 beginutt, int32 endutt)
 {
@@ -990,278 +988,6 @@ feat_compute_utt(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 win, mfcc_t ***feat
         feat_subvec_project(fcb, feat, nfr - win * 2);
         feat_print_dbg(fcb, feat, nfr - win * 2, "After subvector projection");
     }
-}
-
-
-/**
- * Read Sphinx-II format mfc file (s2mfc = Sphinx-II format MFC data).
- * If out_mfc is NULL, no actual reading will be done, and the number of 
- * frames (plus padding) that would be read is returned.
- * 
- * It's important that normalization is done before padding because
- * frames outside the data we are interested in shouldn't be taken
- * into normalization stats.
- *
- * @return # frames read (plus padding) if successful, -1 if
- * error (e.g., mfc array too small).  
- */
-static int32
-feat_s2mfc_read_norm_pad(feat_t *fcb, char *file, int32 win,
-            		 int32 sf, int32 ef,
-            		 mfcc_t ***out_mfc,
-            		 int32 maxfr,
-            		 int32 cepsize)
-{
-    FILE *fp;
-    int32 n_float32;
-    float32 *float_feat;
-    struct stat statbuf;
-    int32 i, n, byterev;
-    int32 start_pad, end_pad;
-    mfcc_t **mfc;
-
-    /* Initialize the output pointer to NULL, so that any attempts to
-       free() it if we fail before allocating it will not segfault! */
-    if (out_mfc)
-        *out_mfc = NULL;
-    E_INFO("Reading mfc file: '%s'[%d..%d]\n", file, sf, ef);
-    if (ef >= 0 && ef <= sf) {
-        E_ERROR("%s: End frame (%d) <= Start frame (%d)\n", file, ef, sf);
-        return -1;
-    }
-
-    /* Find filesize; HACK!! To get around intermittent NFS failures, use stat_retry */
-    if ((stat_retry(file, &statbuf) < 0)
-        || ((fp = fopen(file, "rb")) == NULL)) {
-        E_ERROR_SYSTEM("Failed to open file '%s' for reading", file);
-        return -1;
-    }
-
-    /* Read #floats in header */
-    if (fread_retry(&n_float32, sizeof(int32), 1, fp) != 1) {
-        E_ERROR("%s: fread(#floats) failed\n", file);
-        fclose(fp);
-        return -1;
-    }
-
-    /* Check if n_float32 matches file size */
-    byterev = 0;
-    if ((int32) (n_float32 * sizeof(float32) + 4) != (int32) statbuf.st_size) { /* RAH, typecast both sides to remove compile warning */
-        n = n_float32;
-        SWAP_INT32(&n);
-
-        if ((int32) (n * sizeof(float32) + 4) != (int32) (statbuf.st_size)) {   /* RAH, typecast both sides to remove compile warning */
-            E_ERROR
-                ("%s: Header size field: %d(%08x); filesize: %d(%08x)\n",
-                 file, n_float32, n_float32, statbuf.st_size,
-                 statbuf.st_size);
-            fclose(fp);
-            return -1;
-        }
-
-        n_float32 = n;
-        byterev = 1;
-    }
-    if (n_float32 <= 0) {
-        E_ERROR("%s: Header size field (#floats) = %d\n", file, n_float32);
-        fclose(fp);
-        return -1;
-    }
-
-    /* Convert n to #frames of input */
-    n = n_float32 / cepsize;
-    if (n * cepsize != n_float32) {
-        E_ERROR("Header size field: %d; not multiple of %d\n", n_float32,
-                cepsize);
-        fclose(fp);
-        return -1;
-    }
-
-    /* Check start and end frames */
-    if (sf > 0) {
-        if (sf >= n) {
-            E_ERROR("%s: Start frame (%d) beyond file size (%d)\n", file,
-                    sf, n);
-            fclose(fp);
-            return -1;
-        }
-    }
-    if (ef < 0)
-        ef = n-1;
-    else if (ef >= n) {
-        E_WARN("%s: End frame (%d) beyond file size (%d), will truncate\n",
-               file, ef, n);
-        ef = n-1;
-    }
-
-    /* Add window to start and end frames */
-    sf -= win;
-    ef += win;
-    if (sf < 0) {
-        start_pad = -sf;
-        sf = 0;
-    }
-    else
-        start_pad = 0;
-    if (ef >= n) {
-        end_pad = ef - n + 1;
-        ef = n - 1;
-    }
-    else
-        end_pad = 0;
-
-    /* Limit n if indicated by [sf..ef] */
-    if ((ef - sf + 1) < n)
-        n = (ef - sf + 1);
-    if (maxfr > 0 && n + start_pad + end_pad > maxfr) {
-        E_ERROR("%s: Maximum output size(%d frames) < actual #frames(%d)\n",
-                file, maxfr, n + start_pad + end_pad);
-        fclose(fp);
-        return -1;
-    }
-
-    /* If no output buffer was supplied, then skip the actual data reading. */
-    if (out_mfc != NULL) {
-        /* Position at desired start frame and read actual MFC data */
-        mfc = (mfcc_t **)ckd_calloc_2d(n + start_pad + end_pad, cepsize, sizeof(mfcc_t));
-        if (sf > 0)
-            fseek(fp, sf * cepsize * sizeof(float32), SEEK_CUR);
-        n_float32 = n * cepsize;
-        float_feat = mfc[start_pad];
-        if (fread_retry(float_feat, sizeof(float32), n_float32, fp) != n_float32) {
-            E_ERROR("%s: fread(%dx%d) (MFC data) failed\n", file, n, cepsize);
-            ckd_free_2d(mfc);
-            fclose(fp);
-            return -1;
-        }
-        if (byterev) {
-            for (i = 0; i < n_float32; i++) {
-                SWAP_FLOAT32(&float_feat[i]);
-            }
-        }
-
-        /* Normalize */
-        feat_cmn(fcb, mfc + start_pad, n, 1, 1);
-
-        /* Replicate start and end frames if necessary. */
-        for (i = 0; i < start_pad; ++i)
-            memcpy(mfc[i], mfc[start_pad], cepsize * sizeof(mfcc_t));
-        for (i = 0; i < end_pad; ++i)
-            memcpy(mfc[start_pad + n + i], mfc[start_pad + n - 1],
-                   cepsize * sizeof(mfcc_t));
-
-        *out_mfc = mfc;
-    }
-
-    fclose(fp);
-    return n + start_pad + end_pad;
-}
-
-
-
-int32
-feat_s2mfc2feat(feat_t * fcb, const char *file, const char *dir, const char *cepext,
-                int32 sf, int32 ef, mfcc_t *** feat, int32 maxfr)
-{
-    char *path;
-    char *ps = "/";
-    int32 win, nfr;
-    size_t file_length, cepext_length, path_length = 0;
-    mfcc_t **mfc;
-
-    if (fcb->cepsize <= 0) {
-        E_ERROR("Bad cepsize: %d\n", fcb->cepsize);
-        return -1;
-    }
-
-    if (cepext == NULL)
-        cepext = "";
-
-    /*
-     * Create mfc filename, combining file, dir and extension if
-     * necessary
-     */
-
-    /*
-     * First we decide about the path. If dir is defined, then use
-     * it. Otherwise assume the filename already contains the path.
-     */
-    if (dir == NULL) {
-        dir = "";
-        ps = "";
-        /*
-         * This is not true but some 3rd party apps
-         * may parse the output explicitly checking for this line
-         */
-        E_INFO("At directory . (current directory)\n");
-    }
-    else {
-        E_INFO("At directory %s\n", dir);
-        /*
-         * Do not forget the path separator!
-         */
-        path_length += strlen(dir) + 1;
-    }
-
-    /*
-     * Include cepext, if it's not already part of the filename.
-     */
-    file_length = strlen(file);
-    cepext_length = strlen(cepext);
-    if ((file_length > cepext_length)
-        && (strcmp(file + file_length - cepext_length, cepext) == 0)) {
-        cepext = "";
-        cepext_length = 0;
-    }
-
-    /*
-     * Do not forget the '\0'
-     */
-    path_length += file_length + cepext_length + 1;
-    path = (char*) ckd_calloc(path_length, sizeof(char));
-
-#ifdef HAVE_SNPRINTF
-    /*
-     * Paranoia is our best friend...
-     */
-    while ((file_length = snprintf(path, path_length, "%s%s%s%s", dir, ps, file, cepext)) > path_length) {
-        path_length = file_length;
-        path = (char*) ckd_realloc(path, path_length * sizeof(char));
-    }
-#else
-    sprintf(path, "%s%s%s%s", dir, ps, file, cepext);
-#endif
-
-    win = feat_window_size(fcb);
-    /* Pad maxfr with win, so we read enough raw feature data to
-     * calculate the requisite number of dynamic features. */
-    if (maxfr >= 0)
-        maxfr += win * 2;
-
-    if (feat != NULL) {
-        /* Read mfc file including window or padding if necessary. */
-        nfr = feat_s2mfc_read_norm_pad(fcb, path, win, sf, ef, &mfc, maxfr, fcb->cepsize);
-        ckd_free(path);
-        if (nfr < 0) {
-            ckd_free_2d((void **) mfc);
-            return -1;
-        }
-
-        /* Actually compute the features */
-        feat_compute_utt(fcb, mfc, nfr, win, feat);
-        
-        ckd_free_2d((void **) mfc);
-    }
-    else {
-        /* Just calculate the number of frames we would need. */
-        nfr = feat_s2mfc_read_norm_pad(fcb, path, win, sf, ef, NULL, maxfr, fcb->cepsize);
-        ckd_free(path);
-        if (nfr < 0)
-            return nfr;
-    }
-
-
-    return (nfr - win * 2);
 }
 
 static int32
