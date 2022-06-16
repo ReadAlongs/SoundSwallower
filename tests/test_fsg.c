@@ -1,3 +1,4 @@
+/* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
 #include <soundswallower/pocketsphinx.h>
@@ -21,6 +22,8 @@ main(int argc, char *argv[])
     ps_seg_t *seg;
     int32 score, prob;
     FILE *rawfh;
+    int16 buf[2048];
+    size_t nread;
 
     (void)argc; (void)argv;
     TEST_ASSERT(config =
@@ -33,7 +36,12 @@ main(int argc, char *argv[])
     TEST_ASSERT(ps = ps_init(config));
 
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_decode_raw(ps, rawfh, -1);
+    ps_start_utt(ps);
+    while (!feof(rawfh)) {
+	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+    }
+    ps_end_utt(ps);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);

@@ -176,10 +176,6 @@ struct acmod_s {
     /* Utterance processing: */
     mfcc_t **mfc_buf;   /**< Temporary buffer of acoustic features. */
     mfcc_t ***feat_buf; /**< Temporary buffer of dynamic features. */
-    FILE *rawfh;        /**< File for writing raw audio data. */
-    FILE *mfcfh;        /**< File for writing acoustic feature data. */
-    FILE *senfh;        /**< File for writing senone score data. */
-    FILE *insenfh;	/**< Input senone score file. */
     long *framepos;     /**< File positions of recent frames in senone file. */
 
     /* A whole bunch of flags and counters: */
@@ -246,33 +242,6 @@ int acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb);
  *         NULL on failure.
  */
 ps_mllr_t *acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr);
-
-/**
- * Start logging senone scores to a filehandle.
- *
- * @param acmod Acoustic model object.
- * @param logfh Filehandle to log to.
- * @return 0 for success, <0 on error.
- */
-int acmod_set_senfh(acmod_t *acmod, FILE *senfh);
-
-/**
- * Start logging MFCCs to a filehandle.
- *
- * @param acmod Acoustic model object.
- * @param logfh Filehandle to log to.
- * @return 0 for success, <0 on error.
- */
-int acmod_set_mfcfh(acmod_t *acmod, FILE *logfh);
-
-/**
- * Start logging raw audio to a filehandle.
- *
- * @param acmod Acoustic model object.
- * @param logfh Filehandle to log to.
- * @return 0 for success, <0 on error.
- */
-int acmod_set_rawfh(acmod_t *acmod, FILE *logfh);
 
 /**
  * Finalize an acoustic model.
@@ -398,21 +367,6 @@ int acmod_process_feat(acmod_t *acmod,
                        mfcc_t **feat);
 
 /**
- * Set up a senone score dump file for input.
- *
- * @param insenfh File handle of dump file
- * @return 0 for success, <0 for failure
- */
-int acmod_set_insenfh(acmod_t *acmod, FILE *insenfh);
-
-/**
- * Read one frame of scores from senone score dump file.
- *
- * @return Number of frames read or <0 on error.
- */
-int acmod_read_scores(acmod_t *acmod);
-
-/**
  * Get a frame of dynamic feature data.
  *
  * @param inout_frame_idx Input: frame index to get, or NULL
@@ -438,18 +392,6 @@ mfcc_t **acmod_get_frame(acmod_t *acmod, int *inout_frame_idx);
  */
 int16 const *acmod_score(acmod_t *acmod,
                          int *inout_frame_idx);
-
-/**
- * Write senone dump file header.
- */
-int acmod_write_senfh_header(acmod_t *acmod, FILE *logfh);
-
-/**
- * Write a frame of senone scores to a dump file.
- */
-int acmod_write_scores(acmod_t *acmod, int n_active, uint8 const *active,
-                       int16 const *senscr, FILE *senfh);
-
 
 /**
  * Get best score and senone index for current frame.

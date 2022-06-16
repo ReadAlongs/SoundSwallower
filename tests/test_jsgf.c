@@ -1,3 +1,4 @@
+/* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
 #include <soundswallower/pocketsphinx.h>
@@ -23,6 +24,8 @@ main(int argc, char *argv[])
     FILE *rawfh;
     char const *hyp;
     int32 score, prob;
+    int16 buf[2048];
+    size_t nread;
 
     (void)argc; (void)argv;
     TEST_ASSERT(config =
@@ -41,7 +44,12 @@ main(int argc, char *argv[])
     fsg_model_write(fsg, stdout);
     ps_set_fsg(ps, "goforward.move2", fsg);
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_decode_raw(ps, rawfh, -1);
+    ps_start_utt(ps);
+    while (!feof(rawfh)) {
+	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+    }
+    ps_end_utt(ps);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
@@ -59,7 +67,12 @@ main(int argc, char *argv[])
 			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_decode_raw(ps, rawfh, -1);
+    ps_start_utt(ps);
+    while (!feof(rawfh)) {
+	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+    }
+    ps_end_utt(ps);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
@@ -77,7 +90,12 @@ main(int argc, char *argv[])
 			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_decode_raw(ps, rawfh, -1);
+    ps_start_utt(ps);
+    while (!feof(rawfh)) {
+	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+    }
+    ps_end_utt(ps);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);

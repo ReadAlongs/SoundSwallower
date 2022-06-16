@@ -257,32 +257,6 @@ char *ps_lookup_word(ps_decoder_t *ps,
 	             const char *word);
 
 /**
- * Decode a raw audio stream.
- *
- * No headers are recognized in this files.  The configuration
- * parameters <tt>-samprate</tt> and <tt>-input_endian</tt> are used
- * to determine the sampling rate and endianness of the stream,
- * respectively.  Audio is always assumed to be 16-bit signed PCM.
- *
- * @param ps Decoder.
- * @param rawfh Previously opened file stream.
- * @param maxsamps Maximum number of samples to read from rawfh, or -1
- *                 to read until end-of-file.
- * @return Number of samples of audio.
- */
-long ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
-                   long maxsamps);
-
-/**
- * Decode a senone score dump file.
- *
- * @param ps Decoder
- * @param senfh Previously opened file handle positioned at start of file.
- * @return Number of frames read.
- */
-int ps_decode_senscr(ps_decoder_t *ps, FILE *senfh);
-
-/**
  * Start utterance processing.
  *
  * This function should be called before any utterance data is passed

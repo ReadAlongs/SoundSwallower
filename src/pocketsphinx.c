@@ -588,48 +588,6 @@ ps_lookup_word(ps_decoder_t *ps, const char *word)
     return phones;
 }
 
-long
-ps_decode_raw(ps_decoder_t *ps, FILE *rawfh,
-              long maxsamps)
-{
-    int16 *data;
-    long total, pos, endpos;
-
-    ps_start_utt(ps);
-
-    /* If this file is seekable or maxsamps is specified, then decode
-     * the whole thing at once. */
-    if (maxsamps != -1) {
-        data = ckd_calloc(maxsamps, sizeof(*data));
-        total = fread(data, sizeof(*data), maxsamps, rawfh);
-        ps_process_raw(ps, data, total, FALSE, TRUE);
-        ckd_free(data);
-    } else if ((pos = ftell(rawfh)) >= 0) {
-        fseek(rawfh, 0, SEEK_END);
-        endpos = ftell(rawfh);
-        fseek(rawfh, pos, SEEK_SET);
-        maxsamps = endpos - pos;
-
-        data = ckd_calloc(maxsamps, sizeof(*data));
-        total = fread(data, sizeof(*data), maxsamps, rawfh);
-        ps_process_raw(ps, data, total, FALSE, TRUE);
-        ckd_free(data);
-    } else {
-        /* Otherwise decode it in a stream. */
-        total = 0;
-        while (!feof(rawfh)) {
-            int16 data[256];
-            size_t nread;
-
-            nread = fread(data, sizeof(*data), sizeof(data)/sizeof(*data), rawfh);
-            ps_process_raw(ps, data, nread, FALSE, FALSE);
-            total += nread;
-        }
-    }
-    ps_end_utt(ps);
-    return total;
-}
-
 EXPORT int
 ps_start_utt(ps_decoder_t *ps)
 {
@@ -664,49 +622,6 @@ ps_start_utt(ps_decoder_t *ps)
     if ((rv = acmod_start_utt(ps->acmod)) < 0)
         return rv;
 
-#ifndef __EMSCRIPTEN__
-    /* Start logging features and audio if requested. */
-    if (ps->mfclogdir) {
-        char *logfn = string_join(ps->mfclogdir, "/",
-                                  uttid, ".mfc", NULL);
-        FILE *mfcfh;
-        E_INFO("Writing MFCC file: %s\n", logfn);
-        if ((mfcfh = fopen(logfn, "wb")) == NULL) {
-            E_ERROR_SYSTEM("Failed to open MFCC file %s", logfn);
-            ckd_free(logfn);
-            return -1;
-        }
-        ckd_free(logfn);
-        acmod_set_mfcfh(ps->acmod, mfcfh);
-    }
-    if (ps->rawlogdir) {
-        char *logfn = string_join(ps->rawlogdir, "/",
-                                  uttid, ".raw", NULL);
-        FILE *rawfh;
-        E_INFO("Writing raw audio file: %s\n", logfn);
-        if ((rawfh = fopen(logfn, "wb")) == NULL) {
-            E_ERROR_SYSTEM("Failed to open raw audio file %s", logfn);
-            ckd_free(logfn);
-            return -1;
-        }
-        ckd_free(logfn);
-        acmod_set_rawfh(ps->acmod, rawfh);
-    }
-    if (ps->senlogdir) {
-        char *logfn = string_join(ps->senlogdir, "/",
-                                  uttid, ".sen", NULL);
-        FILE *senfh;
-        E_INFO("Writing senone score file: %s\n", logfn);
-        if ((senfh = fopen(logfn, "wb")) == NULL) {
-            E_ERROR_SYSTEM("Failed to open senone score file %s", logfn);
-            ckd_free(logfn);
-            return -1;
-        }
-        ckd_free(logfn);
-        acmod_set_senfh(ps->acmod, senfh);
-    }
-#endif /* not __EMSCRIPTEN__ */
-
     return ps_search_start(ps->search);
 }
 
@@ -731,27 +646,6 @@ ps_search_forward(ps_decoder_t *ps)
         ++nfr;
     }
     return nfr;
-}
-
-int
-ps_decode_senscr(ps_decoder_t *ps, FILE *senfh)
-{
-    int nfr, n_searchfr;
-
-    ps_start_utt(ps);
-    n_searchfr = 0;
-    acmod_set_insenfh(ps->acmod, senfh);
-    while ((nfr = acmod_read_scores(ps->acmod)) > 0) {
-        if ((nfr = ps_search_forward(ps)) < 0) {
-            ps_end_utt(ps);
-            return nfr;
-        }
-        n_searchfr += nfr;
-    }
-    ps_end_utt(ps);
-    acmod_set_insenfh(ps->acmod, NULL);
-
-    return n_searchfr;
 }
 
 EXPORT int
