@@ -273,10 +273,10 @@ class Decoder {
      */
     async init_config() {
 	await this.init_featparams()
-	const rv = Module._ps_init_config(this.ps, this.config.cmd_ln);
+	let rv = Module._ps_init_config(this.ps, this.config.cmd_ln);
 	if (rv < 0)
 	    throw new Error("Failed to initialize basic configuration");
-	let rv = Module._ps_init_cleanup(this.ps);
+	rv = Module._ps_init_cleanup(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to clean up decoder internals");
     }
