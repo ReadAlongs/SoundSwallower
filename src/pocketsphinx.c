@@ -66,6 +66,7 @@ static const arg_t ps_args_def[] = {
     CMDLN_EMPTY_OPTION
 };
 
+#ifndef __EMSCRIPTEN__
 /* I'm not sure what the portable way to do this is. */
 static int
 file_exists(const char *path)
@@ -106,11 +107,22 @@ ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
         }
     }
 }
+#endif
 
 static void
 ps_expand_model_config(ps_decoder_t *ps)
 {
+    /* All done externally in JavaScript */
+#ifdef __EMSCRIPTEN__
+    (void)ps;
+#else
     char const *hmmdir, *featparams;
+    /* Feature and front-end parameters that may be in feat.params */
+    static const arg_t feat_defn[] = {
+    waveform_to_cepstral_command_line_macro(),
+    cepstral_to_feature_command_line_macro(),
+    CMDLN_EMPTY_OPTION
+    };
 
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = cmd_ln_str_r(ps->config, "-hmm");
@@ -126,16 +138,6 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
     ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
-
-#ifndef __EMSCRIPTEN__
-    /* Done externally in JavaScript (above stuff will be too, soon) */
-    /* Feature and front-end parameters that may be in feat.params */
-    static const arg_t feat_defn[] = {
-    waveform_to_cepstral_command_line_macro(),
-    cepstral_to_feature_command_line_macro(),
-    CMDLN_EMPTY_OPTION
-    };
-
     /* Look for feat.params in acoustic model dir. */
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     if ((featparams = cmd_ln_str_r(ps->config, "_featparams"))) {
