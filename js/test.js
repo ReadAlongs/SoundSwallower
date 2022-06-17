@@ -55,6 +55,13 @@
 	    assert.equal("en-us", conf.get("-hmm"));
 	    assert.equal("en-us", conf.get("hmm"));
 	});
+	it("Should find mdef.bin in model path, or not", () => {
+	    let conf = new ssjs.Config();
+	    conf.set("hmm", "en-us");
+	    assert.equal(ssjs.model_path + "/en-us/mdef.bin", conf.model_path("-mdef", "mdef.bin"));
+	    conf.set("mdef", "foo.bin");
+	    assert.equal("foo.bin", conf.model_path("-mdef", "mdef.bin"));
+	});
     });
     describe("Test iteration on Config", () => {
 	it("Should iterate over known keys, which are all defined", () => {
@@ -117,6 +124,18 @@
 	    for await (const [key, value] of ssjs.read_featparams("test_feat2.params")) {
 		assert_feat_params(key, value);
 	    }
+	});
+    });
+    describe("Test acoustic model loading", () => {
+	it('Should load acoustic model', async () => {
+	    let decoder = new ssjs.Decoder({loglevel: "INFO"});
+	    await decoder.init_config();
+	    await decoder.init_fe();
+	    await decoder.init_feat();
+	    await decoder.init_acmod();
+	    const mdef = decoder.config.model_path("mdef", "mdef.bin");
+	    assert.equal(mdef, ssjs.model_path + "/en-us/mdef.bin");
+	    await decoder.load_mdef(mdef);
 	});
     });
     describe("Test decoding", () => {

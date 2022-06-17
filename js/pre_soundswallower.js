@@ -37,6 +37,7 @@ if (RUNNING_ON_WEB) {
 	Module.preRun.push(function() {
 	    Module.load_model(Module.defaultModel, model_path);
 	});
+	Module.model_path = model_path;
     }
 }
 else if (typeof(Browser) === 'undefined') {
@@ -56,10 +57,11 @@ else if (typeof(Browser) === 'undefined') {
 			      path.join(model_path, Module.defaultModel));
 	});
     }
+    Module.model_path = model_path;
 }
 
 /* Track model paths for load_model() emulation. */
-var model_paths = {};
+Module.model_paths = {};
 
 /**
  * Configuration object for SoundSwallower recognizer.
@@ -209,8 +211,8 @@ class Config {
 	if (hmmpath == null)
 	    throw new Error("Could not get "+key+" from config or model directory");
 	/* For compatibility with load_model() */
-	if (hmmpath in model_paths) {
-	    return model_paths[hmmpath] + "/" + modelfile;
+	if (hmmpath in Module.model_paths) {
+	    return Module.model_paths[hmmpath] + "/" + modelfile;
 	}
 	else
 	    return hmmpath + "/" + modelfile;
@@ -282,6 +284,7 @@ class Decoder {
 	await this.init_fe();
 	await this.init_feat();
 	await this.init_acmod();
+	await this.load_acmod_files();
 	await this.init_dict();
 	await this.init_grammar();
 
@@ -331,12 +334,66 @@ class Decoder {
     }
 
     /**
-     * Load acoustic model from configuration.
+     * Create acoustic model from configuration.
      */
     async init_acmod() {
-	let rv = Module._ps_init_acmod(this.ps);
+	let rv = Module._ps_init_acmod_pre(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
+    }
+
+    /**
+     * Load acoustic model files
+     */
+    async load_acmod_files() {
+	// FIXME: Do all these in parallel
+	const mdef = this.config.model_path("mdef", "mdef.bin");
+	await this.load_mdef(mdef);
+	const tmat = this.config.model_path("tmat", "transition_matrices");
+	await this.load_tmat(tmat);
+	const means = this.config.model_path("mean", "means");
+	const variances = this.config.model_path("var", "variances");
+	const sendump = this.config.model_path("sendump", "sendump");
+	await this.load_gmm(means, variances, sendump);
+	let rv = Module._ps_init_acmod_post(this.ps);
+	if (rv < 0)
+	    throw new Error("Failed to initialize acoustic scoring");
+    }
+
+    /**
+     * Load binary model definition file
+     */
+    async load_mdef(mdef_path) {
+	const { addr, len } = await load_to_memory(mdef_path);
+	const mdef = Module._create_mdef_from_blob(this.ps, addr, len);
+	if (mdef == 0)
+	    throw new Error("Failed to read mdef");
+    }
+
+    /**
+     * Load transition matrices
+     */
+    async load_tmat(tmat_path) {
+	const { addr, len } = await load_to_memory(tmat_path);
+	const tmat = Module._create_tmat_from_blob(this.ps, addr, len);
+	if (tmat == 0)
+	    throw new Error("Failed to read tmat");
+    }
+
+    /**
+     * Load Gaussian mixture models
+     */
+    async load_gmm(means_path, variances_path, sendump_path) {
+	// FIXME: Do all these in parallel
+	const means = await load_to_memory(means_path);
+	const variances = await load_to_memory(variances_path);
+	const sendump = await load_to_memory(sendump_path);
+	const mgau = Module._create_mgau_from_blobs(
+	    this.ps, means.addr, means.len,
+	    variances.addr, variances.len,
+	    sendump.addr, sendump.len);
+	if (mgau == 0)
+	    throw new Error("Failed to read GMMs");
     }
 
     /**
@@ -624,7 +681,7 @@ class Decoder {
  * @param {string} dict_path - Optional custom dictionary path.
  */
 function load_model(model_name, model_path, dict_path=null) {
-    model_paths[model_name] = model_path;
+    Module.model_paths[model_name] = model_path;
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
     const files = [
@@ -732,6 +789,18 @@ async function* read_featparams(featparams) {
     }
     if (key !== null)
 	throw new Error("Odd number of arguments in "+featparams);
+}
+
+async function load_to_memory(path) {
+    const fs = require("fs/promises");
+    // FIXME: Should read directly to emscripten memory... how?
+    const blob = await fs.readFile(path);
+    const blob_u8 = new Uint8Array(blob.buffer);
+    const blob_addr = Module._malloc(blob_u8.length);
+    if (blob_addr == 0)
+	throw new Error("Failed to allocate "+blob_u8.length+" bytes for "+path);
+    writeArrayToMemory(blob, blob_addr);
+    return { addr: blob_addr, len: blob_u8.length };
 }
 
 Module.Config = Config;
