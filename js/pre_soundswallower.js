@@ -58,6 +58,9 @@ else if (typeof(Browser) === 'undefined') {
     }
 }
 
+/* Track model paths for load_model() emulation. */
+var model_paths = {};
+
 /**
  * Configuration object for SoundSwallower recognizer.
  *
@@ -196,6 +199,23 @@ class Config {
 	}
     }
     /**
+     * Get a model parameter with backoff to path inside current model.
+     */
+    model_path(key, modelfile) {
+	const val = this.get(key);
+	if (val != null)
+	    return val;
+	const hmmpath = this.get("hmm");
+	if (hmmpath == null)
+	    throw new Error("Could not get "+key+" from config or model directory");
+	/* For compatibility with load_model() */
+	if (hmmpath in model_paths) {
+	    return model_paths[hmmpath] + "/" + modelfile;
+	}
+	else
+	    return hmmpath + "/" + modelfile;
+    }
+    /**
      * Test if a key is a known parameter.
      * @param {string} key - Key whose existence to check.
      */
@@ -285,17 +305,7 @@ class Decoder {
      * Read feature parameters from acoustic model.
      */
     async init_featparams() {
-	var hmmpath;
-	if (RUNNING_ON_WEB) {
-	    /* Expect relative URL (FIXME: not true!) */
-	    hmmpath = this.config.get("hmm");
-	}
-	else {
-	    const model_path = require("./model/index.js");
-	    const path = require('path');
-	    hmmpath = path.join(model_path, this.config.get("hmm"));
-	}
-	const featparams = this.config.get("featparams") ?? hmmpath + "/feat.params";
+	const featparams = this.config.model_path("featparams", "feat.params");
 	for await (const pair of read_featparams(featparams)) {
 	    if (this.config.has(pair[0])) /* Sometimes it doesn't */
 		this.config.set(pair[0], pair[1]);
@@ -614,6 +624,7 @@ class Decoder {
  * @param {string} dict_path - Optional custom dictionary path.
  */
 function load_model(model_name, model_path, dict_path=null) {
+    model_paths[model_name] = model_path;
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
     const files = [
