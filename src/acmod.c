@@ -62,7 +62,7 @@
 static int32 acmod_process_mfcbuf(acmod_t *acmod);
 
 int
-acmod_init_am(acmod_t *acmod)
+acmod_load_am(acmod_t *acmod)
 {
     char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
@@ -128,7 +128,16 @@ acmod_init_am(acmod_t *acmod)
             return -1;
         acmod_update_mllr(acmod, mllr);
     }
+    return 0;
+}
 
+int
+acmod_init_senscr(acmod_t *acmod)
+{
+    if (acmod->mdef == NULL) {
+        E_ERROR("Model definition not loaded\n");
+        return -1;
+    }
     /* Set up senone computation. */
     acmod->senone_scores = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
                                                      sizeof(*acmod->senone_scores));
@@ -171,10 +180,10 @@ acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
 }
 
 acmod_t *
-acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
-
+    
     acmod = ckd_calloc(1, sizeof(*acmod));
     acmod->config = cmd_ln_retain(config);
     acmod->lmath = logmath_retain(lmath);
@@ -199,9 +208,26 @@ acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     acmod->n_feat_alloc = acmod->n_mfc_alloc;
     acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
     acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
+    return acmod;
 
+error_out:
+    acmod_free(acmod);
+    return NULL;
+}
+
+acmod_t *
+acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+{
+    acmod_t *acmod;
+
+    /* Create base structure. */
+    if ((acmod = acmod_create(config, lmath, fe, fcb)) == NULL)
+        goto error_out;
     /* Load acoustic model parameters. */
-    if (acmod_init_am(acmod) < 0)
+    if (acmod_load_am(acmod) < 0)
+        goto error_out;
+    /* Set up senone scoring. */
+    if (acmod_init_senscr(acmod) < 0)
         goto error_out;
     return acmod;
 

@@ -291,6 +291,32 @@ ps_init_feat(ps_decoder_t *ps)
 }
 
 EXPORT acmod_t *
+ps_init_acmod_pre(ps_decoder_t *ps)
+{
+    if (ps->config == NULL)
+        return NULL;
+    if (ps->lmath == NULL)
+        return NULL;
+    if (ps->fe == NULL)
+        return NULL;
+    if (ps->fcb == NULL)
+        return NULL;
+    acmod_free(ps->acmod);
+    ps->acmod = acmod_create(ps->config, ps->lmath, ps->fe, ps->fcb);
+    return ps->acmod;
+}
+
+EXPORT int
+ps_init_acmod_post(ps_decoder_t *ps)
+{
+    if (ps->acmod == NULL)
+        return -1;
+    if (acmod_init_senscr(ps->acmod) < 0)
+        return -1;
+    return 0;
+}
+
+acmod_t *
 ps_init_acmod(ps_decoder_t *ps)
 {
     if (ps->config == NULL)

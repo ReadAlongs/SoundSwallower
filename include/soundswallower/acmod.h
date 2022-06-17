@@ -214,6 +214,21 @@ typedef struct acmod_s acmod_t;
 acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
+ * Create the acmod without loading any files.
+ */
+acmod_t * acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+
+/**
+ * Load acoustic model files.
+ */
+int acmod_load_am(acmod_t *acmod);
+
+/**
+ * Initialize senone scoring (after loading acoustic model files).
+ */
+int acmod_init_senscr(acmod_t *acmod);
+
+/**
  * Verify that feature extraction parameters are compatible with
  * acoustic model.
  *
