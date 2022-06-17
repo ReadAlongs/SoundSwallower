@@ -290,7 +290,7 @@ ps_init_feat(ps_decoder_t *ps)
     return ps->fcb;
 }
 
-EXPORT acmod_t *
+acmod_t *
 ps_init_acmod_pre(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -306,7 +306,7 @@ ps_init_acmod_pre(ps_decoder_t *ps)
     return ps->acmod;
 }
 
-EXPORT int
+int
 ps_init_acmod_post(ps_decoder_t *ps)
 {
     if (ps->acmod == NULL)
@@ -316,7 +316,7 @@ ps_init_acmod_post(ps_decoder_t *ps)
     return 0;
 }
 
-acmod_t *
+EXPORT acmod_t *
 ps_init_acmod(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
