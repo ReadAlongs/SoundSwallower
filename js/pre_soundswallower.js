@@ -628,7 +628,6 @@ function load_model(model_name, model_path, dict_path=null) {
     const dest_model_dir = "/" + model_name;
     const folders = [["/", model_name]];
     const files = [
-	[dest_model_dir, "feat.params", model_path + "/feat.params"],
 	[dest_model_dir, "means", model_path + "/means"],
 	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
 	[dest_model_dir, "variances", model_path + "/variances"],
