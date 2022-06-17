@@ -6,6 +6,7 @@ set(TESTS
   test_bitvec.c
   test_build_directory.c
   test_case.c
+  test_err.c
   test_ckd_alloc_catch.c
   test_ckd_alloc_fail.c
   test_cmdln_parse_r.c

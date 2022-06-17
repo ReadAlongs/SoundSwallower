@@ -39,12 +39,16 @@
  * @brief Somewhat antiquated logging and error interface.
  */
 
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <assert.h>
 
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
@@ -86,31 +90,102 @@ err_set_loglevel_str(char const *lvl)
     return NULL;
 }
 
+/* This is very annoying, it would be easier to use vasprintf()... */
+static int
+vfmt_msg_size(const char *fmt, va_list args)
+{
+    int size = 0;
+    char *bogus = NULL;
+
+    /* Find size of message. */
+    size = vsnprintf(bogus, size, fmt, args);
+    if (size < 0) {
+        err_cb(err_user_data, ERR_FATAL, "vsnprintf() failed in logging\n");
+        return size;
+    }
+    size++; /* terminating \0 */
+    return size;
+}
+
+static char *
+vfmt_msg(const char *fmt, int size, va_list args)
+{
+    char *msg;
+    if ((msg = ckd_malloc(size)) == NULL) {
+        err_cb(err_user_data, ERR_FATAL, "malloc() failed in logging\n");
+        return NULL;
+    }
+    size = vsnprintf(msg, size, fmt, args);
+    if (size < 0) {
+        ckd_free(msg);
+        err_cb(err_user_data, ERR_FATAL, "vsnprintf() failed in logging\n");
+        return NULL;
+    }
+    return msg;
+}
+
+static char *
+fmt_msg(const char *fmt, ...)
+{
+    va_list ap;
+    char *msg;
+    int size;
+
+    va_start(ap, fmt);
+    size = vfmt_msg_size(fmt, ap);
+    va_end(ap);
+    if (size < 0)
+        return NULL;
+    va_start(ap, fmt);
+    msg = vfmt_msg(fmt, size, ap);
+    va_end(ap);
+    return msg;
+}
+
+static char *
+add_level_and_lineno(err_lvl_t lvl, const char *fname, long ln, char *msg)
+{
+    if (lvl == ERR_INFO)
+        return fmt_msg("%s: %s(%ld): %s", err_level[lvl], fname, ln, msg);
+    else
+        return fmt_msg("%s: \"%s\", line %ld: %s", err_level[lvl], fname, ln, msg);
+}
+
 void
 err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
 
-    char msg[1024];
-    va_list ap;
+    char *msg;
+    va_list args;
+    int size;
 
     if (!err_cb)
         return;
     if (lvl < min_loglevel)
         return;
-
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap);
-    va_end(ap);
-
+    va_start(args, fmt);
+    size = vfmt_msg_size(fmt, args);
+    va_end(args);
+    if (size < 0)
+        return;
+    va_start(args, fmt);
+    msg = vfmt_msg(fmt, size, args);
+    va_end(args);
+    if (msg == NULL)
+        return;
+    
     if (path) {
         const char *fname = path2basename(path);
-        if (lvl == ERR_INFO)
-            err_cb(err_user_data, lvl, "%s: %s(%ld): %s", err_level[lvl], fname, ln, msg);
+        char *longmsg = add_level_and_lineno(lvl, fname, ln, msg);
+        if (longmsg == NULL)
+            ckd_free(msg);
         else
-    	    err_cb(err_user_data, lvl, "%s: \"%s\", line %ld: %s", err_level[lvl], fname, ln, msg);
+            err_cb(err_user_data, lvl, longmsg);
+        ckd_free(longmsg);
     } else {
-        err_cb(err_user_data, lvl, "%s", msg);
+        err_cb(err_user_data, lvl, msg);
     }
+    ckd_free(msg);
 }
 
 void
@@ -118,40 +193,50 @@ err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
     int local_errno = errno;
     
-    char msg[1024];
-    va_list ap;
+    char *msg, *msgsys;
+    va_list args;
+    int size;
 
     if (!err_cb)
         return;
     if (lvl < min_loglevel)
         return;
-
-    va_start(ap, fmt);
-    vsnprintf(msg, sizeof(msg), fmt, ap);
-    va_end(ap);
-
+    va_start(args, fmt);
+    size = vfmt_msg_size(fmt, args);
+    va_end(args);
+    if (size < 0)
+        return;
+    va_start(args, fmt);
+    msg = vfmt_msg(fmt, size, args);
+    va_end(args);
+    if (msg == NULL)
+        return;
+    msgsys = fmt_msg("%s: %s\n", msg, strerror(local_errno));
+    ckd_free(msg);
+    if (msgsys == NULL)
+        return;
     if (path) {
         const char *fname = path2basename(path);
-        if (lvl == ERR_INFO)
-            err_cb(err_user_data, lvl, "%s: %s(%ld): %s: %s\n", err_level[lvl], fname, ln, msg, strerror(local_errno));
+        char *longmsg = add_level_and_lineno(lvl, fname, ln, msgsys);
+        if (longmsg == NULL)
+            ckd_free(msg);
         else
-    	    err_cb(err_user_data, lvl, "%s: \"%s\", line %ld: %s: %s\n", err_level[lvl], fname, ln, msg, strerror(local_errno));
+            err_cb(err_user_data, lvl, longmsg);
+        ckd_free(longmsg);
     } else {
-        err_cb(err_user_data, lvl, "%s: %s\n", msg, strerror(local_errno));
+        err_cb(err_user_data, lvl, msgsys);
     }
+    ckd_free(msgsys);
 }
 
 void
-err_stderr_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...)
+err_stderr_cb(void *user_data, err_lvl_t lvl, const char *msg)
 {
-    va_list ap;
-
     (void)user_data;
     (void)lvl;
     
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
+    fwrite(msg, 1, strlen(msg), stderr);
+    fflush(stderr);
 }
 
 void

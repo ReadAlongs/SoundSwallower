@@ -8,6 +8,19 @@
 #
 # Author: David Huggins-Daines <dhdaines@gmail.com>
 
+cdef extern from "soundswallower/err.h":
+    cdef enum err_e:
+        ERR_DEBUG,
+        ERR_INFO,
+        ERR_WARN,
+        ERR_ERROR,
+        ERR_FATAL,
+        ERR_MAX
+    ctypedef err_e err_lvl_t
+    ctypedef void (*err_cb_f)(void* user_data, err_lvl_t lvl, const char *msg);
+    void err_set_callback(err_cb_f callback, void *user_data)
+
+
 cdef extern from "soundswallower/logmath.h":
     ctypedef struct logmath_t:
         pass

@@ -14,6 +14,7 @@ import logging
 import soundswallower
 cimport _soundswallower
 
+LOGGER = logging.getLogger("soundswallower")
 
 cdef class Config:
     """Configuration object for SoundSwallower.
@@ -731,7 +732,7 @@ cdef class Decoder:
             sample_rate = self.config.get_float("-samprate")
         # Reinitialize the decoder if necessary
         if sample_rate != self.config.get_float("-samprate"):
-            logging.info("Setting sample rate to %d", sample_rate)
+            LOGGER.info("Setting sample rate to %d", sample_rate)
             self.config["samprate"] = sample_rate
             self.reinit_fe()
         frame_size = 1.0 / self.config.get_int('-frate')

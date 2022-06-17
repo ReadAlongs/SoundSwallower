@@ -148,12 +148,12 @@ void err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, .
  * callback will NOT be called for messages of lower priority than the
  * current log level.
  */
-typedef void (*err_cb_f)(void* user_data, err_lvl_t lvl, const char *fmt, ...);
+typedef void (*err_cb_f)(void* user_data, err_lvl_t lvl, const char *msg);
 
 /**
  * Default logging callback using stderr.
  */
-void err_stderr_cb(void *user_data, err_lvl_t lvl, const char *fmt, ...);
+void err_stderr_cb(void *user_data, err_lvl_t lvl, const char *msg);
 
 /**
  * Set minimum logging level.
