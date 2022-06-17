@@ -57,12 +57,12 @@ class TestConfig(unittest.TestCase):
 
     def test_config_get_string(self):
         config = Config()
-        self.assertEqual(config.get_string('-rawlogdir'), None)
+        self.assertEqual(config.get_string('-fsg'), None)
 
     def test_config_set_string(self):
         config = Config()
-        config.set_string('-rawlogdir', '~/pocketsphinx')
-        self.assertEqual(config.get_string('-rawlogdir'), '~/pocketsphinx')
+        config.set_string('-fsg', 'foo.fsg')
+        self.assertEqual(config.get_string('-fsg'), 'foo.fsg')
 
     def test_config_get_boolean(self):
         config = Config()
@@ -79,19 +79,19 @@ class TestConfigHash(unittest.TestCase):
         config = Config()
         self.assertEqual(config['samprate'], 16000.)
         self.assertEqual(config['nfft'], 0)
-        self.assertEqual(config['rawlogdir'], None)
+        self.assertEqual(config['fsg'], None)
         self.assertEqual(config['backtrace'], False)
         self.assertEqual(config['feat'], '1s_c_d_dd')
 
     def test_config_easyinit(self):
         config = Config(samprate=11025.,
-                        rawlogdir=None,
+                        fsg=None,
                         backtrace=False,
                         feat="1s_c_d_dd")
         self.assertEqual(config['samprate'], 11025.)
         self.assertEqual(config.get_float('-samprate'), 11025.)
         self.assertEqual(config['nfft'], 0)
-        self.assertEqual(config['rawlogdir'], None)
+        self.assertEqual(config['fsg'], None)
         self.assertEqual(config['backtrace'], False)
         self.assertEqual(config['feat'], '1s_c_d_dd')
 
