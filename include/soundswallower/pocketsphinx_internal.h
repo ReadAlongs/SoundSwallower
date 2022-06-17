@@ -211,6 +211,11 @@ struct ps_decoder_s {
     uint32 uttno;       /**< Utterance counter. */
     ptmr_t perf;        /**< Performance counter for all of decoding. */
     uint32 n_frame;     /**< Total number of frames processed. */
+
+#ifndef EMSCRIPTEN
+    /* Logging. */
+    FILE *logfh;
+#endif
 };
 
 

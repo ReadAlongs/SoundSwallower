@@ -157,21 +157,71 @@ ps_free_searches(ps_decoder_t *ps)
     }
 }
 
+static void
+set_loglevel(cmd_ln_t *config)
+{
+    const char *loglevel;
+    loglevel = cmd_ln_str_r(config, "-loglevel");
+    if (loglevel) {
+        if (err_set_loglevel_str(loglevel) == NULL) {
+            /* Really not fatal. */
+            E_ERROR("Invalid log level: %s\n", loglevel);
+        }
+    }
+}
+
+static void
+log_callback(void *user_data, err_lvl_t lvl, const char *msg)
+{
+    ps_decoder_t *ps = (ps_decoder_t *)user_data;
+    (void) lvl;
+    assert(ps->logfh != NULL);
+    fwrite(msg, 1, strlen(msg), ps->logfh);
+    fflush(ps->logfh);
+}
+
+int
+ps_set_logfile(ps_decoder_t *ps, const char *logfn)
+{
+    FILE *new_logfh;
+    if (logfn == NULL)
+        new_logfh = NULL;
+    else {
+        new_logfh = fopen(logfn, "a");
+        if (new_logfh == NULL) {
+            E_ERROR_SYSTEM("Failed to open log file %s", logfn);
+            return -1;
+        }
+    }
+    if (ps->logfh)
+        fclose(ps->logfh);
+    ps->logfh = new_logfh;
+    if (new_logfh == NULL)
+        err_set_callback(err_stderr_cb, NULL);
+    else
+        err_set_callback(log_callback, ps);
+    return 0;
+}
+
+static void
+set_logfile(ps_decoder_t *ps, cmd_ln_t *config)
+{
+#ifndef __EMSCRIPTEN__
+    const char *logfn;
+    logfn = cmd_ln_str_r(config, "-logfn");
+    if (logfn)
+        ps_set_logfile(ps, logfn);
+#endif
+}
+
 EXPORT int
 ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
 {
     /* Set up logging. We do this immediately because we want to dump
        the information to the configured log, not to the stderr. */
     if (config && config != ps->config) {
-        const char *loglevel;
-        loglevel = cmd_ln_str_r(config, "-loglevel");
-        if (loglevel) {
-            if (err_set_loglevel_str(loglevel) == NULL) {
-                E_ERROR("Invalid log level: %s\n", loglevel);
-                return -1;
-            }
-        }
-
+        set_loglevel(config);
+        set_logfile(ps, config);
         cmd_ln_free_r(ps->config);
         ps->config = cmd_ln_retain(config);
     }
@@ -381,6 +431,12 @@ ps_free(ps_decoder_t *ps)
     acmod_free(ps->acmod);
     logmath_free(ps->lmath);
     cmd_ln_free_r(ps->config);
+#ifndef __EMSCRIPTEN__
+    if (ps->logfh) {
+        fclose(ps->logfh);
+        err_set_callback(err_stderr_cb, NULL);
+    }
+#endif
     ckd_free(ps);
     return 0;
 }

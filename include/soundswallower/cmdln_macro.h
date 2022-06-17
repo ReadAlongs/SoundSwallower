@@ -58,6 +58,10 @@
 
 /** Options for debugging and logging. */
 #define POCKETSPHINX_DEBUG_OPTIONS                      \
+    { "-logfn",                                         \
+            ARG_STRING,                                 \
+            NULL,                                       \
+            "File to write log messages in" },          \
     { "-loglevel",                                       \
             ARG_STRING,                                 \
             "WARN",                                       \

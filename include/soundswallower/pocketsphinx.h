@@ -501,6 +501,15 @@ void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
 
 /**
+ * Set logging to go to a file.
+ *
+ * @param ps Decoder.
+ * @param logfn Filename to log to, or NULL to log to standard output.
+ * @return 0 for success or -1 for failure.
+ */
+int ps_set_logfile(ps_decoder_t *ps, const char *logfn);
+
+/**
  * @mainpage PocketSphinx API Documentation
  * @author David Huggins-Daines <dhuggins@gmail.com>
  * @author Alpha Cephei Inc.
