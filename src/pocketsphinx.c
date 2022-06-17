@@ -120,8 +120,8 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-mean", "_mean", hmmdir, "means");
     ps_expand_file_config(ps, "-var", "_var", hmmdir, "variances");
     ps_expand_file_config(ps, "-tmat", "_tmat", hmmdir, "transition_matrices");
-    ps_expand_file_config(ps, "-mixw", "_mixw", hmmdir, "mixture_weights");
     ps_expand_file_config(ps, "-sendump", "_sendump", hmmdir, "sendump");
+    ps_expand_file_config(ps, "-mixw", "_mixw", hmmdir, "mixture_weights");
     ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
     ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
@@ -156,19 +156,21 @@ ps_free_searches(ps_decoder_t *ps)
     }
 }
 
-static void
+static int
 set_loglevel(cmd_ln_t *config)
 {
     const char *loglevel;
     loglevel = cmd_ln_str_r(config, "-loglevel");
     if (loglevel) {
         if (err_set_loglevel_str(loglevel) == NULL) {
-            /* Really not fatal. */
             E_ERROR("Invalid log level: %s\n", loglevel);
+            return -1;
         }
     }
+    return 0;
 }
 
+#ifndef __EMSCRIPTEN__
 static void
 log_callback(void *user_data, err_lvl_t lvl, const char *msg)
 {
@@ -178,10 +180,16 @@ log_callback(void *user_data, err_lvl_t lvl, const char *msg)
     fwrite(msg, 1, strlen(msg), ps->logfh);
     fflush(ps->logfh);
 }
+#endif
 
 int
 ps_set_logfile(ps_decoder_t *ps, const char *logfn)
 {
+#ifdef __EMSCRIPTEN__
+    (void)ps;
+    (void)logfn;
+    E_WARN("ps_set_logfile() does nothing in JavaScript");
+#else
     FILE *new_logfh;
     if (logfn == NULL)
         new_logfh = NULL;
@@ -199,13 +207,17 @@ ps_set_logfile(ps_decoder_t *ps, const char *logfn)
         err_set_callback(err_stderr_cb, NULL);
     else
         err_set_callback(log_callback, ps);
+#endif
     return 0;
 }
 
 static void
 set_logfile(ps_decoder_t *ps, cmd_ln_t *config)
 {
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+    (void)ps;
+    (void)config;
+#else
     const char *logfn;
     logfn = cmd_ln_str_r(config, "-logfn");
     if (logfn)
@@ -219,7 +231,8 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
     /* Set up logging. We do this immediately because we want to dump
        the information to the configured log, not to the stderr. */
     if (config && config != ps->config) {
-        set_loglevel(config);
+        if (set_loglevel(config) < 0)
+            return -1;
         set_logfile(ps, config);
         cmd_ln_free_r(ps->config);
         ps->config = cmd_ln_retain(config);
