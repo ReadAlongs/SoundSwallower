@@ -32,6 +32,7 @@ set(TESTS
   test_pitch.c
   test_ptm_mgau.c
   test_readfile.c
+  test_s3file.c
   test_strfuncs.c
   test_subvq.c)
 foreach(TEST_SOURCE ${TESTS})

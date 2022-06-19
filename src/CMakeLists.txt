@@ -47,6 +47,7 @@ set(SOURCES
   ps_mllr.c
   ptm_mgau.c
   s2_semi_mgau.c
+  s3file.c
   strfuncs.c
   tmat.c
   vector.c
