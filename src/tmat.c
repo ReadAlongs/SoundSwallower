@@ -109,7 +109,7 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 
 
 tmat_t *
-tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 breport)
+tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor)
 {
     char tmp;
     int32 n_src, n_dst, n_tmat;
@@ -122,10 +122,8 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 brepor
     tmat_t *t;
 
 
-    if (breport) {
-        E_INFO("Reading HMM transition probability matrices: %s\n",
-               file_name);
-    }
+    E_INFO("Reading HMM transition probability matrices: %s\n",
+           file_name);
 
     t = (tmat_t *) ckd_calloc(1, sizeof(tmat_t));
 
@@ -234,16 +232,6 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 brepor
         E_FATAL("Topology not Left-to-Right or Bakis\n");
 
     return t;
-}
-
-void
-tmat_report(tmat_t * t)
-{
-    E_INFO_NOFN("Initialization of tmat_t, report:\n");
-    E_INFO_NOFN("Read %d transition matrices of size %dx%d\n",
-                t->n_tmat, t->n_state, t->n_state + 1);
-    E_INFO_NOFN("\n");
-
 }
 
 /* 

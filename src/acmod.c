@@ -89,8 +89,7 @@ acmod_load_am(acmod_t *acmod)
         return -1;
     }
     acmod->tmat = tmat_init(tmatfn, acmod->lmath,
-                            cmd_ln_float32_r(acmod->config, "-tmatfloor"),
-                            TRUE);
+                            cmd_ln_float32_r(acmod->config, "-tmatfloor"));
 
     /* Read the acoustic models. */
     if ((cmd_ln_str_r(acmod->config, "_mean") == NULL)

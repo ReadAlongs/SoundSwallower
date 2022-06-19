@@ -68,8 +68,7 @@ typedef struct tmat_s {
 
 tmat_t *tmat_init (char const *tmatfile,/**< In: input file */
 		   logmath_t *lmath,    /**< In: log math parameters */
-		   float64 tpfloor,	/**< In: floor value for each non-zero transition probability */
-		   int32 breport      /**< In: whether reporting the process of tmat_t  */
+		   float64 tpfloor	/**< In: floor value for each non-zero transition probability */
     );
 					    
 /**
@@ -77,12 +76,6 @@ tmat_t *tmat_init (char const *tmatfile,/**< In: input file */
  */
 
 void tmat_free (tmat_t *t /**< In: transition matrix */
-    );
-
-/**
- * Report the detail of the transition matrix structure. 
- */
-void tmat_report(tmat_t *t /**< In: transition matrix*/
     );
 
 #ifdef __cplusplus
