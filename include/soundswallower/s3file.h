@@ -83,7 +83,8 @@ typedef struct s3file_s {
     const char *ptr, *end;
     s3hdr_t *headers;
     size_t nhdr;
-    int swap;
+    int do_swap;
+    int do_chksum;
     uint32 chksum;
 } s3file_t;
 
@@ -153,15 +154,14 @@ size_t s3file_get(void *buf,        /**< In: adddress to write values to. */
  *  - memory allocated for the array and read (returned in buf)
  * 
  * Byteswapping and checksum accumulation performed as necessary.
- * Fails fatally if expected data not read.
  * @return number of array elements allocated and read; -1 if error.
  */
-size_t s3file_get_1d(void **buf,		/**< Out: contains array data; allocated by this
-                                                   function; can be freed using ckd_free */
-                     size_t el_sz,	/**< In: Array element size */
-                     uint32 *n_el,	/**< Out: Number of array elements allocated/read */
-                     s3file_t *s
-                     );
+long s3file_get_1d(void **buf,		/**< Out: contains array data; allocated by this
+                                           function; can be freed using ckd_free */
+                   size_t el_sz,	/**< In: Array element size */
+                   uint32 *n_el,	/**< Out: Number of array elements allocated/read */
+                   s3file_t *s
+                   );
 
 /**
  * Read a 2-d matrix:
@@ -172,11 +172,11 @@ size_t s3file_get_1d(void **buf,		/**< Out: contains array data; allocated by th
  * Byteswapping and checksum accumulation performed as necessary.
  * @return number of array elements allocated and read
  */
-size_t s3file_get_2d(void ***arr,
-                     size_t e_sz,
-                     uint32 *d1,
-                     uint32 *d2,
-                     s3file_t *s);
+long s3file_get_2d(void ***arr,
+                   size_t e_sz,
+                   uint32 *d1,
+                   uint32 *d2,
+                   s3file_t *s);
 
 /**
  * Read a 3-d array (set of matrices)
@@ -187,12 +187,12 @@ size_t s3file_get_2d(void ***arr,
  * Byteswapping and checksum accumulation performed as necessary.
  * @return number of array elements allocated and read
  */
-size_t s3file_get_3d(void ****arr,
-                     size_t e_sz,
-                     uint32 *d1,
-                     uint32 *d2,
-                     uint32 *d3,
-                     s3file_t *s);
+long s3file_get_3d(void ****arr,
+                   size_t e_sz,
+                   uint32 *d1,
+                   uint32 *d2,
+                   uint32 *d3,
+                   s3file_t *s);
 
 /**
  * Read and verify checksum at the end of binary file.  Returns 0 for

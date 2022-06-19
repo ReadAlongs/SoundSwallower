@@ -13,7 +13,8 @@ const char data_le[] = "s3\n"
     "endhdr\n"
     "\x44\x33\x22\x11"
     "\xcd\xab"
-    "\xef\xbe\xad\xde";
+    "\xef\xbe\xad\xde"
+    "\x78\x56\x34\x12\xef\xbe\xad\xde";
 const char data_be[] = "s3\n"
     "key1 value1\n"
     "key2  value2\n"
@@ -21,7 +22,8 @@ const char data_be[] = "s3\n"
     "endhdr\n"
     "\x11\x22\x33\x44"
     "\xab\xcd"
-    "\xde\xad\xbe\xef";
+    "\xde\xad\xbe\xef"
+    "\xde\xad\xbe\xef\x12\x34\x56\x78";
 
 int
 main(int argc, char *argv[])
@@ -30,6 +32,7 @@ main(int argc, char *argv[])
     size_t len;
     char *data;
     s3file_t *s;
+    uint64 i64;
     uint32 i32;
     uint16 i16;
 
@@ -42,7 +45,9 @@ main(int argc, char *argv[])
     TEST_EQUAL(1, s3file_get(&i16, sizeof(i16), 1, s));
     TEST_EQUAL(0xabcd, i16);
     TEST_EQUAL(1, s3file_get(&i32, sizeof(i32), 1, s));
-    TEST_EQUAL(0xdeadbeef, i32);
+    TEST_EQUAL(0xdeadbeefUL, i32);
+    TEST_EQUAL(1, s3file_get(&i64, sizeof(i64), 1, s));
+    TEST_EQUAL(0xdeadbeef12345678ULL, i64);
     TEST_EQUAL(1, s3file_free(s));
     TEST_EQUAL(0, s3file_free(s));
     /* Big-endian data */
@@ -51,7 +56,9 @@ main(int argc, char *argv[])
     TEST_EQUAL(1, s3file_get(&i16, sizeof(i16), 1, s));
     TEST_EQUAL(0xabcd, i16);
     TEST_EQUAL(1, s3file_get(&i32, sizeof(i32), 1, s));
-    TEST_EQUAL(0xdeadbeef, i32);
+    TEST_EQUAL(0xdeadbeefUL, i32);
+    TEST_EQUAL(1, s3file_get(&i64, sizeof(i64), 1, s));
+    TEST_EQUAL(0xdeadbeef12345678ULL, i64);
     /* Headers */
     TEST_ASSERT(s3file_header_name_is(s, 0, "key1"));
     TEST_ASSERT(s3file_header_value_is(s, 0, "value1"));

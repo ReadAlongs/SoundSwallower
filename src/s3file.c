@@ -231,7 +231,7 @@ s3file_parse_header(s3file_t *s)
         }
     }
 
-    if ((s->swap = swap_check(s)) < 0) {
+    if ((s->do_swap = swap_check(s)) < 0) {
         E_ERROR("swap_check failed\n");
         return -1;
     }
@@ -275,6 +275,65 @@ s3file_header_value(s3file_t *s, size_t idx)
     return str;
 }
 
+static uint32
+chksum_accum(const void *buf, int32 el_sz, int32 n_el, uint32 sum)
+{
+    int32 i;
+    uint8 *i8;
+    uint16 *i16;
+    uint32 *i32;
+
+    switch (el_sz) {
+    case 1:
+        i8 = (uint8 *) buf;
+        for (i = 0; i < n_el; i++)
+            sum = (sum << 5 | sum >> 27) + i8[i];
+        break;
+    case 2:
+        i16 = (uint16 *) buf;
+        for (i = 0; i < n_el; i++)
+            sum = (sum << 10 | sum >> 22) + i16[i];
+        break;
+    case 4:
+    case 8:
+        i32 = (uint32 *) buf;
+        for (i = 0; i < n_el; i++)
+            sum = (sum << 20 | sum >> 12) + i32[i];
+        break;
+    default:
+        E_FATAL("Unsupported elemsize for checksum: %d\n", el_sz);
+        break;
+    }
+
+    return sum;
+}
+
+static void
+swap_buf(void *buf, size_t el_sz, size_t n_el)
+{
+    size_t i;
+
+    switch (el_sz) {
+    case 1:
+        break;
+    case 2:
+        for (i = 0; i < n_el; i++)
+            SWAP_INT16((uint16 *)buf + i);
+        break;
+    case 4:
+        for (i = 0; i < n_el; i++)
+            SWAP_INT32((uint32 *)buf + i);
+        break;
+    case 8:
+        for (i = 0; i < n_el; i++)
+            SWAP_FLOAT64((uint64 *)buf + i);
+        break;
+    default:
+        E_FATAL("Unsupported elemsize for byteswapping: %d\n", el_sz);
+        break;
+    }
+}
+
 size_t
 s3file_get(void *buf,
            size_t el_sz,
@@ -290,21 +349,132 @@ s3file_get(void *buf,
         
     memcpy(buf, s->ptr, el_sz * n_el);
     s->ptr += el_sz * n_el;
-    /* special case for presumed numeric types... */
-    if (s->swap) {
-        size_t i;
-        if (el_sz == 2) {
-            for (i = 0; i < n_el; ++i)
-                SWAP_INT16((uint16 *)buf + i);
-        }
-        else if (el_sz == 4) {
-            for (i = 0; i < n_el; ++i)
-                SWAP_INT32((uint32 *)buf + i);
-        }
-        else if (el_sz == 8) {
-            for (i = 0; i < n_el; ++i)
-                SWAP_FLOAT64((uint64 *)buf + i);
-        }
-    }
+    if (s->do_swap)
+        swap_buf(buf, el_sz, n_el);
+    if (s->do_chksum)
+        s->chksum = chksum_accum(buf, el_sz, n_el, s->chksum);
+
     return n_el;
+}
+
+long
+s3file_get_1d(void **buf, size_t el_sz, uint32 *n_el, s3file_t *s)
+{
+    /* Read 1-d array size */
+    if (s3file_get(n_el, sizeof(int32), 1, s) != 1) {
+        E_ERROR("get(arraysize) failed\n");
+        return -1;
+    }
+    if (*n_el <= 0)
+        E_FATAL("Bad arraysize: %d\n", *n_el);
+
+    /* Allocate memory for array data */
+    *buf = (void *) ckd_calloc(*n_el, el_sz);
+
+    /* Read array data */
+    if (s3file_get(*buf, el_sz, *n_el, s) != *n_el) {
+        E_ERROR("get(arraydata) failed\n");
+        return -1;
+    }
+
+    return *n_el;
+}
+
+long
+s3file_get_2d(void ***arr,
+              size_t e_sz,
+              uint32 *d1,
+              uint32 *d2,
+              s3file_t *s)
+{
+    uint32 l_d1, l_d2;
+    uint32 n;
+    size_t ret;
+    void *raw;
+    
+    ret = s3file_get(&l_d1, sizeof(uint32), 1, s);
+    if (ret != 1) {
+        E_ERROR("get(dimension1) failed");
+	return -1;
+    }
+    ret = s3file_get(&l_d2, sizeof(uint32), 1, s);
+    if (ret != 1) {
+        E_ERROR("get(dimension1) failed");
+	return -1;
+    }
+    if (s3file_get_1d(&raw, e_sz, &n, s) != (int32)n) {
+        E_ERROR("get(arraydata) failed");
+	return -1;
+    }
+
+    assert(n == l_d1*l_d2);
+
+    *d1 = l_d1;
+    *d2 = l_d2;
+    *arr = ckd_alloc_2d_ptr(l_d1, l_d2, raw, e_sz);
+
+    return n;
+}
+
+long
+s3file_get_3d(void ****arr,
+              size_t e_sz,
+              uint32 *d1,
+              uint32 *d2,
+              uint32 *d3,
+              s3file_t *s)
+{
+    uint32 l_d1;
+    uint32 l_d2;
+    uint32 l_d3;
+    uint32 n;
+    void *raw;
+    size_t ret;
+
+    ret = s3file_get(&l_d1, sizeof(uint32), 1, s);
+    if (ret != 1) {
+        E_ERROR("get(dimension1) failed");
+	return -1;
+    }
+    ret = s3file_get(&l_d2, sizeof(uint32), 1, s);
+    if (ret != 1) {
+        E_ERROR("get(dimension2) failed");
+	return -1;
+    }
+    ret = s3file_get(&l_d3, sizeof(uint32), 1, s);
+    if (ret != 1) {
+        E_ERROR("get(dimension3) failed");
+	return -1;
+    }
+    if (s3file_get_1d(&raw, e_sz, &n, s) != (int32)n) {
+        E_ERROR("get(arraydata) failed");
+	return -1;
+    }
+
+    assert(n == l_d1 * l_d2 * l_d3);
+
+    *arr = ckd_alloc_3d_ptr(l_d1, l_d2, l_d3, raw, e_sz);
+    *d1 = l_d1;
+    *d2 = l_d2;
+    *d3 = l_d3;
+    
+    return n;
+}
+
+int
+s3file_verify_chksum(s3file_t *s)
+{
+    uint32 file_chksum;
+
+    if (s3file_get(&file_chksum, sizeof(uint32), 1, s) != 1) {
+        E_ERROR("get(chksum) failed\n");
+        return -1;
+    }
+    if (file_chksum != s->chksum) {
+        E_ERROR
+            ("Checksum error; file-checksum %08x, computed %08x\n",
+             file_chksum, s->chksum);
+        return -1;
+    }
+    return 0;
 }
