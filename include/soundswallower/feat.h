@@ -44,6 +44,7 @@
 #include <stdio.h>
 
 #include <soundswallower/prim_type.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/cmn.h>
 
@@ -280,6 +281,11 @@ int32 feat_read_lda(feat_t *feat,	 /**< In: Descriptor from feat_init() */
                     const char *ldafile, /**< In: File to read the LDA matrix from. */
                     int32 dim		 /**< In: Dimensionality of LDA output. */
     );
+/**
+ * Add an LDA transformation to the feature module from existing s3file_t.
+ * @return 0 for success or -1 if reading the LDA file failed.
+ **/
+int feat_read_lda_s3file(feat_t *feat, s3file_t *s, int32 dim);
 
 /**
  * Transform a block of features using the feature module's LDA transform.
