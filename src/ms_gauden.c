@@ -260,47 +260,25 @@ gauden_dist_precompute(gauden_t * g, logmath_t *lmath, float32 varfloor)
 
 
 gauden_t *
-gauden_init_s3file(s3file_t *meanfile,/**< Input: File containing means of mixture gaussians */
-                   s3file_t *varfile,/**< Input: File containing variances of mixture gaussians */
-                   float32 varfloor,	/**< Input: Floor value to be applied to variances */
+gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixture gaussians */
+                   s3file_t *vars,   /**< Input: File containing variances of mixture gaussians */
+                   float32 varfloor, /**< Input: Floor value to be applied to variances */
                    logmath_t *lmath
                    )
 {
-    return NULL;
-}
-
-gauden_t *
-gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath_t *lmath)
-{
     int32 i, m, f, d, *flen = NULL;
     gauden_t *g;
-    s3file_t *s;
 
-    assert(meanfile != NULL);
-    assert(varfile != NULL);
-    assert(varfloor > 0.0);
 
     g = (gauden_t *) ckd_calloc(1, sizeof(gauden_t));
     g->lmath = logmath_retain(lmath);
 
-    E_INFO("Reading mixture gaussian parameter: %s\n", meanfile);
-    if ((s = s3file_map_file(meanfile)) == NULL) {
-        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
-        goto error_out;
-    }
-    g->mean = (mfcc_t ****)gauden_param_read(s, &g->n_mgau, &g->n_feat, &g->n_density,
+    g->mean = (mfcc_t ****)gauden_param_read(means, &g->n_mgau, &g->n_feat, &g->n_density,
                                              &g->featlen);
-    s3file_free(s);
     if (g->mean == NULL)
         goto error_out;
 
-    E_INFO("Reading mixture gaussian parameter: %s\n", varfile);
-    if ((s = s3file_map_file(varfile)) == NULL) {
-        E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", varfile);
-        goto error_out;
-    }
-    g->var = (mfcc_t ****)gauden_param_read(s, &m, &f, &d, &flen);
-    s3file_free(s);
+    g->var = (mfcc_t ****)gauden_param_read(vars, &m, &f, &d, &flen);
     if (g->var == NULL)
         goto error_out;
 
@@ -316,15 +294,42 @@ gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath
             goto error_out;
         }
     }
-
     ckd_free(flen);
     gauden_dist_precompute(g, lmath, varfloor);
     return g;
+
  error_out:
     if (flen)
         ckd_free(flen);
     gauden_free(g);
     return NULL;
+}
+
+gauden_t *
+gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath_t *lmath)
+{
+    s3file_t *means, *vars;
+    gauden_t *g;
+
+    assert(meanfile != NULL);
+    assert(varfile != NULL);
+    assert(varfloor > 0.0);
+
+    E_INFO("Reading mixture gaussian parameter: %s\n", meanfile);
+    if ((means = s3file_map_file(meanfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
+        return NULL;
+    }
+    E_INFO("Reading mixture gaussian parameter: %s\n", varfile);
+    if ((vars = s3file_map_file(varfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", varfile);
+        s3file_free(means);
+        return NULL;
+    }
+    g = gauden_init_s3file(means, vars, varfloor, lmath);
+    s3file_free(means);
+    s3file_free(vars);
+    return g;
 }
 
 void
