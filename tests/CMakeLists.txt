@@ -26,8 +26,6 @@ set(TESTS
   test_jsgf.c
   test_lineiter.c
   test_listelem_alloc.c
-  test_log_int16.c
-  test_log_int8.c
   test_log_shifted.c
   test_pitch.c
   test_ptm_mgau.c
