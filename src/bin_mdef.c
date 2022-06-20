@@ -290,8 +290,7 @@ bin_mdef_free(bin_mdef_t * m)
     case BIN_MDEF_ON_DISK:
         break;
     }
-    if (m->filemap)
-        mmio_file_unmap(m->filemap);
+    s3file_free(m->filemap);
     ckd_free(m->cd2cisen);
     ckd_free(m->sen2cimap);
     ckd_free(m->ciname);
@@ -304,68 +303,68 @@ bin_mdef_t *
 bin_mdef_read(cmd_ln_t *config, const char *filename)
 {
     bin_mdef_t *m;
-    FILE *fh;
-    size_t tree_start;
-    int32 val, i, do_mmap, swap;
-    long pos, end;
-    int32 *sseq_size;
+    s3file_t *s;
 
     /* Try to read it as text first. */
     if ((m = bin_mdef_read_text(config, filename)) != NULL)
         return m;
-
     E_INFO("Reading binary model definition: %s\n", filename);
-    if ((fh = fopen(filename, "rb")) == NULL)
-        return NULL;
-
-    if (fread(&val, 4, 1, fh) != 1) {
-        fclose(fh);
-        E_ERROR_SYSTEM("Failed to read byte-order marker from %s\n",
+    if ((s = s3file_map_file(filename)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open model definition file '%s' for reading",
                        filename);
         return NULL;
     }
-    swap = 0;
+
+    m = bin_mdef_read_s3file(s);
+    s3file_free(s);
+    return m;
+}
+
+bin_mdef_t *
+bin_mdef_read_s3file(s3file_t *s)
+{
+    size_t tree_start;
+    int32 val, i;
+    int32 *sseq_size;
+    bin_mdef_t *m;
+
+    if (s3file_get(&val, 4, 1, s) != 1) {
+        E_ERROR("Failed to read byte-order marker\n");
+        goto error_out;
+    }
     if (val == BIN_MDEF_OTHER_ENDIAN) {
-        swap = 1;
-        E_INFO("Must byte-swap %s\n", filename);
+        E_INFO("Must byte-swap\n");
+        s->do_swap = 1;
     }
-    if (fread(&val, 4, 1, fh) != 1) {
-        fclose(fh);
-        E_ERROR_SYSTEM("Failed to read version from %s\n", filename);
-        return NULL;
+    if (s3file_get(&val, 4, 1, s) != 1) {
+        E_ERROR("Failed to read version\n");
+        goto error_out;
     }
-    if (swap)
-        SWAP_INT32(&val);
     if (val > BIN_MDEF_FORMAT_VERSION) {
-        E_ERROR("File format version %d for %s is newer than library\n",
-                val, filename);
-        fclose(fh);
-        return NULL;
+        E_ERROR("File format version %d is newer than library\n",
+                val);
+        goto error_out;
     }
-    if (fread(&val, 4, 1, fh) != 1) {
-        fclose(fh);
-        E_ERROR_SYSTEM("Failed to read header length from %s\n", filename);
-        return NULL;
+    if (s3file_get(&val, 4, 1, s) != 1) {
+        E_ERROR("Failed to read header length\n");
+        goto error_out;
     }
-    if (swap)
-        SWAP_INT32(&val);
     /* Skip format descriptor. */
-    fseek(fh, val, SEEK_CUR);
+    s->ptr += val;
+    if (s->ptr > s->end) {
+        E_ERROR("Format descriptor truncated\n");
+        goto error_out;
+    }
 
     /* Finally allocate it. */
     m = ckd_calloc(1, sizeof(*m));
     m->refcnt = 1;
 
-    /* Check these, to make gcc/glibc shut up. */
-#define FREAD_SWAP32_CHK(dest)                                          \
-    if (fread((dest), 4, 1, fh) != 1) {                                 \
-        fclose(fh);                                                     \
-        ckd_free(m);                                                    \
-        E_ERROR_SYSTEM("Failed to read %s from %s\n", #dest, filename); \
-        return NULL;                                                    \
-    }                                                                   \
-    if (swap) SWAP_INT32(dest);
-    
+#define FREAD_SWAP32_CHK(dest)                  \
+    if (s3file_get((dest), 4, 1, s) != 1) {     \
+        E_ERROR("Failed to read %s\n", #dest);  \
+        goto error_out;                         \
+    }
     FREAD_SWAP32_CHK(&m->n_ciphone);
     FREAD_SWAP32_CHK(&m->n_phone);
     FREAD_SWAP32_CHK(&m->n_emit_state);
@@ -380,43 +379,32 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
     /* CI names are first in the file. */
     m->ciname = ckd_calloc(m->n_ciphone, sizeof(*m->ciname));
 
-    /* Decide whether to read in the whole file or mmap it. */
-    do_mmap = config ? cmd_ln_boolean_r(config, "-mmap") : TRUE;
-#ifdef __EMSCRIPTEN__ /* don't want to use binary mdef in emscripten in any case... */
-    E_INFO("-mmap specified, but mmap() doesn't work in Emscripten. "
-           "Will not memory-map.\n");
-    do_mmap = FALSE;
-#endif
-    if (swap) {
-        E_WARN("-mmap specified, but mdef is other-endian.  Will not memory-map.\n");
-        do_mmap = FALSE;
-    } 
-    /* Actually try to mmap it. */
-    if (do_mmap) {
-        m->filemap = mmio_file_read(filename);
-        if (m->filemap == NULL)
-            do_mmap = FALSE;
-    }
-    pos = ftell(fh);
-    if (do_mmap) {
-        /* Get the base pointer from the memory map. */
-        m->ciname[0] = (char *)mmio_file_ptr(m->filemap) + pos;
-        /* Success! */
-        m->alloc_mode = BIN_MDEF_ON_DISK;
+    if (s->do_swap) {
+        E_WARN("mdef is other-endian.  Will copy data.\n");
+        /* Copy stuff so we can swap it. */
+        m->alloc_mode = BIN_MDEF_IN_MEMORY;
+        m->ciname[0] = ckd_malloc(s->end - s->ptr);
+        if (s3file_get(m->ciname[0], 1, s->end - s->ptr, s)
+            != (size_t)(s->end - s->ptr)) {
+            E_FATAL("Failed to read %d bytes of data\n", s->end - s->ptr);
+            goto error_out;
+        }
     }
     else {
-        /* Read everything into memory. */
-        m->alloc_mode = BIN_MDEF_IN_MEMORY;
-        fseek(fh, 0, SEEK_END);
-        end = ftell(fh);
-        fseek(fh, pos, SEEK_SET);
-        m->ciname[0] = ckd_malloc(end - pos);
-        if (fread(m->ciname[0], 1, end - pos, fh) != (size_t)(end - pos))
-            E_FATAL("Failed to read %d bytes of data from %s\n", end - pos, filename);
+        /* Get the base pointer from the memory map. */
+        m->ciname[0] = (char *)s->ptr; /* discard const, we know what we're doing */
+        /* Success! */
+        m->alloc_mode = BIN_MDEF_ON_DISK;
+        m->filemap = s3file_retain(s);
     }
 
     for (i = 1; i < m->n_ciphone; ++i) {
         m->ciname[i] = m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1;
+        if (m->alloc_mode == BIN_MDEF_ON_DISK
+            && m->ciname[i] > s->end) {
+            E_ERROR("ciname truncated!\n");
+            goto error_out;
+        }
     }
 
     /* Skip past the padding. */
@@ -424,7 +412,12 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1 - m->ciname[0];
     tree_start = (tree_start + 3) & ~3;
     m->cd_tree = (cd_tree_t *) (m->ciname[0] + tree_start);
-    if (swap) {
+    if (m->alloc_mode == BIN_MDEF_ON_DISK
+        && (m->cd_tree + m->n_cd_tree) > (cd_tree_t *)s->end) {
+        E_ERROR("cd_tree truncated!\n");
+        goto error_out;
+    }
+    if (s->do_swap) {
         for (i = 0; i < m->n_cd_tree; ++i) {
             SWAP_INT16(&m->cd_tree[i].ctx);
             SWAP_INT16(&m->cd_tree[i].n_down);
@@ -432,18 +425,33 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         }
     }
     m->phone = (mdef_entry_t *) (m->cd_tree + m->n_cd_tree);
-    if (swap) {
+    if (m->alloc_mode == BIN_MDEF_ON_DISK
+        && (m->phone + m->n_phone) > (mdef_entry_t *)s->end) {
+        E_ERROR("phone truncated!\n");
+        goto error_out;
+    }
+    if (s->do_swap) {
         for (i = 0; i < m->n_phone; ++i) {
             SWAP_INT32(&m->phone[i].ssid);
             SWAP_INT32(&m->phone[i].tmat);
         }
     }
     sseq_size = (int32 *) (m->phone + m->n_phone);
-    if (swap)
+    if (m->alloc_mode == BIN_MDEF_ON_DISK
+        && (sseq_size + 1) > (int32 *)s->end) {
+        E_ERROR("sseq_size truncated!\n");
+        goto error_out;
+    }
+    if (s->do_swap)
         SWAP_INT32(sseq_size);
     m->sseq = ckd_calloc(m->n_sseq, sizeof(*m->sseq));
     m->sseq[0] = (uint16 *) (sseq_size + 1);
-    if (swap) {
+    if (m->alloc_mode == BIN_MDEF_ON_DISK
+        && (m->sseq[0] + *sseq_size) > (uint16 *)s->end) {
+        E_ERROR("sseq truncated!\n");
+        goto error_out;
+    }
+    if (s->do_swap) {
         for (i = 0; i < *sseq_size; ++i)
             SWAP_INT16(m->sseq[0] + i);
     }
@@ -453,6 +461,11 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
     }
     else {
         m->sseq_len = (uint8 *) (m->sseq[0] + *sseq_size);
+        if (m->alloc_mode == BIN_MDEF_ON_DISK
+            && (m->sseq_len + m->n_sseq) > (uint8 *)s->end) {
+            E_ERROR("sseq_len truncated!\n");
+            goto error_out;
+        }
         for (i = 1; i < m->n_sseq; ++i)
             m->sseq[i] = m->sseq[i - 1] + m->sseq_len[i - 1];
     }
@@ -501,8 +514,10 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
          m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
          m->n_ci_sen, m->n_sen, m->n_sseq);
-    fclose(fh);
     return m;
+ error_out:
+    bin_mdef_free(m);
+    return NULL;
 }
 
 int
