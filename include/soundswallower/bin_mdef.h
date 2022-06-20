@@ -169,18 +169,12 @@ struct bin_mdef_s {
  * Read a binary mdef from a file.
  */
 bin_mdef_t *bin_mdef_read(cmd_ln_t *config, const char *filename);
+
 /**
  * Read a text mdef from a file (creating an in-memory binary mdef).
  */
 bin_mdef_t *bin_mdef_read_text(cmd_ln_t *config, const char *filename);
-/**
- * Write a binary mdef to a file.
- */
-int bin_mdef_write(bin_mdef_t *m, const char *filename);
-/**
- * Write a binary mdef to a text file.
- */
-int bin_mdef_write_text(bin_mdef_t *m, const char *filename);
+
 /**
  * Retain a pointer to a bin_mdef_t.
  */
