@@ -39,6 +39,7 @@
 
 #include <stdio.h>
 #include <soundswallower/logmath.h>
+#include <soundswallower/s3file.h>
 
 /** \file tmat.h
  *  \brief Transition matrix data structure.
@@ -66,11 +67,16 @@ typedef struct tmat_s {
 
 /** Initialize transition matrix */
 
-tmat_t *tmat_init (char const *tmatfile,/**< In: input file */
-		   logmath_t *lmath,    /**< In: log math parameters */
-		   float64 tpfloor	/**< In: floor value for each non-zero transition probability */
+tmat_t *tmat_init(const char *tmatfile,/**< In: input file */
+		  logmath_t *lmath,    /**< In: log math parameters */
+		  float64 tpfloor	/**< In: floor value for each non-zero transition probability */
     );
 					    
+/**
+ * Initialize transition matrix from existing s3file_t.
+ */
+tmat_t * tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor);
+
 /**
  * RAH, add code to remove memory allocated by tmat_init
  */
