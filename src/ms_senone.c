@@ -40,7 +40,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include <soundswallower/bio.h>
 #include <soundswallower/ms_senone.h>
 
 #define MIXW_PARAM_VERSION	"1.0"
