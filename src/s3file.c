@@ -78,6 +78,7 @@ s3file_map_file(const char *filename)
         return NULL;
     s3file_t *s = ckd_calloc(1, sizeof(*s));
     s->refcnt = 1;
+    s->mf = mf;
     s->buf = mmio_file_ptr(mf);
     s->ptr = s->buf;
     s->end = s->buf + mmio_file_size(mf);
@@ -102,6 +103,7 @@ s3file_free(s3file_t *s)
     if (rv == 0) {
         if (s->mf)
             mmio_file_unmap(s->mf);
+        ckd_free(s->headers);
         ckd_free(s);
     }
     return rv;
