@@ -304,7 +304,6 @@ chksum_accum(const void *buf, int32 el_sz, int32 n_el, uint32 sum)
         E_FATAL("Unsupported elemsize for checksum: %d\n", el_sz);
         break;
     }
-
     return sum;
 }
 
@@ -466,6 +465,8 @@ s3file_verify_chksum(s3file_t *s)
 {
     uint32 file_chksum;
 
+    /* No more checksumming to do! */
+    s->do_chksum = FALSE;
     if (s3file_get(&file_chksum, sizeof(uint32), 1, s) != 1) {
         E_ERROR("get(chksum) failed\n");
         return -1;
