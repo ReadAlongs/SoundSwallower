@@ -52,7 +52,6 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/bio.h>
 #include <soundswallower/cmdln_macro.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/s2_semi_mgau.h>
