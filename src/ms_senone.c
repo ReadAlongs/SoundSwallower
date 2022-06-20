@@ -46,65 +46,41 @@
 #define MIXW_PARAM_VERSION	"1.0"
 #define SPDEF_PARAM_VERSION	"1.2"
 
-static int32
-senone_mgau_map_read(senone_t * s, char const *file_name)
+static int
+senone_mgau_map_read(senone_t *s, s3file_t *s3f)
 {
-    FILE *fp;
-    int32 byteswap, chksum_present, n_gauden_present;
-    uint32 chksum;
+    int n_gauden_present;
     int32 i;
-    char eofchk;
-    char **argname, **argval;
     void *ptr;
-    float32 v;
-
-    E_INFO("Reading senone gauden-codebook map file: %s\n", file_name);
-
-    if ((fp = fopen(file_name, "rb")) == NULL)
-        E_FATAL_SYSTEM("Failed to open map file '%s' for reading", file_name);
 
     /* Read header, including argument-value info and 32-bit byteorder magic */
-    if (bio_readhdr(fp, &argname, &argval, &byteswap) < 0)
-        E_FATAL("Failed to read header from file '%s'\n", file_name);
-
-    /* Parse argument-value list */
-    chksum_present = 0;
-    n_gauden_present = 0;
-    for (i = 0; argname[i]; i++) {
-        if (strcmp(argname[i], "version") == 0) {
-            if (strcmp(argval[i], SPDEF_PARAM_VERSION) != 0) {
-                E_WARN("Version mismatch(%s): %s, expecting %s\n",
-                       file_name, argval[i], SPDEF_PARAM_VERSION);
-            }
-
-            /* HACK!! Convert version# to float32 and take appropriate action */
-            if (sscanf(argval[i], "%f", &v) != 1)
-                E_FATAL("%s: Bad version no. string: %s\n", file_name,
-                        argval[i]);
-
+    if (s3file_parse_header(s3f, SPDEF_PARAM_VERSION) < 0) {
+        E_ERROR("Failed to read senmgau header\n");
+        return -1;
+    }
+    /* set n_gauden_present based on version. */
+    for (i = 0; (size_t)i < s3f->nhdr; i++) {
+        if (s3file_header_name_is(s3f, i, "version")) {
+            char *version = s3file_header_value(s3f, i);
+            float v = atof(version);
             n_gauden_present = (v > 1.1) ? 1 : 0;
-        }
-        else if (strcmp(argname[i], "chksum0") == 0) {
-            chksum_present = 1; /* Ignore the associated value */
+            ckd_free(version);
         }
     }
-    bio_hdrarg_free(argname, argval);
-    argname = argval = NULL;
-
-    chksum = 0;
 
     /* Read #gauden (if version matches) */
     if (n_gauden_present) {
-        E_INFO("Reading number of codebooks from %s\n", file_name);
-        if (bio_fread
-            (&(s->n_gauden), sizeof(int32), 1, fp, byteswap, &chksum) != 1)
-            E_FATAL("fread(%s) (#gauden) failed\n", file_name);
+        E_INFO("Reading number of codebooks\n");
+        if (s3file_get
+            (&(s->n_gauden), sizeof(int32), 1, s3f) != 1)
+            E_ERROR("read (#gauden) failed\n");
+        return -1;
     }
 
     /* Read 1d array data */
-    if (bio_fread_1d(&ptr, sizeof(uint32), &(s->n_sen), fp,
-		     byteswap, &chksum) < 0) {
-        E_FATAL("bio_fread_1d(%s) failed\n", file_name);
+    if (s3file_get_1d(&ptr, sizeof(uint32), &(s->n_sen), s3f) < 0) {
+        E_ERROR("s3file_get_1d failed\n");
+        return -1;
     }
     s->mgau = ptr;
     E_INFO("Mapping %d senones to %d codebooks\n", s->n_sen, s->n_gauden);
@@ -117,81 +93,53 @@ senone_mgau_map_read(senone_t * s, char const *file_name)
                 s->n_gauden = s->mgau[i] + 1;
     }
 
-    if (chksum_present)
-        bio_verify_chksum(fp, byteswap, chksum);
-
-    if (fread(&eofchk, 1, 1, fp) == 1)
-        E_FATAL("More data than expected in %s: %d\n", file_name, eofchk);
-
-    fclose(fp);
+    if (s3file_verify_chksum(s3f) < 0)
+        return -1;
 
     E_INFO("Read %d->%d senone-codebook mappings\n", s->n_sen,
            s->n_gauden);
 
-    return 1;
+    return 0;
 }
 
 
-static int32
-senone_mixw_read(senone_t * s, char const *file_name, logmath_t *lmath)
+static int
+senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
 {
-    char eofchk;
-    FILE *fp;
-    int32 byteswap, chksum_present;
-    uint32 chksum;
-    float32 *pdf;
+    float32 *pdf = NULL;
     int32 i, f, c, p, n_err;
-    char **argname, **argval;
-
-    E_INFO("Reading senone mixture weights: %s\n", file_name);
-
-    if ((fp = fopen(file_name, "rb")) == NULL)
-        E_FATAL_SYSTEM("Failed to open mixture weights file '%s' for reading", file_name);
 
     /* Read header, including argument-value info and 32-bit byteorder magic */
-    if (bio_readhdr(fp, &argname, &argval, &byteswap) < 0)
-        E_FATAL("Failed to read header from file '%s'\n", file_name);
-
-    /* Parse argument-value list */
-    chksum_present = 0;
-    for (i = 0; argname[i]; i++) {
-        if (strcmp(argname[i], "version") == 0) {
-            if (strcmp(argval[i], MIXW_PARAM_VERSION) != 0)
-                E_WARN("Version mismatch(%s): %s, expecting %s\n",
-                       file_name, argval[i], MIXW_PARAM_VERSION);
-        }
-        else if (strcmp(argname[i], "chksum0") == 0) {
-            chksum_present = 1; /* Ignore the associated value */
-        }
-    }
-    bio_hdrarg_free(argname, argval);
-    argname = argval = NULL;
-
-    chksum = 0;
+    if (s3file_parse_header(s3f, MIXW_PARAM_VERSION) < 0)
+        return -1;
 
     /* Read #senones, #features, #codewords, arraysize */
-    if ((bio_fread(&(s->n_sen), sizeof(int32), 1, fp, byteswap, &chksum) !=
+    if ((s3file_get(&(s->n_sen), sizeof(int32), 1, s3f) !=
          1)
         ||
-        (bio_fread(&(s->n_feat), sizeof(int32), 1, fp, byteswap, &chksum)
+        (s3file_get(&(s->n_feat), sizeof(int32), 1, s3f)
          != 1)
-        || (bio_fread(&(s->n_cw), sizeof(int32), 1, fp, byteswap, &chksum)
+        || (s3file_get(&(s->n_cw), sizeof(int32), 1, s3f)
             != 1)
-        || (bio_fread(&i, sizeof(int32), 1, fp, byteswap, &chksum) != 1)) {
-        E_FATAL("bio_fread(%s) (arraysize) failed\n", file_name);
+        || (s3file_get(&i, sizeof(int32), 1, s3f) != 1)) {
+        E_ERROR("s3file_get (arraysize) failed\n");
+        return -1;
     }
     if ((uint32)i != s->n_sen * s->n_feat * s->n_cw) {
-        E_FATAL
-            ("%s: #float32s(%d) doesn't match dimensions: %d x %d x %d\n",
-             file_name, i, s->n_sen, s->n_feat, s->n_cw);
+        E_ERROR
+            ("#float32s(%d) doesn't match dimensions: %d x %d x %d\n",
+             i, s->n_sen, s->n_feat, s->n_cw);
+        return -1;
     }
 
     /*
      * Compute #LSB bits to be dropped to represent mixwfloor with 8 bits.
      * All PDF values will be truncated (in the LSB positions) by these many bits.
      */
-    if ((s->mixwfloor <= 0.0) || (s->mixwfloor >= 1.0))
-        E_FATAL("mixwfloor (%e) not in range (0, 1)\n", s->mixwfloor);
+    if ((s->mixwfloor <= 0.0) || (s->mixwfloor >= 1.0)) {
+        E_ERROR("mixwfloor (%e) not in range (0, 1)\n", s->mixwfloor);
+        return -1;
+    }
 
     /* Use a fixed shift for compatibility with everything else. */
     E_INFO("Truncating senone logs3(pdf) values by %d bits\n", SENSCR_SHIFT);
@@ -220,11 +168,11 @@ senone_mixw_read(senone_t * s, char const *file_name, logmath_t *lmath)
     n_err = 0;
     for (i = 0; (uint32)i < s->n_sen; i++) {
         for (f = 0; (uint32)f < s->n_feat; f++) {
-            if (bio_fread
-                ((void *) pdf, sizeof(float32), s->n_cw, fp, byteswap,
-                 &chksum)
-                != (int32)s->n_cw) {
-                E_FATAL("bio_fread(%s) (arraydata) failed\n", file_name);
+            if (s3file_get
+                ((void *) pdf, sizeof(float32), s->n_cw, s3f)
+                != (size_t)s->n_cw) {
+                E_ERROR("s3file_get (arraydata) failed\n");
+                return -1;
             }
 
             /* Normalize and floor */
@@ -249,22 +197,17 @@ senone_mixw_read(senone_t * s, char const *file_name, logmath_t *lmath)
     }
     if (n_err > 0)
         E_WARN("Weight normalization failed for %d mixture weights components\n", n_err);
-
-    ckd_free(pdf);
-
-    if (chksum_present)
-        bio_verify_chksum(fp, byteswap, chksum);
-
-    if (fread(&eofchk, 1, 1, fp) == 1)
-        E_FATAL("More data than expected in %s\n", file_name);
-
-    fclose(fp);
-
+    if (s3file_verify_chksum(s3f) < 0)
+        goto error_out;
     E_INFO
         ("Read mixture weights for %d senones: %d features x %d codewords\n",
          s->n_sen, s->n_feat, s->n_cw);
+    return 0;
 
-    return 1;
+ error_out:
+    if (pdf)
+        ckd_free(pdf);
+    return -1;
 }
 
 
@@ -273,6 +216,7 @@ senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
 	    float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
 {
     senone_t *s;
+    s3file_t *s3f = NULL;
     int32 n = 0, i;
 
     s = (senone_t *) ckd_calloc(1, sizeof(senone_t));
@@ -284,7 +228,14 @@ senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
 	if (!(strcmp(sen2mgau_map_file, ".semi.") == 0
 	      || strcmp(sen2mgau_map_file, ".ptm.") == 0
 	      || strcmp(sen2mgau_map_file, ".cont.") == 0)) {
-	    senone_mgau_map_read(s, sen2mgau_map_file);
+            if ((s3f = s3file_map_file(sen2mgau_map_file)) == NULL) {
+                E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
+                               sen2mgau_map_file);
+                return NULL;
+            }
+	    if (senone_mgau_map_read(s, s3f) < 0) {
+                goto error_out;
+            }
 	    n = s->n_sen;
 	}
     }
@@ -297,7 +248,15 @@ senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
 	    sen2mgau_map_file = ".cont.";
     }
 
-    senone_mixw_read(s, mixwfile, lmath);
+    E_INFO("Reading senone mixture weights: %s\n", mixwfile);
+    if ((s3f = s3file_map_file(sen2mgau_map_file)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
+                       sen2mgau_map_file);
+        goto error_out;
+    }
+    if (senone_mixw_read(s, s3f, lmath) < 0)
+        goto error_out;
+    s3file_free(s3f);
 
     if (strcmp(sen2mgau_map_file, ".semi.") == 0) {
         /* All-to-1 senones-codebook mapping */
@@ -325,13 +284,20 @@ senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
         s->n_gauden = s->n_sen;
     }
     else {
-        if (s->n_sen != (uint32)n)
-            E_FATAL("#senones inconsistent: %d in %s; %d in %s\n",
+        if (s->n_sen != (uint32)n) {
+            E_ERROR("#senones inconsistent: %d in %s; %d in %s\n",
                     n, sen2mgau_map_file, s->n_sen, mixwfile);
+            goto error_out;
+        }
     }
 
     s->featscr = NULL;
     return s;
+
+ error_out:
+    s3file_free(s3f);
+    senone_free(s);
+    return NULL;
 }
 
 void

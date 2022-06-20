@@ -48,6 +48,7 @@
 #include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
 #include <soundswallower/bin_mdef.h>
+#include <soundswallower/s3file.h>
 
 /** \file ms_senone.h
  *  \brief (Sphinx 3.0 specific) multiple streams senones. used with ms_gauden.h
@@ -99,15 +100,29 @@ typedef struct senone_s {
  * PDF values to logs3 domain and quantize to 8-bits.
  * @return pointer to senone structure created.  Caller MUST NOT change its contents.
  */
-senone_t *senone_init (gauden_t *g,             /**< In: codebooks */
-                       char const *mixwfile,	/**< In: mixing weights file */
-		       char const *mgau_mapfile,/**< In: file specifying mapping from each
+senone_t *senone_init(gauden_t *g,             /**< In: codebooks */
+                      char const *mixwfile,	/**< In: mixing weights file */
+                      char const *mgau_mapfile,/**< In: file specifying mapping from each
 						   senone to mixture gaussian codebook.
 						   If NULL all senones map to codebook 0 */
-		       float32 mixwfloor,	/**< In: Floor value for senone weights */
-                       logmath_t *lmath,        /**< In: log math computation */
-                       bin_mdef_t *mdef         /**< In: model definition */
-    );
+                      float32 mixwfloor,	/**< In: Floor value for senone weights */
+                      logmath_t *lmath,        /**< In: log math computation */
+                      bin_mdef_t *mdef         /**< In: model definition */
+                      );
+
+/**
+ * Load a set of senones from s3file_t.
+ * @return pointer to senone structure created.  Caller MUST NOT change its contents.
+ */
+senone_t *senone_init_s3file(gauden_t *g,             /**< In: codebooks */
+                             s3file_t *mixwfile,	/**< In: mixing weights file */
+                             s3file_t *mgau_mapfile,/**< In: file specifying mapping from each
+                                                         senone to mixture gaussian codebook.
+                                                         If NULL all senones map to codebook 0 */
+                             float32 mixwfloor,	/**< In: Floor value for senone weights */
+                             logmath_t *lmath,        /**< In: log math computation */
+                             bin_mdef_t *mdef         /**< In: model definition */
+                             );
 
 /** Release memory allocated by senone_init. */
 void senone_free(senone_t *s); /**< In: The senone_t to free */
