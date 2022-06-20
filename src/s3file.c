@@ -70,6 +70,22 @@ s3file_init(const void *buf, size_t len)
 }
 
 s3file_t *
+s3file_map_file(const char *filename)
+{
+    mmio_file_t *mf;
+
+    if ((mf = mmio_file_read(filename)) == NULL)
+        return NULL;
+    s3file_t *s = ckd_calloc(1, sizeof(*s));
+    s->refcnt = 1;
+    s->buf = mmio_file_ptr(mf);
+    s->ptr = s->buf;
+    s->end = s->buf + mmio_file_size(mf);
+
+    return s;
+}
+
+s3file_t *
 s3file_retain(s3file_t *s)
 {
     if (s == NULL)
@@ -84,6 +100,8 @@ s3file_free(s3file_t *s)
     int rv = --s->refcnt;
     assert(rv >= 0);
     if (rv == 0) {
+        if (s->mf)
+            mmio_file_unmap(s->mf);
         ckd_free(s);
     }
     return rv;
@@ -465,6 +483,9 @@ s3file_verify_chksum(s3file_t *s)
 {
     uint32 file_chksum;
 
+    if (!s->do_chksum)
+        return 0;
+    
     /* No more checksumming to do! */
     s->do_chksum = FALSE;
     if (s3file_get(&file_chksum, sizeof(uint32), 1, s) != 1) {

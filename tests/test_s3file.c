@@ -26,6 +26,38 @@ const char data_be[] = "s3\n"
     "\xde\xad\xbe\xef"
     "\xde\xad\xbe\xef\x12\x34\x56\x78";
 
+static void
+test_read_tmat(s3file_t *s)
+{
+    int32 n_tmat, n_src, n_dst, n_val;
+    float32 **tp;
+    size_t i;
+
+    TEST_EQUAL(0, s3file_parse_header(s));
+    for (i = 0; i < s->nhdr; ++i) {
+        if (s3file_header_name_is(s, i, "version")) {
+            TEST_ASSERT(s3file_header_value_is(s, i, "1.0"));
+        }
+        else if (s3file_header_name_is(s, i, "chksum0")) {
+            s->do_chksum = TRUE;
+        }
+    }
+    TEST_EQUAL(1, s3file_get(&n_tmat, sizeof(n_tmat), 1, s));
+    TEST_EQUAL(1, s3file_get(&n_src, sizeof(n_src), 1, s));
+    TEST_EQUAL(1, s3file_get(&n_dst, sizeof(n_dst), 1, s));
+    TEST_EQUAL(1, s3file_get(&n_val, sizeof(n_val), 1, s));
+    TEST_EQUAL(n_val, n_tmat * n_src * n_dst);
+    tp = ckd_calloc_2d(n_src, n_dst, sizeof(**tp));
+    for (i = 0; i < (size_t)n_tmat; ++i) {
+        TEST_EQUAL((size_t)(n_src * n_dst),
+                   s3file_get(tp[0], sizeof(**tp), n_src * n_dst, s));
+    }
+    if (s->do_chksum)
+        TEST_ASSERT(0 == s3file_verify_chksum(s));
+    TEST_EQUAL(s->ptr, s->end);
+    ckd_free(tp);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -36,11 +68,6 @@ main(int argc, char *argv[])
     uint64 i64;
     uint32 i32;
     uint16 i16;
-    tmat_t *tmat;
-    logmath_t *lmath;
-    int32 n_tmat, n_src, n_dst, n_val;
-    float32 **tp;
-    size_t i;
 
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
@@ -79,8 +106,6 @@ main(int argc, char *argv[])
     ckd_free(data);
     TEST_EQUAL(0, s3file_free(s));
 
-    lmath = logmath_init(1.0001, 0, TRUE);
-    tmat = tmat_init(MODELDIR "/en-us/transition_matrices", lmath, 0.0001);
     /* An actual S3 file */
     fh = fopen(MODELDIR "/en-us/transition_matrices", "rb");
     TEST_ASSERT(fh != NULL);
@@ -90,32 +115,14 @@ main(int argc, char *argv[])
     data = ckd_malloc(len);
     TEST_EQUAL(len, fread(data, 1, len, fh));
     s = s3file_init(data, len);
-    TEST_EQUAL(0, s3file_parse_header(s));
-    for (i = 0; i < s->nhdr; ++i) {
-        if (s3file_header_name_is(s, i, "version")) {
-            TEST_ASSERT(s3file_header_value_is(s, i, "1.0"));
-        }
-        else if (s3file_header_name_is(s, i, "chksum0")) {
-            s->do_chksum = TRUE;
-        }
-    }
-    TEST_EQUAL(1, s3file_get(&n_tmat, sizeof(n_tmat), 1, s));
-    TEST_EQUAL(1, s3file_get(&n_src, sizeof(n_src), 1, s));
-    TEST_EQUAL(1, s3file_get(&n_dst, sizeof(n_dst), 1, s));
-    TEST_EQUAL(1, s3file_get(&n_val, sizeof(n_val), 1, s));
-    TEST_EQUAL(n_val, n_tmat * n_src * n_dst);
-    tp = ckd_calloc_2d(n_src, n_dst, sizeof(**tp));
-    for (i = 0; i < (size_t)n_tmat; ++i) {
-        TEST_EQUAL((size_t)(n_src * n_dst),
-                   s3file_get(tp[0], sizeof(**tp), n_src * n_dst, s));
-    }
-    if (s->do_chksum)
-        TEST_ASSERT(0 == s3file_verify_chksum(s));
-    TEST_EQUAL(s->ptr, s->end);
-    ckd_free(tp);
+    test_read_tmat(s);
     ckd_free(data);
     s3file_free(s);
-    tmat_free(tmat);
-    logmath_free(lmath);
+
+    /* Now with mmap */
+    s = s3file_map_file(MODELDIR "/en-us/transition_matrices");
+    test_read_tmat(s);
+    s3file_free(s);
+
     return 0;
 }

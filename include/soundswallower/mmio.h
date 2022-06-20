@@ -51,6 +51,8 @@ extern "C" {
 }
 #endif
 
+#include <soundswallower/prim_type.h>
+
 /**
  * Abstract structure representing a memory-mapped file.
  **/
@@ -66,6 +68,11 @@ mmio_file_t *mmio_file_read(const char *filename);
  * Get a pointer to the memory mapped for a file.
  **/
 void *mmio_file_ptr(mmio_file_t *mf);
+
+/**
+ * Get the on-disk size of the file.
+ **/
+uint64 mmio_file_size(mmio_file_t *mf);
 
 /**
  * Unmap a file, releasing memory associated with it.

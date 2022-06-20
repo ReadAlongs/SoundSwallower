@@ -54,6 +54,7 @@
 
 #include <soundswallower/prim_type.h>
 #include <soundswallower/byteorder.h>
+#include <soundswallower/mmio.h>
 
 #include <stddef.h>
 
@@ -79,6 +80,7 @@ typedef struct s3hdr_s {
 
 typedef struct s3file_s {
     int refcnt;
+    mmio_file_t *mf;
     const void *buf;
     const char *ptr, *end;
     s3hdr_t *headers;
@@ -89,9 +91,24 @@ typedef struct s3file_s {
 } s3file_t;
 
 /**
- * Initialize an s3file_t from memory (such as from mmap)
+ * Initialize an s3file_t from memory
  */
 s3file_t *s3file_init(const void *buf, size_t len);
+
+/**
+ * Initialize an s3file_t by memory-mapping (or reading) a file.
+ */
+s3file_t *s3file_map_file(const char *filename);
+
+/**
+ * Retain s3file_t.
+ */
+s3file_t *s3file_retain(s3file_t *s);
+
+/**
+ * Release s3file_t, freeing and unmapping if refcnt=0.
+ */
+int s3file_free(s3file_t *s);
 
 /**
  * Read binary file format header: has the following format
@@ -127,16 +144,6 @@ char *s3file_header_name(s3file_t *s, size_t idx);
  * Get copy of argument value.
  */
 char *s3file_header_value(s3file_t *s, size_t idx);
-
-/**
- * Retain s3file_t.
- */
-s3file_t *s3file_retain(s3file_t *s);
-
-/**
- * Release s3file_t.
- */
-int s3file_free(s3file_t *s);
 
 /**
  * Extract values with byteswapping and checksum.
