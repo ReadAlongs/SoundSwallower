@@ -33,15 +33,7 @@ test_read_tmat(s3file_t *s)
     float32 **tp;
     size_t i;
 
-    TEST_EQUAL(0, s3file_parse_header(s));
-    for (i = 0; i < s->nhdr; ++i) {
-        if (s3file_header_name_is(s, i, "version")) {
-            TEST_ASSERT(s3file_header_value_is(s, i, "1.0"));
-        }
-        else if (s3file_header_name_is(s, i, "chksum0")) {
-            s->do_chksum = TRUE;
-        }
-    }
+    TEST_EQUAL(0, s3file_parse_header(s, "1.0"));
     TEST_EQUAL(1, s3file_get(&n_tmat, sizeof(n_tmat), 1, s));
     TEST_EQUAL(1, s3file_get(&n_src, sizeof(n_src), 1, s));
     TEST_EQUAL(1, s3file_get(&n_dst, sizeof(n_dst), 1, s));
@@ -75,7 +67,7 @@ main(int argc, char *argv[])
     /* Little-endian data */
     s = s3file_init(data_le, sizeof(data_le));
     s = s3file_retain(s);
-    TEST_EQUAL(0, s3file_parse_header(s));
+    TEST_EQUAL(0, s3file_parse_header(s, NULL));
     TEST_EQUAL(1, s3file_get(&i16, sizeof(i16), 1, s));
     TEST_EQUAL(0xabcd, i16);
     TEST_EQUAL(1, s3file_get(&i32, sizeof(i32), 1, s));
@@ -86,7 +78,7 @@ main(int argc, char *argv[])
     TEST_EQUAL(0, s3file_free(s));
     /* Big-endian data */
     s = s3file_init(data_be, sizeof(data_be));
-    TEST_EQUAL(0, s3file_parse_header(s));
+    TEST_EQUAL(0, s3file_parse_header(s, NULL));
     TEST_EQUAL(1, s3file_get(&i16, sizeof(i16), 1, s));
     TEST_EQUAL(0xabcd, i16);
     TEST_EQUAL(1, s3file_get(&i32, sizeof(i32), 1, s));

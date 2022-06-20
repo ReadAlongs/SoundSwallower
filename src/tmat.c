@@ -137,24 +137,9 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
     t = (tmat_t *) ckd_calloc(1, sizeof(tmat_t));
 
     /* Read header, including argument-value info and 32-bit byteorder magic */
-    if (s3file_parse_header(s) < 0) {
+    if (s3file_parse_header(s, TMAT_PARAM_VERSION) < 0) {
         E_ERROR("Failed to read s3 header\n");
         goto error_out;
-    }
-
-    /* Parse argument-value list */
-    for (i = 0; (size_t)i < s->nhdr; i++) {
-        if (s3file_header_name_is(s, i, "version")) {
-            if (!s3file_header_value_is(s, i, TMAT_PARAM_VERSION))
-                E_WARN("Version mismatch: %.*s, expecting %s\n",
-                       s->headers[i].value.len,
-                       s->headers[i].value.buf,
-                       TMAT_PARAM_VERSION);
-        }
-        else if (s3file_header_name_is(s, i, "chksum0")) {
-            /* FIXME: This should go in s3file.c */
-            s->do_chksum = TRUE;
-        }
     }
 
     /* Read #tmat, #from-states, #to-states, arraysize */

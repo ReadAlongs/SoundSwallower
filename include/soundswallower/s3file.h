@@ -121,9 +121,12 @@ int s3file_free(s3file_t *s);
  *     4-byte byte-order word used to find file byte ordering relative to host machine.
  * </pre>
  * Lines beginning with # are ignored.
+ * Checksum enabled if "chksum0" header present.
+ * Version checked with warning (not fatal) if mismatch.
+ * @param version Optional version to check against.
  * @return 0 if successful, -1 otherwise.
  */
-int s3file_parse_header(s3file_t *s);
+int s3file_parse_header(s3file_t *s, const char *version);
 
 /**
  * Compare argument name in place.

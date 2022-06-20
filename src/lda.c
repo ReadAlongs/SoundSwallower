@@ -84,21 +84,11 @@ int
 feat_read_lda_s3file(feat_t *feat, s3file_t *s, int32 dim)
 {
     void ***outlda;
-    uint32 i, m, n;
+    uint32 m, n;
 
-    if (s3file_parse_header(s) < 0) {
+    if (s3file_parse_header(s, MATRIX_FILE_VERSION) < 0) {
         E_ERROR("Failed to read header from transform file\n");
         return -1;
-    }
-
-    for (i = 0; (size_t)i < s->nhdr; i++) {
-        if (s3file_header_name_is(s, i, "version")) {
-            if (!s3file_header_value_is(s, i, MATRIX_FILE_VERSION))
-                E_WARN("Version mismatch: %.*s, expecting %s\n",
-                       s->headers[i].value.len,
-                       s->headers[i].value.buf,
-                       MATRIX_FILE_VERSION);
-        }
     }
     if (feat->lda)
         ckd_free_3d((void ***)feat->lda);
@@ -107,6 +97,10 @@ feat_read_lda_s3file(feat_t *feat, s3file_t *s, int32 dim)
     if (s3file_get_3d(&outlda, sizeof(float32),
                       &feat->n_lda, &m, &n, s) != feat->n_lda * m * n) {
         E_ERROR("s3file_get_3d(lda) failed\n");
+        return -1;
+    }
+    if (s3file_verify_chksum(s) != 0) {
+        ckd_free_3d(outlda);
         return -1;
     }
     feat->lda = (void *)outlda;

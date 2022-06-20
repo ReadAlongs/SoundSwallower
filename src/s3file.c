@@ -151,9 +151,9 @@ s3file_readline(s3file_t *s)
 }
 
 int
-s3file_parse_header(s3file_t *s)
+s3file_parse_header(s3file_t *s, const char *version)
 {
-    int lineno;
+    int lineno, do_chksum;
     const char *line;
 
     lineno = 0;
@@ -222,6 +222,17 @@ s3file_parse_header(s3file_t *s)
             while (!isspace(*line) && line < s->ptr)
                 line++;
             s->headers[i].value.len = line - s->headers[i].value.buf;
+            if (version) {
+                if (s3file_header_name_is(s, i, "version")) {
+                    if (!s3file_header_value_is(s, i, version))
+                        E_WARN("Version mismatch: %.*s, expecting %s\n",
+                               s->headers[i].value.len,
+                               s->headers[i].value.buf,
+                               version);
+                }
+            }
+            if (s3file_header_name_is(s, i, "chksum0"))
+                do_chksum = TRUE;
             E_INFO("header line %d: %.*s=%.*s\n", lineno,
                    s->headers[i].name.len,
                    s->headers[i].name.buf,
@@ -255,6 +266,8 @@ s3file_parse_header(s3file_t *s)
         E_ERROR("swap_check failed\n");
         return -1;
     }
+    /* Don't set this until swap check complete! */
+    s->do_chksum = do_chksum;
 
     return 0;
 }
