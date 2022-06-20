@@ -40,7 +40,6 @@
 #include <soundswallower/logmath.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/bio.h>
 #include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/vector.h>
