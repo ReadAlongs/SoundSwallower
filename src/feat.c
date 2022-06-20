@@ -126,7 +126,6 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/bio.h>
 #include <soundswallower/pio.h>
 #include <soundswallower/cmn.h>
 #include <soundswallower/err.h>
