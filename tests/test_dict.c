@@ -17,11 +17,8 @@ main(int argc, char *argv[])
 	bin_mdef_t *mdef;
 	dict_t *dict;
 	cmd_ln_t *config;
-	FILE *fh, *fh_orig;
-	lineiter_t *li, *li_orig;
 
 	int i;
-	char *space;
 	char buf[100];
 
 	(void)argc; (void)argv;
@@ -38,33 +35,6 @@ main(int argc, char *argv[])
 	       dict_wordid(dict, "CARNEGIE"));
 	printf("Word ID (ASDFASFASSD) = %d\n",
 	       dict_wordid(dict, "ASDFASFASSD"));
-
-	TEST_EQUAL(0, dict_write(dict, "_cmu07a.dic", NULL));
-	fh_orig = fopen(MODELDIR "/en-us/dict.txt", "r");
-	TEST_ASSERT(fh_orig != NULL);
-	fh = fopen("_cmu07a.dic", "r");
-	TEST_ASSERT(fh != NULL);
-	li = lineiter_start(fh);
-	li_orig = lineiter_start(fh_orig);
-	while (li && li_orig) {
-	  while (strlen(li->buf) == 0 || 0 == strncmp(li->buf, ";;", 2))
-	    li = lineiter_next(li);
-	  while (strlen(li_orig->buf) == 0 || 0 == strncmp(li_orig->buf, ";;", 2))
-	    li_orig = lineiter_next(li_orig);
-	  string_trim(li->buf, STRING_BOTH);
-	  string_trim(li_orig->buf, STRING_BOTH);
-	  space = strchr(li->buf, ' ');
-	  string_trim(space + 1, STRING_START);
-	  space = strchr(li_orig->buf, ' ');
-	  string_trim(space + 1, STRING_START);
-	  printf("%s\n%s\n", li->buf, li_orig->buf);
-	  TEST_EQUAL_STRING(li->buf, li_orig->buf);
-	  li = lineiter_next(li);
-	  li_orig = lineiter_next(li);
-	}
-	  
-	dict_free(dict);
-	bin_mdef_free(mdef);
 
 	/* Now test an empty dictionary. */
 	TEST_ASSERT(dict = dict_init(NULL, NULL));
