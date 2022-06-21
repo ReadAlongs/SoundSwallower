@@ -365,7 +365,9 @@ class Decoder {
      */
     async load_mdef(mdef_path) {
 	const { addr, len } = await load_to_memory(mdef_path);
-	const mdef = Module._create_mdef_from_blob(this.ps, addr, len);
+	const s3f = Module._s3file_init(addr, len);
+	const mdef = Module._bin_mdef_read_s3file(s3f);
+	Module._s3file_free(s3f);
 	if (mdef == 0)
 	    throw new Error("Failed to read mdef");
     }
@@ -375,7 +377,11 @@ class Decoder {
      */
     async load_tmat(tmat_path) {
 	const { addr, len } = await load_to_memory(tmat_path);
-	const tmat = Module._create_tmat_from_blob(this.ps, addr, len);
+	const s3f = Module._s3file_init(addr, len);
+	const logmath = Module._ps_get_logmath(this.ps);
+	const tpfloor = this.config.get("tmatfloor");
+	const tmat = Module._tmat_init_s3file(s3f, lmath, tpfloor);
+	Module._s3file_free(s3f);
 	if (tmat == 0)
 	    throw new Error("Failed to read tmat");
     }

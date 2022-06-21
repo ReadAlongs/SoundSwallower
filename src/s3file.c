@@ -52,13 +52,14 @@
 #include <soundswallower/s3file.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/export.h>
 
 
 #define BYTE_ORDER_MAGIC (0x11223344)
 #define BIO_HDRARG_MAX	32
 #define END_COMMENT	"*end_comment*\n"
 
-s3file_t *
+EXPORT s3file_t *
 s3file_init(const void *buf, size_t len)
 {
     s3file_t *s = ckd_calloc(1, sizeof(*s));
@@ -95,7 +96,7 @@ s3file_retain(s3file_t *s)
     return s;
 }
 
-int
+EXPORT int
 s3file_free(s3file_t *s)
 {
     int rv = --s->refcnt;
