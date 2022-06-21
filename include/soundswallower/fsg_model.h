@@ -55,6 +55,7 @@
 #include <soundswallower/bitvec.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/listelem_alloc.h>
+#include <soundswallower/s3file.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -188,9 +189,9 @@ fsg_model_t *fsg_model_init(char const *name, logmath_t *lmath,
 fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath, float32 lw);
 
 /**
- * Like fsg_model_readfile(), but from an already open stream.
+ * Read from an in-memory file.
  */
-fsg_model_t *fsg_model_read(FILE *fp, logmath_t *lmath, float32 lw);
+fsg_model_t *fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw);
 
 /**
  * Retain ownership of an FSG.

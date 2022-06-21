@@ -41,6 +41,7 @@ main(int argc, char *argv[])
 	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
         ps_process_raw(ps, buf, nread, FALSE, FALSE);
     }
+    fclose(rawfh);
     ps_end_utt(ps);
     hyp = ps_get_hyp(ps, &score);
     prob = ps_get_prob(ps);

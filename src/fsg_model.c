@@ -81,36 +81,6 @@ struct fsg_arciter_s {
 #define FSG_MODEL_COMMENT_CHAR		'#'
 
 
-static int32
-nextline_str2words(FILE * fp, int32 * lineno,
-                   char **lineptr, char ***wordptr)
-{
-    for (;;) {
-        size_t len;
-        int32 n;
-
-        ckd_free(*lineptr);
-        if ((*lineptr = fread_line(fp, &len)) == NULL)
-            return -1;
-
-        (*lineno)++;
-
-        if ((*lineptr)[0] == FSG_MODEL_COMMENT_CHAR)
-            continue;           /* Skip comment lines */
-
-        n = str2words(*lineptr, NULL, 0);
-        if (n == 0)
-            continue;           /* Skip blank lines */
-
-        /* Abuse of realloc(), but this doesn't have to be fast. */
-        if (*wordptr == NULL)
-            *wordptr = ckd_calloc(n, sizeof(**wordptr));
-        else
-            *wordptr = ckd_realloc(*wordptr, n * sizeof(**wordptr));
-        return str2words(*lineptr, *wordptr, n);
-    }
-}
-
 /* FIXME: if from or to is greater than n_state, mysterious crash! */
 EXPORT void
 fsg_model_trans_add(fsg_model_t * fsg,
@@ -534,168 +504,184 @@ fsg_model_init(char const *name, logmath_t * lmath, float32 lw,
     return fsg;
 }
 
+static char *
+copy_header_value(s3file_t *s3f, int32 *lineno,
+                  const char *name, const char *shortname)
+{
+    const char *ptr, *line;
+    while ((ptr = line = s3file_nextline(s3f)) != NULL) {
+        const char *word;
+        ++*lineno;
+        if (*line == FSG_MODEL_COMMENT_CHAR)
+            continue;
+        word = s3file_nextword(s3f, &ptr);
+        if (word == NULL)
+            continue;
+        if (shortname && 0 == strncmp(word, shortname, ptr - word)) {
+            char *value = s3file_copy_nextword(s3f, &ptr);
+            if (s3file_nextword(s3f, &ptr) != NULL) {
+                E_WARN("Extra tokens after %s value in line %d\n",
+                       shortname, lineno);
+            }
+            return value;
+        }
+        else if (name && 0 == strncmp(word, name, ptr - word)) {
+            char *value = s3file_copy_nextword(s3f, &ptr);
+            if (s3file_nextword(s3f, &ptr) != NULL) {
+                E_WARN("Extra tokens after %s value in line %d\n",
+                       name, lineno);
+            }
+            return value;
+        }
+    }
+    return NULL;
+}
+
 fsg_model_t *
-fsg_model_read(FILE * fp, logmath_t * lmath, float32 lw)
+fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
 {
     fsg_model_t *fsg;
     hash_table_t *vocab;
     hash_iter_t *itor;
+    const char *ptr;
+    char *val = NULL, *endptr;
     int32 lastwid;
-    char **wordptr;
-    char *lineptr;
     char *fsgname;
     int32 lineno;
-    int32 n, i, j;
-    int n_state, n_trans, n_null_trans;
+    long n_state, n_trans, n_null_trans;
     glist_t nulls;
-    float32 p;
 
     lineno = 0;
     vocab = hash_table_new(32, FALSE);
-    wordptr = NULL;
-    lineptr = NULL;
     nulls = NULL;
     fsgname = NULL;
     fsg = NULL;
 
-    /* Scan upto FSG_BEGIN header */
-    for (;;) {
-        n = nextline_str2words(fp, &lineno, &lineptr, &wordptr);
-        if (n < 0) {
-            E_ERROR("%s declaration missing\n", FSG_MODEL_BEGIN_DECL);
-            goto parse_error;
-        }
-
-        if ((strcmp(wordptr[0], FSG_MODEL_BEGIN_DECL) == 0)) {
-            if (n > 2) {
-                E_ERROR("Line[%d]: malformed FSG_BEGIN declaration\n",
-                        lineno);
-                goto parse_error;
-            }
-            break;
-        }
-    }
-    /* Save FSG name, or it will get clobbered below :(.
-     * If name is missing, try the default.
-     */
-    if (n == 2) {
-        fsgname = ckd_salloc(wordptr[1]);
-    }
-    else {
-        E_WARN("FSG name is missing\n");
-        fsgname = ckd_salloc("unknown");
-    }
-
-    /* Read #states */
-    n = nextline_str2words(fp, &lineno, &lineptr, &wordptr);
-    if ((n != 2)
-        || ((strcmp(wordptr[0], FSG_MODEL_N_DECL) != 0)
-            && (strcmp(wordptr[0], FSG_MODEL_NUM_STATES_DECL) != 0))
-        || (sscanf(wordptr[1], "%d", &n_state) != 1)
-        || (n_state <= 0)) {
-        E_ERROR
-            ("Line[%d]: #states declaration line missing or malformed\n",
-             lineno);
+    if ((fsgname = copy_header_value(s3f, &lineno, FSG_MODEL_BEGIN_DECL, NULL)) == NULL) { 
+        E_ERROR("%s declaration missing\n", FSG_MODEL_BEGIN_DECL);
         goto parse_error;
     }
+
+    if ((val = copy_header_value(s3f, &lineno,
+                                     FSG_MODEL_NUM_STATES_DECL,
+                                     FSG_MODEL_N_DECL)) == NULL) { 
+        E_ERROR("%s declaration missing\n", FSG_MODEL_NUM_STATES_DECL);
+        goto parse_error;
+    }
+    n_state = strtol(val, &endptr, 10);
+    if (endptr == val || n_state < 0) {
+        E_ERROR("%s declaration malformed\n", FSG_MODEL_NUM_STATES_DECL);
+        goto parse_error;
+    }
+    ckd_free(val);
+    val = NULL;
 
     /* Now create the FSG. */
     fsg = fsg_model_init(fsgname, lmath, lw, n_state);
     ckd_free(fsgname);
     fsgname = NULL;
 
-    /* Read start state */
-    n = nextline_str2words(fp, &lineno, &lineptr, &wordptr);
-    if ((n != 2)
-        || ((strcmp(wordptr[0], FSG_MODEL_S_DECL) != 0)
-            && (strcmp(wordptr[0], FSG_MODEL_START_STATE_DECL) != 0))
-        || (sscanf(wordptr[1], "%d", &(fsg->start_state)) != 1)
-        || (fsg->start_state < 0)
-        || (fsg->start_state >= fsg->n_state)) {
-        E_ERROR
-            ("Line[%d]: start state declaration line missing or malformed\n",
-             lineno);
+    if ((val = copy_header_value(s3f, &lineno,
+                                     FSG_MODEL_START_STATE_DECL,
+                                     FSG_MODEL_S_DECL)) == NULL) { 
+        E_ERROR("%s declaration missing\n", FSG_MODEL_START_STATE_DECL);
         goto parse_error;
     }
+    fsg->start_state = (int)strtol(val, &endptr, 10);
+    if (endptr == val || fsg->start_state < 0 || fsg->start_state >= fsg->n_state) {
+        E_ERROR("%s declaration malformed\n", FSG_MODEL_START_STATE_DECL);
+        goto parse_error;
+    }
+    ckd_free(val);
+    val = NULL;
 
-    /* Read final state */
-    n = nextline_str2words(fp, &lineno, &lineptr, &wordptr);
-    if ((n != 2)
-        || ((strcmp(wordptr[0], FSG_MODEL_F_DECL) != 0)
-            && (strcmp(wordptr[0], FSG_MODEL_FINAL_STATE_DECL) != 0))
-        || (sscanf(wordptr[1], "%d", &(fsg->final_state)) != 1)
-        || (fsg->final_state < 0)
-        || (fsg->final_state >= fsg->n_state)) {
-        E_ERROR
-            ("Line[%d]: final state declaration line missing or malformed\n",
-             lineno);
+    if ((val = copy_header_value(s3f, &lineno,
+                                     FSG_MODEL_FINAL_STATE_DECL,
+                                     FSG_MODEL_F_DECL)) == NULL) { 
+        E_ERROR("%s declaration missing\n", FSG_MODEL_FINAL_STATE_DECL);
         goto parse_error;
     }
+    fsg->final_state = (int)strtol(val, &endptr, 10);
+    if (endptr == val || fsg->final_state < 0 || fsg->final_state >= fsg->n_state) {
+        E_ERROR("%s declaration malformed\n", FSG_MODEL_FINAL_STATE_DECL);
+        goto parse_error;
+    }
+    ckd_free(val);
+    val = NULL;
 
     /* Read transitions */
     lastwid = 0;
     n_trans = n_null_trans = 0;
-    for (;;) {
-        int32 wid, tprob;
+    while ((ptr = s3file_nextline(s3f)) != NULL) {
+        const char *word;
+        ++lineno;
 
-        n = nextline_str2words(fp, &lineno, &lineptr, &wordptr);
-        if (n <= 0) {
-            E_ERROR("Line[%d]: transition or FSG_END statement expected\n",
-                    lineno);
-            goto parse_error;
-        }
+        if (*ptr == FSG_MODEL_COMMENT_CHAR)
+            continue;
+        if ((word = s3file_nextword(s3f, &ptr)) == NULL)
+            continue;
 
-        if ((strcmp(wordptr[0], FSG_MODEL_END_DECL) == 0)) {
+        if ((strncmp(word, FSG_MODEL_END_DECL, ptr - word) == 0)) {
             break;
         }
-
-        if ((strcmp(wordptr[0], FSG_MODEL_T_DECL) == 0)
-            || (strcmp(wordptr[0], FSG_MODEL_TRANSITION_DECL) == 0)) {
-
-
-            if (((n != 4) && (n != 5))
-                || (sscanf(wordptr[1], "%d", &i) != 1)
-                || (sscanf(wordptr[2], "%d", &j) != 1)
-                || (i < 0) || (i >= fsg->n_state)
-                || (j < 0) || (j >= fsg->n_state)) {
-                E_ERROR
-                    ("Line[%d]: transition spec malformed; Expecting: from-state to-state trans-prob [word]\n",
-                     lineno);
+        if ((strncmp(word, FSG_MODEL_T_DECL, ptr - word) == 0)
+            || (strncmp(word, FSG_MODEL_TRANSITION_DECL, ptr - word) == 0)) {
+            int i, j;
+            int32 tprob;
+            float32 p;
+            
+            if ((word = s3file_nextword(s3f, &ptr)) == NULL) {
+                E_ERROR("Line[%d]: from-state missing\n", lineno);
                 goto parse_error;
             }
-
-            p = atof(wordptr[3]);
+            i = (int)strtol(word, &endptr, 10);
+            if (endptr == word || i < 0 || i >= fsg->n_state) {
+                E_ERROR("Invalid from-state %d\n", i);
+                goto parse_error;
+            }
+            if ((word = s3file_nextword(s3f, &ptr)) == NULL) {
+                E_ERROR("Line[%d]: to-state missing\n", lineno);
+                goto parse_error;
+            }
+            j = (int)strtol(word, &endptr, 10);
+            if (endptr == word || j < 0 || j >= fsg->n_state) {
+                E_ERROR("Invalid to-state %d\n", j);
+                goto parse_error;
+            }
+            if ((word = s3file_nextword(s3f, &ptr)) == NULL) {
+                E_ERROR("Line[%d]: trans-prob missing\n", lineno);
+                goto parse_error;
+            }
+            p = atof(word);
             if ((p <= 0.0) || (p > 1.0)) {
                 E_ERROR
                     ("Line[%d]: transition spec malformed; Expecting float as transition probability\n",
                      lineno);
                 goto parse_error;
             }
-        }
-        else {
-            E_ERROR("Line[%d]: transition or FSG_END statement expected\n",
-                    lineno);
-            goto parse_error;
-        }
-
-        tprob = (int32) (logmath_log(lmath, p) * fsg->lw);
-        /* Add word to "dictionary". */
-        if (n > 4) {
-            if (hash_table_lookup_int32(vocab, wordptr[4], &wid) < 0) {
-                (void) hash_table_enter_int32(vocab,
-                                              ckd_salloc(wordptr[4]),
-                                              lastwid);
-                wid = lastwid;
-                ++lastwid;
+            val = s3file_copy_nextword(s3f, &ptr);
+            tprob = (int32) (logmath_log(lmath, p) * fsg->lw);
+            /* Add word to "dictionary". */
+            if (val) {
+                int32 wid;
+                if (hash_table_lookup_int32(vocab, val, &wid) < 0) {
+                    (void) hash_table_enter_int32(vocab, val, lastwid);
+                    wid = lastwid;
+                    ++lastwid;
+                }
+                else {
+                    ckd_free(val);
+                }
+                val = NULL; /* Do not free it one way or the other */
+                fsg_model_trans_add(fsg, i, j, tprob, wid);
+                ++n_trans;
             }
-            fsg_model_trans_add(fsg, i, j, tprob, wid);
-            ++n_trans;
-        }
-        else {
-            if (fsg_model_null_trans_add(fsg, i, j, tprob) == 1) {
-                ++n_null_trans;
-                nulls =
-                    glist_add_ptr(nulls, fsg_model_null_trans(fsg, i, j));
+            else {
+                if (fsg_model_null_trans_add(fsg, i, j, tprob) == 1) {
+                    ++n_null_trans;
+                    nulls =
+                        glist_add_ptr(nulls, fsg_model_null_trans(fsg, i, j));
+                }
             }
         }
     }
@@ -715,14 +701,14 @@ fsg_model_read(FILE * fp, logmath_t * lmath, float32 lw)
         fsg->vocab[wid] = (char *) word;
     }
     hash_table_free(vocab);
+    if (val)
+        ckd_free(val);
+    if (fsgname)
+        ckd_free(fsgname);
 
     /* Do transitive closure on null transitions */
     nulls = fsg_model_null_trans_closure(fsg, nulls);
     glist_free(nulls);
-
-    ckd_free(lineptr);
-    ckd_free(wordptr);
-
     return fsg;
 
   parse_error:
@@ -731,9 +717,10 @@ fsg_model_read(FILE * fp, logmath_t * lmath, float32 lw)
         ckd_free((char *) hash_entry_key(itor->ent));
     glist_free(nulls);
     hash_table_free(vocab);
-    ckd_free(fsgname);
-    ckd_free(lineptr);
-    ckd_free(wordptr);
+    if (val)
+        ckd_free(val);
+    if (fsgname)
+        ckd_free(fsgname);
     fsg_model_free(fsg);
     return NULL;
 }
@@ -742,15 +729,15 @@ fsg_model_read(FILE * fp, logmath_t * lmath, float32 lw)
 fsg_model_t *
 fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
 {
-    FILE *fp;
+    s3file_t *s3f;
     fsg_model_t *fsg;
 
-    if ((fp = fopen(file, "r")) == NULL) {
+    if ((s3f = s3file_map_file(file)) == NULL) {
         E_ERROR_SYSTEM("Failed to open FSG file '%s' for reading", file);
         return NULL;
     }
-    fsg = fsg_model_read(fp, lmath, lw);
-    fclose(fp);
+    fsg = fsg_model_read_s3file(s3f, lmath, lw);
+    s3file_free(s3f);
     return fsg;
 }
 
