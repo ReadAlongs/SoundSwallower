@@ -1,22 +1,18 @@
 Roadmap:
 
-- 0.2.x: Size and speed optimizations for JS in particular, bug fixes
+- 0.3.0: Size and speed optimizations for JS in particular, bug fixes
   - Add back LDA (DONE)
+  - Asynchronous JS loading (DONE)
+	- Before: Test JSGF 981ms, JS 88k, WASM 214k, zip 119k
+	- After: Test JSGF 478ms, JS 43k, WASM 206k, zip 104k
+  - Better browser support and packaging?
   - Add phoneset description and IPA input
   - Add -cionly option
-  - Properly modularize JS code
-  - Fully async init and direct load binary files
-	- Go through all initialization code and pull out filesystem access
-  - Preserve existing Python and JS API, remove everything else!
 
-- 0.3.x: New model format
+- 0.4.x: New model format
 
-- 0.4.x: Phone-level alignment
+- 1.0.x: Phone-level alignment
 
-- 0.5.x: Improved modeling
+- 2.0.x: Improved modeling
   - DNN acoustic models?
   - VAD?
-
-Notes:
-
-- must expose phoneset and give description (closest IPA equivalents - support IPA or X-SAMPA input)

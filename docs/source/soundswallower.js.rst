@@ -7,26 +7,16 @@ case of JavaScript, we use `Emscripten <https://www.emscripten.org>`_
 to compile the C library into WebAssembly, which is loaded by a
 JavaScript wrapper module.  This means that there are certain
 idiosyncracies that must be taken into account when using the library,
-because JavaScript does not always have direct access to the
-filesystem, and synchronous I/O is not always possible.  Also, the
-runtime is quite different between `Node.js <https://nodejs.dev>`_ and
-the Web, and these details cannot be completely hidden from the user.
+mostly with respect to deployment and initialization.
 
 Using SoundSwallower on the Web
 -------------------------------
 
-We are currently in the process of converting SoundSwallower-JS to use
-asynchronous I/O at all times, but this is not yet complete.  In
-particular, the initialization phase blocks when reading models.  For
-this reason, you will need to run SoundSwallower-JS inside a `Web
-Worker
-<https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers>`_
-or an `AudioWorkletNode
-<https://developer.mozilla.org/en-US/docs/Web/API/AudioWorkletNode>`_.
-A full example can be found at
-https://github.com/dhdaines/soundswallower-demo - in particular, see
-https://github.com/dhdaines/soundswallower-demo/blob/main/src/recognizer.js
-for the details of initializing and calling the recognizer.
+Since version 0.3.0, SoundSwallower's JavaScript API can be used
+directly from a web page without any need to wrap it in a Web Worker.
+You may still wish to do so if you are processing large blocks of data
+or running on a slower machine.  Doing so is currently outside the
+scope of this document.
 
 Most of the methods of :js:class:`Decoder` are asynchronous.  This
 means that you must either call them from within an asynchronous
@@ -34,18 +24,20 @@ function using ``await``, or use the ``Promise`` they return in the
 usual manner.  If this means nothing to you, please consult
 https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous.
 
-This may seem superfluous given that you already have to go to the
-extra effort to run inside a Worker, but it allows us to have the same
-API under Node.js.  One may ask if this is really worthwhile since it
-seems that having code that is reusable on different runtimes is not a
-big priority for the JavaScript community.
+This means that for older browsers you will need to use some kind of
+magical incantation that "polyfills" (I think that's what the kids
+call it) or transcodes or whatever so that it works right.  Also
+outside the scope of this document, because there are approximately
+59,000 of these, all of which claim to be THE BEST EVAR and I do not
+know which one you should use.
 
 By default, a narrow-bandwidth English acoustic model is loaded and
-made available.  If you want to use a different one, you can use
-:js:func:`load_model` to make it visible to the library, upon which
-you can then refer to it in the decoder configuration.  That sounds
-confusing! Here is an example, presuming that you have downloaded and
-unpacked the Brazilian Portuguese model and dictionary from
+made available.  If you want to use a different one, just put it where
+your web server can find it, then pass the relative URL to the
+directory containing the model files using the `hmm` configuration
+parameter and the URL of the dictionary using the `dict` parameter.
+Here is an example, presuming that you have downloaded and unpacked
+the Brazilian Portuguese model and dictionary from
 https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Portuguese/
 and placed them under ``/model`` in your web server root:
 
@@ -54,10 +46,8 @@ and placed them under ``/model`` in your web server root:
     // Avoid loading the default model
     const ssjs = { defaultModel: null };
     await require('soundswallower')(ssjs);
-    // Make Portuguese model visible, along with its dictionary
-    ssjs.load_model("pt-br", "/model/cmusphinx-pt-br-5.2", "br-pt.dic");
-    // Tell the decoder to use it
-    const decoder = new ssjs.Decoder({hmm: "pt-br"});
+    const decoder = new ssjs.Decoder({hmm: "/model/cmusphinx-pt-br-5.2",
+                                      dict: "/model/br-pt.dic"});
     await decoder.initialize();
 
 Using SoundSwallower under Node.js
@@ -108,32 +98,6 @@ Now run this with ``node``:
 	decoder.delete();
     })();
 
-One caveat is that just as on the Web, configuration options such as
-``hmm`` (for the acoustic model) or ``jsgf`` (for grammars) do not
-have access to the filesystem, so any files you refer to in `Config`
-must be "loaded" into the virtual Emscripten filesystem.  Even worse,
-doing this "lazily" is currently broken under Node.js.  So you must do
-this in a ``preRun()`` method which is passed when loading the
-library, as in this example from the test suite:
-
-.. code-block:: javascript
-
-    const ssjs = {
-	preRun() {
-	    ssjs.FS_createPreloadedFile("/", "goforward.fsg",
-					"../tests/data/goforward.fsg", true, true);
-	    ssjs.FS_createPreloadedFile("/", "pizza.gram",
-					"../tests/data/pizza.gram", true, true);
-	    ssjs.load_model("fr-fr", "model/fr-fr");
-	}
-    };
-    await require('./soundswallower.js')(ssjs);
-
-Unfortunately, even though a solution exists with the `NODERAWFS
-<https://emscripten.org/docs/api_reference/Filesystem-API.html#noderawfs>`_
-option to Emscripten, as with everything in JavaScript-land, it
-requires you to recompile for a specific environment, and the code
-then no longer works on the Web.  So we don't do this at the moment.
 
 Decoder class
 -------------
@@ -152,5 +116,5 @@ Config class
 Functions
 ---------
 
-.. js:autofunction:: pre_soundswallower.load_model
+.. js:autofunction:: pre_soundswallower.get_model_path
    :short-name:

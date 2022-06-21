@@ -20,7 +20,12 @@ if (typeof(Module.defaultModel) === 'undefined') {
 }
 // User can also specify the base URL for models
 if (typeof(Module.modelBase) === 'undefined') {
-    Module.modelBase = "/model/";
+    if (RUNNING_ON_WEB) {
+	Module.modelBase = "model/";
+    }
+    else {
+	Module.modelBase = require("./model/index.js");
+    }
 }
 
 /**
@@ -699,6 +704,9 @@ async function* read_featparams(featparams) {
 	throw new Error("Odd number of arguments in "+featparams);
 }
 
+/**
+ * Load a file from disk or Internet and make it into an s3file_t.
+ */
 async function load_to_s3file(path) {
     let blob_u8;
     if (RUNNING_ON_WEB) {
@@ -729,16 +737,15 @@ async function load_to_s3file(path) {
 }
 
 /**
- * Get a model from the built-in model path.
+ * Get a model or model file from the built-in model path.
  */
 function get_model_path(subpath) {
     if (RUNNING_ON_WEB) {
 	return Module.modelBase + subpath;
     }
     else {
-	const model_path = require("./model/index.js");
 	const path = require("path");
-	return path.join(model_path, subpath);
+	return path.join(Module.modelBase, subpath);
     }
 }
 
