@@ -1,7 +1,6 @@
 set(SOURCES
   acmod.c
   bin_mdef.c
-  bio.c
   bitvec.c
   blkarray_list.c
   case.c
