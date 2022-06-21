@@ -110,7 +110,7 @@
     }
     describe("Test acoustic model loading", () => {
 	it('Should load acoustic model', async () => {
-	    let decoder = new ssjs.Decoder({loglevel: "INFO"});
+	    let decoder = new ssjs.Decoder();
 	    await decoder.init_config();
 	    await decoder.init_fe();
 	    await decoder.init_feat();
@@ -121,7 +121,7 @@
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "../tests/data/goforward.fsg",
 		samprate: 16000,
 		loglevel: "INFO",
 	    });
@@ -144,7 +144,7 @@
 	});
 	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "../tests/data/goforward.fsg",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
@@ -215,7 +215,7 @@
     describe("Test JSGF", () => {
 	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder({
-		jsgf: "pizza.gram",
+		jsgf: "../tests/data/pizza.gram",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
@@ -256,7 +256,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
     describe("Test reinitialize_audio", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "../tests/data/goforward.fsg",
 		samprate: 11025
 	    });
 	    await decoder.initialize();

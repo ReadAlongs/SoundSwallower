@@ -436,11 +436,18 @@ class Decoder {
      * Load grammar from configuration.
      */
     async init_grammar() {
-	const jsgf = this.config.get("jsgf");
-	const fsg = this.config.get("fsg");
-	const rv = Module._ps_init_grammar(this.ps);
-	if (rv < 0)
-	    throw new Error("Failed to initialize grammar");
+	let fsg = 0, jsgf = 0;
+	const jsgf_path = this.config.get("jsgf");
+	if (jsgf_path != null)
+	    jsgf = await load_to_s3file(jsgf_path)
+	const fsg_path = this.config.get("fsg");
+	if (fsg_path != null)
+	    fsg = await load_to_s3file(fsg_path)
+	if (fsg || jsgf) {
+	    const rv = Module._ps_init_grammar_s3file(this.ps, fsg, jsgf);
+	    if (rv < 0)
+		throw new Error("Failed to initialize grammar");
+	}
     }
 
     /**
@@ -605,7 +612,7 @@ class Decoder {
 	const logmath = Module._ps_get_logmath(this.ps);
 	const config = Module._ps_get_config(this.ps);
 	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
-	const n_state = 0;
+	let n_state = 0;
 	for (const t of transitions) {
 	    n_state = Math.max(n_state, t.from, t.to);
 	}
@@ -615,7 +622,7 @@ class Decoder {
 			[name, logmath, lw, n_state]);
 	Module._fsg_set_states(fsg, start_state, final_state);
 	for (const t of transitions) {
-	    const logprob = 0;
+	    let logprob = 0;
 	    if ('prob' in t) {
 		logprob = Module._logmath_log(logmath, t.prob);
 	    }

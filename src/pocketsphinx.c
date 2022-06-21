@@ -410,23 +410,22 @@ ps_init_grammar(ps_decoder_t *ps)
 }
 
 EXPORT int
-ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg, s3file_t *jsgf)
+ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
 {
-    const char *path;
     int32 lw;
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
     /* JSGF takes precedence */
-    if (jsgf) {
+    if (jsgf_file) {
         /* FIXME: This depends on jsgf->buf having 0 at the end, which
            it will when created by JavaScript, but that is not
            guaranteed when memory-mapped. */
-        if (ps_set_jsgf_string(ps, PS_DEFAULT_SEARCH, jsgf->ptr) != 0)
+        if (ps_set_jsgf_string(ps, PS_DEFAULT_SEARCH, jsgf_file->ptr) != 0)
             return -1;
     }
-    if (fsg) {
-        fsg_model_t *fsg = fsg_model_read_s3file(fsg, ps->lmath, lw);
+    if (fsg_file) {
+        fsg_model_t *fsg = fsg_model_read_s3file(fsg_file, ps->lmath, lw);
         if (!fsg)
             return -1;
         if (ps_set_fsg(ps, PS_DEFAULT_SEARCH, fsg) != 0) {
