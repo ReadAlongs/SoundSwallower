@@ -231,7 +231,11 @@ senone_init_s3file(gauden_t *g,
             goto error_out;
         }
     }
-    else {
+
+    if (senone_mixw_read(s, mixwfile, lmath) < 0)
+        goto error_out;
+
+    if (!mgau_mapfile) {
 	if (s->n_gauden == 1) {
 	    /* sen2mgau_map_file = ".semi."; */
             /* All-to-1 senones-codebook mapping */
@@ -260,9 +264,6 @@ senone_init_s3file(gauden_t *g,
             s->n_gauden = s->n_sen;
         }
     }
-
-    if (senone_mixw_read(s, mixwfile, lmath) < 0)
-        goto error_out;
 
     s->featscr = NULL;
     return s;
