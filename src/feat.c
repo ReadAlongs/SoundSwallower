@@ -126,8 +126,6 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/bio.h>
-#include <soundswallower/pio.h>
 #include <soundswallower/cmn.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
@@ -720,6 +718,24 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 feat_t *
 feat_init(cmd_ln_t *config)
 {
+    const char *ldapath = cmd_ln_str_r(config, "_lda");
+    s3file_t *lda = NULL;
+    feat_t *feat;
+
+    if (ldapath) {
+        E_INFO("Reading linear feature transformation from %s\n",
+               ldapath);
+        if ((lda = s3file_map_file(ldapath)) == NULL)
+            return NULL;
+    }
+    feat = feat_init_s3file(config, lda);
+    s3file_free(lda);
+    return feat;
+}
+
+feat_t *
+feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
+{
     feat_t *fcb;
     const char *type = cmd_ln_str_r(config, "-feat");
     cmn_type_t cmn = cmn_type_from_str(cmd_ln_str_r(config,"-cmn"));
@@ -917,12 +933,9 @@ feat_init(cmd_ln_t *config)
                                 sizeof(*fcb->tmpcepbuf));
 
     /* Load LDA. */
-    if (cmd_ln_str_r(config, "_lda")) {
-        E_INFO("Reading linear feature transformation from %s\n",
-               cmd_ln_str_r(config, "_lda"));
-        if (feat_read_lda(fcb,
-                          cmd_ln_str_r(config, "_lda"),
-                          cmd_ln_int32_r(config, "-ldadim")) < 0)
+    if (lda) {
+        if (feat_read_lda_s3file(fcb, lda,
+                                 cmd_ln_int32_r(config, "-ldadim")) < 0)
             goto error_out;
     }
     /* Set up subvector specification */

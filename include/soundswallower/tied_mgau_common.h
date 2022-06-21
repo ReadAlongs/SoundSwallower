@@ -44,6 +44,8 @@
 #define __TIED_MGAU_COMMON_H__
 
 #include <soundswallower/logmath.h>
+#include <soundswallower/s3file.h>
+#include <soundswallower/ms_gauden.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -114,6 +116,18 @@ fast_logmath_add(logmath_t *lmath, int mlx, int mly)
 
     return r - (((uint8 *)t->table)[d]);
 }
+
+/**
+ * Read mixture weights from mixw file.
+ */
+int read_mixw(s3file_t *s3f, gauden_t *g, logmath_t *lmath,
+              int32 *out_n_sen, uint8 ****out_mixw, double mixw_floor);
+/**
+ * Read mixture weights from sendump file.
+ */
+int read_sendump(s3file_t *s3f, gauden_t *g,
+                 int32 mdef_n_sen, uint8 **out_mixw_cb,
+                 uint8 ****out_mixw);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -9,6 +9,8 @@
 #include <soundswallower/feat.h>
 #include <soundswallower/ckd_alloc.h>
 
+#include "test_macros.h"
+
 mfcc_t data[6][13] = {
 	{ FLOAT2MFCC(15.114), FLOAT2MFCC(-1.424), FLOAT2MFCC(-0.953),
 	  FLOAT2MFCC(0.186), FLOAT2MFCC(-0.656), FLOAT2MFCC(-0.226),
@@ -112,8 +114,26 @@ main(int argc, char *argv[])
 		}
 	}
 	feat_free(fcb);
+	ckd_free_3d(out_feats);
+
+	/* Test LDA (sort of). */
+	cmd_ln_set_str_r(config, "-feat", "1s_c_d_dd");
+	fcb = feat_init(config);
+	feat_read_lda(fcb, TESTDATADIR "/feature_transform", 12);
+	out_feats = (mfcc_t ***)ckd_calloc_3d(8, 1, 39, sizeof(mfcc_t));
+	ncep = 6;
+	feat_s2mfc2feat_live(fcb, in_feats, &ncep, 1, 1, out_feats);
+
+	for (i = 0; i < 6; ++i) {
+		for (j = 0; j < 12; ++j) {
+			printf("%.3f ", MFCC2FLOAT(out_feats[i][0][j]));
+		}
+		printf("\n");
+	}
+	feat_free(fcb);
 	ckd_free(in_feats);
 	ckd_free_3d(out_feats);
+	cmd_ln_free_r(config);
 
 	return 0;
 }

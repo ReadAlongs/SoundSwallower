@@ -52,7 +52,6 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/bio.h>
 #include <soundswallower/cmdln_macro.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/s2_semi_mgau.h>
@@ -89,8 +88,7 @@ acmod_load_am(acmod_t *acmod)
         return -1;
     }
     acmod->tmat = tmat_init(tmatfn, acmod->lmath,
-                            cmd_ln_float32_r(acmod->config, "-tmatfloor"),
-                            TRUE);
+                            cmd_ln_float32_r(acmod->config, "-tmatfloor"));
 
     /* Read the acoustic models. */
     if ((cmd_ln_str_r(acmod->config, "_mean") == NULL)
@@ -102,17 +100,17 @@ acmod_load_am(acmod_t *acmod)
 
     if (cmd_ln_str_r(acmod->config, "_senmgau")) {
         E_INFO("Using general multi-stream GMM computation\n");
-        acmod->mgau = ms_mgau_init(acmod, acmod->lmath, acmod->mdef);
+        acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
             return -1;
     }
     else {
         E_INFO("Attempting to use PTM computation module\n");
-        if ((acmod->mgau = ptm_mgau_init(acmod, acmod->mdef)) == NULL) {
+        if ((acmod->mgau = ptm_mgau_init(acmod)) == NULL) {
             E_INFO("Attempting to use semi-continuous computation module\n");
             if ((acmod->mgau = s2_semi_mgau_init(acmod)) == NULL) {
                 E_INFO("Falling back to general multi-stream GMM computation\n");
-                acmod->mgau = ms_mgau_init(acmod, acmod->lmath, acmod->mdef);
+                acmod->mgau = ms_mgau_init(acmod);
                 if (acmod->mgau == NULL) {
                     E_ERROR("Failed to read acoustic model\n");
                     return -1;

@@ -40,10 +40,10 @@
 #include <soundswallower/logmath.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/bio.h>
 #include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/vector.h>
+#include <soundswallower/export.h>
 
 #define TMAT_PARAM_VERSION		"1.0"
 
@@ -109,74 +109,71 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 
 
 tmat_t *
-tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 breport)
+tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor)
 {
-    char tmp;
+    s3file_t *s;
+    tmat_t *tmat;
+
+    E_INFO("Reading HMM transition probability matrices: %s\n",
+           file_name);
+    if ((s = s3file_map_file(file_name)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open transition file '%s' for reading", file_name);
+        return NULL;
+    }
+
+    tmat = tmat_init_s3file(s, lmath, tpfloor);
+    s3file_free(s);
+    return tmat;
+}
+
+EXPORT tmat_t *
+tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
+{
     int32 n_src, n_dst, n_tmat;
-    FILE *fp;
-    int32 byteswap, chksum_present;
-    uint32 chksum;
-    float32 **tp;
+    float32 **tp = NULL;
     int32 i, j, k, tp_per_tmat;
-    char **argname, **argval;
     tmat_t *t;
 
 
-    if (breport) {
-        E_INFO("Reading HMM transition probability matrices: %s\n",
-               file_name);
-    }
-
     t = (tmat_t *) ckd_calloc(1, sizeof(tmat_t));
 
-    if ((fp = fopen(file_name, "rb")) == NULL)
-        E_FATAL_SYSTEM("Failed to open transition file '%s' for reading", file_name);
-
     /* Read header, including argument-value info and 32-bit byteorder magic */
-    if (bio_readhdr(fp, &argname, &argval, &byteswap) < 0)
-        E_FATAL("Failed to read header from file '%s'\n", file_name);
-
-    /* Parse argument-value list */
-    chksum_present = 0;
-    for (i = 0; argname[i]; i++) {
-        if (strcmp(argname[i], "version") == 0) {
-            if (strcmp(argval[i], TMAT_PARAM_VERSION) != 0)
-                E_WARN("Version mismatch(%s): %s, expecting %s\n",
-                       file_name, argval[i], TMAT_PARAM_VERSION);
-        }
-        else if (strcmp(argname[i], "chksum0") == 0) {
-            chksum_present = 1; /* Ignore the associated value */
-        }
+    if (s3file_parse_header(s, TMAT_PARAM_VERSION) < 0) {
+        E_ERROR("Failed to read s3 header\n");
+        goto error_out;
     }
-    bio_hdrarg_free(argname, argval);
-    argname = argval = NULL;
-
-    chksum = 0;
 
     /* Read #tmat, #from-states, #to-states, arraysize */
-    if ((bio_fread(&n_tmat, sizeof(int32), 1, fp, byteswap, &chksum)
+    if ((s3file_get(&n_tmat, sizeof(int32), 1, s)
          != 1)
-        || (bio_fread(&n_src, sizeof(int32), 1, fp, byteswap, &chksum) !=
+        || (s3file_get(&n_src, sizeof(int32), 1, s) !=
             1)
-        || (bio_fread(&n_dst, sizeof(int32), 1, fp, byteswap, &chksum) !=
+        || (s3file_get(&n_dst, sizeof(int32), 1, s) !=
             1)
-        || (bio_fread(&i, sizeof(int32), 1, fp, byteswap, &chksum) != 1)) {
-        E_FATAL("Failed to read header from '%s'\n", file_name);
+        || (s3file_get(&i, sizeof(int32), 1, s) != 1)) {
+        E_ERROR("Failed to read tmat header\n");
+        goto error_out;
     }
-    if (n_tmat >= MAX_INT16)
-        E_FATAL("%s: Number of transition matrices (%d) exceeds limit (%d)\n", file_name,
+    if (n_tmat >= MAX_INT16) {
+        E_ERROR("%Number of transition matrices (%d) exceeds limit (%d)\n",
                 n_tmat, MAX_INT16);
+        goto error_out;
+    }
     t->n_tmat = n_tmat;
     
-    if (n_dst != n_src + 1)
-        E_FATAL("%s: Unsupported transition matrix. Number of source states (%d) != number of target states (%d)-1\n", file_name,
+    if (n_dst != n_src + 1) {
+        E_ERROR("Unsupported transition matrix."
+                "Number of source states (%d) != number of target states (%d)-1\n",
                 n_src, n_dst);
+        goto error_out;
+    }
     t->n_state = n_src;
 
     if (i != t->n_tmat * n_src * n_dst) {
-        E_FATAL
-            ("%s: Invalid transitions. Number of coefficients (%d) doesn't match expected array dimension: %d x %d x %d\n",
-             file_name, i, t->n_tmat, n_src, n_dst);
+        E_ERROR
+            ("Invalid transitions. Number of coefficients (%d) doesn't match expected array dimension: %d x %d x %d\n",
+             i, t->n_tmat, n_src, n_dst);
+        goto error_out;
     }
 
     /* Allocate memory for tmat data */
@@ -188,9 +185,9 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 brepor
     /* Read transition matrices, normalize and floor them, and convert to log domain */
     tp_per_tmat = n_src * n_dst;
     for (i = 0; i < t->n_tmat; i++) {
-        if (bio_fread(tp[0], sizeof(float32), tp_per_tmat, fp,
-                      byteswap, &chksum) != tp_per_tmat) {
-            E_FATAL("Failed to read transition matrix %d from '%s'\n", i, file_name);
+        if (s3file_get(tp[0], sizeof(float32), tp_per_tmat, s) != (size_t)tp_per_tmat) {
+            E_ERROR("Failed to read transition matrix %d\n", i);
+            goto error_out;
         }
 
         /* Normalize and floor */
@@ -220,13 +217,8 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 brepor
 
     ckd_free_2d(tp);
 
-    if (chksum_present)
-        bio_verify_chksum(fp, byteswap, chksum);
-
-    if (fread(&tmp, 1, 1, fp) == 1)
-        E_ERROR("Non-empty file beyond end of data\n");
-
-    fclose(fp);
+    if (s3file_verify_chksum(s) != 0)
+        goto error_out;
 
     if (tmat_chk_uppertri(t, lmath) < 0)
         E_FATAL("Tmat not upper triangular\n");
@@ -234,16 +226,12 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor, int32 brepor
         E_FATAL("Topology not Left-to-Right or Bakis\n");
 
     return t;
-}
 
-void
-tmat_report(tmat_t * t)
-{
-    E_INFO_NOFN("Initialization of tmat_t, report:\n");
-    E_INFO_NOFN("Read %d transition matrices of size %dx%d\n",
-                t->n_tmat, t->n_state, t->n_state + 1);
-    E_INFO_NOFN("\n");
-
+ error_out:
+    if (tp)
+        ckd_free_2d(tp);
+    tmat_free(t);
+    return NULL;
 }
 
 /* 

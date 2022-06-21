@@ -62,6 +62,11 @@ extern "C" {
 char *string_join(const char *base, ...);
 
 /**
+ * Locale-independent isspace to avoid incompatibilities
+ */
+int isspace_c(char ch);
+
+/**
  * Which end of a string to operate on for string_trim().
  */
 enum string_edge_e {
@@ -77,62 +82,6 @@ enum string_edge_e {
  * @param which one of STRING_START, STRING_END, or STRING_BOTH.
  */
 char *string_trim(char *string, enum string_edge_e which);
-
-/* FIXME: Both of these string splitting functions basically suck.  I
- have attempted to fix them as best I can.  (dhuggins@cs, 20070808) */
-
-/** 
- * Convert a line to an array of "words", based on whitespace separators.  A word
- * is a string with no whitespace chars in it.
- * Note that the string line is modified as a result: NULL chars are placed after
- * every word in the line.
- * Return value: No. of words found; -1 if no. of words in line exceeds n_wptr.
- */
-int32 str2words (char *line,	/**< In/Out: line to be parsed.  This
-				   string will be modified! (NUL
-				   characters inserted at word
-				   boundaries) */
-		 char **wptr,	/**< In/Out: Array of pointers to
-				   words found in line.  The array
-				   must be allocated by the caller.
-				   It may be NULL in which case the
-				   number of words will be counted.
-				   This allows you to allcate it to
-				   the proper size, e.g.:
-				   
-				   n = str2words(line, NULL, 0);
-				   wptr = ckd_calloc(n, sizeof(*wptr));
-				   str2words(line, wptr, n);
-				*/
-		 int32 n_wptr	/**< In: Size of wptr array, ignored
-				   if wptr == NULL */
-	);
-
-/**
- * Yet another attempt at a clean "next-word-in-string" function.  See arguments below.
- * @return Length of word returned, or -1 if nothing found.
- * This allows you to scan through a line:
- *
- * <pre>
- * while ((n = nextword(line, delim, &word, &delimfound)) >= 0) {
- *     ... do something with word ..
- *     word[n] = delimfound;
- *     line = word + n;
- * }
- * </pre>
- */
-int32 nextword (char *line, /**< Input: String being searched for next word.
-			       Will be modified by this function (NUL characters inserted) */
-		const char *delim, /**< Input: A word, if found, must be delimited at either
-			         end by a character from this string (or at the end
-			         by the NULL char) */
-		char **word,/**< Output: *word = ptr within line to beginning of first
-			         word, if found.  Delimiter at the end of word replaced
-			         with the NULL char. */
-		char *delimfound /**< Output: *delimfound = original delimiter found at the end
-				    of the word.  (This way, the caller can restore the
-				    delimiter, preserving the original string.) */
-	);
 
 #ifdef __cplusplus
 }

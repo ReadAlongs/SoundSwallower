@@ -1,16 +1,7 @@
 (async () => {
     const assert = require('assert');
     const fs = require('fs/promises');
-    const ssjs = {
-	// Pre-load the grammar we use below
-	preRun() {
-	    ssjs.FS_createPreloadedFile("/", "goforward.fsg",
-					"../tests/data/goforward.fsg", true, true);
-	    ssjs.FS_createPreloadedFile("/", "pizza.gram",
-					"../tests/data/pizza.gram", true, true);
-	    ssjs.load_model("fr-fr", "model/fr-fr");
-	}
-    };
+    const ssjs = {};
     before(async () => {
 	await require('./soundswallower.js')(ssjs);
     });
@@ -33,12 +24,14 @@
 	it("Should contain default -hmm", () => {
 	    let conf = new ssjs.Config();
 	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
+	    assert.equal(conf.get('-hmm'),
+			 ssjs.get_model_path(ssjs.defaultModel));
 	});
 	it("Should contain default -hmm when initialized", () => {
 	    let conf = new ssjs.Config({dict: "en-us.dict"});
 	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
+	    assert.equal(conf.get('-hmm'),
+			 ssjs.get_model_path(ssjs.defaultModel));
 	});
 	it("Unset string key should have null value", () => {
 	    let conf = new ssjs.Config();
@@ -54,6 +47,14 @@
 	    conf.set("hmm", "en-us");
 	    assert.equal("en-us", conf.get("-hmm"));
 	    assert.equal("en-us", conf.get("hmm"));
+	});
+	it("Should find mdef.bin in model path, or not", () => {
+	    let conf = new ssjs.Config();
+	    conf.set("hmm", ssjs.get_model_path("en-us"));
+	    assert.equal(ssjs.get_model_path("en-us/mdef.bin"),
+			 conf.model_file_path("-mdef", "mdef.bin"));
+	    conf.set("mdef", "foo.bin");
+	    assert.equal("foo.bin", conf.model_file_path("-mdef", "mdef.bin"));
 	});
     });
     describe("Test iteration on Config", () => {
@@ -109,25 +110,24 @@
 	    break;
 	}
     }
-    describe("Test reading feat.params", () => {
-	it('Should parse feat.params', async () => {
-	    for await (const [key, value] of ssjs.read_featparams("test_feat.params")) {
-		assert_feat_params(key, value);
-	    }
-	    for await (const [key, value] of ssjs.read_featparams("test_feat2.params")) {
-		assert_feat_params(key, value);
-	    }
+    describe("Test acoustic model loading", () => {
+	it('Should load acoustic model', async () => {
+	    let decoder = new ssjs.Decoder();
+	    await decoder.init_config();
+	    await decoder.init_fe();
+	    await decoder.init_feat();
+	    await decoder.init_acmod();
+	    await decoder.load_acmod_files();
 	});
     });
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 16000,
-		loglevel: "INFO",
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -145,11 +145,11 @@
 	});
 	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    let pcm32 = new Float32Array(pcm.buffer);
 	    await decoder.start();
 	    await decoder.process(pcm32, false, true);
@@ -173,7 +173,7 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -183,7 +183,8 @@
     });
     describe("Test loading model for other language", () => {
 	it('Should recognize "avance de dix mètres"', async () => {
-	    let decoder = new ssjs.Decoder({hmm: "fr-fr", samprate: 16000});
+	    let decoder = new ssjs.Decoder({hmm: ssjs.get_model_path("fr-fr"),
+					    samprate: 16000});
 	    await decoder.initialize();
 	    let fsg = decoder.create_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 0.5, word: "avance"},
@@ -205,7 +206,7 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward_fr-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward_fr-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -216,11 +217,11 @@
     describe("Test JSGF", () => {
 	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder({
-		jsgf: "pizza.gram",
+		jsgf: "testdata/pizza.gram",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
+	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -246,7 +247,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 `);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete();
-	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
+	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -257,11 +258,11 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
     describe("Test reinitialize_audio", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 11025
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    decoder.config.set("samprate", 16000);
 	    await decoder.reinitialize_audio();
 	    await decoder.start();

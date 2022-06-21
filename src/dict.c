@@ -37,7 +37,6 @@
 
 #include <string.h>
 
-#include <soundswallower/pio.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/dict.h>
 
@@ -141,158 +140,143 @@ dict_add_word(dict_t * d, char const *word, s3cipid_t const * p, int32 np)
 }
 
 
-static int32
-dict_read(FILE * fp, dict_t * d)
+dict_t *
+dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
 {
-    lineiter_t *li;
-    char **wptr;
-    s3cipid_t *p;
+    dict_t *d = NULL;
+    s3file_t *dict = NULL;
+    s3file_t *fdict = NULL;
+
+    if (config) {
+        const char *path;
+        if ((path = cmd_ln_str_r(config, "_dict")) != NULL) {
+            if ((dict = s3file_map_file(path)) == NULL) {
+                E_ERROR_SYSTEM("Failed to read dictionary from %s", path);
+                goto error_out;
+            }
+        }
+        if ((path = cmd_ln_str_r(config, "_fdict")) != NULL) {
+            if ((fdict = s3file_map_file(path)) == NULL) {
+                E_ERROR_SYSTEM("Failed to read filler dictionary from %s", path);
+                goto error_out;
+            }
+        }
+    }
+    d = dict_init_s3file(config, mdef, dict, fdict);
+ error_out:
+    s3file_free(dict);
+    s3file_free(fdict);
+    return d;
+}
+
+
+static int32
+dict_read_s3file(dict_t *d, s3file_t *dict)
+{
+    const char *line, *ptr;
+    s3cipid_t *p = NULL;
     int32 lineno, nwd;
     s3wid_t w;
     int32 i, maxwd;
     size_t stralloc, phnalloc;
 
-    maxwd = 512;
-    p = (s3cipid_t *) ckd_calloc(maxwd + 4, sizeof(*p));
-    wptr = (char **) ckd_calloc(maxwd, sizeof(char *)); /* Freed below */
-
     lineno = 0;
     stralloc = phnalloc = 0;
-    for (li = lineiter_start(fp); li; li = lineiter_next(li)) {
+    while ((ptr = line = s3file_nextline(dict)) != NULL) {
+        char *word;
+
         lineno++;
-        if (0 == strncmp(li->buf, "##", 2)
-            || 0 == strncmp(li->buf, ";;", 2))
+        if (0 == strncmp(line, "##", 2)
+            || 0 == strncmp(line, ";;", 2))
             continue;
 
-        if ((nwd = str2words(li->buf, wptr, maxwd)) < 0) {
-            /* Increase size of p, wptr. */
-            nwd = str2words(li->buf, NULL, 0);
-            assert(nwd > maxwd); /* why else would it fail? */
-            maxwd = nwd;
-            p = (s3cipid_t *) ckd_realloc(p, (maxwd + 4) * sizeof(*p));
-            wptr = (char **) ckd_realloc(wptr, maxwd * sizeof(*wptr));
+        for (nwd = 0; s3file_nextword(dict, &ptr); ++nwd)
+            /* Count words */;
+        ptr = line; /* Reset to line start */
+        if (p == NULL) {
+            maxwd = nwd * 2; /* Some extra space */
+            p = ckd_calloc(maxwd, sizeof(*p));
         }
-
         if (nwd == 0)           /* Empty line */
             continue;
-        /* wptr[0] is the word-string and wptr[1..nwd-1] the pronunciation sequence */
+        /* Increase size of p, wptr if needed. */
+        while (nwd > maxwd) {
+            maxwd *= 2;
+            E_INFO("Increased maximum words/phones to %ld\n", maxwd);
+            p = (s3cipid_t *) ckd_realloc(p, maxwd * sizeof(*p));
+        }
+        /* FIXME: Might be slow with all the copying */
+        word = s3file_copy_nextword(dict, &ptr);
         if (nwd == 1) {
             E_ERROR("Line %d: No pronunciation for word '%s'; ignored\n",
-                    lineno, wptr[0]);
+                    lineno, word);
+            ckd_free(word);
             continue;
         }
-
-
         /* Convert pronunciation string to CI-phone-ids */
         for (i = 1; i < nwd; i++) {
-            p[i - 1] = dict_ciphone_id(d, wptr[i]);
+        /* FIXME: Might be slow with all the copying */
+            char *phone = s3file_copy_nextword(dict, &ptr);
+            p[i - 1] = dict_ciphone_id(d, phone);
             if (NOT_S3CIPID(p[i - 1])) {
                 E_ERROR("Line %d: Phone '%s' is missing in the acoustic model; word '%s' ignored\n",
-                        lineno, wptr[i], wptr[0]);
+                        lineno, phone, word);
+                ckd_free(phone);
                 break;
             }
+            ckd_free(phone);
         }
-
         if (i == nwd) {         /* All CI-phones successfully converted to IDs */
-            w = dict_add_word(d, wptr[0], p, nwd - 1);
+            w = dict_add_word(d, word, p, nwd - 1);
             if (NOT_S3WID(w))
                 E_ERROR
                     ("Line %d: Failed to add the word '%s' (duplicate?); ignored\n",
-                     lineno, wptr[0]);
+                     lineno, word);
             else {
                 stralloc += strlen(d->word[w].word);
                 phnalloc += d->word[w].pronlen * sizeof(s3cipid_t);
             }
         }
+        ckd_free(word);
     }
     E_INFO("Dictionary size %d, allocated %d KiB for strings, %d KiB for phones\n",
            dict_size(d), (int)stralloc / 1024, (int)phnalloc / 1024);
     ckd_free(p);
-    ckd_free(wptr);
 
-    return 0;
-}
-
-int
-dict_write(dict_t *dict, char const *filename, char const *format)
-{
-    FILE *fh;
-    int i;
-
-    (void)format; /* FIXME */
-    if ((fh = fopen(filename, "w")) == NULL) {
-        E_ERROR_SYSTEM("Failed to open '%s'", filename);
-        return -1;
-    }
-    for (i = 0; i < dict->n_word; ++i) {
-        char *phones;
-        int j, phlen;
-        if (!dict_real_word(dict, i))
-            continue;
-        for (phlen = j = 0; j < dict_pronlen(dict, i); ++j)
-            phlen += strlen(dict_ciphone_str(dict, i, j)) + 1;
-        phones = ckd_calloc(1, phlen);
-        for (j = 0; j < dict_pronlen(dict, i); ++j) {
-            strcat(phones, dict_ciphone_str(dict, i, j));
-            if (j != dict_pronlen(dict, i) - 1)
-                strcat(phones, " ");
-        }
-        fprintf(fh, "%-30s %s\n", dict_wordstr(dict, i), phones);
-        ckd_free(phones);
-    }
-    fclose(fh);
     return 0;
 }
 
 
 dict_t *
-dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
+dict_init_s3file(cmd_ln_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *fdict)
 {
-    FILE *fp, *fp2;
     int32 n;
-    lineiter_t *li;
     dict_t *d;
     s3cipid_t sil;
-    char const *dictfile = NULL, *fillerfile = NULL;
-
-    if (config) {
-        dictfile = cmd_ln_str_r(config, "_dict");
-        fillerfile = cmd_ln_str_r(config, "_fdict");
-    }
+    const char *line;
 
     /*
      * First obtain #words in dictionary (for hash table allocation).
      * Reason: The PC NT system doesn't like to grow memory gradually.  Better to allocate
      * all the required memory in one go.
      */
-    fp = NULL;
     n = 0;
-    if (dictfile) {
-        if ((fp = fopen(dictfile, "r")) == NULL) {
-            E_ERROR_SYSTEM("Failed to open dictionary file '%s' for reading", dictfile);
-            return NULL;
+    if (dict) {
+        while ((line = s3file_nextline(dict)) != NULL) {
+            if (0 != strncmp(line, "##", 2)
+                && 0 != strncmp(line, ";;", 2))
+            n++;
         }
-        for (li = lineiter_start(fp); li; li = lineiter_next(li)) {
-            if (0 != strncmp(li->buf, "##", 2)
-                && 0 != strncmp(li->buf, ";;", 2))
-                n++;
-        }
-	fseek(fp, 0L, SEEK_SET);
+        dict->ptr = dict->buf;
     }
 
-    fp2 = NULL;
-    if (fillerfile) {
-        if ((fp2 = fopen(fillerfile, "r")) == NULL) {
-            E_ERROR_SYSTEM("Failed to open filler dictionary file '%s' for reading", fillerfile);
-            fclose(fp);
-            return NULL;
-	}
-        for (li = lineiter_start(fp2); li; li = lineiter_next(li)) {
-	    if (0 != strncmp(li->buf, "##", 2)
-    	        && 0 != strncmp(li->buf, ";;", 2))
+    if (fdict) {
+        while ((line = s3file_nextline(fdict)) != NULL) {
+	    if (0 != strncmp(line, "##", 2)
+    	        && 0 != strncmp(line, ";;", 2))
                 n++;
         }
-        fseek(fp2, 0L, SEEK_SET);
+        fdict->ptr = fdict->buf;
     }
 
     /*
@@ -306,10 +290,7 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
     if (n >= MAX_S3WID) {
         E_ERROR("Number of words in dictionaries (%d) exceeds limit (%d)\n", n,
                 MAX_S3WID);
-        if (fp) fclose(fp);
-        if (fp2) fclose(fp2);
-        ckd_free(d);
-        return NULL;
+        goto error_out;
     }
 
     E_INFO("Allocating %d * %d bytes (%d KiB) for word entries\n",
@@ -326,35 +307,28 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
     d->ht = hash_table_new(d->max_words, d->nocase);
 
     /* Digest main dictionary file */
-    if (fp) {
-        E_INFO("Reading main dictionary: %s\n", dictfile);
-        dict_read(fp, d);
-        fclose(fp);
+    if (dict) {
+        dict_read_s3file(d, dict);
         E_INFO("%d words read\n", d->n_word);
     }
 
     if (dict_wordid(d, S3_START_WORD) != BAD_S3WID) {
 	E_ERROR("Remove sentence start word '<s>' from the dictionary\n");
-	dict_free(d);
-	return NULL;
+        goto error_out;
     }
     if (dict_wordid(d, S3_FINISH_WORD) != BAD_S3WID) {
 	E_ERROR("Remove sentence start word '</s>' from the dictionary\n");
-	dict_free(d);
-	return NULL;
+        goto error_out;
     }
     if (dict_wordid(d, S3_SILENCE_WORD) != BAD_S3WID) {
 	E_ERROR("Remove silence word '<sil>' from the dictionary\n");
-	dict_free(d);
-	return NULL;
+        goto error_out;
     }
 
     /* Now the filler dictionary file, if it exists */
     d->filler_start = d->n_word;
-    if (fp2) {
-        E_INFO("Reading filler dictionary: %s\n", fillerfile);
-        dict_read(fp2, d);
-        fclose(fp2);
+    if (fdict) {
+        dict_read_s3file(d, fdict);
         E_INFO("%d words read\n", d->n_word - d->filler_start);
     }
     if (mdef)
@@ -382,13 +356,15 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
         || (!dict_filler_word(d, d->silwid))) {
         E_ERROR("Word '%s' must occur (only) in filler dictionary\n",
                 S3_SILENCE_WORD);
-        dict_free(d);
-        return NULL;
+        goto error_out;
     }
 
     /* No check that alternative pronunciations for filler words are in filler range!! */
-
     return d;
+
+ error_out:
+    dict_free(d);
+    return NULL;
 }
 
 

@@ -55,7 +55,7 @@ extern "C" {
 }
 #endif
 
-#include <soundswallower/mmio.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/mdef.h>
 
@@ -130,7 +130,7 @@ struct bin_mdef_s {
 	int32 n_cd_tree;    /**< Number of nodes in cd_tree (below) */
 	int32 sil;	    /**< CI phone ID for silence */
 
-	mmio_file_t *filemap;/**< File map for this file (if any) */
+	s3file_t *filemap;   /**< Mapped file for this file (if any) */
 	char **ciname;       /**< CI phone names */
 	cd_tree_t *cd_tree;  /**< Tree mapping CD phones to phone IDs */
 	mdef_entry_t *phone; /**< All phone structures */
@@ -169,18 +169,17 @@ struct bin_mdef_s {
  * Read a binary mdef from a file.
  */
 bin_mdef_t *bin_mdef_read(cmd_ln_t *config, const char *filename);
+
+/**
+ * Read a binary mdef from an existing s3file_t.
+ */
+bin_mdef_t *bin_mdef_read_s3file(s3file_t *s);
+
 /**
  * Read a text mdef from a file (creating an in-memory binary mdef).
  */
 bin_mdef_t *bin_mdef_read_text(cmd_ln_t *config, const char *filename);
-/**
- * Write a binary mdef to a file.
- */
-int bin_mdef_write(bin_mdef_t *m, const char *filename);
-/**
- * Write a binary mdef to a text file.
- */
-int bin_mdef_write_text(bin_mdef_t *m, const char *filename);
+
 /**
  * Retain a pointer to a bin_mdef_t.
  */
