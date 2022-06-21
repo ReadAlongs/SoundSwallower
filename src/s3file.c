@@ -112,6 +112,19 @@ s3file_free(s3file_t *s)
     return 0;
 }
 
+EXPORT void
+s3file_rewind(s3file_t *s)
+{
+    if (s == NULL)
+        return;
+    s->ptr = s->buf;
+    ckd_free(s->headers);
+    s->headers = NULL;
+    s->nhdr = 0;
+    s->do_swap = s->do_chksum = 0;
+    s->chksum = 0;
+}
+
 static int32
 swap_check(s3file_t *s)
 {

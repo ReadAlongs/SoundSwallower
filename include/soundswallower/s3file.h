@@ -111,6 +111,11 @@ s3file_t *s3file_retain(s3file_t *s);
 int s3file_free(s3file_t *s);
 
 /**
+ * Rewind and reset an s3file_t to its initial state.
+ */
+void s3file_rewind(s3file_t *s);
+
+/**
  * Read binary file format header: has the following format
  * <pre>
  *     s3

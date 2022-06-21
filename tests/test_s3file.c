@@ -163,6 +163,8 @@ main(int argc, char *argv[])
     TEST_EQUAL(len, fread(data, 1, len, fh));
     s = s3file_init(data, len);
     test_read_tmat(s);
+    s3file_rewind(s);
+    test_read_tmat(s);
     ckd_free(data);
     s3file_free(s);
     fclose(fh);
