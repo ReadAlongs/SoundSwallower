@@ -738,6 +738,20 @@ async function load_to_s3file(path) {
 
 /**
  * Get a model or model file from the built-in model path.
+ *
+ * The base path can be set by modifying the `modelBase` property of
+ * the module object, at initialization or any other time.  Or you can
+ * also just override this function if you have special needs.
+ *
+ * This function is used by `Decoder` (and also `Config`) to find the
+ * default model, which is equivalent to `Model.modelBase +
+ * Model.defaultModel`.
+ *
+ * @param {string} subpath - path to model directory or parameter
+ * file, e.g. "en-us", "en-us/variances", etc
+ * @returns {string} concatenated path. Note this is a simple string
+ * concatenation on the Web, so ensure that `modelBase` has a trailing
+ * slash if it is a directory.
  */
 function get_model_path(subpath) {
     if (RUNNING_ON_WEB) {
