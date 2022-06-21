@@ -1,7 +1,6 @@
 set(INCLUDES
   acmod.h
   bin_mdef.h
-  bio.h
   bitvec.h
   blkarray_list.h
   byteorder.h
