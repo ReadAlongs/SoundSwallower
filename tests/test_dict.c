@@ -23,9 +23,9 @@ main(int argc, char *argv[])
 
 	(void)argc; (void)argv;
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us/dict.txt",
-						   "_fdict", MODELDIR "/en-us/noisedict",
-						   NULL));
+					 "_dict", MODELDIR "/en-us/dict.txt",
+					 "_fdict", MODELDIR "/en-us/noisedict",
+					 NULL));
 
 	/* Test dictionary in standard fashion. */
 	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef.bin"));
