@@ -53,6 +53,7 @@
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/export.h>
+#include <soundswallower/strfuncs.h>
 
 
 #define BYTE_ORDER_MAGIC (0x11223344)
@@ -67,6 +68,7 @@ s3file_init(const void *buf, size_t len)
     s->buf = buf;
     s->ptr = buf;
     s->end = buf + len;
+
     return s;
 }
 
@@ -151,10 +153,35 @@ s3file_nextline(s3file_t *s)
     return line;
 }
 
+const char *
+s3file_nextword(s3file_t *s, const char **ptr)
+{
+    const char *word, *end, *endspace;
+
+    if (ptr == NULL) {
+        ptr = &s->ptr;
+        end = s->end;
+    }
+    else
+        end = s->ptr;
+    assert(*ptr <= end);
+    if (*ptr == end)
+        return NULL;
+    while (*ptr < end && isspace_c(**ptr))
+        ++*ptr;
+    if (*ptr == end)
+        return NULL;
+    for (word = *ptr; *ptr < end && !isspace_c(**ptr); ++*ptr)
+        /* Do nothing */;
+    for (endspace = *ptr; endspace < end && isspace_c(*endspace); ++endspace)
+        /* Do nothing */;
+    return word;
+}
+
 int
 s3file_parse_header(s3file_t *s, const char *version)
 {
-    int lineno, do_chksum;
+    int lineno, do_chksum = FALSE;
     const char *line;
 
     lineno = 0;
@@ -176,7 +203,7 @@ s3file_parse_header(s3file_t *s, const char *version)
                 return -1;
             }
             lineno++;
-            while (isspace(*line) && line < s->ptr)
+            while (isspace_c(*line) && line < s->ptr)
                 line++;
             if (line == s->ptr) {
                 E_ERROR("Missing header in line %d\n", lineno);
@@ -198,7 +225,7 @@ s3file_parse_header(s3file_t *s, const char *version)
                 return -1;
             }
             lineno++;
-            while (isspace(*line) && line < s->ptr)
+            while (isspace_c(*line) && line < s->ptr)
                 line++;
             if (line == s->ptr) {
                 E_ERROR("Missing name in header line %d\n", lineno);
@@ -210,17 +237,17 @@ s3file_parse_header(s3file_t *s, const char *version)
                 break;
 
             s->headers[i].name.buf = line;
-            while (!isspace(*line) && line < s->ptr)
+            while (!isspace_c(*line) && line < s->ptr)
                 line++;
             s->headers[i].name.len = line - s->headers[i].name.buf;
-            while (isspace(*line) && line < s->ptr)
+            while (isspace_c(*line) && line < s->ptr)
                 line++;
             if (line == s->ptr) {
                 E_ERROR("Missing value in header line %d\n", lineno);
                 return -1;
             }
             s->headers[i].value.buf = line;
-            while (!isspace(*line) && line < s->ptr)
+            while (!isspace_c(*line) && line < s->ptr)
                 line++;
             s->headers[i].value.len = line - s->headers[i].value.buf;
             if (version) {

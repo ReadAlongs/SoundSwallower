@@ -150,10 +150,23 @@ char *s3file_header_value(s3file_t *s, size_t idx);
 
 /**
  * Advance one line in file.
- *
  * @return start of current line (end is in s->ptr) or NULL if at end-of-file.
  */
 const char *s3file_nextline(s3file_t *s);
+
+/**
+ * Advance one whitespace-separated "word" in file.
+ *
+ * @param ptr Optional pointer within line as returned by
+ * s3file_nextline.  If not NULL then it will be advanced on output,
+ * up to s->ptr, assumed to be end-of-line, at which point the return
+ * value will be NULL.  Otherwise, words will be scanned until s->end
+ * (end-of-file)
+ *
+ * @return start of current word (end is in *ptr or s->ptr) or NULL if
+ * at end-of-line or end-of-file.
+ */
+const char *s3file_nextword(s3file_t *s, const char **ptr);
 
 /**
  * Extract values with byteswapping and checksum.

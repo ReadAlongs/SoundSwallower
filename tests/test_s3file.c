@@ -25,6 +25,61 @@ const char data_be[] = "s3\n"
     "\xab\xcd"
     "\xde\xad\xbe\xef"
     "\xde\xad\xbe\xef\x12\x34\x56\x78";
+const char data_str[] = "word1 word2 word3\n"
+    "\n"        /* blank line */
+    "  word\n"  /* leading whitespace */
+    "word   \n" /* trailing whitespace */
+    "word1 word2"; /* no EOL */
+
+static void
+should_have_nwords(s3file_t *s, size_t expected)
+{
+    const char *word, *ptr, *line;
+    size_t nwords;
+
+    ptr = line = s3file_nextline(s);
+    TEST_ASSERT(ptr != NULL);
+    nwords = 0;
+    while ((word = s3file_nextword(s, &ptr)) != NULL) {
+        E_INFO("|%.*s|\n", ptr - word, word);
+        ++nwords;
+    }
+    TEST_EQUAL(nwords, expected);
+}
+
+static void
+should_have_word(s3file_t *s, const char *expected)
+{
+    const char *word = s3file_nextword(s, NULL);
+    TEST_ASSERT(word != NULL);
+    TEST_ASSERT(0 == strncmp(word, expected, s->ptr - word));
+}
+
+static void
+test_tokens(void)
+{
+    s3file_t *s;
+    
+    s = s3file_init(data_str, sizeof(data_str));
+    /* Test line-oriented scanning (note that all this may be
+       redundant with yyscan, which we should perhaps use instead) */
+    should_have_nwords(s, 3);
+    should_have_nwords(s, 0);
+    should_have_nwords(s, 1);
+    should_have_nwords(s, 1);
+    should_have_nwords(s, 2);
+
+    /* Test word-oriented scanning. */
+    s->ptr = s->buf;
+    should_have_word(s, "word1");
+    should_have_word(s, "word2");
+    should_have_word(s, "word3");
+    should_have_word(s, "word");
+    should_have_word(s, "word");
+    should_have_word(s, "word1");
+    should_have_word(s, "word2");
+    s3file_free(s);
+}
 
 static void
 test_read_tmat(s3file_t *s)
@@ -47,7 +102,7 @@ test_read_tmat(s3file_t *s)
     if (s->do_chksum)
         TEST_ASSERT(0 == s3file_verify_chksum(s));
     TEST_EQUAL(s->ptr, s->end);
-    ckd_free(tp);
+    ckd_free_2d(tp);
 }
 
 int
@@ -110,11 +165,15 @@ main(int argc, char *argv[])
     test_read_tmat(s);
     ckd_free(data);
     s3file_free(s);
+    fclose(fh);
 
     /* Now with mmap */
     s = s3file_map_file(MODELDIR "/en-us/transition_matrices");
     test_read_tmat(s);
     s3file_free(s);
 
+    /* Simple tokenization */
+    test_tokens();
+            
     return 0;
 }
