@@ -344,7 +344,7 @@ ps_init_acmod(ps_decoder_t *ps)
     return ps->acmod;
 }
 
-EXPORT dict_t *
+dict_t *
 ps_init_dict(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -358,6 +358,26 @@ ps_init_dict(ps_decoder_t *ps)
     /* Dictionary and triphone mappings (depends on acmod). */
     /* FIXME: pass config, change arguments, implement LTS, etc. */
     if ((ps->dict = dict_init(ps->config, ps->acmod->mdef)) == NULL)
+        return NULL;
+    if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
+        return NULL;
+    return ps->dict;
+}
+
+EXPORT dict_t *
+ps_init_dict_s3file(ps_decoder_t *ps, s3file_t *dict, s3file_t *fdict)
+{
+    if (ps->config == NULL)
+        return NULL;
+    if (ps->acmod == NULL)
+        return NULL;
+    /* Free old dictionary */
+    dict_free(ps->dict);
+    /* Free d2p */
+    dict2pid_free(ps->d2p);
+    /* Dictionary and triphone mappings (depends on acmod). */
+    /* FIXME: pass config, change arguments, implement LTS, etc. */
+    if ((ps->dict = dict_init_s3file(ps->config, ps->acmod->mdef, dict, fdict)) == NULL)
         return NULL;
     if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
         return NULL;

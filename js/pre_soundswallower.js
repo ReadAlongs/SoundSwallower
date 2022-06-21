@@ -417,7 +417,17 @@ class Decoder {
      * Load dictionary from configuration.
      */
     async init_dict() {
-	const rv = Module._ps_init_dict(this.ps);
+	const dict_path = this.config.model_path("dict", "dict.txt");
+	const dict = await load_to_s3file(dict_path);
+	let fdict;
+	try {
+	    const fdict_path = this.config.model_path("fdict", "noisedict");
+	    fdict = await load_to_s3file(fdict_path);
+	}
+	catch (e) {
+	    fdict = 0;
+	}
+	const rv = Module._ps_init_dict_s3file(this.ps, dict, fdict);
 	if (rv == 0)
 	    throw new Error("Failed to initialize dictionaries");
     }
@@ -426,6 +436,8 @@ class Decoder {
      * Load grammar from configuration.
      */
     async init_grammar() {
+	const jsgf = this.config.get("jsgf");
+	const fsg = this.config.get("fsg");
 	const rv = Module._ps_init_grammar(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to initialize grammar");
