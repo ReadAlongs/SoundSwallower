@@ -29,7 +29,6 @@ set(TESTS
   test_log_shifted.c
   test_pitch.c
   test_ptm_mgau.c
-  test_readfile.c
   test_s3file.c
   test_strfuncs.c
   test_subvq.c)
@@ -78,10 +77,6 @@ add_test(heap test_heap)
 # invert requires output FIXME
 add_test(lineiter test_lineiter)
 add_test(listelem_alloc test_listelem_alloc)
-add_test(log_int16 test_log_int16)
-add_test(log_int8 test_log_int8)
-add_test(log_shifted test_log_shifted)
-add_test(readfile test_readfile)
 # solve requires output FIXME
 
 # command-line tests require output FIXME
