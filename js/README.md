@@ -32,8 +32,7 @@ Emscripten and CMake installed:
     npm link /path/to/soundswallower/js
 
 For use in Node.js, no other particular action is required on your
-part, though currently you will have to pre-load any model files you
-want to use, as described below.
+part.
 
 Because Webpack is blissfully unaware of all things
 Emscripten-related, you will need a number of extra incantations in
