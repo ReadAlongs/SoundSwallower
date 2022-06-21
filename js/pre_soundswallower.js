@@ -346,7 +346,6 @@ class Decoder {
      * Load acoustic model files
      */
     async load_acmod_files() {
-	// FIXME: Do all these in parallel
 	const mdef = this.config.model_path("mdef", "mdef.bin");
 	await this.load_mdef(mdef);
 	const tmat = this.config.model_path("tmat", "transition_matrices");
@@ -354,7 +353,8 @@ class Decoder {
 	const means = this.config.model_path("mean", "means");
 	const variances = this.config.model_path("var", "variances");
 	const sendump = this.config.model_path("sendump", "sendump");
-	await this.load_gmm(means, variances, sendump);
+	const mixw = this.config.model_path("mixw", "mixture_weights");
+	await this.load_gmm(means, variances, sendump, mixw);
 	let rv = Module._ps_init_acmod_post(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to initialize acoustic scoring");
@@ -364,42 +364,46 @@ class Decoder {
      * Load binary model definition file
      */
     async load_mdef(mdef_path) {
-	const { addr, len } = await load_to_memory(mdef_path);
-	const s3f = Module._s3file_init(addr, len);
+	const s3f = await load_to_s3file(mdef_path);
 	const mdef = Module._bin_mdef_read_s3file(s3f);
 	Module._s3file_free(s3f);
 	if (mdef == 0)
 	    throw new Error("Failed to read mdef");
+	Module._set_mdef(this.ps, mdef);
     }
 
     /**
      * Load transition matrices
      */
     async load_tmat(tmat_path) {
-	const { addr, len } = await load_to_memory(tmat_path);
-	const s3f = Module._s3file_init(addr, len);
+	const s3f = await load_to_s3file(tmat_path);
 	const logmath = Module._ps_get_logmath(this.ps);
 	const tpfloor = this.config.get("tmatfloor");
-	const tmat = Module._tmat_init_s3file(s3f, lmath, tpfloor);
+	const tmat = Module._tmat_init_s3file(s3f, logmath, tpfloor);
 	Module._s3file_free(s3f);
 	if (tmat == 0)
 	    throw new Error("Failed to read tmat");
+	Module._set_tmat(this.ps, tmat);
     }
 
     /**
      * Load Gaussian mixture models
      */
-    async load_gmm(means_path, variances_path, sendump_path) {
-	// FIXME: Do all these in parallel
-	const means = await load_to_memory(means_path);
-	const variances = await load_to_memory(variances_path);
-	const sendump = await load_to_memory(sendump_path);
-	const mgau = Module._create_mgau_from_blobs(
-	    this.ps, means.addr, means.len,
-	    variances.addr, variances.len,
-	    sendump.addr, sendump.len);
-	if (mgau == 0)
-	    throw new Error("Failed to read GMMs");
+    async load_gmm(means_path, variances_path, sendump_path, mixw_path) {
+	const means = await load_to_s3file(means_path);
+	const variances = await load_to_s3file(variances_path);
+	var sendump, mixw;
+	/* Prefer sendump if available. */
+	try {
+	    sendump = await load_to_s3file(sendump_path);
+	    mixw = 0;
+	}
+	catch (e) {
+	    sendump = 0;
+	    mixw = await load_to_s3file(mixw_path);
+	}
+	if (Module._load_gmm(this.ps, means, variances, mixw, sendump) < 0)
+	    throw new Error("Failed to load GMM parameters");
     }
 
     /**
@@ -797,7 +801,7 @@ async function* read_featparams(featparams) {
 	throw new Error("Odd number of arguments in "+featparams);
 }
 
-async function load_to_memory(path) {
+async function load_to_s3file(path) {
     const fs = require("fs/promises");
     // FIXME: Should read directly to emscripten memory... how?
     const blob = await fs.readFile(path);
@@ -806,7 +810,7 @@ async function load_to_memory(path) {
     if (blob_addr == 0)
 	throw new Error("Failed to allocate "+blob_u8.length+" bytes for "+path);
     writeArrayToMemory(blob, blob_addr);
-    return { addr: blob_addr, len: blob_u8.length };
+    return Module._s3file_init(blob_addr, blob_u8.length);
 }
 
 Module.Config = Config;

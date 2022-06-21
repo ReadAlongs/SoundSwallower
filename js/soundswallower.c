@@ -9,7 +9,11 @@
 #include <soundswallower/hash_table.h>
 #include <soundswallower/pocketsphinx_internal.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/byteorder.h>
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/tmat.h>
+#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/s2_semi_mgau.h>
+#include <soundswallower/ms_mgau.h>
 
 EMSCRIPTEN_KEEPALIVE void
 fsg_set_states(fsg_model_t *fsg, int start_state, int final_state)
@@ -32,4 +36,40 @@ hash_iter_key(hash_iter_t *itor)
     if (itor == NULL || itor->ent == NULL)
 	return NULL;
     return hash_entry_key(itor->ent);
+}
+
+EMSCRIPTEN_KEEPALIVE void
+set_mdef(ps_decoder_t *ps, bin_mdef_t *mdef)
+{
+    acmod_t *acmod = ps->acmod;
+    acmod->mdef = mdef;
+}
+
+EMSCRIPTEN_KEEPALIVE void
+set_tmat(ps_decoder_t *ps, tmat_t *tmat)
+{
+    acmod_t *acmod = ps->acmod;
+    acmod->tmat = tmat;
+}
+
+EMSCRIPTEN_KEEPALIVE int
+load_gmm(ps_decoder_t *ps, s3file_t *means, s3file_t *vars, s3file_t *mixw, s3file_t *sendump)
+{
+    acmod_t *acmod = ps->acmod;
+
+    E_INFO("Attempting to use PTM computation module\n");
+    if ((acmod->mgau = ptm_mgau_init_s3file(acmod, means, vars, mixw, sendump)) == NULL) {
+	E_INFO("Attempting to use semi-continuous computation module\n");
+	if ((acmod->mgau = s2_semi_mgau_init_s3file(acmod, means, vars, mixw, sendump)) == NULL) {
+	    E_INFO("Falling back to general multi-stream GMM computation\n");
+	    acmod->mgau = ms_mgau_init_s3file(acmod, means, vars, mixw, NULL);
+	    if (acmod->mgau == NULL) {
+		E_ERROR("Failed to read acoustic model\n");
+		return -1;
+	    }
+	}
+    }
+
+    /* FIXME: Apply MLLR as well... */
+    return 0;
 }

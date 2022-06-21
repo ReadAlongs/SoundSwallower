@@ -135,7 +135,7 @@
 	    await decoder.init_acmod();
 	    const mdef = decoder.config.model_path("mdef", "mdef.bin");
 	    assert.equal(mdef, ssjs.model_path + "/en-us/mdef.bin");
-	    await decoder.load_mdef(mdef);
+	    await decoder.load_acmod_files(mdef);
 	});
     });
     describe("Test decoding", () => {
