@@ -106,7 +106,7 @@ acmod_load_am(acmod_t *acmod)
     }
     else {
         E_INFO("Attempting to use PTM computation module\n");
-        if ((acmod->mgau = ptm_mgau_init(acmod, acmod->mdef)) == NULL) {
+        if ((acmod->mgau = ptm_mgau_init(acmod)) == NULL) {
             E_INFO("Attempting to use semi-continuous computation module\n");
             if ((acmod->mgau = s2_semi_mgau_init(acmod)) == NULL) {
                 E_INFO("Falling back to general multi-stream GMM computation\n");

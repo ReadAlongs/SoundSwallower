@@ -97,9 +97,9 @@ ms_mgau_init(acmod_t *acmod, logmath_t *lmath, bin_mdef_t *mdef)
     msg->s = NULL;
     
     if ((g = msg->g = gauden_init(cmd_ln_str_r(config, "_mean"),
-                             cmd_ln_str_r(config, "_var"),
-                             cmd_ln_float32_r(config, "-varfloor"),
-                             lmath)) == NULL) {
+                                  cmd_ln_str_r(config, "_var"),
+                                  cmd_ln_float32_r(config, "-varfloor"),
+                                  lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
     }

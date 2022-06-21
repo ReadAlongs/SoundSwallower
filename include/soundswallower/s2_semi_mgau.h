@@ -44,7 +44,7 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/logmath.h>
-#include <soundswallower/mmio.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/bin_mdef.h>
@@ -67,7 +67,7 @@ struct s2_semi_mgau_s {
     gauden_t *g;        /* Set of Gaussians (pointers below point in here and will go away soon) */
 
     uint8 ***mixw;     /* mixture weight distributions */
-    mmio_file_t *sendump_mmap;/* memory map for mixw (or NULL if not mmap) */
+    s3file_t *sendump_mmap;/* memory map for mixw (or NULL if not mmap) */
 
     uint8 *mixw_cb;    /* mixture weight codebook, if any (assume it contains 16 values) */
     int32 n_sen;	/* Number of senones */
