@@ -70,6 +70,7 @@
 
 /* Local headers. */
 #include <soundswallower/ms_mgau.h>
+#include <soundswallower/export.h>
 
 static ps_mgaufuncs_t ms_mgau_funcs = {
     "ms",
@@ -78,8 +79,92 @@ static ps_mgaufuncs_t ms_mgau_funcs = {
     ms_mgau_free             /* free */
 };
 
+EXPORT ps_mgau_t *
+ms_mgau_init_s3file(acmod_t *acmod,
+                    s3file_t *means, s3file_t *vars, s3file_t *mixw,
+                    s3file_t *senmgau)
+{
+    /* Codebooks */
+    ms_mgau_model_t *msg;
+    ps_mgau_t *mg;
+    gauden_t *g;
+    senone_t *s;
+    cmd_ln_t *config = acmod->config;
+    logmath_t *lmath = acmod->lmath;
+    bin_mdef_t *mdef = acmod->mdef;
+    int i;
+
+    msg = (ms_mgau_model_t *) ckd_calloc(1, sizeof(ms_mgau_model_t));
+    msg->config = config;
+    msg->g = NULL;
+    msg->s = NULL;
+    
+    if ((g = msg->g = gauden_init_s3file(means, vars,
+                                         cmd_ln_float32_r(config, "-varfloor"),
+                                         lmath)) == NULL) {
+	E_ERROR("Failed to read means and variances\n");	
+	goto error_out;
+    }
+
+    /* Verify n_feat and veclen, against acmod. */
+    if (g->n_feat != feat_dimension1(acmod->fcb)) {
+        E_ERROR("Number of streams does not match: %d != %d\n",
+                g->n_feat, feat_dimension1(acmod->fcb));
+        goto error_out;
+    }
+    for (i = 0; i < g->n_feat; ++i) {
+        if ((uint32)g->featlen[i] != feat_dimension2(acmod->fcb, i)) {
+            E_ERROR("Dimension of stream %d does not match: %d != %d\n", i,
+                    g->featlen[i], feat_dimension2(acmod->fcb, i));
+            goto error_out;
+        }
+    }
+
+    s = msg->s = senone_init_s3file(msg->g,
+                                    mixw, senmgau,
+                                    cmd_ln_float32_r(config, "-mixwfloor"),
+                                    lmath, mdef);
+
+    s->aw = cmd_ln_int32_r(config, "-aw");
+
+    /* Verify senone parameters against gauden parameters */
+    if (s->n_feat != (uint32)g->n_feat)
+        E_FATAL("#Feature mismatch: gauden= %d, senone= %d\n", g->n_feat,
+                s->n_feat);
+    if (s->n_cw != (uint32)g->n_density)
+        E_FATAL("#Densities mismatch: gauden= %d, senone= %d\n",
+                g->n_density, s->n_cw);
+    if (s->n_gauden > (uint32)g->n_mgau)
+        E_FATAL("Senones need more codebooks (%d) than present (%d)\n",
+                s->n_gauden, g->n_mgau);
+    if (s->n_gauden < (uint32)g->n_mgau)
+        E_ERROR("Senones use fewer codebooks (%d) than present (%d)\n",
+                s->n_gauden, g->n_mgau);
+
+    msg->topn = cmd_ln_int32_r(config, "-topn");
+    E_INFO("The value of topn: %d\n", msg->topn);
+    if (msg->topn == 0 || msg->topn > msg->g->n_density) {
+        E_WARN
+            ("-topn argument (%d) invalid or > #density codewords (%d); set to latter\n",
+             msg->topn, msg->g->n_density);
+        msg->topn = msg->g->n_density;
+    }
+
+    msg->dist = (gauden_dist_t ***)
+        ckd_calloc_3d(g->n_mgau, g->n_feat, msg->topn,
+                      sizeof(gauden_dist_t));
+    msg->mgau_active = ckd_calloc(g->n_mgau, sizeof(int8));
+
+    mg = (ps_mgau_t *)msg;
+    mg->vt = &ms_mgau_funcs;
+    return mg;
+error_out:
+    ms_mgau_free(ps_mgau_base(msg));
+    return NULL;    
+}
+
 ps_mgau_t *
-ms_mgau_init(acmod_t *acmod, logmath_t *lmath, bin_mdef_t *mdef)
+ms_mgau_init(acmod_t *acmod)
 {
     /* Codebooks */
     ms_mgau_model_t *msg;
@@ -87,6 +172,8 @@ ms_mgau_init(acmod_t *acmod, logmath_t *lmath, bin_mdef_t *mdef)
     gauden_t *g;
     senone_t *s;
     cmd_ln_t *config;
+    logmath_t *lmath = acmod->lmath;
+    bin_mdef_t *mdef = acmod->mdef;
     int i;
 
     config = acmod->config;
@@ -97,9 +184,9 @@ ms_mgau_init(acmod_t *acmod, logmath_t *lmath, bin_mdef_t *mdef)
     msg->s = NULL;
     
     if ((g = msg->g = gauden_init(cmd_ln_str_r(config, "_mean"),
-                                  cmd_ln_str_r(config, "_var"),
-                                  cmd_ln_float32_r(config, "-varfloor"),
-                                  lmath)) == NULL) {
+                             cmd_ln_str_r(config, "_var"),
+                             cmd_ln_float32_r(config, "-varfloor"),
+                             lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
     }

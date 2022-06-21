@@ -131,7 +131,10 @@ typedef struct ms_mgau_model_s {
 #define ms_mgau_senone(msg) (msg->s)
 #define ms_mgau_topn(msg) (msg->topn)
 
-ps_mgau_t* ms_mgau_init(acmod_t *acmod, logmath_t *lmath, bin_mdef_t *mdef);
+ps_mgau_t *ms_mgau_init(acmod_t *acmod);
+ps_mgau_t *ms_mgau_init_s3file(acmod_t *acmod,
+                               s3file_t *means, s3file_t *vars, s3file_t *mixw,
+                               s3file_t *senmgau);
 void ms_mgau_free(ps_mgau_t *g);
 int32 ms_cont_mgau_frame_eval(ps_mgau_t * msg,
                               int16 *senscr,

@@ -100,7 +100,7 @@ acmod_load_am(acmod_t *acmod)
 
     if (cmd_ln_str_r(acmod->config, "_senmgau")) {
         E_INFO("Using general multi-stream GMM computation\n");
-        acmod->mgau = ms_mgau_init(acmod, acmod->lmath, acmod->mdef);
+        acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
             return -1;
     }
@@ -110,7 +110,7 @@ acmod_load_am(acmod_t *acmod)
             E_INFO("Attempting to use semi-continuous computation module\n");
             if ((acmod->mgau = s2_semi_mgau_init(acmod)) == NULL) {
                 E_INFO("Falling back to general multi-stream GMM computation\n");
-                acmod->mgau = ms_mgau_init(acmod, acmod->lmath, acmod->mdef);
+                acmod->mgau = ms_mgau_init(acmod);
                 if (acmod->mgau == NULL) {
                     E_ERROR("Failed to read acoustic model\n");
                     return -1;
