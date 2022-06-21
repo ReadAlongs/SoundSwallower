@@ -326,7 +326,7 @@ bin_mdef_read_s3file(s3file_t *s)
     size_t tree_start;
     int32 val, i;
     int32 *sseq_size;
-    bin_mdef_t *m;
+    bin_mdef_t *m = NULL;
 
     if (s3file_get(&val, 4, 1, s) != 1) {
         E_ERROR("Failed to read byte-order marker\n");

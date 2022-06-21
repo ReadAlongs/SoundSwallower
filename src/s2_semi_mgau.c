@@ -1042,7 +1042,7 @@ s2_semi_mgau_free(ps_mgau_t *ps)
     logmath_free(s->lmath_8b);
     if (s->sendump_mmap) {
         ckd_free_2d(s->mixw); 
-        mmio_file_unmap(s->sendump_mmap);
+        s3file_free(s->sendump_mmap);
     }
     else {
         ckd_free_3d(s->mixw);

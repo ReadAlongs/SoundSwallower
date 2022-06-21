@@ -94,8 +94,9 @@ feat_read_lda_s3file(feat_t *feat, s3file_t *s, int32 dim)
         ckd_free_3d((void ***)feat->lda);
     /* Use a temporary variable to avoid strict-aliasing problems. */
     /* FIXME: API is broken, should fix it. */
-    if (s3file_get_3d(&outlda, sizeof(float32),
-                      &feat->n_lda, &m, &n, s) != feat->n_lda * m * n) {
+    if ((size_t)s3file_get_3d(&outlda, sizeof(float32),
+                      &feat->n_lda, &m, &n, s)
+        != feat->n_lda * m * n) {
         E_ERROR("s3file_get_3d(lda) failed\n");
         return -1;
     }
