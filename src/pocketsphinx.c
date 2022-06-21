@@ -665,6 +665,7 @@ ps_add_word(ps_decoder_t *ps,
     np = 0;
     while (*ptr) {
         char *phone;
+        /* Leading whitespace if any */
         while (*ptr && isspace_c(*ptr))
             ++ptr;
         if (*ptr == '\0')
@@ -682,6 +683,8 @@ ps_add_word(ps_decoder_t *ps,
             return -1;
         }
         ++np;
+        if (*ptr == '\0')
+            break;
         ++ptr;
     }
     ckd_free(phonestr);

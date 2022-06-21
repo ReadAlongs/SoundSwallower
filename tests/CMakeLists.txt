@@ -2,6 +2,7 @@ configure_file(test_macros.h.in test_macros.h)
 set(TESTS
   test_acmod.c
   test_acmod_grow.c
+  test_add_words.c
   test_bitvec.c
   test_case.c
   test_err.c
