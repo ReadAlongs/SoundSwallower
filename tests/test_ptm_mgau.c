@@ -80,6 +80,7 @@ run_acmod_test(acmod_t *acmod)
 		}
 	}
 	fclose(rawfh);
+	ckd_free(buf);
 }
 
 int
@@ -140,8 +141,11 @@ main(int argc, char *argv[])
 			 MODELDIR "/en-us/mixture_weights");
 	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
 	run_acmod_test(acmod);
-	cmd_ln_free_r(config);
 #endif
-
+	acmod_free(acmod);
+	fe_free(fe);
+	feat_free(fcb);
+	logmath_free(lmath);
+	cmd_ln_free_r(config);
 	return 0;
 }
