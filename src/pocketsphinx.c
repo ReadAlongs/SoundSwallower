@@ -318,7 +318,7 @@ ps_init_acmod_pre(ps_decoder_t *ps)
     return ps->acmod;
 }
 
-int
+EXPORT int
 ps_init_acmod_post(ps_decoder_t *ps)
 {
     if (ps->acmod == NULL)
@@ -328,7 +328,7 @@ ps_init_acmod_post(ps_decoder_t *ps)
     return 0;
 }
 
-EXPORT acmod_t *
+acmod_t *
 ps_init_acmod(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
