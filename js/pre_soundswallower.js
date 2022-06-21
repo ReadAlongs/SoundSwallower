@@ -9,58 +9,15 @@ const ARG_BOOLEAN = (1 << 4);
 
 const DEFAULT_MODEL = 'en-us';
 
-// User can specify a default model, or none at all
-if (typeof(Module.defaultModel) === 'undefined') {
-    Module.defaultModel = DEFAULT_MODEL;
-}
-
-// We may add to preRun so make it a list if it isn't one
-if (Module.preRun) {
-    if (typeof Module.preRun == 'function')
-	Module.preRun = [Module.preRun];
-}
-else {
-    Module.preRun = [];
-}
-
 // FIXME: Emscripten already defines something like this in its
 // runtime but I have no $#@! idea how to access its definition from a
 // pre-js, much like various other things, WTF.
 const RUNNING_ON_WEB = (typeof window == 'object'
 			|| typeof importScripts == 'function');
-if (RUNNING_ON_WEB) {
-    if (Module.defaultModel !== null) {
-	// FIXME: Definitely the wrong way to get the relative URL of
-	// the model...
-	const model_path = "model/" + Module.defaultModel;
-	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel, model_path);
-	});
-	Module.model_path = model_path;
-    }
+// User can specify a default model, or none at all
+if (typeof(Module.defaultModel) === 'undefined') {
+    Module.defaultModel = DEFAULT_MODEL;
 }
-else if (typeof(Browser) === 'undefined') {
-    const model_path = require("./model/index.js");
-    const path = require('path');
-    // Monkey-patch the Browser so MEMFS works on Node.js and the Web
-    // (see https://github.com/emscripten-core/emscripten/issues/16742)
-    Browser = {
-        handledByPreloadPlugin() {
-            return false;
-        }
-    }
-    // And pre-load the default model (if there is one)
-    if (Module.defaultModel != null) {
-	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel,
-			      path.join(model_path, Module.defaultModel));
-	});
-    }
-    Module.model_path = model_path;
-}
-
-/* Track model paths for load_model() emulation. */
-Module.model_paths = {};
 
 /**
  * Configuration object for SoundSwallower recognizer.
@@ -75,8 +32,8 @@ class Config {
      * values.  Some of the more common are noted below, the full list
      * can be found at
      * https://soundswallower.readthedocs.io/en/latest/config_params.html
-     * @param {string} [dict.hmm=Module.defaultModel] - Name of
-     * acoustic model, previously loaded using load_model().
+     * @param {string} [dict.hmm=Module.get_model_path(Module.defaultModel)]
+     *                 - Directory or base URL of acoustic model.
      * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
      * @param {number} [dict.samprate=44100] - Sampling rate of input.
      */
@@ -84,13 +41,13 @@ class Config {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
 	if (typeof(dict) === 'undefined') {
 	    if (Module.defaultModel !== null)
-		dict = { hmm: Module.defaultModel };
+		dict = { hmm: Module.get_model_path(Module.defaultModel) };
 	    else
 		return;
 	}
 	else if (Module.defaultModel !== null) {
 	    if (!("hmm" in dict))
-		dict.hmm = Module.defaultModel;
+		dict.hmm = Module.get_model_path(Module.defaultModel);
 	}
 	for (const key in dict) {
 	    this.set(key, dict[key]);
@@ -202,19 +159,14 @@ class Config {
     /**
      * Get a model parameter with backoff to path inside current model.
      */
-    model_path(key, modelfile) {
+    model_file_path(key, modelfile) {
 	const val = this.get(key);
 	if (val != null)
 	    return val;
 	const hmmpath = this.get("hmm");
 	if (hmmpath == null)
 	    throw new Error("Could not get "+key+" from config or model directory");
-	/* For compatibility with load_model() */
-	if (hmmpath in Module.model_paths) {
-	    return Module.model_paths[hmmpath] + "/" + modelfile;
-	}
-	else
-	    return hmmpath + "/" + modelfile;
+	return hmmpath + "/" + modelfile;
     }
     /**
      * Test if a key is a known parameter.
@@ -307,7 +259,7 @@ class Decoder {
      * Read feature parameters from acoustic model.
      */
     async init_featparams() {
-	const featparams = this.config.model_path("featparams", "feat.params");
+	const featparams = this.config.model_file_path("featparams", "feat.params");
 	for await (const pair of read_featparams(featparams)) {
 	    if (this.config.has(pair[0])) /* Sometimes it doesn't */
 		this.config.set(pair[0], pair[1]);
@@ -329,7 +281,7 @@ class Decoder {
     async init_feat() {
 	let rv;
 	try {
-	    const lda_path = this.config.model_path("lda", "feature_transform");
+	    const lda_path = this.config.model_file_path("lda", "feature_transform");
 	    const lda = await load_to_s3file(lda_path);
 	    rv = Module._ps_init_feat_s3file(this.ps, lda);
 	}
@@ -353,14 +305,14 @@ class Decoder {
      * Load acoustic model files
      */
     async load_acmod_files() {
-	const mdef = this.config.model_path("mdef", "mdef.bin");
+	const mdef = this.config.model_file_path("mdef", "mdef.bin");
 	await this.load_mdef(mdef);
-	const tmat = this.config.model_path("tmat", "transition_matrices");
+	const tmat = this.config.model_file_path("tmat", "transition_matrices");
 	await this.load_tmat(tmat);
-	const means = this.config.model_path("mean", "means");
-	const variances = this.config.model_path("var", "variances");
-	const sendump = this.config.model_path("sendump", "sendump");
-	const mixw = this.config.model_path("mixw", "mixture_weights");
+	const means = this.config.model_file_path("mean", "means");
+	const variances = this.config.model_file_path("var", "variances");
+	const sendump = this.config.model_file_path("sendump", "sendump");
+	const mixw = this.config.model_file_path("mixw", "mixture_weights");
 	await this.load_gmm(means, variances, sendump, mixw);
 	const rv = Module._ps_init_acmod_post(this.ps);
 	if (rv < 0)
@@ -417,11 +369,11 @@ class Decoder {
      * Load dictionary from configuration.
      */
     async init_dict() {
-	const dict_path = this.config.model_path("dict", "dict.txt");
+	const dict_path = this.config.model_file_path("dict", "dict.txt");
 	const dict = await load_to_s3file(dict_path);
 	let fdict;
 	try {
-	    const fdict_path = this.config.model_path("fdict", "noisedict");
+	    const fdict_path = this.config.model_file_path("fdict", "noisedict");
 	    fdict = await load_to_s3file(fdict_path);
 	}
 	catch (e) {
@@ -759,21 +711,20 @@ async function load_to_s3file(path) {
     return Module._s3file_init(blob_addr, blob_len - 1);
 }
 
-
 /**
- * Load a model into Emscripten's filesystem.
- *
- * Actually does nothing but map model names to URLs.
- *
- * @param {string} model_name - Name to use for model in "hmm" parameter.
- * @param {string} model_path - Filesystem path (under Node.js) or
- *                              base URL (on the Web) of the model.
- * @param {string} dict_path - Optional custom dictionary path.
+ * Get a model from the built-in model path.
  */
-function load_model(model_name, model_path, dict_path=null) {
-    Module.model_paths[model_name] = model_path;
+const model_path = require("./model/index.js");
+function get_model_path(subpath) {
+    if (RUNNING_ON_WEB) {
+	return model_path + "/" + subpath;
+    }
+    else {
+	const path = require("path");
+	return path.join(model_path, subpath);
+    }
 }
 
+Module.get_model_path = get_model_path;
 Module.Config = Config;
 Module.Decoder = Decoder;
-Module.load_model = load_model;

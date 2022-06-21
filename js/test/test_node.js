@@ -3,8 +3,7 @@
     const fs = require('fs/promises');
     const ssjs = {};
     before(async () => {
-	await require('./soundswallower.js')(ssjs);
-	ssjs.load_model("fr-fr", "model/fr-fr");
+	await require('../soundswallower.js')(ssjs);
     });
     describe("Test initialization", () => {
 	it("Should load the WASM module", () => {
@@ -25,12 +24,14 @@
 	it("Should contain default -hmm", () => {
 	    let conf = new ssjs.Config();
 	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
+	    assert.equal(conf.get('-hmm'),
+			 ssjs.get_model_path(ssjs.defaultModel));
 	});
 	it("Should contain default -hmm when initialized", () => {
 	    let conf = new ssjs.Config({dict: "en-us.dict"});
 	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'), ssjs.defaultModel);
+	    assert.equal(conf.get('-hmm'),
+			 ssjs.get_model_path(ssjs.defaultModel));
 	});
 	it("Unset string key should have null value", () => {
 	    let conf = new ssjs.Config();
@@ -49,10 +50,11 @@
 	});
 	it("Should find mdef.bin in model path, or not", () => {
 	    let conf = new ssjs.Config();
-	    conf.set("hmm", "en-us");
-	    assert.equal(ssjs.model_path + "/en-us/mdef.bin", conf.model_path("-mdef", "mdef.bin"));
+	    conf.set("hmm", ssjs.get_model_path("en-us"));
+	    assert.equal(ssjs.get_model_path("en-us/mdef.bin"),
+			 conf.model_file_path("-mdef", "mdef.bin"));
 	    conf.set("mdef", "foo.bin");
-	    assert.equal("foo.bin", conf.model_path("-mdef", "mdef.bin"));
+	    assert.equal("foo.bin", conf.model_file_path("-mdef", "mdef.bin"));
 	});
     });
     describe("Test iteration on Config", () => {
@@ -123,7 +125,6 @@
 	    let decoder = new ssjs.Decoder({
 		fsg: "../tests/data/goforward.fsg",
 		samprate: 16000,
-		loglevel: "INFO",
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
@@ -182,7 +183,8 @@
     });
     describe("Test loading model for other language", () => {
 	it('Should recognize "avance de dix mètres"', async () => {
-	    let decoder = new ssjs.Decoder({hmm: "fr-fr", samprate: 16000});
+	    let decoder = new ssjs.Decoder({hmm: ssjs.get_model_path("fr-fr"),
+					    samprate: 16000});
 	    await decoder.initialize();
 	    let fsg = decoder.create_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 0.5, word: "avance"},
