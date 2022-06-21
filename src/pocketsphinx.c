@@ -384,7 +384,7 @@ ps_init_dict_s3file(ps_decoder_t *ps, s3file_t *dict, s3file_t *fdict)
     return ps->dict;
 }
 
-EXPORT int
+int
 ps_init_grammar(ps_decoder_t *ps)
 {
     const char *path;
@@ -392,8 +392,11 @@ ps_init_grammar(ps_decoder_t *ps)
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
-    /* Load an FSG if one was specified in config */
-    if ((path = cmd_ln_str_r(ps->config, "-fsg"))) {
+    if ((path = cmd_ln_str_r(ps->config, "-jsgf"))) {
+        if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
+            return -1;
+    }
+    else if ((path = cmd_ln_str_r(ps->config, "-fsg"))) {
         fsg_model_t *fsg = fsg_model_readfile(path, ps->lmath, lw);
         if (!fsg)
             return -1;
@@ -403,12 +406,36 @@ ps_init_grammar(ps_decoder_t *ps)
         }
         fsg_model_free(fsg);
     }
-    
-    /* Or load a JSGF grammar */
-    if ((path = cmd_ln_str_r(ps->config, "-jsgf"))) {
-        if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
+    return  0;
+}
+
+EXPORT int
+ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg, s3file_t *jsgf)
+{
+    const char *path;
+    int32 lw;
+
+    lw = cmd_ln_float32_r(ps->config, "-lw");
+
+    /* JSGF takes precedence */
+    if (jsgf) {
+        /* FIXME: This depends on jsgf->buf having 0 at the end, which
+           it will when created by JavaScript, but that is not
+           guaranteed when memory-mapped. */
+        if (ps_set_jsgf_string(ps, PS_DEFAULT_SEARCH, jsgf->ptr) != 0)
             return -1;
     }
+    if (fsg) {
+        fsg_model_t *fsg = fsg_model_read_s3file(fsg, ps->lmath, lw);
+        if (!fsg)
+            return -1;
+        if (ps_set_fsg(ps, PS_DEFAULT_SEARCH, fsg) != 0) {
+            fsg_model_free(fsg);
+            return -1;
+        }
+        fsg_model_free(fsg);
+    }
+    
     return  0;
 }
 
