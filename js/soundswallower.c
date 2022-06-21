@@ -60,8 +60,16 @@ load_gmm(ps_decoder_t *ps, s3file_t *means, s3file_t *vars, s3file_t *mixw, s3fi
     E_INFO("Attempting to use PTM computation module\n");
     if ((acmod->mgau = ptm_mgau_init_s3file(acmod, means, vars, mixw, sendump)) == NULL) {
 	E_INFO("Attempting to use semi-continuous computation module\n");
+	s3file_rewind(means);
+	s3file_rewind(vars);
+	s3file_rewind(mixw);
+	s3file_rewind(sendump);
 	if ((acmod->mgau = s2_semi_mgau_init_s3file(acmod, means, vars, mixw, sendump)) == NULL) {
 	    E_INFO("Falling back to general multi-stream GMM computation\n");
+	    s3file_rewind(means);
+	    s3file_rewind(vars);
+	    s3file_rewind(mixw);
+	    s3file_rewind(sendump);
 	    acmod->mgau = ms_mgau_init_s3file(acmod, means, vars, mixw, NULL);
 	    if (acmod->mgau == NULL) {
 		E_ERROR("Failed to read acoustic model\n");
