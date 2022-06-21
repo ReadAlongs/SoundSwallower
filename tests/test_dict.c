@@ -35,6 +35,8 @@ main(int argc, char *argv[])
 	       dict_wordid(dict, "CARNEGIE"));
 	printf("Word ID (ASDFASFASSD) = %d\n",
 	       dict_wordid(dict, "ASDFASFASSD"));
+	bin_mdef_free(mdef);
+	dict_free(dict);
 
 	/* Now test an empty dictionary. */
 	TEST_ASSERT(dict = dict_init(NULL, NULL));
