@@ -314,8 +314,7 @@ class Decoder {
      * Load acoustic model files
      */
     async load_acmod_files() {
-	const mdef = this.config.model_file_path("mdef", "mdef.bin");
-	await this.load_mdef(mdef);
+	await this.load_mdef();
 	const tmat = this.config.model_file_path("tmat", "transition_matrices");
 	await this.load_tmat(tmat);
 	const means = this.config.model_file_path("mean", "means");
@@ -331,8 +330,23 @@ class Decoder {
     /**
      * Load binary model definition file
      */
-    async load_mdef(mdef_path) {
-	const s3f = await load_to_s3file(mdef_path);
+    async load_mdef() {
+	/* Prefer mixw.bin if available. */
+	var mdef_path, s3f;
+	try {
+	    mdef_path = this.config.model_file_path("mdef", "mdef.bin");
+	    s3f = await load_to_s3file(mdef_path);
+	}
+	catch (e) {
+	    try {
+		mdef_path = this.config.model_file_path("mdef", "mdef.txt");
+		s3f = await load_to_s3file(mdef_path);
+	    }
+	    catch (ee) {
+		mdef_path = this.config.model_file_path("mdef", "mdef");
+		s3f = await load_to_s3file(mdef_path);
+	    }
+	}
 	const mdef = Module._bin_mdef_read_s3file(s3f);
 	Module._s3file_free(s3f);
 	if (mdef == 0)
