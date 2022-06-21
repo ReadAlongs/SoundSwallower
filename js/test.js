@@ -108,16 +108,6 @@
 	    break;
 	}
     }
-    describe("Test reading feat.params", () => {
-	it('Should parse feat.params', async () => {
-	    for await (const [key, value] of ssjs.read_featparams("test_feat.params")) {
-		assert_feat_params(key, value);
-	    }
-	    for await (const [key, value] of ssjs.read_featparams("test_feat2.params")) {
-		assert_feat_params(key, value);
-	    }
-	});
-    });
     describe("Test acoustic model loading", () => {
 	it('Should load acoustic model', async () => {
 	    let decoder = new ssjs.Decoder({loglevel: "INFO"});
@@ -125,9 +115,7 @@
 	    await decoder.init_fe();
 	    await decoder.init_feat();
 	    await decoder.init_acmod();
-	    const mdef = decoder.config.model_path("mdef", "mdef.bin");
-	    assert.equal(mdef, ssjs.model_path + "/en-us/mdef.bin");
-	    await decoder.load_acmod_files(mdef);
+	    await decoder.load_acmod_files();
 	});
     });
     describe("Test decoding", () => {

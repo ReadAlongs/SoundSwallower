@@ -327,7 +327,15 @@ class Decoder {
      * Create dynamic feature module from configuration.
      */
     async init_feat() {
-	const rv = Module._ps_init_feat(this.ps);
+	let rv;
+	try {
+	    const lda_path = this.config.model_path("lda", "feature_transform");
+	    const lda = await load_to_s3file(lda_path);
+	    rv = Module._ps_init_feat_s3file(this.ps, lda);
+	}
+	catch (e) {
+	    rv = Module._ps_init_feat_s3file(this.ps, 0);
+	}
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
     }

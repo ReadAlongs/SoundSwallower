@@ -282,13 +282,23 @@ ps_init_fe(ps_decoder_t *ps)
     return ps->fe;
 }
 
-EXPORT feat_t *
+feat_t *
 ps_init_feat(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
     feat_free(ps->fcb);
     ps->fcb = feat_init(ps->config);
+    return ps->fcb;
+}
+
+EXPORT feat_t *
+ps_init_feat_s3file(ps_decoder_t *ps, s3file_t *lda)
+{
+    if (ps->config == NULL)
+        return NULL;
+    feat_free(ps->fcb);
+    ps->fcb = feat_init_s3file(ps->config, lda);
     return ps->fcb;
 }
 
