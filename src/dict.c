@@ -174,8 +174,7 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
 static int32
 dict_read_s3file(dict_t *d, s3file_t *dict)
 {
-    const char *line;
-    char **wptr = NULL;
+    const char *line, *ptr;
     s3cipid_t *p = NULL;
     int32 lineno, nwd;
     s3wid_t w;
@@ -184,72 +183,66 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
 
     lineno = 0;
     stralloc = phnalloc = 0;
-    while ((line = s3file_nextline(dict)) != NULL) {
-        size_t len;
-        char *mline;
+    while ((ptr = line = s3file_nextline(dict)) != NULL) {
+        char *word;
 
         lineno++;
         if (0 == strncmp(line, "##", 2)
             || 0 == strncmp(line, ";;", 2))
             continue;
 
-        /* Make a mutable string we can separate (FIXME: should be in
-           s3file API then we can murder str2words with no remorse) */
-        len = dict->ptr - line;
-        mline = ckd_malloc(len + 1);
-        memcpy(mline, line, len);
-        mline[len] = '\0';
-
-        if (wptr == 0) {
-            maxwd = nwd = str2words(mline, NULL, 0);
-            maxwd *= 2; /* Give it enough space. */
+        for (nwd = 0; s3file_nextword(dict, &ptr); ++nwd)
+            /* Count words */;
+        ptr = line; /* Reset to line start */
+        if (p == NULL) {
+            maxwd = nwd * 2; /* Some extra space */
             p = ckd_calloc(maxwd, sizeof(*p));
-            wptr = ckd_calloc(maxwd, sizeof(*wptr));
         }
-        while ((nwd = str2words(mline, wptr, maxwd)) < 0) {
-            /* Increase size of p, wptr. */
+        if (nwd == 0)           /* Empty line */
+            continue;
+        /* Increase size of p, wptr if needed. */
+        while (nwd > maxwd) {
             maxwd *= 2;
             E_INFO("Increased maximum words/phones to %ld\n", maxwd);
             p = (s3cipid_t *) ckd_realloc(p, maxwd * sizeof(*p));
-            wptr = (char **) ckd_realloc(wptr, maxwd * sizeof(*wptr));
         }
-        if (nwd == 0)           /* Empty line */
-            goto next_line;
-        /* wptr[0] is the word-string and wptr[1..nwd-1] the pronunciation sequence */
+        /* FIXME: Might be slow with all the copying */
+        word = s3file_copy_nextword(dict, &ptr);
         if (nwd == 1) {
             E_ERROR("Line %d: No pronunciation for word '%s'; ignored\n",
-                    lineno, wptr[0]);
-            goto next_line;
+                    lineno, word);
+            ckd_free(word);
+            continue;
         }
-
-
         /* Convert pronunciation string to CI-phone-ids */
         for (i = 1; i < nwd; i++) {
-            p[i - 1] = dict_ciphone_id(d, wptr[i]);
+        /* FIXME: Might be slow with all the copying */
+            char *phone = s3file_copy_nextword(dict, &ptr);
+            p[i - 1] = dict_ciphone_id(d, phone);
             if (NOT_S3CIPID(p[i - 1])) {
                 E_ERROR("Line %d: Phone '%s' is missing in the acoustic model; word '%s' ignored\n",
-                        lineno, wptr[i], wptr[0]);
+                        lineno, phone, word);
+                ckd_free(phone);
                 break;
             }
+            ckd_free(phone);
         }
         if (i == nwd) {         /* All CI-phones successfully converted to IDs */
-            w = dict_add_word(d, wptr[0], p, nwd - 1);
+            w = dict_add_word(d, word, p, nwd - 1);
             if (NOT_S3WID(w))
                 E_ERROR
                     ("Line %d: Failed to add the word '%s' (duplicate?); ignored\n",
-                     lineno, wptr[0]);
+                     lineno, word);
             else {
                 stralloc += strlen(d->word[w].word);
                 phnalloc += d->word[w].pronlen * sizeof(s3cipid_t);
             }
         }
-    next_line:
-        ckd_free(mline);
+        ckd_free(word);
     }
     E_INFO("Dictionary size %d, allocated %d KiB for strings, %d KiB for phones\n",
            dict_size(d), (int)stralloc / 1024, (int)phnalloc / 1024);
     ckd_free(p);
-    ckd_free(wptr);
 
     return 0;
 }
