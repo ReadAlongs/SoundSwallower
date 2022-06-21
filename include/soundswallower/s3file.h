@@ -140,13 +140,15 @@ int s3file_header_value_is(s3file_t *s, size_t idx, const char *value);
 
 /**
  * Get copy of argument name.
+ * @return pointer to copy, must be freed by user.
  */
-char *s3file_header_name(s3file_t *s, size_t idx);
+char *s3file_copy_header_name(s3file_t *s, size_t idx);
 
 /**
  * Get copy of argument value.
+ * @return pointer to copy, must be freed by user.
  */
-char *s3file_header_value(s3file_t *s, size_t idx);
+char *s3file_copy_header_value(s3file_t *s, size_t idx);
 
 /**
  * Advance one line in file.
@@ -167,6 +169,12 @@ const char *s3file_nextline(s3file_t *s);
  * at end-of-line or end-of-file.
  */
 const char *s3file_nextword(s3file_t *s, const char **ptr);
+
+/**
+ * Convenience function to extract and copy the next word.
+ * @return pointer to copy, must be freed by user.
+ */
+char *s3file_copy_nextword(s3file_t *s, const char **ptr);
 
 /**
  * Extract values with byteswapping and checksum.

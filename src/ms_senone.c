@@ -60,7 +60,7 @@ senone_mgau_map_read(senone_t *s, s3file_t *s3f)
     /* set n_gauden_present based on version. */
     for (i = 0; (size_t)i < s3f->nhdr; i++) {
         if (s3file_header_name_is(s3f, i, "version")) {
-            char *version = s3file_header_value(s3f, i);
+            char *version = s3file_copy_header_value(s3f, i);
             float v = atof(version);
             n_gauden_present = (v > 1.1) ? 1 : 0;
             ckd_free(version);

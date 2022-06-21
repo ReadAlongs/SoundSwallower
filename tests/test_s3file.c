@@ -145,10 +145,10 @@ main(int argc, char *argv[])
     TEST_ASSERT(s3file_header_value_is(s, 0, "value1"));
     TEST_ASSERT(s3file_header_name_is(s, 1, "key2"));
     TEST_ASSERT(s3file_header_value_is(s, 1, "value2"));
-    data = s3file_header_name(s, 0);
+    data = s3file_copy_header_name(s, 0);
     TEST_EQUAL(0, strcmp(data, "key1"));
     ckd_free(data);
-    data = s3file_header_value(s, 0);
+    data = s3file_copy_header_value(s, 0);
     TEST_EQUAL(0, strcmp(data, "value1"));
     ckd_free(data);
     TEST_EQUAL(0, s3file_free(s));

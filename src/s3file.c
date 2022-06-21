@@ -178,6 +178,24 @@ s3file_nextword(s3file_t *s, const char **ptr)
     return word;
 }
 
+char *
+s3file_copy_nextword(s3file_t *s, const char **ptr)
+{
+    const char *word;
+    size_t len;
+    char *copy;
+    if (ptr == NULL)
+        ptr = &s->ptr;
+    word = s3file_nextword(s, ptr);
+    if (word == NULL)
+        return NULL;
+    len = *ptr - word;
+    copy = ckd_malloc(len + 1);
+    memcpy(copy, word, len);
+    copy[len] = '\0';
+    return copy;
+}
+
 int
 s3file_parse_header(s3file_t *s, const char *version)
 {
@@ -318,7 +336,7 @@ s3file_header_value_is(s3file_t *s, size_t idx, const char *value)
 }
 
 char *
-s3file_header_name(s3file_t *s, size_t idx)
+s3file_copy_header_name(s3file_t *s, size_t idx)
 {
     char *str = ckd_malloc(s->headers[idx].name.len + 1);
     memcpy(str, s->headers[idx].name.buf,  s->headers[idx].name.len);
@@ -327,7 +345,7 @@ s3file_header_name(s3file_t *s, size_t idx)
 }
 
 char *
-s3file_header_value(s3file_t *s, size_t idx)
+s3file_copy_header_value(s3file_t *s, size_t idx)
 {
     char *str = ckd_malloc(s->headers[idx].value.len + 1);
     memcpy(str, s->headers[idx].value.buf,  s->headers[idx].value.len);
