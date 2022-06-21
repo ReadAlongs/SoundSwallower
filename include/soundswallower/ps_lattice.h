@@ -86,16 +86,6 @@ typedef struct latlink_list_s ps_latlink_iter_t;
 struct ps_decoder_s;
 
 /**
- * Read a lattice from a file on disk.
- *
- * @param ps Decoder to use for processing this lattice, or NULL.
- * @param file Path to lattice file.
- * @return Newly created lattice, or NULL for failure.
- */
-ps_lattice_t *ps_lattice_read(struct ps_decoder_s *ps,
-                              char const *file);
-
-/**
  * Retain a lattice.
  *
  * This function retains ownership of a lattice for the caller,
@@ -112,20 +102,6 @@ ps_lattice_t *ps_lattice_retain(ps_lattice_t *dag);
  * @return new reference count (0 if dag was freed)
  */
 int ps_lattice_free(ps_lattice_t *dag);
-
-/**
- * Write a lattice to disk.
- *
- * @return 0 for success, <0 on failure.
- */
-int ps_lattice_write(ps_lattice_t *dag, char const *filename);
-
-/**
- * Write a lattice to disk in HTK format
- *
- * @return 0 for success, <0 on failure.
- */
-int ps_lattice_write_htk(ps_lattice_t *dag, char const *filename);
 
 /**
  * Get the log-math computation object for this lattice
