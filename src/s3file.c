@@ -224,7 +224,7 @@ s3file_parse_header(s3file_t *s, const char *version)
             lineno++;
 
             word = s3file_nextword(s, &ptr);
-            E_INFO("|%.*s|\n", ptr - word, word);
+            E_DEBUG("|%.*s|\n", ptr - word, word);
             if (word == NULL) {
                 E_ERROR("Missing header in line %d\n", lineno);
                 return -1;
@@ -278,11 +278,11 @@ s3file_parse_header(s3file_t *s, const char *version)
             }
             if (s3file_header_name_is(s, i, "chksum0"))
                 do_chksum = TRUE;
-            E_INFO("header line %d: %.*s=%.*s\n", lineno,
-                   s->headers[i].name.len,
-                   s->headers[i].name.buf,
-                   s->headers[i].value.len,
-                   s->headers[i].value.buf);
+            E_DEBUG("header line %d: %.*s=%.*s\n", lineno,
+                    s->headers[i].name.len,
+                    s->headers[i].name.buf,
+                    s->headers[i].value.len,
+                    s->headers[i].value.buf);
             i++;
         }
     }
