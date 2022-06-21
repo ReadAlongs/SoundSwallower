@@ -211,92 +211,98 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
 
 
 senone_t *
-senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
-	    float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
+senone_init_s3file(gauden_t *g,
+                   s3file_t *mixwfile,
+                   s3file_t *mgau_mapfile,
+                   float32 mixwfloor,
+                   logmath_t *lmath,
+                   bin_mdef_t *mdef)
 {
     senone_t *s;
-    s3file_t *s3f = NULL;
-    int32 n = 0, i;
+    int32 i;
 
     s = (senone_t *) ckd_calloc(1, sizeof(senone_t));
     s->lmath = logmath_init(logmath_get_base(lmath), SENSCR_SHIFT, TRUE);
     s->mixwfloor = mixwfloor;
 
     s->n_gauden = g->n_mgau;
-    if (sen2mgau_map_file) {
-	if (!(strcmp(sen2mgau_map_file, ".semi.") == 0
-	      || strcmp(sen2mgau_map_file, ".ptm.") == 0
-	      || strcmp(sen2mgau_map_file, ".cont.") == 0)) {
-            if ((s3f = s3file_map_file(sen2mgau_map_file)) == NULL) {
-                E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
-                               sen2mgau_map_file);
-                return NULL;
-            }
-	    if (senone_mgau_map_read(s, s3f) < 0) {
-                goto error_out;
-            }
-	    n = s->n_sen;
-	}
-    }
-    else {
-	if (s->n_gauden == 1)
-	    sen2mgau_map_file = ".semi.";
-	else if (s->n_gauden == (uint32)bin_mdef_n_ciphone(mdef))
-	    sen2mgau_map_file = ".ptm.";
-	else
-	    sen2mgau_map_file = ".cont.";
-    }
-
-    E_INFO("Reading senone mixture weights: %s\n", mixwfile);
-    if ((s3f = s3file_map_file(sen2mgau_map_file)) == NULL) {
-        E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
-                       sen2mgau_map_file);
-        goto error_out;
-    }
-    if (senone_mixw_read(s, s3f, lmath) < 0)
-        goto error_out;
-    s3file_free(s3f);
-
-    if (strcmp(sen2mgau_map_file, ".semi.") == 0) {
-        /* All-to-1 senones-codebook mapping */
-	E_INFO("Mapping all senones to one codebook\n");
-        s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
-    }
-    else if (strcmp(sen2mgau_map_file, ".ptm.") == 0) {
-        /* All-to-ciphone-id senones-codebook mapping */
-	E_INFO("Mapping senones to context-independent phone codebooks\n");
-        s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
-        for (i = 0; (uint32)i < s->n_sen; i++)
-	    s->mgau[i] = bin_mdef_sen2cimap(mdef, i);
-    }
-    else if (strcmp(sen2mgau_map_file, ".cont.") == 0
-             || strcmp(sen2mgau_map_file, ".s3cont.") == 0) {
-        /* 1-to-1 senone-codebook mapping */
-	E_INFO("Mapping senones to individual codebooks\n");
-        if (s->n_sen <= 1)
-            E_FATAL("#senone=%d; must be >1\n", s->n_sen);
-
-        s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
-        for (i = 0; (uint32)i < s->n_sen; i++)
-            s->mgau[i] = i;
-	/* Not sure why this is here, it probably does nothing. */
-        s->n_gauden = s->n_sen;
-    }
-    else {
-        if (s->n_sen != (uint32)n) {
-            E_ERROR("#senones inconsistent: %d in %s; %d in %s\n",
-                    n, sen2mgau_map_file, s->n_sen, mixwfile);
+    if (mgau_mapfile) {
+        if (senone_mgau_map_read(s, mgau_mapfile) < 0) {
             goto error_out;
         }
     }
+    else {
+	if (s->n_gauden == 1) {
+	    /* sen2mgau_map_file = ".semi."; */
+            /* All-to-1 senones-codebook mapping */
+            E_INFO("Mapping all senones to one codebook\n");
+            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
+        }
+	else if (s->n_gauden == (uint32)bin_mdef_n_ciphone(mdef)) {
+	    /* sen2mgau_map_file = ".ptm."; */
+            /* All-to-ciphone-id senones-codebook mapping */
+            E_INFO("Mapping senones to context-independent phone codebooks\n");
+            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
+            for (i = 0; (uint32)i < s->n_sen; i++)
+                s->mgau[i] = bin_mdef_sen2cimap(mdef, i);
+        }
+	else {
+	    /* sen2mgau_map_file = ".cont."; */
+            /* 1-to-1 senone-codebook mapping */
+            E_INFO("Mapping senones to individual codebooks\n");
+            if (s->n_sen <= 1)
+                E_FATAL("#senone=%d; must be >1\n", s->n_sen);
+
+            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
+            for (i = 0; (uint32)i < s->n_sen; i++)
+                s->mgau[i] = i;
+            /* Not sure why this is here, it probably does nothing. */
+            s->n_gauden = s->n_sen;
+        }
+    }
+
+    if (senone_mixw_read(s, mixwfile, lmath) < 0)
+        goto error_out;
 
     s->featscr = NULL;
     return s;
 
  error_out:
-    s3file_free(s3f);
     senone_free(s);
     return NULL;
+}
+
+senone_t *
+senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
+	    float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
+{
+    s3file_t *senmgau = NULL;
+    s3file_t *mixw = NULL;
+    senone_t *s = NULL;
+
+    if (sen2mgau_map_file) {
+ 	if (!(strcmp(sen2mgau_map_file, ".semi.") == 0
+	      || strcmp(sen2mgau_map_file, ".ptm.") == 0
+	      || strcmp(sen2mgau_map_file, ".cont.") == 0)) {
+            E_INFO("Reading senone to gmm mapping: %s\n", sen2mgau_map_file);
+            if ((senmgau = s3file_map_file(sen2mgau_map_file)) == NULL) {
+                E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
+                               sen2mgau_map_file);
+                goto error_out;
+            }
+        }
+    }
+    E_INFO("Reading senone mixture weights: %s\n", mixwfile);
+    if ((mixw = s3file_map_file(mixwfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mixture weights file '%s' for reading",
+                       mixwfile);
+        goto error_out;
+    }
+    s = senone_init_s3file(g, mixw, senmgau, mixwfloor, lmath, mdef);
+ error_out:
+    s3file_free(senmgau);
+    s3file_free(mixw);
+    return s;
 }
 
 void

@@ -52,6 +52,7 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/tied_mgau_common.h>
+#include <soundswallower/export.h>
 
 static ps_mgaufuncs_t s2_semi_mgau_funcs = {
     "s2_semi",
@@ -905,13 +906,12 @@ split_topn(char const *str, uint8 *out, int nfeat)
 }
 
 
-ps_mgau_t *
-s2_semi_mgau_init(acmod_t *acmod)
+EXPORT ps_mgau_t *
+s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
+                         s3file_t *mixw, s3file_t *sendump)
 {
     s2_semi_mgau_t *s;
     ps_mgau_t *ps;
-    s3file_t *s3f = NULL;
-    char const *sendump_path;
     int i;
     int n_feat;
 
@@ -931,10 +931,9 @@ s2_semi_mgau_init(acmod_t *acmod)
     }
 
     /* Read means and variances. */
-    if ((s->g = gauden_init(cmd_ln_str_r(s->config, "_mean"),
-                            cmd_ln_str_r(s->config, "_var"),
-                            cmd_ln_float32_r(s->config, "-varfloor"),
-                            s->lmath)) == NULL) {
+    if ((s->g = gauden_init_s3file(means, vars,
+                                   cmd_ln_float32_r(s->config, "-varfloor"),
+                                   s->lmath)) == NULL) {
         E_ERROR("Failed to read means and variances\n");	
         goto error_out;
     }
@@ -959,32 +958,18 @@ s2_semi_mgau_init(acmod_t *acmod)
         }
     }
     /* Read mixture weights */
-    if ((sendump_path = cmd_ln_str_r(s->config, "_sendump"))) {
-        E_INFO("Loading senones from dump file %s\n", sendump_path);
-        if ((s3f = s3file_map_file(sendump_path)) == NULL) {
-            E_ERROR_SYSTEM("Failed to open sendump '%s' for reading",
-                           sendump_path);
-            goto error_out;
-        }
+    if (sendump) {
         s->n_sen = bin_mdef_n_sen(acmod->mdef);
-        if (read_sendump(s3f, s->g, s->n_sen,
+        if (read_sendump(sendump, s->g, s->n_sen,
                          &s->mixw_cb, &s->mixw) < 0)
             goto error_out;
-        s->sendump_mmap = s3file_retain(s3f);
+        s->sendump_mmap = s3file_retain(sendump);
     }
     else {
-        const char *mixw_path = cmd_ln_str_r(s->config, "_mixw");
         float32 mixw_floor = cmd_ln_float32_r(s->config, "-mixwfloor");
-        if ((s3f = s3file_map_file(mixw_path)) == NULL) {
-            E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",
-                           mixw_path);
-            goto error_out;
-        }
-        if (read_mixw(s3f, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
+        if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
     }
-    s3file_free(s3f);
-    s3f = NULL;
     s->ds_ratio = cmd_ln_int32_r(s->config, "-ds");
 
     /* Determine top-N for each feature */
@@ -1020,9 +1005,57 @@ s2_semi_mgau_init(acmod_t *acmod)
     ps->vt = &s2_semi_mgau_funcs;
     return ps;
 error_out:
-    s3file_free(s3f);
     s2_semi_mgau_free(ps_mgau_base(s));
     return NULL;
+}
+
+/* FIXME: This is identical to ptm_mgau_init */
+ps_mgau_t *
+s2_semi_mgau_init(acmod_t *acmod)
+{
+    s3file_t *means = NULL;
+    s3file_t *vars = NULL;
+    s3file_t *mixw = NULL;
+    s3file_t *sendump = NULL;
+    const char *path;
+    ps_mgau_t *ps = NULL;
+
+    path = cmd_ln_str_r(acmod->config, "_mean");
+    E_INFO("Reading mixture gaussian parameter: %s\n", path);
+    if ((means = s3file_map_file(path)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", path);
+        goto error_out;
+    }
+    path = cmd_ln_str_r(acmod->config, "_var");
+    E_INFO("Reading mixture gaussian parameter: %s\n", path);
+    if ((vars = s3file_map_file(path)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", path);
+        goto error_out;
+    }
+    if ((path = cmd_ln_str_r(acmod->config, "_sendump"))) {
+        E_INFO("Loading senones from dump file %s\n", path);
+        if ((sendump = s3file_map_file(path)) == NULL) {
+            E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
+            goto error_out;
+        }
+    }
+    else {
+        path = cmd_ln_str_r(acmod->config, "_mixw");
+        E_INFO("Reading senone mixture weights: %s\n", path);
+        if ((mixw = s3file_map_file(path)) == NULL) {
+            E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",
+                           path);
+            goto error_out;
+        }
+    }
+
+    ps = s2_semi_mgau_init_s3file(acmod, means, vars, mixw, sendump);
+error_out:
+    s3file_free(means);
+    s3file_free(vars);
+    s3file_free(mixw);
+    s3file_free(sendump);
+    return ps;
 }
 
 int

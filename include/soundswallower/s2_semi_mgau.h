@@ -87,6 +87,8 @@ struct s2_semi_mgau_s {
 };
 
 ps_mgau_t *s2_semi_mgau_init(acmod_t *acmod);
+ps_mgau_t *s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
+                                    s3file_t *mixw, s3file_t *sendump);
 void s2_semi_mgau_free(ps_mgau_t *s);
 int s2_semi_mgau_frame_eval(ps_mgau_t *s,
                             int16 *senone_scores,
