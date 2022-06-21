@@ -741,11 +741,15 @@ async function load_to_s3file(path) {
     // FIXME: Should read directly to emscripten memory... how?
     const blob = await fs.readFile(path);
     const blob_u8 = new Uint8Array(blob.buffer);
-    const blob_addr = Module._malloc(blob_u8.length);
+    const blob_len = blob_u8.length + 1;
+    const blob_addr = Module._malloc(blob_len);
     if (blob_addr == 0)
-	throw new Error("Failed to allocate "+blob_u8.length+" bytes for "+path);
+	throw new Error("Failed to allocate "+blob_len+" bytes for "+path);
     writeArrayToMemory(blob, blob_addr);
-    return Module._s3file_init(blob_addr, blob_u8.length);
+    // Ensure it is NUL-terminated in case someone treats it as a string
+    HEAP8[blob_addr + blob_len] = 0;
+    // But exclude the trailing NUL from file size so it works normally
+    return Module._s3file_init(blob_addr, blob_len - 1);
 }
 
 
