@@ -79,7 +79,7 @@ typedef struct s3hdr_s {
 } s3hdr_t;
 
 typedef struct s3file_s {
-    int refcnt;
+    int refcount;
     mmio_file_t *mf;
     const void *buf;
     const char *ptr, *end;

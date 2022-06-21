@@ -63,7 +63,7 @@ EXPORT s3file_t *
 s3file_init(const void *buf, size_t len)
 {
     s3file_t *s = ckd_calloc(1, sizeof(*s));
-    s->refcnt = 1;
+    s->refcount = 1;
     s->buf = buf;
     s->ptr = buf;
     s->end = buf + len;
@@ -78,7 +78,7 @@ s3file_map_file(const char *filename)
     if ((mf = mmio_file_read(filename)) == NULL)
         return NULL;
     s3file_t *s = ckd_calloc(1, sizeof(*s));
-    s->refcnt = 1;
+    s->refcount = 1;
     s->mf = mf;
     s->buf = mmio_file_ptr(mf);
     s->ptr = s->buf;
@@ -92,22 +92,22 @@ s3file_retain(s3file_t *s)
 {
     if (s == NULL)
         return NULL;
-    ++s->refcnt;
+    ++s->refcount;
     return s;
 }
 
 EXPORT int
 s3file_free(s3file_t *s)
 {
-    int rv = --s->refcnt;
-    assert(rv >= 0);
-    if (rv == 0) {
-        if (s->mf)
-            mmio_file_unmap(s->mf);
-        ckd_free(s->headers);
-        ckd_free(s);
-    }
-    return rv;
+    if (s == NULL)
+        return 0;
+    if (--s->refcount > 0)
+        return s->refcount;
+    if (s->mf)
+        mmio_file_unmap(s->mf);
+    ckd_free(s->headers);
+    ckd_free(s);
+    return 0;
 }
 
 static int32
