@@ -6,7 +6,6 @@
 #include <soundswallower/pocketsphinx.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/dict.h>
-#include <soundswallower/pio.h>
 #include <soundswallower/strfuncs.h>
 
 #include "test_macros.h"

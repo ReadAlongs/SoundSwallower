@@ -40,7 +40,6 @@
 /* SphinxBase headers. */
 #include <soundswallower/export.h>
 #include <soundswallower/err.h>
-#include <soundswallower/pio.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/strfuncs.h>

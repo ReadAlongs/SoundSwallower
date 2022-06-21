@@ -39,7 +39,6 @@ set(SOURCES
   ms_gauden.c
   ms_mgau.c
   ms_senone.c
-  pio.c
   pocketsphinx.c
   profile.c
   ps_lattice.c

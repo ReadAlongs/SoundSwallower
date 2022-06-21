@@ -50,7 +50,6 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/pio.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/cmdln_macro.h>
@@ -654,36 +653,44 @@ ps_add_word(ps_decoder_t *ps,
 {
     int32 wid;
     s3cipid_t *pron;
-    char **phonestr, *tmp;
-    int np, i;
+    int np;
+    char *phonestr, *ptr;
 
+    assert(word != NULL);
+    assert(phones != NULL);
+    /* Cannot have more phones than chars... */
+    pron = ckd_calloc(1, strlen(phones));
     /* Parse phones into an array of phone IDs. */
-    tmp = ckd_salloc(phones);
-    np = str2words(tmp, NULL, 0);
-    phonestr = ckd_calloc(np, sizeof(*phonestr));
-    str2words(tmp, phonestr, np);
-    pron = ckd_calloc(np, sizeof(*pron));
-    for (i = 0; i < np; ++i) {
-        pron[i] = bin_mdef_ciphone_id(ps->acmod->mdef, phonestr[i]);
-        if (pron[i] == -1) {
+    ptr = phonestr = ckd_salloc(phones);
+    np = 0;
+    while (*ptr) {
+        char *phone;
+        while (*ptr && isspace_c(*ptr))
+            ++ptr;
+        if (*ptr == '\0')
+            break;
+        phone = ptr;
+        while (*ptr && !isspace_c(*ptr))
+            ++ptr;
+        *ptr = '\0';
+        pron[np] = bin_mdef_ciphone_id(ps->acmod->mdef, phone);
+        if (pron[np] == -1) {
             E_ERROR("Unknown phone %s in phone string %s\n",
-                    phonestr[i], tmp);
+                    phone, phones);
             ckd_free(phonestr);
-            ckd_free(tmp);
             ckd_free(pron);
             return -1;
         }
+        ++np;
+        ++ptr;
     }
-    /* No longer needed. */
     ckd_free(phonestr);
-    ckd_free(tmp);
 
     /* Add it to the dictionary. */
     if ((wid = dict_add_word(ps->dict, word, pron, np)) == -1) {
         ckd_free(pron);
         return -1;
     }
-    /* No longer needed. */
     ckd_free(pron);
 
     /* Now we also have to add it to dict2pid. */

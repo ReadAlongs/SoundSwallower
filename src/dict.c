@@ -37,7 +37,6 @@
 
 #include <string.h>
 
-#include <soundswallower/pio.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/dict.h>
 

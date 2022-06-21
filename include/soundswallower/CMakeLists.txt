@@ -40,7 +40,6 @@ set(INCLUDES
   ms_gauden.h
   ms_mgau.h
   ms_senone.h
-  pio.h
   pocketsphinx.h
   pocketsphinx_internal.h
   prim_type.h

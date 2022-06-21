@@ -66,7 +66,6 @@ main(int argc, char *argv[])
 
     /* Now get the DAG and play with it. */
     dag = ps_get_lattice(ps);
-    ps_lattice_write(dag, "test_fsg.lat");
     printf("BESTPATH: %s\n",
            ps_lattice_hyp(dag, ps_lattice_bestpath(dag, NULL, 15.0)));
     ps_lattice_posterior(dag, NULL, 15.0);
