@@ -49,12 +49,10 @@
 #include <soundswallower/strfuncs.h>
 
 /* Locale-independent isspace to avoid different incompatibilities */
-static int
+int
 isspace_c(char ch)
 {
-    if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
-	return 1;
-    return 0;
+    return (strchr(" \t\n\r\v\f", ch) != NULL);
 }
 
 char *

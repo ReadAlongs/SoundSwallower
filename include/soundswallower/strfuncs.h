@@ -62,6 +62,11 @@ extern "C" {
 char *string_join(const char *base, ...);
 
 /**
+ * Locale-independent isspace to avoid incompatibilities
+ */
+int isspace_c(char ch);
+
+/**
  * Which end of a string to operate on for string_trim().
  */
 enum string_edge_e {
