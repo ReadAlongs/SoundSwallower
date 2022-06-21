@@ -3,7 +3,7 @@
     const fs = require('fs/promises');
     const ssjs = {};
     before(async () => {
-	await require('../soundswallower.js')(ssjs);
+	await require('./soundswallower.js')(ssjs);
     });
     describe("Test initialization", () => {
 	it("Should load the WASM module", () => {
@@ -123,11 +123,11 @@
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "../tests/data/goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 16000,
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -145,11 +145,11 @@
 	});
 	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "../tests/data/goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    let pcm32 = new Float32Array(pcm.buffer);
 	    await decoder.start();
 	    await decoder.process(pcm32, false, true);
@@ -173,7 +173,7 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -206,7 +206,7 @@
 	    ]);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete(); // has been retained by decoder
-	    let pcm = await fs.readFile("../tests/data/goforward_fr-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward_fr-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -217,11 +217,11 @@
     describe("Test JSGF", () => {
 	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder({
-		jsgf: "../tests/data/pizza.gram",
+		jsgf: "testdata/pizza.gram",
 		samprate: 16000
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
+	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -247,7 +247,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 `);
 	    await decoder.set_fsg(fsg);
 	    fsg.delete();
-	    let pcm = await fs.readFile("../tests/data/pizza-float32.raw");
+	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
@@ -258,11 +258,11 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
     describe("Test reinitialize_audio", () => {
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
-		fsg: "../tests/data/goforward.fsg",
+		fsg: "testdata/goforward.fsg",
 		samprate: 11025
 	    });
 	    await decoder.initialize();
-	    let pcm = await fs.readFile("../tests/data/goforward-float32.raw");
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    decoder.config.set("samprate", 16000);
 	    await decoder.reinitialize_audio();
 	    await decoder.start();

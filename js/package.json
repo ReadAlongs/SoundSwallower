@@ -4,7 +4,7 @@
    "description": "An even smaller speech recognizer",
    "main": "soundswallower.js",
    "scripts": {
-      "test": "mocha test",
+      "test": "mocha test_node",
       "build:prod": "emcmake cmake .. -DCMAKE_BUILD_TYPE=Release && emmake make",
       "build:dev": "emcmake cmake .. -DCMAKE_BUILD_TYPE=Debug && emmake make",
       "build": "npm run build:prod"

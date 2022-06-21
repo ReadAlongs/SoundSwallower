@@ -18,6 +18,10 @@ const RUNNING_ON_WEB = (typeof window == 'object'
 if (typeof(Module.defaultModel) === 'undefined') {
     Module.defaultModel = DEFAULT_MODEL;
 }
+// User can also specify the base URL for models
+if (typeof(Module.modelBase) === 'undefined') {
+    Module.modelBase = "/model/";
+}
 
 /**
  * Configuration object for SoundSwallower recognizer.
@@ -696,15 +700,28 @@ async function* read_featparams(featparams) {
 }
 
 async function load_to_s3file(path) {
-    const fs = require("fs/promises");
-    // FIXME: Should read directly to emscripten memory... how?
-    const blob = await fs.readFile(path);
-    const blob_u8 = new Uint8Array(blob.buffer);
+    let blob_u8;
+    if (RUNNING_ON_WEB) {
+	const response = await fetch(path);
+	if (response.ok) {
+	    const blob = await response.blob();
+	    const blob_buf = await blob.arrayBuffer();
+	    blob_u8 = new Uint8Array(blob_buf);
+	}
+	else
+	    throw new Error("Failed to fetch " + path + " :" + response.statusText);
+    }
+    else {
+	const fs = require("fs/promises");
+	// FIXME: Should read directly to emscripten memory... how?
+	const blob = await fs.readFile(path);
+	blob_u8 = new Uint8Array(blob.buffer);
+    }
     const blob_len = blob_u8.length + 1;
     const blob_addr = Module._malloc(blob_len);
     if (blob_addr == 0)
 	throw new Error("Failed to allocate "+blob_len+" bytes for "+path);
-    writeArrayToMemory(blob, blob_addr);
+    writeArrayToMemory(blob_u8, blob_addr);
     // Ensure it is NUL-terminated in case someone treats it as a string
     HEAP8[blob_addr + blob_len] = 0;
     // But exclude the trailing NUL from file size so it works normally
@@ -714,12 +731,12 @@ async function load_to_s3file(path) {
 /**
  * Get a model from the built-in model path.
  */
-const model_path = require("./model/index.js");
 function get_model_path(subpath) {
     if (RUNNING_ON_WEB) {
-	return model_path + "/" + subpath;
+	return Module.modelBase + subpath;
     }
     else {
+	const model_path = require("./model/index.js");
 	const path = require("path");
 	return path.join(model_path, subpath);
     }
