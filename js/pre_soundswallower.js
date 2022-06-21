@@ -133,7 +133,7 @@ class Config {
 	    return "";
     }
     normalize_ckey(ckey) {
-	let key = UTF8ToString(ckey);
+	const key = UTF8ToString(ckey);
 	if (key.length == 0)
 	    return key;
 	else if (key[0] == '-' || key[0] == '_')
@@ -154,7 +154,7 @@ class Config {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    let cval = allocateUTF8OnStack(val);
+	    const cval = allocateUTF8OnStack(val);
 	    Module._cmd_ln_set_str_r(this.cmd_ln, ckey, cval);
 	}
 	else if (type & ARG_FLOATING) {
@@ -175,13 +175,13 @@ class Config {
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
     get(key) {
-	let ckey = allocateUTF8OnStack(this.normalize_key(key));
-	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
+	const ckey = allocateUTF8OnStack(this.normalize_key(key));
+	const type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    let val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
+	    const val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
 	    if (val == 0)
 		return null;
 	    return UTF8ToString(val);
@@ -221,15 +221,15 @@ class Config {
      * @param {string} key - Key whose existence to check.
      */
     has(key) {
-	let ckey = allocateUTF8OnStack(key);
+	const ckey = allocateUTF8OnStack(key);
 	return Module._cmd_ln_exists_r(this.cmd_ln, ckey);
     }
     *[Symbol.iterator]() {
 	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
-	let seen = new Set();
+	const seen = new Set();
 	while (itor != 0) {
-	    let ckey = Module._hash_iter_key(itor);
-	    let key = this.normalize_ckey(ckey);
+	    const ckey = Module._hash_iter_key(itor);
+	    const key = this.normalize_ckey(ckey);
 	    if (seen.has(key))
 		continue;
 	    seen.add(key);
@@ -318,7 +318,7 @@ class Decoder {
      * Create front-end from configuration.
      */
     async init_fe() {
-	let rv = Module._ps_init_fe(this.ps);
+	const rv = Module._ps_init_fe(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize frontend");
     }
@@ -327,7 +327,7 @@ class Decoder {
      * Create dynamic feature module from configuration.
      */
     async init_feat() {
-	let rv = Module._ps_init_feat(this.ps);
+	const rv = Module._ps_init_feat(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
     }
@@ -336,7 +336,7 @@ class Decoder {
      * Create acoustic model from configuration.
      */
     async init_acmod() {
-	let rv = Module._ps_init_acmod_pre(this.ps);
+	const rv = Module._ps_init_acmod_pre(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
     }
@@ -354,7 +354,7 @@ class Decoder {
 	const sendump = this.config.model_path("sendump", "sendump");
 	const mixw = this.config.model_path("mixw", "mixture_weights");
 	await this.load_gmm(means, variances, sendump, mixw);
-	let rv = Module._ps_init_acmod_post(this.ps);
+	const rv = Module._ps_init_acmod_post(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to initialize acoustic scoring");
     }
@@ -409,7 +409,7 @@ class Decoder {
      * Load dictionary from configuration.
      */
     async init_dict() {
-	let rv = Module._ps_init_dict(this.ps);
+	const rv = Module._ps_init_dict(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize dictionaries");
     }
@@ -418,7 +418,7 @@ class Decoder {
      * Load grammar from configuration.
      */
     async init_grammar() {
-	let rv = Module._ps_init_grammar(this.ps);
+	const rv = Module._ps_init_grammar(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to initialize grammar");
     }
@@ -483,13 +483,13 @@ class Decoder {
      */
     async process(pcm, no_search=false, full_utt=false) {
 	this.assert_initialized();
-	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
-	let pcm_addr = Module._malloc(pcm_bytes);
-	let pcm_u8 = new Uint8Array(pcm.buffer);
+	const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
+	const pcm_addr = Module._malloc(pcm_bytes);
+	const pcm_u8 = new Uint8Array(pcm.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
-	let rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
+	const rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
 					    no_search, full_utt);
 	Module._free(pcm_addr);
 	if (rv < 0) {
@@ -515,15 +515,15 @@ class Decoder {
     get_hypseg() {
 	this.assert_initialized();
 	let itor = Module._ps_seg_iter(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
-	let seg = [];
+	const config = Module._ps_get_config(this.ps);
+	const frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
+	const seg = [];
 	while (itor != 0) {
-	    let frames = stackAlloc(8);
+	    const frames = stackAlloc(8);
 	    Module._ps_seg_frames(itor, frames, frames + 4);
-	    let start_frame = getValue(frames, 'i32');
-	    let end_frame = getValue(frames + 4, 'i32');
-	    let seg_item = {
+	    const start_frame = getValue(frames, 'i32');
+	    const end_frame = getValue(frames + 4, 'i32');
+	    const seg_item = {
 		word: ccall('ps_seg_word', 'string', ['number'], [itor]),
 		start: start_frame / frate,
 		end: end_frame / frate
@@ -542,8 +542,8 @@ class Decoder {
      */
     lookup_word(word) {
 	this.assert_initialized();
-	let cword = allocateUTF8OnStack(word);
-	let cpron = Module._ps_lookup_word(this.ps, cword);
+	const cword = allocateUTF8OnStack(word);
+	const cpron = Module._ps_lookup_word(this.ps, cword);
 	if (cpron == 0)
 	    return null;
 	return UTF8ToString(cpron);
@@ -559,9 +559,9 @@ class Decoder {
      */
     async add_word(word, pron, update=true) {
 	this.assert_initialized();
-	let cword = allocateUTF8OnStack(word);
-	let cpron = allocateUTF8OnStack(pron);
-	let wid = Module._ps_add_word(this.ps, cword, cpron, update);
+	const cword = allocateUTF8OnStack(word);
+	const cpron = allocateUTF8OnStack(pron);
+	const wid = Module._ps_add_word(this.ps, cword, cpron, update);
 	if (wid < 0)
 	    throw new Error("Failed to add word "+word+" with pronunciation "+
 			    pron+" to the dictionary.");
@@ -582,25 +582,25 @@ class Decoder {
      */
     create_fsg(name, start_state, final_state, transitions) {
 	this.assert_initialized();
-	let logmath = Module._ps_get_logmath(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
-	let n_state = 0;
-	for (let t of transitions) {
+	const logmath = Module._ps_get_logmath(this.ps);
+	const config = Module._ps_get_config(this.ps);
+	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const n_state = 0;
+	for (const t of transitions) {
 	    n_state = Math.max(n_state, t.from, t.to);
 	}
 	n_state++;
-	let fsg = ccall('fsg_model_init',
+	const fsg = ccall('fsg_model_init',
 			'number', ['string', 'number', 'number', 'number'],
 			[name, logmath, lw, n_state]);
 	Module._fsg_set_states(fsg, start_state, final_state);
-	for (let t of transitions) {
-	    let logprob = 0;
+	for (const t of transitions) {
+	    const logprob = 0;
 	    if ('prob' in t) {
 		logprob = Module._logmath_log(logmath, t.prob);
 	    }
 	    if ('word' in t) {
-		let wid = ccall('fsg_model_word_add', 'number',
+		const wid = ccall('fsg_model_word_add', 'number',
 				['number', 'string'],
 				[fsg, t.word]);
 		if (wid == -1) {
@@ -633,16 +633,16 @@ class Decoder {
      */
     parse_jsgf(jsgf_string, toprule=null) {
 	this.assert_initialized();
-	let logmath = Module._ps_get_logmath(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
-	let cjsgf = allocateUTF8OnStack(jsgf_string);
-	let jsgf = Module._jsgf_parse_string(cjsgf, 0);
+	const logmath = Module._ps_get_logmath(this.ps);
+	const config = Module._ps_get_config(this.ps);
+	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const cjsgf = allocateUTF8OnStack(jsgf_string);
+	const jsgf = Module._jsgf_parse_string(cjsgf, 0);
 	if (jsgf == 0)
 	    throw new Error("Failed to parse JSGF");
 	let rule;
 	if (toprule !== null) {
-	    let crule = allocateUTF8OnStack(toprule);
+	    const crule = allocateUTF8OnStack(toprule);
 	    rule = Module._jsgf_get_rule(jsgf, crule);
 	    if (rule == 0)
 		throw new Error("Failed to find top rule " + toprule);
@@ -652,7 +652,7 @@ class Decoder {
 	    if (rule == 0)
 		throw new Error("No public rules found in JSGF");
 	}
-	let fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
+	const fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
 	Module._jsgf_grammar_free(jsgf);
 	return {
 	    fsg: fsg,
