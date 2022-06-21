@@ -198,20 +198,22 @@ s3file_parse_header(s3file_t *s, const char *version)
 
         start_line = lineno;
         while (1) {
-            if ((line = s3file_nextline(s)) == NULL) {
+            const char *ptr, *word;
+            if ((ptr = line = s3file_nextline(s)) == NULL) {
                 E_ERROR("Premature EOF, line %d\n", lineno);
                 return -1;
             }
             lineno++;
-            while (isspace_c(*line) && line < s->ptr)
-                line++;
-            if (line == s->ptr) {
+
+            word = s3file_nextword(s, &ptr);
+            E_INFO("|%.*s|\n", ptr - word, word);
+            if (word == NULL) {
                 E_ERROR("Missing header in line %d\n", lineno);
                 return -1;
             }
-            if (*line == '#')
+            if (*word == '#')
                 continue;
-            if (strncmp(line, "endhdr", 6) == 0)
+            if (strncmp(word, "endhdr", ptr - word) == 0)
                 break;
             s->nhdr++;
         }
@@ -220,36 +222,33 @@ s3file_parse_header(s3file_t *s, const char *version)
         s->headers = ckd_calloc(s->nhdr, sizeof(*s->headers));
         i = 0;
         while (1) {
-            if ((line = s3file_nextline(s)) == NULL) {
+            const char *ptr, *word;
+            if ((ptr = line = s3file_nextline(s)) == NULL) {
                 E_ERROR("Premature EOF, line %d\n", lineno);
                 return -1;
             }
             lineno++;
-            while (isspace_c(*line) && line < s->ptr)
-                line++;
-            if (line == s->ptr) {
+            word = s3file_nextword(s, &ptr);
+            if (word == NULL) {
                 E_ERROR("Missing name in header line %d\n", lineno);
                 return -1;
             }
-            if (*line == '#')
+            if (*word == '#')
                 continue;
-            if (strncmp(line, "endhdr", 6) == 0)
+            if (strncmp(word, "endhdr", ptr - word) == 0)
                 break;
 
-            s->headers[i].name.buf = line;
-            while (!isspace_c(*line) && line < s->ptr)
-                line++;
-            s->headers[i].name.len = line - s->headers[i].name.buf;
-            while (isspace_c(*line) && line < s->ptr)
-                line++;
-            if (line == s->ptr) {
+            s->headers[i].name.buf = word;
+            s->headers[i].name.len = ptr - word;
+
+            word = s3file_nextword(s, &ptr);
+            if (word == NULL) {
                 E_ERROR("Missing value in header line %d\n", lineno);
                 return -1;
             }
-            s->headers[i].value.buf = line;
-            while (!isspace_c(*line) && line < s->ptr)
-                line++;
-            s->headers[i].value.len = line - s->headers[i].value.buf;
+            s->headers[i].value.buf = word;
+            s->headers[i].value.len = ptr - word;
+
             if (version) {
                 if (s3file_header_name_is(s, i, "version")) {
                     if (!s3file_header_value_is(s, i, version))
