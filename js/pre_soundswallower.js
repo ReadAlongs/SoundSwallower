@@ -29,9 +29,8 @@ else {
 const RUNNING_ON_WEB = (typeof window == 'object'
 			|| typeof importScripts == 'function');
 if (RUNNING_ON_WEB) {
-    // Lazy load the default model when running on the web
     if (Module.defaultModel !== null) {
-	// FIXME: Probably the wrong way to get the relative URL of
+	// FIXME: Definitely the wrong way to get the relative URL of
 	// the model...
 	const model_path = "model/" + Module.defaultModel;
 	Module.preRun.push(function() {
@@ -680,90 +679,6 @@ class Decoder {
 };
 
 /**
- * Load a model into Emscripten's filesystem.
- *
- * Presently models must be made avaliable to the SoundSwallower C
- * code using this function.
- *
- * @param {string} model_name - Name to use for model in "hmm" parameter.
- * @param {string} model_path - Filesystem path (under Node.js) or
- *                              base URL (on the Web) of the model.
- * @param {string} dict_path - Optional custom dictionary path.
- */
-function load_model(model_name, model_path, dict_path=null) {
-    Module.model_paths[model_name] = model_path;
-    const dest_model_dir = "/" + model_name;
-    const folders = [["/", model_name]];
-    const files = [
-	[dest_model_dir, "means", model_path + "/means"],
-	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
-	[dest_model_dir, "variances", model_path + "/variances"],
-	[dest_model_dir, "noisedict", model_path + "/noisedict"],
-    ];
-    // Lazy-load on the Web, pre-load on Node, DWIM, quoi
-    if (RUNNING_ON_WEB) {
-	// only some of these will actually be present and get loaded,
-	// we can do this because of lazy loading.
-	files.push(
-	    [dest_model_dir, "mdef", model_path + "/mdef"],
-	    [dest_model_dir, "mdef.txt", model_path + "/mdef.txt"],
-	    [dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
-	    [dest_model_dir, "sendump", model_path + "/sendump"],
-	    [dest_model_dir, "phoneset.txt", model_path + "/phoneset.txt"],
-	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
-    }
-    else {
-	// Can't pre-load a file that doesn't exist :(
-	/* FIXME: This only works under Node.js, and it isn't correct
-	   as there is a race condition, but we are unable to catch
-	   errors from Emscripten's broken preloading code, so we
-	   have to do it this way @#$!@#$ */
-	const fs = require('fs');
-	const path = require('path');
-	const sendump_path = path.join(model_path, "sendump");
-	if (fs.statSync(sendump_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "sendump", sendump_path]);
-	const mixw_path = path.join(model_path, "mixture_weights");
-	if (fs.statSync(mixw_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mixture_weights", mixw_path]);
-	let mdef_path = path.join(model_path, "mdef.bin");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef.bin", mdef_path]);
-	mdef_path = path.join(model_path, "mdef.txt");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef.txt", mdef_path]);
-	mdef_path = path.join(model_path, "mdef");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef", mdef_path]);
-	const phoneset_path = path.join(model_path, "phoneset.txt");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "phoneset.txt", mdef_path]);
-    }
-    if (dict_path !== null) {
-	files.push([dest_model_dir, "dict.txt", dict_path]);
-    }
-    else {
-	if (RUNNING_ON_WEB)
-	    files.push([dest_model_dir, "dict.txt", model_path + "/dict.txt"]);
-	else {
-	    const fs = require('fs');
-	    const path = require('path');
-	    dict_path = path.join(model_path, "dict.txt");
-	    if (fs.statSync(dict_path, { throwIfNoEntry: false }))
-		files.push([dest_model_dir, "dict.txt", dict_path]);
-	}
-    }
-    for (const folder of folders)
-	Module.FS_createPath(folder[0], folder[1], true, true);
-    for (const file of files) {
-	if (RUNNING_ON_WEB)
-	    Module.FS_createLazyFile(file[0], file[1], file[2], true, true);
-	else
-	    Module.FS_createPreloadedFile(file[0], file[1], file[2], true, true);
-    }
-};
-
-/**
  * Generate [key,value] pairs from feat.params file/URL.
  */
 async function* read_featparams(featparams) {
@@ -813,7 +728,21 @@ async function load_to_s3file(path) {
     return Module._s3file_init(blob_addr, blob_u8.length);
 }
 
+
+/**
+ * Load a model into Emscripten's filesystem.
+ *
+ * Actually does nothing but map model names to URLs.
+ *
+ * @param {string} model_name - Name to use for model in "hmm" parameter.
+ * @param {string} model_path - Filesystem path (under Node.js) or
+ *                              base URL (on the Web) of the model.
+ * @param {string} dict_path - Optional custom dictionary path.
+ */
+function load_model(model_name, model_path, dict_path=null) {
+    Module.model_paths[model_name] = model_path;
+}
+
 Module.Config = Config;
 Module.Decoder = Decoder;
 Module.load_model = load_model;
-Module.read_featparams = read_featparams;
