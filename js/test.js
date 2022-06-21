@@ -1,18 +1,10 @@
 (async () => {
     const assert = require('assert');
     const fs = require('fs/promises');
-    const ssjs = {
-	// Pre-load the grammar we use below
-	preRun() {
-	    ssjs.FS_createPreloadedFile("/", "goforward.fsg",
-					"../tests/data/goforward.fsg", true, true);
-	    ssjs.FS_createPreloadedFile("/", "pizza.gram",
-					"../tests/data/pizza.gram", true, true);
-	    ssjs.load_model("fr-fr", "model/fr-fr");
-	}
-    };
+    const ssjs = {};
     before(async () => {
 	await require('./soundswallower.js')(ssjs);
+	ssjs.load_model("fr-fr", "model/fr-fr");
     });
     describe("Test initialization", () => {
 	it("Should load the WASM module", () => {
