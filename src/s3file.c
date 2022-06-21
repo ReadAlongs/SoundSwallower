@@ -137,7 +137,7 @@ swap_check(s3file_t *s)
 }
 
 const char *
-s3file_readline(s3file_t *s)
+s3file_nextline(s3file_t *s)
 {
     const char *line;
 
@@ -158,7 +158,7 @@ s3file_parse_header(s3file_t *s, const char *version)
     const char *line;
 
     lineno = 0;
-    if ((line = s3file_readline(s)) == NULL) {
+    if ((line = s3file_nextline(s)) == NULL) {
         E_ERROR("Premature EOF, line %d\n", lineno);
         return -1;
     }
@@ -171,7 +171,7 @@ s3file_parse_header(s3file_t *s, const char *version)
 
         start_line = lineno;
         while (1) {
-            if ((line = s3file_readline(s)) == NULL) {
+            if ((line = s3file_nextline(s)) == NULL) {
                 E_ERROR("Premature EOF, line %d\n", lineno);
                 return -1;
             }
@@ -193,7 +193,7 @@ s3file_parse_header(s3file_t *s, const char *version)
         s->headers = ckd_calloc(s->nhdr, sizeof(*s->headers));
         i = 0;
         while (1) {
-            if ((line = s3file_readline(s)) == NULL) {
+            if ((line = s3file_nextline(s)) == NULL) {
                 E_ERROR("Premature EOF, line %d\n", lineno);
                 return -1;
             }
@@ -253,7 +253,7 @@ s3file_parse_header(s3file_t *s, const char *version)
         s->headers[0].value.len = s->ptr - line;
         /* Just ignore everything until *end_comment* */
         while (1) {
-            if ((line = s3file_readline(s)) == NULL) {
+            if ((line = s3file_nextline(s)) == NULL) {
                 E_ERROR("Premature EOF, line %d\n", lineno);
                 return -1;
             }

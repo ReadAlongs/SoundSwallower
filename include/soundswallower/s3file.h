@@ -149,6 +149,13 @@ char *s3file_header_name(s3file_t *s, size_t idx);
 char *s3file_header_value(s3file_t *s, size_t idx);
 
 /**
+ * Advance one line in file.
+ *
+ * @return start of current line (end is in s->ptr) or NULL if at end-of-file.
+ */
+const char *s3file_nextline(s3file_t *s);
+
+/**
  * Extract values with byteswapping and checksum.
  */
 size_t s3file_get(void *buf,        /**< In: adddress to write values to. */
