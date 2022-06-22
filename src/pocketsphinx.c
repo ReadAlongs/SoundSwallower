@@ -461,7 +461,7 @@ ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
     return ps->fe;
 }
 
-EXPORT int
+int
 ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 {
     if (ps_init_config(ps, config) < 0)
@@ -490,10 +490,14 @@ ps_init(cmd_ln_t *config)
     ps = ckd_calloc(1, sizeof(*ps));
     ps->refcount = 1;
     if (config) {
+#ifdef __EMSCRIPTEN__
+        E_WARN("ps_init(config) does nothing in JavaScript\n");
+#else
         if (ps_reinit(ps, config) < 0) {
             ps_free(ps);
             return NULL;
         }
+#endif
     }
     return ps;
 }
