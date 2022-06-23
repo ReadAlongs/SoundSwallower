@@ -248,10 +248,6 @@ int mdef_hmm_cmp (mdef_t *m,	/**< In: Model being queried */
                   int p2	/**< In: One of the two triphones being compared */
     );
 
-/** Report the model definition's parameters */
-void mdef_report(mdef_t *m /**<  In: model definition structure */
-    );
-
 /** RAH, For freeing memory */
 void mdef_free_recursive_lc (ph_lc_t *lc /**< In: A list of left context */
     );
