@@ -173,7 +173,7 @@ bin_mdef_t *bin_mdef_read(cmd_ln_t *config, const char *filename);
 /**
  * Read a binary mdef from an existing s3file_t.
  */
-bin_mdef_t *bin_mdef_read_s3file(s3file_t *s);
+bin_mdef_t *bin_mdef_read_s3file(s3file_t *s, int cionly);
 
 /**
  * Read a text mdef from a file (creating an in-memory binary mdef).

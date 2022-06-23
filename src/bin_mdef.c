@@ -308,13 +308,13 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         return NULL;
     }
 
-    m = bin_mdef_read_s3file(s);
+    m = bin_mdef_read_s3file(s, cmd_ln_boolean_r(config, "-cionly"));
     s3file_free(s);
     return m;
 }
 
 EXPORT bin_mdef_t *
-bin_mdef_read_s3file(s3file_t *s)
+bin_mdef_read_s3file(s3file_t *s, int cionly)
 {
     size_t tree_start;
     int32 val, i;
@@ -368,6 +368,12 @@ bin_mdef_read_s3file(s3file_t *s)
     FREAD_SWAP32_CHK(&m->n_ctx);
     FREAD_SWAP32_CHK(&m->n_cd_tree);
     FREAD_SWAP32_CHK(&m->sil);
+
+    /* Remove CD phones if requested. */
+    if (cionly) {
+        m->n_phone = m->n_ciphone;
+        m->n_sen = m->n_ci_sen;
+    }
 
     /* CI names are first in the file. */
     m->ciname = ckd_calloc(m->n_ciphone, sizeof(*m->ciname));

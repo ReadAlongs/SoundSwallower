@@ -342,7 +342,7 @@ class Decoder {
 		s3f = await load_to_s3file(mdef_path);
 	    }
 	}
-	const mdef = Module._bin_mdef_read_s3file(s3f);
+	const mdef = Module._bin_mdef_read_s3file(s3f, 0);
 	Module._s3file_free(s3f);
 	if (mdef == 0)
 	    throw new Error("Failed to read mdef");
