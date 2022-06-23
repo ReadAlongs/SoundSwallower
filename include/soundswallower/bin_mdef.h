@@ -173,7 +173,7 @@ bin_mdef_t *bin_mdef_read(cmd_ln_t *config, const char *filename);
 /**
  * Read a binary mdef from an existing s3file_t.
  */
-bin_mdef_t *bin_mdef_read_s3file(s3file_t *s);
+bin_mdef_t *bin_mdef_read_s3file(s3file_t *s, int cionly);
 
 /**
  * Read a text mdef from a file (creating an in-memory binary mdef).
@@ -207,16 +207,29 @@ int bin_mdef_ciphone_id_nocase(bin_mdef_t *m,	     /**< In: Model structure bein
 const char *bin_mdef_ciphone_str(bin_mdef_t *m,	/**< In: Model structure being queried */
 				 int32 ci);	/**< In: ciphone id for which name wanted */
 
-/* Return value: phone id for the given constituents if found, else -1 */
+/* Lookup an exact context-dependent phone ID.
+ *
+ * This returns *exactly* the context-dependent phone ID requested.
+ * If the context is completely undefined (-1, -1,
+ * WORD_POSN_UNDEFINED) then the base phone ID will be returned (but
+ * why would you do that?).  In nearly all cases, you should use
+ * bin_mdef_phone_id_nearest() instead.
+ *
+ * Return value: phone id for the given constituents if found, else -1
+ */
 int bin_mdef_phone_id(bin_mdef_t *m,	/**< In: Model structure being queried */
-		      int32 b,		/**< In: base ciphone id */
-		      int32 l,		/**< In: left context ciphone id */
-		      int32 r,		/**< In: right context ciphone id */
-		      int32 pos);	/**< In: Word position */
+		      int32 ci,		/**< In: base ciphone id */
+		      int32 l,		/**< In: left context ciphone id, -1 for none */
+		      int32 r,		/**< In: right context ciphone id, -1 for none */
+		      word_posn_t pos);	/**< In: Word position */
 
-/* Look up a phone id, backing off to other word positions. */
+/* Look up a phone id, backing off to other word positions.
+ *
+ * Note that if pos is WORD_POSN_UNDEFINED, this will try all
+ * positions and return the first one that matches.
+ */
 int bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b,
-			      int32 l, int32 r, int32 pos);
+			      int32 l, int32 r, word_posn_t pos);
 
 /**
  * Create a phone string for the given phone (base or triphone) id in the given buf.

@@ -60,17 +60,120 @@
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/export.h>
 
+static cd_tree_t *
+build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
+{
+    int i, nodes, ci_idx, lc_idx, rc_idx;
+
+    /* Walk the wpos_ci_lclist once to find the total number of
+     * nodes and the starting locations for each level. */
+    nodes = lc_idx = ci_idx = rc_idx = 0;
+    for (i = 0; i < N_WORD_POSN; ++i) {
+        int j;
+        for (j = 0; j < mdef->n_ciphone; ++j) {
+            ph_lc_t *lc;
+
+            for (lc = mdef->wpos_ci_lclist[i][j]; lc; lc = lc->next) {
+                ph_rc_t *rc;
+                for (rc = lc->rclist; rc; rc = rc->next) {
+                    ++nodes;    /* RC node */
+                }
+                ++nodes;        /* LC node */
+                ++rc_idx;       /* Start of RC nodes (after LC nodes) */
+            }
+            ++nodes;            /* CI node */
+            ++lc_idx;           /* Start of LC nodes (after CI nodes) */
+            ++rc_idx;           /* Start of RC nodes (after CI and LC nodes) */
+        }
+        ++nodes;                /* wpos node */
+        ++ci_idx;               /* Start of CI nodes (after wpos nodes) */
+        ++lc_idx;               /* Start of LC nodes (after CI nodes) */
+        ++rc_idx;               /* STart of RC nodes (after wpos, CI, and LC nodes) */
+    }
+    E_INFO("Allocating %d * %d bytes (%d KiB) for CD tree\n",
+           nodes, sizeof(*bmdef->cd_tree), 
+           nodes * sizeof(*bmdef->cd_tree) / 1024);
+    bmdef->n_cd_tree = nodes;
+    bmdef->cd_tree = ckd_calloc(nodes, sizeof(*bmdef->cd_tree));
+    for (i = 0; i < N_WORD_POSN; ++i) {
+        int j;
+
+        bmdef->cd_tree[i].ctx = i;
+        bmdef->cd_tree[i].n_down = mdef->n_ciphone;
+        bmdef->cd_tree[i].c.down = ci_idx;
+        E_DEBUG("%d => %c (%d@%d)\n",
+                i, (WPOS_NAME)[i],
+                bmdef->cd_tree[i].n_down, bmdef->cd_tree[i].c.down);
+
+        /* Now we can build the rest of the tree. */
+        for (j = 0; j < mdef->n_ciphone; ++j) {
+            ph_lc_t *lc;
+
+            bmdef->cd_tree[ci_idx].ctx = j;
+            bmdef->cd_tree[ci_idx].c.down = lc_idx;
+            for (lc = mdef->wpos_ci_lclist[i][j]; lc; lc = lc->next) {
+                ph_rc_t *rc;
+
+                bmdef->cd_tree[lc_idx].ctx = lc->lc;
+                bmdef->cd_tree[lc_idx].c.down = rc_idx;
+                for (rc = lc->rclist; rc; rc = rc->next) {
+                    bmdef->cd_tree[rc_idx].ctx = rc->rc;
+                    bmdef->cd_tree[rc_idx].n_down = 0;
+                    bmdef->cd_tree[rc_idx].c.pid = rc->pid;
+                    E_DEBUG("%d => %s %s %s %c (%d@%d)\n",
+                            rc_idx,
+                            bmdef->ciname[j],
+                            bmdef->ciname[lc->lc],
+                            bmdef->ciname[rc->rc],
+                            (WPOS_NAME)[i],
+                            bmdef->cd_tree[rc_idx].n_down,
+                            bmdef->cd_tree[rc_idx].c.down);
+
+                    ++bmdef->cd_tree[lc_idx].n_down;
+                    ++rc_idx;
+                }
+                /* If there are no triphones here,
+                 * this is considered a leafnode, so
+                 * set the pid to -1. */
+                if (bmdef->cd_tree[lc_idx].n_down == 0)
+                    bmdef->cd_tree[lc_idx].c.pid = -1;
+                E_DEBUG("%d => %s %s %c (%d@%d)\n",
+                        lc_idx,
+                        bmdef->ciname[j],
+                        bmdef->ciname[lc->lc],
+                        (WPOS_NAME)[i],
+                        bmdef->cd_tree[lc_idx].n_down,
+                        bmdef->cd_tree[lc_idx].c.down);
+
+                ++bmdef->cd_tree[ci_idx].n_down;
+                ++lc_idx;
+            }
+
+            /* As above, so below. */
+            if (bmdef->cd_tree[ci_idx].n_down == 0)
+                bmdef->cd_tree[ci_idx].c.pid = -1;
+            E_DEBUG("%d => %d=%s (%d@%d)\n",
+                    ci_idx, j, bmdef->ciname[j],
+                    bmdef->cd_tree[ci_idx].n_down,
+                    bmdef->cd_tree[ci_idx].c.down);
+
+            ++ci_idx;
+        }
+    }
+    return bmdef->cd_tree;
+}
+
 bin_mdef_t *
 bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 {
     bin_mdef_t *bmdef;
     mdef_t *mdef;
-    int i, nodes, ci_idx, lc_idx, rc_idx;
-    int nchars;
+    int i, nchars, cionly;
 
     (void)config;
 
-    if ((mdef = mdef_init((char *) filename, TRUE)) == NULL)
+    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
         return NULL;
 
     /* Enforce some limits.  */
@@ -153,110 +256,14 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
         }
     }
 
-    /* Walk the wpos_ci_lclist once to find the total number of
-     * nodes and the starting locations for each level. */
-    nodes = lc_idx = ci_idx = rc_idx = 0;
-    for (i = 0; i < N_WORD_POSN; ++i) {
-        int j;
-        for (j = 0; j < mdef->n_ciphone; ++j) {
-            ph_lc_t *lc;
-
-            for (lc = mdef->wpos_ci_lclist[i][j]; lc; lc = lc->next) {
-                ph_rc_t *rc;
-                for (rc = lc->rclist; rc; rc = rc->next) {
-                    ++nodes;    /* RC node */
-                }
-                ++nodes;        /* LC node */
-                ++rc_idx;       /* Start of RC nodes (after LC nodes) */
-            }
-            ++nodes;            /* CI node */
-            ++lc_idx;           /* Start of LC nodes (after CI nodes) */
-            ++rc_idx;           /* Start of RC nodes (after CI and LC nodes) */
-        }
-        ++nodes;                /* wpos node */
-        ++ci_idx;               /* Start of CI nodes (after wpos nodes) */
-        ++lc_idx;               /* Start of LC nodes (after CI nodes) */
-        ++rc_idx;               /* STart of RC nodes (after wpos, CI, and LC nodes) */
+    /* If there are no CD phones there is no cdtree */
+    if (mdef->n_phone == mdef->n_ciphone) {
+        E_INFO("No CD phones found, will not build CD tree\n");
+        bmdef->cd_tree = NULL;
     }
-    E_INFO("Allocating %d * %d bytes (%d KiB) for CD tree\n",
-           nodes, sizeof(*bmdef->cd_tree), 
-           nodes * sizeof(*bmdef->cd_tree) / 1024);
-    bmdef->n_cd_tree = nodes;
-    bmdef->cd_tree = ckd_calloc(nodes, sizeof(*bmdef->cd_tree));
-    for (i = 0; i < N_WORD_POSN; ++i) {
-        int j;
-
-        bmdef->cd_tree[i].ctx = i;
-        bmdef->cd_tree[i].n_down = mdef->n_ciphone;
-        bmdef->cd_tree[i].c.down = ci_idx;
-#if 0
-        E_INFO("%d => %c (%d@%d)\n",
-               i, (WPOS_NAME)[i],
-               bmdef->cd_tree[i].n_down, bmdef->cd_tree[i].c.down);
-#endif
-
-        /* Now we can build the rest of the tree. */
-        for (j = 0; j < mdef->n_ciphone; ++j) {
-            ph_lc_t *lc;
-
-            bmdef->cd_tree[ci_idx].ctx = j;
-            bmdef->cd_tree[ci_idx].c.down = lc_idx;
-            for (lc = mdef->wpos_ci_lclist[i][j]; lc; lc = lc->next) {
-                ph_rc_t *rc;
-
-                bmdef->cd_tree[lc_idx].ctx = lc->lc;
-                bmdef->cd_tree[lc_idx].c.down = rc_idx;
-                for (rc = lc->rclist; rc; rc = rc->next) {
-                    bmdef->cd_tree[rc_idx].ctx = rc->rc;
-                    bmdef->cd_tree[rc_idx].n_down = 0;
-                    bmdef->cd_tree[rc_idx].c.pid = rc->pid;
-#if 0
-                    E_INFO("%d => %s %s %s %c (%d@%d)\n",
-                           rc_idx,
-                           bmdef->ciname[j],
-                           bmdef->ciname[lc->lc],
-                           bmdef->ciname[rc->rc],
-                           (WPOS_NAME)[i],
-                           bmdef->cd_tree[rc_idx].n_down,
-                           bmdef->cd_tree[rc_idx].c.down);
-#endif
-
-                    ++bmdef->cd_tree[lc_idx].n_down;
-                    ++rc_idx;
-                }
-                /* If there are no triphones here,
-                 * this is considered a leafnode, so
-                 * set the pid to -1. */
-                if (bmdef->cd_tree[lc_idx].n_down == 0)
-                    bmdef->cd_tree[lc_idx].c.pid = -1;
-#if 0
-                E_INFO("%d => %s %s %c (%d@%d)\n",
-                       lc_idx,
-                       bmdef->ciname[j],
-                       bmdef->ciname[lc->lc],
-                       (WPOS_NAME)[i],
-                       bmdef->cd_tree[lc_idx].n_down,
-                       bmdef->cd_tree[lc_idx].c.down);
-#endif
-
-                ++bmdef->cd_tree[ci_idx].n_down;
-                ++lc_idx;
-            }
-
-            /* As above, so below. */
-            if (bmdef->cd_tree[ci_idx].n_down == 0)
-                bmdef->cd_tree[ci_idx].c.pid = -1;
-#if 0
-            E_INFO("%d => %d=%s (%d@%d)\n",
-                   ci_idx, j, bmdef->ciname[j],
-                   bmdef->cd_tree[ci_idx].n_down,
-                   bmdef->cd_tree[ci_idx].c.down);
-#endif
-
-            ++ci_idx;
-        }
+    else {
+        build_cd_tree_from_mdef(bmdef, mdef);
     }
-
     mdef_free(mdef);
 
     bmdef->alloc_mode = BIN_MDEF_FROM_TEXT;
@@ -283,7 +290,8 @@ bin_mdef_free(bin_mdef_t * m)
         ckd_free(m->ciname[0]);
         ckd_free(m->sseq[0]);
         ckd_free(m->phone);
-        ckd_free(m->cd_tree);
+        if (m->cd_tree)
+            ckd_free(m->cd_tree);
         break;
     case BIN_MDEF_IN_MEMORY:
         ckd_free(m->ciname[0]);
@@ -305,6 +313,7 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
 {
     bin_mdef_t *m;
     s3file_t *s;
+    int cionly;
 
     /* Try to read it as text first. */
     if ((m = bin_mdef_read_text(config, filename)) != NULL)
@@ -316,13 +325,14 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         return NULL;
     }
 
-    m = bin_mdef_read_s3file(s);
+    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    m = bin_mdef_read_s3file(s, cionly);
     s3file_free(s);
     return m;
 }
 
 EXPORT bin_mdef_t *
-bin_mdef_read_s3file(s3file_t *s)
+bin_mdef_read_s3file(s3file_t *s, int cionly)
 {
     size_t tree_start;
     int32 val, i;
@@ -511,10 +521,23 @@ bin_mdef_read_s3file(s3file_t *s)
     /* Set the silence phone. */
     m->sil = bin_mdef_ciphone_id(m, S3_SILENCE_CIPHONE);
 
-    E_INFO
-        ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
-         m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
-         m->n_ci_sen, m->n_sen, m->n_sseq);
+    /* Now that we have scanned the whole file, enforce CI-only safely
+     * by simply removing the cd_tree (means that we did some extraneous
+     * scanning and byteswapping of senone sequences but that's ok) */
+    if (cionly) {
+        m->cd_tree = NULL;
+        E_INFO
+            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+             m->n_ciphone, 0, m->n_emit_state,
+             m->n_ci_sen, m->n_ci_sen, m->n_ciphone);
+    }
+    else {
+        E_INFO
+            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+             m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
+             m->n_ci_sen, m->n_sen, m->n_sseq);
+    }
+    
     return m;
  error_out:
     bin_mdef_free(m);
@@ -576,7 +599,7 @@ bin_mdef_ciphone_str(bin_mdef_t * m, int32 ci)
 }
 
 int
-bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
+bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, word_posn_t wpos)
 {
     cd_tree_t *cd_tree;
     int level, max;
@@ -584,10 +607,13 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
 
     assert(m);
 
-    /* In the future, we might back off when context is not available,
-     * but for now we'll just return the CI phone. */
-    if (lc < 0 || rc < 0)
+    /* CI phone requested, CI phone returned. */
+    if (lc < 0 && rc < 0 && wpos == WORD_POSN_UNDEFINED)
         return ci;
+
+    /* Exact match is impossible in these cases. */
+    if (m->cd_tree == NULL || lc < 0 || rc < 0 || wpos == WORD_POSN_UNDEFINED)
+        return -1;
 
     assert((ci >= 0) && (ci < m->n_ciphone));
     assert((lc >= 0) && (lc < m->n_ciphone));
@@ -609,28 +635,22 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
     while (level < 4) {
         int i;
 
-#if 0
-        E_INFO("Looking for context %d=%s in %d at %d\n",
-               ctx[level], m->ciname[ctx[level]],
-               max, cd_tree - m->cd_tree);
-#endif
+        E_DEBUG("Looking for context %d=%s in %d at %d\n",
+                ctx[level], m->ciname[ctx[level]],
+                max, cd_tree - m->cd_tree);
         for (i = 0; i < max; ++i) {
-#if 0
-            E_INFO("Look at context %d=%s at %d\n",
-                   cd_tree[i].ctx,
-                   m->ciname[cd_tree[i].ctx], cd_tree + i - m->cd_tree);
-#endif
+            E_DEBUG("Look at context %d=%s at %d\n",
+                    cd_tree[i].ctx,
+                    m->ciname[cd_tree[i].ctx], cd_tree + i - m->cd_tree);
             if (cd_tree[i].ctx == ctx[level])
                 break;
         }
         if (i == max)
             return -1;
-#if 0
-        E_INFO("Found context %d=%s at %d, n_down=%d, down=%d\n",
-               ctx[level], m->ciname[ctx[level]],
-               cd_tree + i - m->cd_tree,
-               cd_tree[i].n_down, cd_tree[i].c.down);
-#endif
+        E_DEBUG("Found context %d=%s at %d, n_down=%d, down=%d\n",
+                ctx[level], m->ciname[ctx[level]],
+                cd_tree + i - m->cd_tree,
+                cd_tree[i].n_down, cd_tree[i].c.down);
         /* Leaf node, stop here. */
         if (cd_tree[i].n_down == 0)
             return cd_tree[i].c.pid;
@@ -640,16 +660,15 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
         cd_tree = m->cd_tree + cd_tree[i].c.down;
         ++level;
     }
-    /* We probably shouldn't get here. */
+    /* We probably shouldn't get here, but we failed in any case. */
     return -1;
 }
 
 int
-bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, int32 pos)
+bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, word_posn_t pos)
 {
-    int p, tmppos;
-
-
+    word_posn_t tmppos;
+    int p;
 
     /* In the future, we might back off when context is not available,
      * but for now we'll just return the CI phone. */

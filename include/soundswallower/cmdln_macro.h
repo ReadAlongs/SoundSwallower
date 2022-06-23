@@ -124,7 +124,7 @@
         "yes",                                                  \
         "Insert filler words at each state."}
 
-/** Command-line options for statistical language models. */
+/** Command-line options for statistical language models (not used) and grammars. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
 { "-lw",										\
       ARG_FLOATING,									\
@@ -243,7 +243,11 @@
 { "-logbase",                                                                   \
       ARG_FLOATING,                                                              \
       "1.0001",                                                                 \
-      "Base in which all log-likelihoods calculated" }
+      "Base in which all log-likelihoods calculated" },                         \
+{ "-cionly",                                                                      \
+      ARG_BOOLEAN,                                                              \
+      "no",                                                                    \
+      "Use only context-independent phones (faster, useful for alignment)" }    \
 
 #define CMDLN_EMPTY_OPTION { NULL, 0, NULL, NULL }
 

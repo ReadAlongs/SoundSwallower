@@ -183,8 +183,7 @@ typedef struct mdef_s {
  * @return pointer to the phone structure created.
  */
 mdef_t *mdef_init (char *mdeffile, /**< In: Model definition file */
-		   int breport     /**< In: whether to report the progress or not */
-    );
+                   int cionly);    /**< In: Read only context-independent phones */
 
 
 /** 
@@ -247,10 +246,6 @@ int mdef_phone_str(mdef_t *m,		/**< In: Model structure being queried */
 int mdef_hmm_cmp (mdef_t *m,	/**< In: Model being queried */
                   int p1, 	/**< In: One of the two triphones being compared */
                   int p2	/**< In: One of the two triphones being compared */
-    );
-
-/** Report the model definition's parameters */
-void mdef_report(mdef_t *m /**<  In: model definition structure */
     );
 
 /** RAH, For freeing memory */

@@ -500,7 +500,7 @@ noncomment_line(char *line, int32 size, FILE * fp)
  * Initialize phones (ci and triphones) and state->senone mappings from .mdef file.
  */
 mdef_t *
-mdef_init(char *mdeffile, int32 breport)
+mdef_init(char *mdeffile, int cionly)
 {
     FILE *fp;
     int32 n_ci, n_tri, n_map, n;
@@ -513,8 +513,7 @@ mdef_init(char *mdeffile, int32 breport)
     if (!mdeffile)
         E_FATAL("No mdef-file\n");
 
-    if (breport)
-        E_INFO("Reading model definition: %s\n", mdeffile);
+    E_INFO("Reading model definition: %s\n", mdeffile);
 
     m = (mdef_t *) ckd_calloc(1, sizeof(mdef_t));       /* freed in mdef_free */
 
@@ -571,11 +570,25 @@ mdef_init(char *mdeffile, int32 breport)
         || (m->n_ci_sen > m->n_sen))
         E_FATAL("%s: Error in header\n", mdeffile);
 
-    /* Check typesize limits */
+    /* This looks redundant at first glance but evidently we are
+     * checking that it divides with no remainder. */
+    m->n_emit_state = (n_map / (n_ci + n_tri)) - 1;
+    if ((m->n_emit_state + 1) * (n_ci + n_tri) != n_map)
+        E_FATAL
+            ("Header error: n_state_map not a multiple of n_ci*n_tri\n");
+
+    /* Truncate the mdef if requested */
+    if (cionly) {
+        n_tri = 0;
+        n_map = n_ci * m->n_emit_state;
+        m->n_sen = m->n_ci_sen;
+    }
+
+    /* Check typesize limits (FIXME: somewhat bogus) */
     if (n_ci >= MAX_INT16)
         E_FATAL("%s: #CI phones (%d) exceeds limit (%d)\n", mdeffile, n_ci,
                 MAX_INT16);
-    if (n_ci + n_tri >= MAX_INT32) /* Comparison is always false... */
+    if ((int64)n_ci + n_tri >= MAX_INT32)
         E_FATAL("%s: #Phones (%d) exceeds limit (%d)\n", mdeffile,
                 n_ci + n_tri, MAX_INT32);
     if (m->n_sen >= MAX_INT16)
@@ -585,10 +598,6 @@ mdef_init(char *mdeffile, int32 breport)
         E_FATAL("%s: #tmats (%d) exceeds limit (%d)\n", mdeffile,
                 m->n_tmat, MAX_INT32);
 
-    m->n_emit_state = (n_map / (n_ci + n_tri)) - 1;
-    if ((m->n_emit_state + 1) * (n_ci + n_tri) != n_map)
-        E_FATAL
-            ("Header error: n_state_map not a multiple of n_ci*n_tri\n");
 
     /* Initialize ciphone info */
     m->n_ciphone = n_ci;
@@ -619,16 +628,22 @@ mdef_init(char *mdeffile, int32 breport)
     }
     m->sil = mdef_ciphone_id(m, S3_SILENCE_CIPHONE);
 
-    /* Read triphones, if any */
+    /* Read triphones, if any  */
     for (; p < m->n_phone; p++) {
         if (noncomment_line(buf, sizeof(buf), fp) < 0)
             E_FATAL("Premature EOF reading phone %d\n", p);
         parse_tri_line(m, buf, p);
     }
 
-    if (noncomment_line(buf, sizeof(buf), fp) >= 0)
-        E_ERROR("Non-empty file beyond expected #phones (%d)\n",
-                m->n_phone);
+    /* Check for extra stuff, unless we explicitly asked to truncate. */
+    if (!cionly) {
+        if (noncomment_line(buf, sizeof(buf), fp) >= 0) {
+            E_ERROR("Non-empty file beyond expected #phones (%d)\n",
+                    m->n_phone);
+            mdef_free(m);
+            return NULL;
+        }
+    }
 
     /* Build CD senones to CI senones map */
     if (m->n_ciphone * m->n_emit_state != m->n_ci_sen)
@@ -657,27 +672,15 @@ mdef_init(char *mdeffile, int32 breport)
     sseq_compress(m);
     fclose(fp);
 
+    E_INFO("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+           m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
+           m->n_ci_sen, m->n_sen, m->n_sseq);
     return m;
-}
-
-void
-mdef_report(mdef_t * m)
-{
-    E_INFO_NOFN("Initialization of mdef_t, report:\n");
-    E_INFO_NOFN
-        ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
-         m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
-         m->n_ci_sen, m->n_sen, m->n_sseq);
-    E_INFO_NOFN("\n");
-
 }
 
 /* RAH 4.23.01, Need to step down the ->next list to see if there are
    any more things to free
  */
-
-
-
 /* RAH 4.19.01, Attempt to free memory that was allocated within this module
    I have not verified that all the memory has been freed. I've taken only a 
    reasonable effort for now.
