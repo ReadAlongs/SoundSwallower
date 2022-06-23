@@ -168,12 +168,12 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 {
     bin_mdef_t *bmdef;
     mdef_t *mdef;
-    int i, nchars;
+    int i, nchars, cionly;
 
     (void)config;
 
-    if ((mdef = mdef_init((char *) filename,
-                          cmd_ln_boolean_r(config, "-cionly"))) == NULL)
+    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
         return NULL;
 
     /* Enforce some limits.  */
@@ -313,6 +313,7 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
 {
     bin_mdef_t *m;
     s3file_t *s;
+    int cionly;
 
     /* Try to read it as text first. */
     if ((m = bin_mdef_read_text(config, filename)) != NULL)
@@ -324,7 +325,8 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         return NULL;
     }
 
-    m = bin_mdef_read_s3file(s, cmd_ln_boolean_r(config, "-cionly"));
+    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    m = bin_mdef_read_s3file(s, cionly);
     s3file_free(s);
     return m;
 }
