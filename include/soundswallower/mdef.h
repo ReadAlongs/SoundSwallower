@@ -182,7 +182,8 @@ typedef struct mdef_s {
  * It should be treated as a READ-ONLY structure.
  * @return pointer to the phone structure created.
  */
-mdef_t *mdef_init (char *mdeffile); /**< In: Model definition file */
+mdef_t *mdef_init (char *mdeffile, /**< In: Model definition file */
+                   int cionly);    /**< In: Read only context-independent phones */
 
 
 /** 

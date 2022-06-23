@@ -500,7 +500,7 @@ noncomment_line(char *line, int32 size, FILE * fp)
  * Initialize phones (ci and triphones) and state->senone mappings from .mdef file.
  */
 mdef_t *
-mdef_init(char *mdeffile)
+mdef_init(char *mdeffile, int cionly)
 {
     FILE *fp;
     int32 n_ci, n_tri, n_map, n;
