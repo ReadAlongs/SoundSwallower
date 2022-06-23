@@ -189,11 +189,9 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
         bmdef->cd_tree[i].ctx = i;
         bmdef->cd_tree[i].n_down = mdef->n_ciphone;
         bmdef->cd_tree[i].c.down = ci_idx;
-#if 0
-        E_INFO("%d => %c (%d@%d)\n",
-               i, (WPOS_NAME)[i],
-               bmdef->cd_tree[i].n_down, bmdef->cd_tree[i].c.down);
-#endif
+        E_DEBUG("%d => %c (%d@%d)\n",
+                i, (WPOS_NAME)[i],
+                bmdef->cd_tree[i].n_down, bmdef->cd_tree[i].c.down);
 
         /* Now we can build the rest of the tree. */
         for (j = 0; j < mdef->n_ciphone; ++j) {
@@ -210,16 +208,14 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
                     bmdef->cd_tree[rc_idx].ctx = rc->rc;
                     bmdef->cd_tree[rc_idx].n_down = 0;
                     bmdef->cd_tree[rc_idx].c.pid = rc->pid;
-#if 0
-                    E_INFO("%d => %s %s %s %c (%d@%d)\n",
-                           rc_idx,
-                           bmdef->ciname[j],
-                           bmdef->ciname[lc->lc],
-                           bmdef->ciname[rc->rc],
-                           (WPOS_NAME)[i],
-                           bmdef->cd_tree[rc_idx].n_down,
-                           bmdef->cd_tree[rc_idx].c.down);
-#endif
+                    E_DEBUG("%d => %s %s %s %c (%d@%d)\n",
+                            rc_idx,
+                            bmdef->ciname[j],
+                            bmdef->ciname[lc->lc],
+                            bmdef->ciname[rc->rc],
+                            (WPOS_NAME)[i],
+                            bmdef->cd_tree[rc_idx].n_down,
+                            bmdef->cd_tree[rc_idx].c.down);
 
                     ++bmdef->cd_tree[lc_idx].n_down;
                     ++rc_idx;
@@ -229,15 +225,13 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
                  * set the pid to -1. */
                 if (bmdef->cd_tree[lc_idx].n_down == 0)
                     bmdef->cd_tree[lc_idx].c.pid = -1;
-#if 0
-                E_INFO("%d => %s %s %c (%d@%d)\n",
-                       lc_idx,
-                       bmdef->ciname[j],
-                       bmdef->ciname[lc->lc],
-                       (WPOS_NAME)[i],
-                       bmdef->cd_tree[lc_idx].n_down,
-                       bmdef->cd_tree[lc_idx].c.down);
-#endif
+                E_DEBUG("%d => %s %s %c (%d@%d)\n",
+                        lc_idx,
+                        bmdef->ciname[j],
+                        bmdef->ciname[lc->lc],
+                        (WPOS_NAME)[i],
+                        bmdef->cd_tree[lc_idx].n_down,
+                        bmdef->cd_tree[lc_idx].c.down);
 
                 ++bmdef->cd_tree[ci_idx].n_down;
                 ++lc_idx;
@@ -246,12 +240,10 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
             /* As above, so below. */
             if (bmdef->cd_tree[ci_idx].n_down == 0)
                 bmdef->cd_tree[ci_idx].c.pid = -1;
-#if 0
-            E_INFO("%d => %d=%s (%d@%d)\n",
-                   ci_idx, j, bmdef->ciname[j],
-                   bmdef->cd_tree[ci_idx].n_down,
-                   bmdef->cd_tree[ci_idx].c.down);
-#endif
+            E_DEBUG("%d => %d=%s (%d@%d)\n",
+                    ci_idx, j, bmdef->ciname[j],
+                    bmdef->cd_tree[ci_idx].n_down,
+                    bmdef->cd_tree[ci_idx].c.down);
 
             ++ci_idx;
         }
@@ -609,28 +601,22 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
     while (level < 4) {
         int i;
 
-#if 0
-        E_INFO("Looking for context %d=%s in %d at %d\n",
-               ctx[level], m->ciname[ctx[level]],
-               max, cd_tree - m->cd_tree);
-#endif
+        E_DEBUG("Looking for context %d=%s in %d at %d\n",
+                ctx[level], m->ciname[ctx[level]],
+                max, cd_tree - m->cd_tree);
         for (i = 0; i < max; ++i) {
-#if 0
-            E_INFO("Look at context %d=%s at %d\n",
-                   cd_tree[i].ctx,
-                   m->ciname[cd_tree[i].ctx], cd_tree + i - m->cd_tree);
-#endif
+            E_DEBUG("Look at context %d=%s at %d\n",
+                    cd_tree[i].ctx,
+                    m->ciname[cd_tree[i].ctx], cd_tree + i - m->cd_tree);
             if (cd_tree[i].ctx == ctx[level])
                 break;
         }
         if (i == max)
             return -1;
-#if 0
-        E_INFO("Found context %d=%s at %d, n_down=%d, down=%d\n",
-               ctx[level], m->ciname[ctx[level]],
-               cd_tree + i - m->cd_tree,
-               cd_tree[i].n_down, cd_tree[i].c.down);
-#endif
+        E_DEBUG("Found context %d=%s at %d, n_down=%d, down=%d\n",
+                ctx[level], m->ciname[ctx[level]],
+                cd_tree + i - m->cd_tree,
+                cd_tree[i].n_down, cd_tree[i].c.down);
         /* Leaf node, stop here. */
         if (cd_tree[i].n_down == 0)
             return cd_tree[i].c.pid;
