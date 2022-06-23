@@ -1,18 +1,23 @@
 Roadmap:
 
-- 0.2.x: Size and speed optimizations for JS in particular, bug fixes
+- 0.3.0: Size and speed optimizations for JS in particular, bug fixes
   - Add back LDA (DONE)
   - Asynchronous JS loading (DONE)
 	- Before: Test JSGF 981ms, JS 88k, WASM 214k, zip 119k
 	- After: Test JSGF 478ms, JS 43k, WASM 206k, zip 104k
+<<<<<<< HEAD
   - Better browser support and packaging
 	- Just more examples and documentation for now
+=======
+  - Better browser support and packaging?
+>>>>>>> async_loading
   - Add phoneset description and IPA input
     - phoneset.txt in model directory (DONE)
 	- 
   - Rename s3file_t to something more neutral
   - Fix C library tests (as in PocketSphinx)
   - Add -cionly option
+<<<<<<< HEAD
 - 0.4.0: User experience
   - Simple VAD with solid API
 	- Principles
@@ -51,3 +56,13 @@ Roadmap:
 
 - 2.0.0: Improved modeling
   - DNN acoustic models?
+=======
+
+- 0.4.x: New model format
+
+- 1.0.x: Phone-level alignment
+
+- 2.0.x: Improved modeling
+  - DNN acoustic models?
+  - VAD?
+>>>>>>> async_loading

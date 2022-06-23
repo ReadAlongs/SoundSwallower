@@ -104,9 +104,13 @@ dict_t *dict_init(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase
     );
 
 /**
- * Write dictionary to a file.
+ * Initialize a new dictionary from in-memory files.
  */
-int dict_write(dict_t *dict, char const *filename, char const *format);
+dict_t *dict_init_s3file(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
+                         bin_mdef_t *mdef, /**< For looking up CI phone IDs (or NULL) */
+                         s3file_t *dict,   /**< Dictionary file. */
+                         s3file_t *fdict   /**< Filler dictionary file (if any) */
+    );
 
 /** Return word id for given word string if present.  Otherwise return BAD_S3WID */
 s3wid_t dict_wordid(dict_t *d, const char *word);

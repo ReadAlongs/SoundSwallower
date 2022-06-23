@@ -44,7 +44,7 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/logmath.h>
-#include <soundswallower/mmio.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/bin_mdef.h>
@@ -76,7 +76,7 @@ struct ptm_mgau_s {
     int32 n_sen;       /**< Number of senones. */
     uint8 *sen2cb;     /**< Senone to codebook mapping. */
     uint8 ***mixw;     /**< Mixture weight distributions by feature, codeword, senone */
-    mmio_file_t *sendump_mmap;/* Memory map for mixw (or NULL if not mmap) */
+    s3file_t *sendump_mmap;/* Memory map for mixw (or NULL if not mmap) */
     uint8 *mixw_cb;    /* Mixture weight codebook, if any (assume it contains 16 values) */
     int16 max_topn;
     int16 ds_ratio;
@@ -91,7 +91,9 @@ struct ptm_mgau_s {
     logmath_t *lmath;
 };
 
-ps_mgau_t *ptm_mgau_init(acmod_t *acmod, bin_mdef_t *mdef);
+ps_mgau_t *ptm_mgau_init(acmod_t *acmod);
+ps_mgau_t *ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
+                                s3file_t *mixw, s3file_t *sendump);
 void ptm_mgau_free(ps_mgau_t *s);
 int ptm_mgau_frame_eval(ps_mgau_t *s,
                         int16 *senone_scores,

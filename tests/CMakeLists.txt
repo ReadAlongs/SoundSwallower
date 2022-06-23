@@ -2,9 +2,8 @@ configure_file(test_macros.h.in test_macros.h)
 set(TESTS
   test_acmod.c
   test_acmod_grow.c
-  test_bit_encode.c
+  test_add_words.c
   test_bitvec.c
-  test_build_directory.c
   test_case.c
   test_err.c
   test_ckd_alloc_catch.c
@@ -24,14 +23,11 @@ set(TESTS
   test_hash_iter.c
   test_heap.c
   test_jsgf.c
-  test_lineiter.c
   test_listelem_alloc.c
-  test_log_int16.c
-  test_log_int8.c
   test_log_shifted.c
   test_pitch.c
   test_ptm_mgau.c
-  test_readfile.c
+  test_s3file.c
   test_strfuncs.c
   test_subvq.c)
 foreach(TEST_SOURCE ${TESTS})
@@ -60,29 +56,19 @@ add_test(strcmp2 test_case strcmp_nocase 1 1)
 add_test(strcmp3 test_case strcmp_nocase)
 
 # string tests
-add_test(nextword test_strfuncs nextword)
-add_test(str2words test_strfuncs str2words)
 add_test(string_join test_strfuncs string_join)
 add_test(string_trim test_strfuncs string_trim)
-add_test(fread_line test_strfuncs fread_line)
 
 # utility tests
-add_test(bit_encode test_bit_encode)
 add_test(bitvec test_bitvec)
 add_test(ckd_alloc_catch test_ckd_alloc_catch)
 add_test(ckd_alloc_fail test_ckd_alloc_fail)
 set_tests_properties(ckd_alloc_fail PROPERTIES WILL_FAIL TRUE)
-add_test(build_directory test_build_directory)
 add_test(filename test_filename)
 add_test(hash_iter test_hash_iter)
 add_test(heap test_heap)
 # invert requires output FIXME
-add_test(lineiter test_lineiter)
 add_test(listelem_alloc test_listelem_alloc)
-add_test(log_int16 test_log_int16)
-add_test(log_int8 test_log_int8)
-add_test(log_shifted test_log_shifted)
-add_test(readfile test_readfile)
 # solve requires output FIXME
 
 # command-line tests require output FIXME

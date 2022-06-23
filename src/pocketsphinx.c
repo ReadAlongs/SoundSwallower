@@ -50,7 +50,6 @@
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/pio.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/cmdln_macro.h>
@@ -66,6 +65,7 @@ static const arg_t ps_args_def[] = {
     CMDLN_EMPTY_OPTION
 };
 
+#ifndef __EMSCRIPTEN__
 /* I'm not sure what the portable way to do this is. */
 static int
 file_exists(const char *path)
@@ -106,11 +106,22 @@ ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
         }
     }
 }
+#endif
 
 static void
 ps_expand_model_config(ps_decoder_t *ps)
 {
+    /* All done externally in JavaScript */
+#ifdef __EMSCRIPTEN__
+    (void)ps;
+#else
     char const *hmmdir, *featparams;
+    /* Feature and front-end parameters that may be in feat.params */
+    static const arg_t feat_defn[] = {
+    waveform_to_cepstral_command_line_macro(),
+    cepstral_to_feature_command_line_macro(),
+    CMDLN_EMPTY_OPTION
+    };
 
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = cmd_ln_str_r(ps->config, "-hmm");
@@ -126,16 +137,6 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
     ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
     ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
-
-#ifndef __EMSCRIPTEN__
-    /* Done externally in JavaScript (above stuff will be too, soon) */
-    /* Feature and front-end parameters that may be in feat.params */
-    static const arg_t feat_defn[] = {
-    waveform_to_cepstral_command_line_macro(),
-    cepstral_to_feature_command_line_macro(),
-    CMDLN_EMPTY_OPTION
-    };
-
     /* Look for feat.params in acoustic model dir. */
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
     if ((featparams = cmd_ln_str_r(ps->config, "_featparams"))) {
@@ -280,7 +281,7 @@ ps_init_fe(ps_decoder_t *ps)
     return ps->fe;
 }
 
-EXPORT feat_t *
+feat_t *
 ps_init_feat(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -290,7 +291,17 @@ ps_init_feat(ps_decoder_t *ps)
     return ps->fcb;
 }
 
-acmod_t *
+EXPORT feat_t *
+ps_init_feat_s3file(ps_decoder_t *ps, s3file_t *lda)
+{
+    if (ps->config == NULL)
+        return NULL;
+    feat_free(ps->fcb);
+    ps->fcb = feat_init_s3file(ps->config, lda);
+    return ps->fcb;
+}
+
+EXPORT acmod_t *
 ps_init_acmod_pre(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -306,7 +317,7 @@ ps_init_acmod_pre(ps_decoder_t *ps)
     return ps->acmod;
 }
 
-int
+EXPORT int
 ps_init_acmod_post(ps_decoder_t *ps)
 {
     if (ps->acmod == NULL)
@@ -316,7 +327,7 @@ ps_init_acmod_post(ps_decoder_t *ps)
     return 0;
 }
 
-EXPORT acmod_t *
+acmod_t *
 ps_init_acmod(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -332,7 +343,7 @@ ps_init_acmod(ps_decoder_t *ps)
     return ps->acmod;
 }
 
-EXPORT dict_t *
+dict_t *
 ps_init_dict(ps_decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -352,7 +363,27 @@ ps_init_dict(ps_decoder_t *ps)
     return ps->dict;
 }
 
-EXPORT int
+EXPORT dict_t *
+ps_init_dict_s3file(ps_decoder_t *ps, s3file_t *dict, s3file_t *fdict)
+{
+    if (ps->config == NULL)
+        return NULL;
+    if (ps->acmod == NULL)
+        return NULL;
+    /* Free old dictionary */
+    dict_free(ps->dict);
+    /* Free d2p */
+    dict2pid_free(ps->d2p);
+    /* Dictionary and triphone mappings (depends on acmod). */
+    /* FIXME: pass config, change arguments, implement LTS, etc. */
+    if ((ps->dict = dict_init_s3file(ps->config, ps->acmod->mdef, dict, fdict)) == NULL)
+        return NULL;
+    if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
+        return NULL;
+    return ps->dict;
+}
+
+int
 ps_init_grammar(ps_decoder_t *ps)
 {
     const char *path;
@@ -360,8 +391,11 @@ ps_init_grammar(ps_decoder_t *ps)
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
-    /* Load an FSG if one was specified in config */
-    if ((path = cmd_ln_str_r(ps->config, "-fsg"))) {
+    if ((path = cmd_ln_str_r(ps->config, "-jsgf"))) {
+        if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
+            return -1;
+    }
+    else if ((path = cmd_ln_str_r(ps->config, "-fsg"))) {
         fsg_model_t *fsg = fsg_model_readfile(path, ps->lmath, lw);
         if (!fsg)
             return -1;
@@ -371,12 +405,35 @@ ps_init_grammar(ps_decoder_t *ps)
         }
         fsg_model_free(fsg);
     }
-    
-    /* Or load a JSGF grammar */
-    if ((path = cmd_ln_str_r(ps->config, "-jsgf"))) {
-        if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
+    return  0;
+}
+
+EXPORT int
+ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
+{
+    int32 lw;
+
+    lw = cmd_ln_float32_r(ps->config, "-lw");
+
+    /* JSGF takes precedence */
+    if (jsgf_file) {
+        /* FIXME: This depends on jsgf->buf having 0 at the end, which
+           it will when created by JavaScript, but that is not
+           guaranteed when memory-mapped. */
+        if (ps_set_jsgf_string(ps, PS_DEFAULT_SEARCH, jsgf_file->ptr) != 0)
             return -1;
     }
+    if (fsg_file) {
+        fsg_model_t *fsg = fsg_model_read_s3file(fsg_file, ps->lmath, lw);
+        if (!fsg)
+            return -1;
+        if (ps_set_fsg(ps, PS_DEFAULT_SEARCH, fsg) != 0) {
+            fsg_model_free(fsg);
+            return -1;
+        }
+        fsg_model_free(fsg);
+    }
+    
     return  0;
 }
 
@@ -404,7 +461,7 @@ ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
     return ps->fe;
 }
 
-EXPORT int
+int
 ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 {
     if (ps_init_config(ps, config) < 0)
@@ -433,10 +490,14 @@ ps_init(cmd_ln_t *config)
     ps = ckd_calloc(1, sizeof(*ps));
     ps->refcount = 1;
     if (config) {
+#ifdef __EMSCRIPTEN__
+        E_WARN("ps_init(config) does nothing in JavaScript\n");
+#else
         if (ps_reinit(ps, config) < 0) {
             ps_free(ps);
             return NULL;
         }
+#endif
     }
     return ps;
 }
@@ -596,36 +657,47 @@ ps_add_word(ps_decoder_t *ps,
 {
     int32 wid;
     s3cipid_t *pron;
-    char **phonestr, *tmp;
-    int np, i;
+    int np;
+    char *phonestr, *ptr;
 
+    assert(word != NULL);
+    assert(phones != NULL);
+    /* Cannot have more phones than chars... */
+    pron = ckd_calloc(1, strlen(phones));
     /* Parse phones into an array of phone IDs. */
-    tmp = ckd_salloc(phones);
-    np = str2words(tmp, NULL, 0);
-    phonestr = ckd_calloc(np, sizeof(*phonestr));
-    str2words(tmp, phonestr, np);
-    pron = ckd_calloc(np, sizeof(*pron));
-    for (i = 0; i < np; ++i) {
-        pron[i] = bin_mdef_ciphone_id(ps->acmod->mdef, phonestr[i]);
-        if (pron[i] == -1) {
+    ptr = phonestr = ckd_salloc(phones);
+    np = 0;
+    while (*ptr) {
+        char *phone;
+        /* Leading whitespace if any */
+        while (*ptr && isspace_c(*ptr))
+            ++ptr;
+        if (*ptr == '\0')
+            break;
+        phone = ptr;
+        while (*ptr && !isspace_c(*ptr))
+            ++ptr;
+        *ptr = '\0';
+        pron[np] = bin_mdef_ciphone_id(ps->acmod->mdef, phone);
+        if (pron[np] == -1) {
             E_ERROR("Unknown phone %s in phone string %s\n",
-                    phonestr[i], tmp);
+                    phone, phones);
             ckd_free(phonestr);
-            ckd_free(tmp);
             ckd_free(pron);
             return -1;
         }
+        ++np;
+        if (*ptr == '\0')
+            break;
+        ++ptr;
     }
-    /* No longer needed. */
     ckd_free(phonestr);
-    ckd_free(tmp);
 
     /* Add it to the dictionary. */
     if ((wid = dict_add_word(ps->dict, word, pron, np)) == -1) {
         ckd_free(pron);
         return -1;
     }
-    /* No longer needed. */
     ckd_free(pron);
 
     /* Now we also have to add it to dict2pid. */

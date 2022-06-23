@@ -32,8 +32,7 @@ Emscripten and CMake installed:
     npm link /path/to/soundswallower/js
 
 For use in Node.js, no other particular action is required on your
-part, though currently you will have to pre-load any model files you
-want to use, as described below.
+part.
 
 Because Webpack is blissfully unaware of all things
 Emscripten-related, you will need a number of extra incantations in
@@ -193,49 +192,35 @@ const ssjs = {
 };
 await require('soundswallower')(ssjs);
 ```
-Currently, it will also support any Sphinx format acoustic model, many of
-which are available for download at [the SourceForge
-page](https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/).
 
-On the web (see below for Node.js particularities), this can be done
-by calling the `load_model` method on the SoundSwallower module, with
-the base URL (usually relative) for the model as a parameter.
-IMPORTANT NOTE: For the moment, this only works from inside a web
-worker.
-
-```js
-ssjs.load_model("some-model", "/assets/model/some-model");
-```
-
-The model path can be a directory path on the local filesystem (for
-Node.js) or a relative or absolute URL (for the web).  This assumes
-that your dictionary is located in the file `dict.txt` underneath the
-model path.  If not, you can pass the path to it as a third argument
-to `load_model`, e.g.:
-
-```js
-ssjs.load_model("some-model", "/assets/model/some-model",
-                "alternate-dictionary.txt");
-```
-
-On Node.js, currently you have to preload models, which you can do by
-pre-populating the module object with a `preRun()` method before
-passing it to `require("soundswallower").  The exact incantation
-required is:
+The default model is expected to live under the `model/` directory
+relative to the current web page (on the web) or the `soundswallower`
+module (in Node.js).  You can modify this by setting the `modelBase`
+property in the module object when loading, e.g.:
 
 ```js
 const ssjs = {
-    preRun() {
-        ssjs.load_model(model_name, model_path);
-    }
+	modelBase: "/assets/models/", /* Trailing slash is necessary */
+	defaultModel: "fr-fr",
 };
 await require('soundswallower')(ssjs);
 ```
 
-Note also that preloading actually *only* works on Node.js.  Perhaps
-in the future we will just make different libraries for Node and the
-Web seeing as using the same one in both places involves too many
-incredibly annoying workarounds.
+This is simply concatenated to the model name, so you should make sure
+to include the trailing slash, e.g. "model/" and not "model"!
+
+Currently, it should also support any Sphinx format acoustic model, many of
+which are available for download at [the SourceForge
+page](https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/).
+
+To use a module, pass the directory (or base URL) containing its files
+(i.e. `means`, `variances`, etc) in the `hmm` property when
+initializing the decoder, for example:
+
+```js
+const decoder = ssjs.Decoder({hmm: "https://example.com/excellent-acoustic-model/"});
+```
+
 
 Using grammars
 --------------
@@ -261,10 +246,11 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 Note that all the words in the grammar must first be defined in the
 dictionary.  You can add custom dictionary words using the `add_word`
 method on the `Decoder` object, as long as you speak ArpaBet (or
-whatever phoneset the acoustic model uses).  Grapheme-to-phoneme
-support may become possible in the near future.  If you are going to
-add a bunch of words, pass `false` as the third argument for all but
-the last one, as this will delay the reloading of the internal state.
+whatever phoneset the acoustic model uses).  IPA and
+grapheme-to-phoneme support may become possible in the near future.
+If you are going to add a bunch of words, pass `false` as the third
+argument for all but the last one, as this will delay the reloading of
+the internal state.
 
 ```js
     await decoder.add_word("supercalifragilisticexpialidocious",

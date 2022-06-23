@@ -121,16 +121,6 @@ typedef struct logmath_s logmath_t;
 logmath_t *logmath_init(float64 base, int shift, int use_table);
 
 /**
- * Memory-map (or read) a log table from a file.
- */
-logmath_t *logmath_read(const char *filename);
-
-/**
- * Write a log table to a file.
- */
-int32 logmath_write(logmath_t *lmath, const char *filename);
-
-/**
  * Get the log table size and dimensions.
  */
 int32 logmath_get_table_shape(logmath_t *lmath, uint32 *out_size,

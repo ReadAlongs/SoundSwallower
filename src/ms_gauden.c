@@ -40,7 +40,6 @@
 #include <math.h>
 #include <float.h>
 
-#include <soundswallower/bio.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/ms_gauden.h>
@@ -104,85 +103,51 @@ gauden_dump_ind(const gauden_t * g, int senidx)
  *
  */
 static float ****
-gauden_param_read(const char *file_name,
-                  int32 * out_n_mgau,
-                  int32 * out_n_feat,
-                  int32 * out_n_density,
-                  int32 ** out_veclen)
+gauden_param_read(s3file_t *s,
+                  int32 *out_n_mgau,
+                  int32 *out_n_feat,
+                  int32 *out_n_density,
+                  int32 **out_veclen)
 {
-    char tmp;
-    FILE *fp;
     int32 i, j, k, l, n, blk;
     int32 n_mgau;
     int32 n_feat;
     int32 n_density;
     int32 *veclen;
-    int32 byteswap, chksum_present;
     float32 ****out;
     float32 *buf;
-    char **argname, **argval;
-    uint32 chksum;
 
-    E_INFO("Reading mixture gaussian parameter: %s\n", file_name);
-
-    if ((fp = fopen(file_name, "rb")) == NULL) {
-        E_ERROR_SYSTEM("Failed to open file '%s' for reading", file_name);
+    /* Read header */
+    if (s3file_parse_header(s, GAUDEN_PARAM_VERSION) < 0) {
+        E_ERROR("Failed to read s3 header\n");
         return NULL;
     }
-
-    /* Read header, including argument-value info and 32-bit byteorder magic */
-    if (bio_readhdr(fp, &argname, &argval, &byteswap) < 0) {
-        E_ERROR("Failed to read header from file '%s'\n", file_name);
-        fclose(fp);
-        return NULL;
-    }
-
-    /* Parse argument-value list */
-    chksum_present = 0;
-    for (i = 0; argname[i]; i++) {
-        if (strcmp(argname[i], "version") == 0) {
-            if (strcmp(argval[i], GAUDEN_PARAM_VERSION) != 0)
-                E_WARN("Version mismatch(%s): %s, expecting %s\n",
-                       file_name, argval[i], GAUDEN_PARAM_VERSION);
-        }
-        else if (strcmp(argname[i], "chksum0") == 0) {
-            chksum_present = 1; /* Ignore the associated value */
-        }
-    }
-    bio_hdrarg_free(argname, argval);
-    argname = argval = NULL;
-
-    chksum = 0;
 
     /* #Codebooks */
-    if (bio_fread(&n_mgau, sizeof(int32), 1, fp, byteswap, &chksum) != 1) {
-        E_ERROR("Failed to read number fo codebooks from %s\n", file_name);
-        fclose(fp);
+    if (s3file_get(&n_mgau, sizeof(int32), 1, s) != 1) {
+        E_ERROR("Failed to read number fo codebooks\n");
         return NULL;
     }
     *out_n_mgau = n_mgau;
 
     /* #Features/codebook */
-    if (bio_fread(&n_feat, sizeof(int32), 1, fp, byteswap, &chksum) != 1) {
-        E_ERROR("Failed to read number of features from %s\n", file_name);
-        fclose(fp);
+    if (s3file_get(&n_feat, sizeof(int32), 1, s) != 1) {
+        E_ERROR("Failed to read number of features\n");
         return NULL;
     }
     *out_n_feat = n_feat;
 
     /* #Gaussian densities/feature in each codebook */
-    if (bio_fread(&n_density, sizeof(int32), 1, fp, byteswap, &chksum) != 1) {
-        E_ERROR("fread(%s) (#density/codebook) failed\n", file_name);
+    if (s3file_get(&n_density, sizeof(int32), 1, s) != 1) {
+        E_ERROR("read (#density/codebook) failed\n");
     }
     *out_n_density = n_density;
 
     /* #Dimensions in each feature stream */
     veclen = ckd_calloc(n_feat, sizeof(uint32));
     *out_veclen = veclen;
-    if (bio_fread(veclen, sizeof(int32), n_feat, fp, byteswap, &chksum) !=
-        n_feat) {
-        E_ERROR("fread(%s) (feature-lengths) failed\n", file_name);
-        fclose(fp);
+    if (s3file_get(veclen, sizeof(int32), n_feat, s) != (size_t)n_feat) {
+        E_ERROR("read (feature-lengths) failed\n");
         return NULL;
     }
 
@@ -191,17 +156,15 @@ gauden_param_read(const char *file_name,
         blk += veclen[i];
 
     /* #Floats to follow; for the ENTIRE SET of CODEBOOKS */
-    if (bio_fread(&n, sizeof(int32), 1, fp, byteswap, &chksum) != 1) {
-        E_ERROR("Failed to read number of parameters from %s\n", file_name);
-        fclose(fp);
+    if (s3file_get(&n, sizeof(int32), 1, s) != 1) {
+        E_ERROR("Failed to read number of parameters\n");
         return NULL;
     }
 
     if (n != n_mgau * n_density * blk) {
         E_ERROR
-            ("Number of parameters in %s(%d) doesn't match dimensions: %d x %d x %d\n",
-             file_name, n, n_mgau, n_density, blk);
-        fclose(fp);
+            ("Number of parameters %d doesn't match dimensions: %d x %d x %d\n",
+             n, n_mgau, n_density, blk);
         return NULL;
     }
 
@@ -219,24 +182,18 @@ gauden_param_read(const char *file_name,
     }
 
     /* Read mixture gaussian densities data */
-    if (bio_fread(buf, sizeof(float32), n, fp, byteswap, &chksum) != n) {
-        E_ERROR("Failed to read density data from file '%s'\n", file_name);
-        fclose(fp);
+    if (s3file_get(buf, sizeof(float32), n, s) != (size_t)n) {
+        E_ERROR("Failed to read density data\n");
         ckd_free_3d(out);
+        ckd_free(buf);
         return NULL;
     }
 
-    if (chksum_present)
-        bio_verify_chksum(fp, byteswap, chksum);
-
-    if (fread(&tmp, 1, 1, fp) == 1) {
-        E_ERROR("More data than expected in %s\n", file_name);
-        fclose(fp);
+    if (s3file_verify_chksum(s) != 0) {
         ckd_free_3d(out);
+        ckd_free(buf);
         return NULL;
     }
-
-    fclose(fp);
 
     E_INFO("%d codebook, %d feature, size: \n", n_mgau, n_feat);
     for (i = 0; i < n_feat; i++)
@@ -303,49 +260,75 @@ gauden_dist_precompute(gauden_t * g, logmath_t *lmath, float32 varfloor)
 
 
 gauden_t *
+gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixture gaussians */
+                   s3file_t *vars,   /**< Input: File containing variances of mixture gaussians */
+                   float32 varfloor, /**< Input: Floor value to be applied to variances */
+                   logmath_t *lmath
+                   )
+{
+    int32 i, m, f, d, *flen = NULL;
+    gauden_t *g;
+
+
+    g = (gauden_t *) ckd_calloc(1, sizeof(gauden_t));
+    g->lmath = logmath_retain(lmath);
+
+    g->mean = (mfcc_t ****)gauden_param_read(means, &g->n_mgau, &g->n_feat, &g->n_density,
+                                             &g->featlen);
+    if (g->mean == NULL)
+        goto error_out;
+
+    g->var = (mfcc_t ****)gauden_param_read(vars, &m, &f, &d, &flen);
+    if (g->var == NULL)
+        goto error_out;
+
+    /* Verify mean and variance parameter dimensions */
+    if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density)) {
+        E_ERROR
+            ("Mixture-gaussians dimensions for means and variances differ\n");
+        goto error_out;
+    }
+    for (i = 0; i < g->n_feat; i++) {
+        if (g->featlen[i] != flen[i]) {
+            E_ERROR("Feature lengths for means and variances differ\n");
+            goto error_out;
+        }
+    }
+    ckd_free(flen);
+    gauden_dist_precompute(g, lmath, varfloor);
+    return g;
+
+ error_out:
+    if (flen)
+        ckd_free(flen);
+    gauden_free(g);
+    return NULL;
+}
+
+gauden_t *
 gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath_t *lmath)
 {
-    int32 i, m, f, d, *flen;
+    s3file_t *means, *vars;
     gauden_t *g;
 
     assert(meanfile != NULL);
     assert(varfile != NULL);
     assert(varfloor > 0.0);
 
-    g = (gauden_t *) ckd_calloc(1, sizeof(gauden_t));
-    g->lmath = logmath_retain(lmath);
-
-    g->mean = (mfcc_t ****)gauden_param_read(meanfile, &g->n_mgau, &g->n_feat, &g->n_density,
-                      &g->featlen);
-    if (g->mean == NULL) {
-	return NULL;
-    }
-    g->var = (mfcc_t ****)gauden_param_read(varfile, &m, &f, &d, &flen);
-    if (g->var == NULL) {
-	return NULL;
-    }
-
-    /* Verify mean and variance parameter dimensions */
-    if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density)) {
-        E_ERROR
-            ("Mixture-gaussians dimensions for means and variances differ\n");
-        ckd_free(flen);
-        gauden_free(g);
+    E_INFO("Reading mixture gaussian parameter: %s\n", meanfile);
+    if ((means = s3file_map_file(meanfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
         return NULL;
     }
-    for (i = 0; i < g->n_feat; i++) {
-        if (g->featlen[i] != flen[i]) {
-            E_ERROR("Feature lengths for means and variances differ\n");
-            ckd_free(flen);
-            gauden_free(g);
-            return NULL;
-        }
+    E_INFO("Reading mixture gaussian parameter: %s\n", varfile);
+    if ((vars = s3file_map_file(varfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", varfile);
+        s3file_free(means);
+        return NULL;
     }
-
-    ckd_free(flen);
-
-    gauden_dist_precompute(g, lmath, varfloor);
-
+    g = gauden_init_s3file(means, vars, varfloor, lmath);
+    s3file_free(means);
+    s3file_free(vars);
     return g;
 }
 
@@ -484,6 +467,8 @@ int32
 gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
 {
     int32 i, m, f, d, *flen;
+    const char *meanfile, *varfile;
+    s3file_t *s;
 
     /* Free data if already here */
     if (g->mean)
@@ -498,17 +483,35 @@ gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
     g->featlen = NULL;
 
     /* Reload means and variances (un-precomputed). */
-    g->mean = (mfcc_t ****)gauden_param_read(cmd_ln_str_r(config, "_mean"), &g->n_mgau, &g->n_feat, &g->n_density,
+    meanfile = cmd_ln_str_r(config, "_mean");
+    if ((s = s3file_map_file(meanfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
+        return -1;
+    }
+    g->mean = (mfcc_t ****)gauden_param_read(s, &g->n_mgau, &g->n_feat, &g->n_density,
                       &g->featlen);
-    g->var = (mfcc_t ****)gauden_param_read(cmd_ln_str_r(config, "_var"), &m, &f, &d, &flen);
-
+    s3file_free(s);
+    varfile = cmd_ln_str_r(config, "_var");
+    if ((s = s3file_map_file(varfile)) == NULL) {
+        E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", varfile);
+        return -1;
+    }
+    g->var = (mfcc_t ****)gauden_param_read(s, &m, &f, &d, &flen);
+    s3file_free(s);
     /* Verify mean and variance parameter dimensions */
-    if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density))
-        E_FATAL
+    if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density)) {
+        E_ERROR
             ("Mixture-gaussians dimensions for means and variances differ\n");
-    for (i = 0; i < g->n_feat; i++)
-        if (g->featlen[i] != flen[i])
-            E_FATAL("Feature lengths for means and variances differ\n");
+        ckd_free(flen);
+        return -1;
+    }
+    for (i = 0; i < g->n_feat; i++) {
+        if (g->featlen[i] != flen[i]) {
+            E_FATAL("Feature length %d for means and variances differ\n", i);
+            ckd_free(flen);
+            return -1;
+        }
+    }
     ckd_free(flen);
 
     /* Transform codebook for each stream s */

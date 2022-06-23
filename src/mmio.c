@@ -66,14 +66,16 @@
 
 #if defined(_WIN32) && !defined(_WIN32_WP) /* !WINCE */
 struct mmio_file_s {
-	int dummy;
+    void *ptr;
+    uint64 filesize;
 };
 
 mmio_file_t *
 mmio_file_read(const char *filename)
 {
     HANDLE ffm, fd;
-    void *rv;
+    BY_HANDLE_FILE_INFORMATION fileinfo;
+    mmio_file_t *mf;
 
     if ((ffm = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ,
                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
@@ -82,12 +84,20 @@ mmio_file_read(const char *filename)
                 filename, GetLastError());
         return NULL;
     }
+    if (GetFileInformationByHandle(ffm, &fileinfo) != 0) {
+        E_ERROR("Failed to get file information: %08x\n", GetLastError());
+        CloseHandle(ffm);
+        return NULL;
+    }
     if ((fd = CreateFileMapping(ffm, NULL,
                                 PAGE_READONLY, 0, 0, NULL)) == NULL) {
         E_ERROR("Failed to CreateFileMapping: %08x\n", GetLastError());
         CloseHandle(ffm);
+        return NULL;
     }
-    rv = MapViewOfFile(fd, FILE_MAP_READ, 0, 0, 0);
+    mf = ckd_calloc(1, sizeof(*mf));
+    mf->ptr = MapViewOfFile(fd, FILE_MAP_READ, 0, 0, 0);
+    mf->filesize = fileinfo.nFileSizeLow | ((uint64)fileinfo.nFileSizeHigh << 32);
     CloseHandle(ffm);
     CloseHandle(fd);
 
@@ -97,21 +107,18 @@ mmio_file_read(const char *filename)
 void
 mmio_file_unmap(mmio_file_t *mf)
 {
-    if (!UnmapViewOfFile((void *)mf)) {
+    if (mf == NULL)
+        return;
+    if (!UnmapViewOfFile(mf->ptr))
         E_ERROR("Failed to UnmapViewOfFile: %08x\n", GetLastError());
-    }
-}
-
-void *
-mmio_file_ptr(mmio_file_t *mf)
-{
-    return (void *)mf;
+    ckd_free(mf);
 }
 
 #else /* !WIN32, !WINCE */
 struct mmio_file_s {
     void *ptr;
     size_t mapsize;
+    uint64 filesize;
 };
 
 mmio_file_t *
@@ -143,6 +150,7 @@ mmio_file_read(const char *filename)
     mf->ptr = ptr;
     /* Align map size to next page. */
     pagesize = sysconf(_SC_PAGESIZE);
+    mf->filesize = buf.st_size;
     mf->mapsize = (buf.st_size + pagesize - 1) / pagesize * pagesize;
 
     return mf;
@@ -158,10 +166,17 @@ mmio_file_unmap(mmio_file_t *mf)
     }
     ckd_free(mf);
 }
+#endif /* !(WINCE || WIN32) */
 
 void *
 mmio_file_ptr(mmio_file_t *mf)
 {
     return mf->ptr;
 }
-#endif /* !(WINCE || WIN32) */
+
+uint64
+mmio_file_size(mmio_file_t *mf)
+{
+    return mf->filesize;
+}
+

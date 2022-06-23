@@ -13,53 +13,15 @@ const DEFAULT_MODEL = 'en-us';
 if (typeof(Module.defaultModel) === 'undefined') {
     Module.defaultModel = DEFAULT_MODEL;
 }
-
-// We may add to preRun so make it a list if it isn't one
-if (Module.preRun) {
-    if (typeof Module.preRun == 'function')
-	Module.preRun = [Module.preRun];
-}
-else {
-    Module.preRun = [];
-}
-
-// FIXME: Emscripten already defines something like this in its
-// runtime but I have no $#@! idea how to access its definition from a
-// pre-js, much like various other things, WTF.
-const RUNNING_ON_WEB = (typeof window == 'object'
-			|| typeof importScripts == 'function');
-if (RUNNING_ON_WEB) {
-    // Lazy load the default model when running on the web
-    if (Module.defaultModel !== null) {
-	// FIXME: Probably the wrong way to get the relative URL of
-	// the model...
-	const model_path = "model/" + Module.defaultModel;
-	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel, model_path);
-	});
+// User can also specify the base URL for models
+if (typeof(Module.modelBase) === 'undefined') {
+    if (ENVIRONMENT_IS_WEB) {
+	Module.modelBase = "model/";
+    }
+    else {
+	Module.modelBase = require("./model/index.js");
     }
 }
-else if (typeof(Browser) === 'undefined') {
-    const model_path = require("./model/index.js");
-    const path = require('path');
-    // Monkey-patch the Browser so MEMFS works on Node.js and the Web
-    // (see https://github.com/emscripten-core/emscripten/issues/16742)
-    Browser = {
-        handledByPreloadPlugin() {
-            return false;
-        }
-    }
-    // And pre-load the default model (if there is one)
-    if (Module.defaultModel != null) {
-	Module.preRun.push(function() {
-	    Module.load_model(Module.defaultModel,
-			      path.join(model_path, Module.defaultModel));
-	});
-    }
-}
-
-/* Track model paths for load_model() emulation. */
-var model_paths = {};
 
 /**
  * Configuration object for SoundSwallower recognizer.
@@ -74,8 +36,8 @@ class Config {
      * values.  Some of the more common are noted below, the full list
      * can be found at
      * https://soundswallower.readthedocs.io/en/latest/config_params.html
-     * @param {string} [dict.hmm=Module.defaultModel] - Name of
-     * acoustic model, previously loaded using load_model().
+     * @param {string} [dict.hmm=Module.get_model_path(Module.defaultModel)]
+     *                 - Directory or base URL of acoustic model.
      * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
      * @param {number} [dict.samprate=44100] - Sampling rate of input.
      */
@@ -83,13 +45,13 @@ class Config {
 	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
 	if (typeof(dict) === 'undefined') {
 	    if (Module.defaultModel !== null)
-		dict = { hmm: Module.defaultModel };
+		dict = { hmm: Module.get_model_path(Module.defaultModel) };
 	    else
 		return;
 	}
 	else if (Module.defaultModel !== null) {
 	    if (!("hmm" in dict))
-		dict.hmm = Module.defaultModel;
+		dict.hmm = Module.get_model_path(Module.defaultModel);
 	}
 	for (const key in dict) {
 	    this.set(key, dict[key]);
@@ -132,7 +94,7 @@ class Config {
 	    return "";
     }
     normalize_ckey(ckey) {
-	let key = UTF8ToString(ckey);
+	const key = UTF8ToString(ckey);
 	if (key.length == 0)
 	    return key;
 	else if (key[0] == '-' || key[0] == '_')
@@ -153,7 +115,7 @@ class Config {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    let cval = allocateUTF8OnStack(val);
+	    const cval = allocateUTF8OnStack(val);
 	    Module._cmd_ln_set_str_r(this.cmd_ln, ckey, cval);
 	}
 	else if (type & ARG_FLOATING) {
@@ -174,13 +136,13 @@ class Config {
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
     get(key) {
-	let ckey = allocateUTF8OnStack(this.normalize_key(key));
-	let type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
+	const ckey = allocateUTF8OnStack(this.normalize_key(key));
+	const type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    let val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
+	    const val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
 	    if (val == 0)
 		return null;
 	    return UTF8ToString(val);
@@ -201,34 +163,29 @@ class Config {
     /**
      * Get a model parameter with backoff to path inside current model.
      */
-    model_path(key, modelfile) {
+    model_file_path(key, modelfile) {
 	const val = this.get(key);
 	if (val != null)
 	    return val;
 	const hmmpath = this.get("hmm");
 	if (hmmpath == null)
 	    throw new Error("Could not get "+key+" from config or model directory");
-	/* For compatibility with load_model() */
-	if (hmmpath in model_paths) {
-	    return model_paths[hmmpath] + "/" + modelfile;
-	}
-	else
-	    return hmmpath + "/" + modelfile;
+	return hmmpath + "/" + modelfile;
     }
     /**
      * Test if a key is a known parameter.
      * @param {string} key - Key whose existence to check.
      */
     has(key) {
-	let ckey = allocateUTF8OnStack(key);
+	const ckey = allocateUTF8OnStack(key);
 	return Module._cmd_ln_exists_r(this.cmd_ln, ckey);
     }
     *[Symbol.iterator]() {
 	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
-	let seen = new Set();
+	const seen = new Set();
 	while (itor != 0) {
-	    let ckey = Module._hash_iter_key(itor);
-	    let key = this.normalize_ckey(ckey);
+	    const ckey = Module._hash_iter_key(itor);
+	    const key = this.normalize_ckey(ckey);
 	    if (seen.has(key))
 		continue;
 	    seen.add(key);
@@ -282,6 +239,7 @@ class Decoder {
 	await this.init_fe();
 	await this.init_feat();
 	await this.init_acmod();
+	await this.load_acmod_files();
 	await this.init_dict();
 	await this.init_grammar();
 
@@ -305,7 +263,7 @@ class Decoder {
      * Read feature parameters from acoustic model.
      */
     async init_featparams() {
-	const featparams = this.config.model_path("featparams", "feat.params");
+	const featparams = this.config.model_file_path("featparams", "feat.params");
 	for await (const pair of read_featparams(featparams)) {
 	    if (this.config.has(pair[0])) /* Sometimes it doesn't */
 		this.config.set(pair[0], pair[1]);
@@ -316,7 +274,7 @@ class Decoder {
      * Create front-end from configuration.
      */
     async init_fe() {
-	let rv = Module._ps_init_fe(this.ps);
+	const rv = Module._ps_init_fe(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize frontend");
     }
@@ -325,25 +283,121 @@ class Decoder {
      * Create dynamic feature module from configuration.
      */
     async init_feat() {
-	let rv = Module._ps_init_feat(this.ps);
+	let rv;
+	try {
+	    const lda_path = this.config.model_file_path("lda", "feature_transform");
+	    const lda = await load_to_s3file(lda_path);
+	    rv = Module._ps_init_feat_s3file(this.ps, lda);
+	}
+	catch (e) {
+	    rv = Module._ps_init_feat_s3file(this.ps, 0);
+	}
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
     }
 
     /**
-     * Load acoustic model from configuration.
+     * Create acoustic model from configuration.
      */
     async init_acmod() {
-	let rv = Module._ps_init_acmod(this.ps);
+	const rv = Module._ps_init_acmod_pre(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
+    }
+
+    /**
+     * Load acoustic model files
+     */
+    async load_acmod_files() {
+	await this.load_mdef();
+	const tmat = this.config.model_file_path("tmat", "transition_matrices");
+	await this.load_tmat(tmat);
+	const means = this.config.model_file_path("mean", "means");
+	const variances = this.config.model_file_path("var", "variances");
+	const sendump = this.config.model_file_path("sendump", "sendump");
+	const mixw = this.config.model_file_path("mixw", "mixture_weights");
+	await this.load_gmm(means, variances, sendump, mixw);
+	const rv = Module._ps_init_acmod_post(this.ps);
+	if (rv < 0)
+	    throw new Error("Failed to initialize acoustic scoring");
+    }
+
+    /**
+     * Load binary model definition file
+     */
+    async load_mdef() {
+	/* Prefer mixw.bin if available. */
+	var mdef_path, s3f;
+	try {
+	    mdef_path = this.config.model_file_path("mdef", "mdef.bin");
+	    s3f = await load_to_s3file(mdef_path);
+	}
+	catch (e) {
+	    try {
+		mdef_path = this.config.model_file_path("mdef", "mdef.txt");
+		s3f = await load_to_s3file(mdef_path);
+	    }
+	    catch (ee) {
+		mdef_path = this.config.model_file_path("mdef", "mdef");
+		s3f = await load_to_s3file(mdef_path);
+	    }
+	}
+	const mdef = Module._bin_mdef_read_s3file(s3f);
+	Module._s3file_free(s3f);
+	if (mdef == 0)
+	    throw new Error("Failed to read mdef");
+	Module._set_mdef(this.ps, mdef);
+    }
+
+    /**
+     * Load transition matrices
+     */
+    async load_tmat(tmat_path) {
+	const s3f = await load_to_s3file(tmat_path);
+	const logmath = Module._ps_get_logmath(this.ps);
+	const tpfloor = this.config.get("tmatfloor");
+	const tmat = Module._tmat_init_s3file(s3f, logmath, tpfloor);
+	Module._s3file_free(s3f);
+	if (tmat == 0)
+	    throw new Error("Failed to read tmat");
+	Module._set_tmat(this.ps, tmat);
+    }
+
+    /**
+     * Load Gaussian mixture models
+     */
+    async load_gmm(means_path, variances_path, sendump_path, mixw_path) {
+	const means = await load_to_s3file(means_path);
+	const variances = await load_to_s3file(variances_path);
+	var sendump, mixw;
+	/* Prefer sendump if available. */
+	try {
+	    sendump = await load_to_s3file(sendump_path);
+	    mixw = 0;
+	}
+	catch (e) {
+	    sendump = 0;
+	    mixw = await load_to_s3file(mixw_path);
+	}
+	if (Module._load_gmm(this.ps, means, variances, mixw, sendump) < 0)
+	    throw new Error("Failed to load GMM parameters");
     }
 
     /**
      * Load dictionary from configuration.
      */
     async init_dict() {
-	let rv = Module._ps_init_dict(this.ps);
+	const dict_path = this.config.model_file_path("dict", "dict.txt");
+	const dict = await load_to_s3file(dict_path);
+	let fdict;
+	try {
+	    const fdict_path = this.config.model_file_path("fdict", "noisedict");
+	    fdict = await load_to_s3file(fdict_path);
+	}
+	catch (e) {
+	    fdict = 0;
+	}
+	const rv = Module._ps_init_dict_s3file(this.ps, dict, fdict);
 	if (rv == 0)
 	    throw new Error("Failed to initialize dictionaries");
     }
@@ -352,9 +406,18 @@ class Decoder {
      * Load grammar from configuration.
      */
     async init_grammar() {
-	let rv = Module._ps_init_grammar(this.ps);
-	if (rv < 0)
-	    throw new Error("Failed to initialize grammar");
+	let fsg = 0, jsgf = 0;
+	const jsgf_path = this.config.get("jsgf");
+	if (jsgf_path != null)
+	    jsgf = await load_to_s3file(jsgf_path)
+	const fsg_path = this.config.get("fsg");
+	if (fsg_path != null)
+	    fsg = await load_to_s3file(fsg_path)
+	if (fsg || jsgf) {
+	    const rv = Module._ps_init_grammar_s3file(this.ps, fsg, jsgf);
+	    if (rv < 0)
+		throw new Error("Failed to initialize grammar");
+	}
     }
 
     /**
@@ -417,13 +480,13 @@ class Decoder {
      */
     async process(pcm, no_search=false, full_utt=false) {
 	this.assert_initialized();
-	let pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
-	let pcm_addr = Module._malloc(pcm_bytes);
-	let pcm_u8 = new Uint8Array(pcm.buffer);
+	const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
+	const pcm_addr = Module._malloc(pcm_bytes);
+	const pcm_u8 = new Uint8Array(pcm.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
-	let rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
+	const rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
 					    no_search, full_utt);
 	Module._free(pcm_addr);
 	if (rv < 0) {
@@ -449,15 +512,15 @@ class Decoder {
     get_hypseg() {
 	this.assert_initialized();
 	let itor = Module._ps_seg_iter(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
-	let seg = [];
+	const config = Module._ps_get_config(this.ps);
+	const frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
+	const seg = [];
 	while (itor != 0) {
-	    let frames = stackAlloc(8);
+	    const frames = stackAlloc(8);
 	    Module._ps_seg_frames(itor, frames, frames + 4);
-	    let start_frame = getValue(frames, 'i32');
-	    let end_frame = getValue(frames + 4, 'i32');
-	    let seg_item = {
+	    const start_frame = getValue(frames, 'i32');
+	    const end_frame = getValue(frames + 4, 'i32');
+	    const seg_item = {
 		word: ccall('ps_seg_word', 'string', ['number'], [itor]),
 		start: start_frame / frate,
 		end: end_frame / frate
@@ -476,8 +539,8 @@ class Decoder {
      */
     lookup_word(word) {
 	this.assert_initialized();
-	let cword = allocateUTF8OnStack(word);
-	let cpron = Module._ps_lookup_word(this.ps, cword);
+	const cword = allocateUTF8OnStack(word);
+	const cpron = Module._ps_lookup_word(this.ps, cword);
 	if (cpron == 0)
 	    return null;
 	return UTF8ToString(cpron);
@@ -493,9 +556,9 @@ class Decoder {
      */
     async add_word(word, pron, update=true) {
 	this.assert_initialized();
-	let cword = allocateUTF8OnStack(word);
-	let cpron = allocateUTF8OnStack(pron);
-	let wid = Module._ps_add_word(this.ps, cword, cpron, update);
+	const cword = allocateUTF8OnStack(word);
+	const cpron = allocateUTF8OnStack(pron);
+	const wid = Module._ps_add_word(this.ps, cword, cpron, update);
 	if (wid < 0)
 	    throw new Error("Failed to add word "+word+" with pronunciation "+
 			    pron+" to the dictionary.");
@@ -516,25 +579,25 @@ class Decoder {
      */
     create_fsg(name, start_state, final_state, transitions) {
 	this.assert_initialized();
-	let logmath = Module._ps_get_logmath(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const logmath = Module._ps_get_logmath(this.ps);
+	const config = Module._ps_get_config(this.ps);
+	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
 	let n_state = 0;
-	for (let t of transitions) {
+	for (const t of transitions) {
 	    n_state = Math.max(n_state, t.from, t.to);
 	}
 	n_state++;
-	let fsg = ccall('fsg_model_init',
+	const fsg = ccall('fsg_model_init',
 			'number', ['string', 'number', 'number', 'number'],
 			[name, logmath, lw, n_state]);
 	Module._fsg_set_states(fsg, start_state, final_state);
-	for (let t of transitions) {
+	for (const t of transitions) {
 	    let logprob = 0;
 	    if ('prob' in t) {
 		logprob = Module._logmath_log(logmath, t.prob);
 	    }
 	    if ('word' in t) {
-		let wid = ccall('fsg_model_word_add', 'number',
+		const wid = ccall('fsg_model_word_add', 'number',
 				['number', 'string'],
 				[fsg, t.word]);
 		if (wid == -1) {
@@ -567,16 +630,16 @@ class Decoder {
      */
     parse_jsgf(jsgf_string, toprule=null) {
 	this.assert_initialized();
-	let logmath = Module._ps_get_logmath(this.ps);
-	let config = Module._ps_get_config(this.ps);
-	let lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
-	let cjsgf = allocateUTF8OnStack(jsgf_string);
-	let jsgf = Module._jsgf_parse_string(cjsgf, 0);
+	const logmath = Module._ps_get_logmath(this.ps);
+	const config = Module._ps_get_config(this.ps);
+	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const cjsgf = allocateUTF8OnStack(jsgf_string);
+	const jsgf = Module._jsgf_parse_string(cjsgf, 0);
 	if (jsgf == 0)
 	    throw new Error("Failed to parse JSGF");
 	let rule;
 	if (toprule !== null) {
-	    let crule = allocateUTF8OnStack(toprule);
+	    const crule = allocateUTF8OnStack(toprule);
 	    rule = Module._jsgf_get_rule(jsgf, crule);
 	    if (rule == 0)
 		throw new Error("Failed to find top rule " + toprule);
@@ -586,7 +649,7 @@ class Decoder {
 	    if (rule == 0)
 		throw new Error("No public rules found in JSGF");
 	}
-	let fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
+	const fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
 	Module._jsgf_grammar_free(jsgf);
 	return {
 	    fsg: fsg,
@@ -613,95 +676,11 @@ class Decoder {
 };
 
 /**
- * Load a model into Emscripten's filesystem.
- *
- * Presently models must be made avaliable to the SoundSwallower C
- * code using this function.
- *
- * @param {string} model_name - Name to use for model in "hmm" parameter.
- * @param {string} model_path - Filesystem path (under Node.js) or
- *                              base URL (on the Web) of the model.
- * @param {string} dict_path - Optional custom dictionary path.
- */
-function load_model(model_name, model_path, dict_path=null) {
-    model_paths[model_name] = model_path;
-    const dest_model_dir = "/" + model_name;
-    const folders = [["/", model_name]];
-    const files = [
-	[dest_model_dir, "means", model_path + "/means"],
-	[dest_model_dir, "transition_matrices", model_path + "/transition_matrices"],
-	[dest_model_dir, "variances", model_path + "/variances"],
-	[dest_model_dir, "noisedict", model_path + "/noisedict"],
-    ];
-    // Lazy-load on the Web, pre-load on Node, DWIM, quoi
-    if (RUNNING_ON_WEB) {
-	// only some of these will actually be present and get loaded,
-	// we can do this because of lazy loading.
-	files.push(
-	    [dest_model_dir, "mdef", model_path + "/mdef"],
-	    [dest_model_dir, "mdef.txt", model_path + "/mdef.txt"],
-	    [dest_model_dir, "mdef.bin", model_path + "/mdef.bin"],
-	    [dest_model_dir, "sendump", model_path + "/sendump"],
-	    [dest_model_dir, "phoneset.txt", model_path + "/phoneset.txt"],
-	    [dest_model_dir, "mixture_weights", model_path + "/mixture_weights"]);
-    }
-    else {
-	// Can't pre-load a file that doesn't exist :(
-	/* FIXME: This only works under Node.js, and it isn't correct
-	   as there is a race condition, but we are unable to catch
-	   errors from Emscripten's broken preloading code, so we
-	   have to do it this way @#$!@#$ */
-	const fs = require('fs');
-	const path = require('path');
-	const sendump_path = path.join(model_path, "sendump");
-	if (fs.statSync(sendump_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "sendump", sendump_path]);
-	const mixw_path = path.join(model_path, "mixture_weights");
-	if (fs.statSync(mixw_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mixture_weights", mixw_path]);
-	let mdef_path = path.join(model_path, "mdef.bin");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef.bin", mdef_path]);
-	mdef_path = path.join(model_path, "mdef.txt");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef.txt", mdef_path]);
-	mdef_path = path.join(model_path, "mdef");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "mdef", mdef_path]);
-	const phoneset_path = path.join(model_path, "phoneset.txt");
-	if (fs.statSync(mdef_path, { throwIfNoEntry: false }))
-	    files.push([dest_model_dir, "phoneset.txt", mdef_path]);
-    }
-    if (dict_path !== null) {
-	files.push([dest_model_dir, "dict.txt", dict_path]);
-    }
-    else {
-	if (RUNNING_ON_WEB)
-	    files.push([dest_model_dir, "dict.txt", model_path + "/dict.txt"]);
-	else {
-	    const fs = require('fs');
-	    const path = require('path');
-	    dict_path = path.join(model_path, "dict.txt");
-	    if (fs.statSync(dict_path, { throwIfNoEntry: false }))
-		files.push([dest_model_dir, "dict.txt", dict_path]);
-	}
-    }
-    for (const folder of folders)
-	Module.FS_createPath(folder[0], folder[1], true, true);
-    for (const file of files) {
-	if (RUNNING_ON_WEB)
-	    Module.FS_createLazyFile(file[0], file[1], file[2], true, true);
-	else
-	    Module.FS_createPreloadedFile(file[0], file[1], file[2], true, true);
-    }
-};
-
-/**
  * Generate [key,value] pairs from feat.params file/URL.
  */
 async function* read_featparams(featparams) {
     let fpdata;
-    if (RUNNING_ON_WEB) {
+    if (ENVIRONMENT_IS_WEB) {
 	const response = await fetch(featparams);
 	if (response.ok)
 	    fpdata = await response.text();
@@ -734,7 +713,65 @@ async function* read_featparams(featparams) {
 	throw new Error("Odd number of arguments in "+featparams);
 }
 
+/**
+ * Load a file from disk or Internet and make it into an s3file_t.
+ */
+async function load_to_s3file(path) {
+    let blob_u8;
+    if (ENVIRONMENT_IS_WEB) {
+	const response = await fetch(path);
+	if (response.ok) {
+	    const blob = await response.blob();
+	    const blob_buf = await blob.arrayBuffer();
+	    blob_u8 = new Uint8Array(blob_buf);
+	}
+	else
+	    throw new Error("Failed to fetch " + path + " :" + response.statusText);
+    }
+    else {
+	const fs = require("fs/promises");
+	// FIXME: Should read directly to emscripten memory... how?
+	const blob = await fs.readFile(path);
+	blob_u8 = new Uint8Array(blob.buffer);
+    }
+    const blob_len = blob_u8.length + 1;
+    const blob_addr = Module._malloc(blob_len);
+    if (blob_addr == 0)
+	throw new Error("Failed to allocate "+blob_len+" bytes for "+path);
+    writeArrayToMemory(blob_u8, blob_addr);
+    // Ensure it is NUL-terminated in case someone treats it as a string
+    HEAP8[blob_addr + blob_len] = 0;
+    // But exclude the trailing NUL from file size so it works normally
+    return Module._s3file_init(blob_addr, blob_len - 1);
+}
+
+/**
+ * Get a model or model file from the built-in model path.
+ *
+ * The base path can be set by modifying the `modelBase` property of
+ * the module object, at initialization or any other time.  Or you can
+ * also just override this function if you have special needs.
+ *
+ * This function is used by `Decoder` (and also `Config`) to find the
+ * default model, which is equivalent to `Model.modelBase +
+ * Model.defaultModel`.
+ *
+ * @param {string} subpath - path to model directory or parameter
+ * file, e.g. "en-us", "en-us/variances", etc
+ * @returns {string} concatenated path. Note this is a simple string
+ * concatenation on the Web, so ensure that `modelBase` has a trailing
+ * slash if it is a directory.
+ */
+function get_model_path(subpath) {
+    if (ENVIRONMENT_IS_WEB) {
+	return Module.modelBase + subpath;
+    }
+    else {
+	const path = require("path");
+	return path.join(Module.modelBase, subpath);
+    }
+}
+
+Module.get_model_path = get_model_path;
 Module.Config = Config;
 Module.Decoder = Decoder;
-Module.load_model = load_model;
-Module.read_featparams = read_featparams;

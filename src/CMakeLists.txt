@@ -1,7 +1,6 @@
 set(SOURCES
   acmod.c
   bin_mdef.c
-  bio.c
   bitvec.c
   blkarray_list.c
   case.c
@@ -40,13 +39,13 @@ set(SOURCES
   ms_gauden.c
   ms_mgau.c
   ms_senone.c
-  pio.c
   pocketsphinx.c
   profile.c
   ps_lattice.c
   ps_mllr.c
   ptm_mgau.c
   s2_semi_mgau.c
+  s3file.c
   strfuncs.c
   tmat.c
   vector.c

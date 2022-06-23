@@ -74,7 +74,7 @@
 #define SWAP_FLOAT32(x)	SWAP_INT32((int32 *) x)
 
 /* Macro to byteswap a float64 variable.  x = ptr to variable */
-#define SWAP_FLOAT64(x)	{ int *low = (int *) (x), *high = (int *) (x) + 1,\
+#define SWAP_FLOAT64(x)	{ int32 *low = (int32 *) (x), *high = (int32 *) (x) + 1,\
 			      temp;\
 			  SWAP_INT32(low);  SWAP_INT32(high);\
 			  temp = *low; *low = *high; *high = temp;}
