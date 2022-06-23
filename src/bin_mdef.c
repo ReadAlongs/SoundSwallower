@@ -70,7 +70,7 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 
     (void)config;
 
-    if ((mdef = mdef_init((char *) filename, TRUE)) == NULL)
+    if ((mdef = mdef_init((char *) filename)) == NULL)
         return NULL;
 
     /* Enforce some limits.  */

@@ -500,7 +500,7 @@ noncomment_line(char *line, int32 size, FILE * fp)
  * Initialize phones (ci and triphones) and state->senone mappings from .mdef file.
  */
 mdef_t *
-mdef_init(char *mdeffile, int32 breport)
+mdef_init(char *mdeffile)
 {
     FILE *fp;
     int32 n_ci, n_tri, n_map, n;
@@ -513,8 +513,7 @@ mdef_init(char *mdeffile, int32 breport)
     if (!mdeffile)
         E_FATAL("No mdef-file\n");
 
-    if (breport)
-        E_INFO("Reading model definition: %s\n", mdeffile);
+    E_INFO("Reading model definition: %s\n", mdeffile);
 
     m = (mdef_t *) ckd_calloc(1, sizeof(mdef_t));       /* freed in mdef_free */
 
