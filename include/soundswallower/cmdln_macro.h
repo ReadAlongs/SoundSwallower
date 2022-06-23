@@ -124,7 +124,7 @@
         "yes",                                                  \
         "Insert filler words at each state."}
 
-/** Command-line options for statistical language models. */
+/** Command-line options for statistical language models (not used) and grammars. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
 { "-lw",										\
       ARG_FLOATING,									\
