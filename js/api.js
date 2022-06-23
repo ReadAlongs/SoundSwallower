@@ -9,18 +9,13 @@ const ARG_BOOLEAN = (1 << 4);
 
 const DEFAULT_MODEL = 'en-us';
 
-// FIXME: Emscripten already defines something like this in its
-// runtime but I have no $#@! idea how to access its definition from a
-// pre-js, much like various other things, WTF.
-const RUNNING_ON_WEB = (typeof window == 'object'
-			|| typeof importScripts == 'function');
 // User can specify a default model, or none at all
 if (typeof(Module.defaultModel) === 'undefined') {
     Module.defaultModel = DEFAULT_MODEL;
 }
 // User can also specify the base URL for models
 if (typeof(Module.modelBase) === 'undefined') {
-    if (RUNNING_ON_WEB) {
+    if (ENVIRONMENT_IS_WEB) {
 	Module.modelBase = "model/";
     }
     else {
@@ -685,7 +680,7 @@ class Decoder {
  */
 async function* read_featparams(featparams) {
     let fpdata;
-    if (RUNNING_ON_WEB) {
+    if (ENVIRONMENT_IS_WEB) {
 	const response = await fetch(featparams);
 	if (response.ok)
 	    fpdata = await response.text();
@@ -723,7 +718,7 @@ async function* read_featparams(featparams) {
  */
 async function load_to_s3file(path) {
     let blob_u8;
-    if (RUNNING_ON_WEB) {
+    if (ENVIRONMENT_IS_WEB) {
 	const response = await fetch(path);
 	if (response.ok) {
 	    const blob = await response.blob();
@@ -768,7 +763,7 @@ async function load_to_s3file(path) {
  * slash if it is a directory.
  */
 function get_model_path(subpath) {
-    if (RUNNING_ON_WEB) {
+    if (ENVIRONMENT_IS_WEB) {
 	return Module.modelBase + subpath;
     }
     else {
