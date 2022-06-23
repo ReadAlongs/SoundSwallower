@@ -24,6 +24,7 @@ set(TESTS
   test_heap.c
   test_jsgf.c
   test_listelem_alloc.c
+  test_mdef.c
   test_log_shifted.c
   test_pitch.c
   test_ptm_mgau.c

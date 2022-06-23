@@ -60,98 +60,10 @@
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/export.h>
 
-bin_mdef_t *
-bin_mdef_read_text(cmd_ln_t *config, const char *filename)
+static cd_tree_t *
+build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
 {
-    bin_mdef_t *bmdef;
-    mdef_t *mdef;
     int i, nodes, ci_idx, lc_idx, rc_idx;
-    int nchars;
-
-    (void)config;
-
-    if ((mdef = mdef_init((char *) filename)) == NULL)
-        return NULL;
-
-    /* Enforce some limits.  */
-    if (mdef->n_sen > BAD_SENID) {
-        E_ERROR("Number of senones exceeds limit: %d > %d\n",
-                mdef->n_sen, BAD_SENID);
-        mdef_free(mdef);
-        return NULL;
-    }
-    if (mdef->n_sseq > BAD_SSID) {
-        E_ERROR("Number of senone sequences exceeds limit: %d > %d\n",
-                mdef->n_sseq, BAD_SSID);
-        mdef_free(mdef);
-        return NULL;
-    }
-    /* We use uint8 for ciphones */
-    if (mdef->n_ciphone > 255) {
-        E_ERROR("Number of phones exceeds limit: %d > %d\n",
-                mdef->n_ciphone, 255);
-        mdef_free(mdef);
-        return NULL;
-    }
-
-    bmdef = ckd_calloc(1, sizeof(*bmdef));
-    bmdef->refcnt = 1;
-
-    /* Easy stuff.  The mdef.c code has done the heavy lifting for us. */
-    bmdef->n_ciphone = mdef->n_ciphone;
-    bmdef->n_phone = mdef->n_phone;
-    bmdef->n_emit_state = mdef->n_emit_state;
-    bmdef->n_ci_sen = mdef->n_ci_sen;
-    bmdef->n_sen = mdef->n_sen;
-    bmdef->n_tmat = mdef->n_tmat;
-    bmdef->n_sseq = mdef->n_sseq;
-    bmdef->sseq = mdef->sseq;
-    bmdef->cd2cisen = mdef->cd2cisen;
-    bmdef->sen2cimap = mdef->sen2cimap;
-    bmdef->n_ctx = 3;           /* Triphones only. */
-    bmdef->sil = mdef->sil;
-    mdef->sseq = NULL;          /* We are taking over this one. */
-    mdef->cd2cisen = NULL;      /* And this one. */
-    mdef->sen2cimap = NULL;     /* And this one. */
-
-    /* Get the phone names.  If they are not sorted
-     * ASCII-betically then we are in a world of hurt and
-     * therefore will simply refuse to continue. */
-    bmdef->ciname = ckd_calloc(bmdef->n_ciphone, sizeof(*bmdef->ciname));
-    nchars = 0;
-    for (i = 0; i < bmdef->n_ciphone; ++i)
-        nchars += strlen(mdef->ciphone[i].name) + 1;
-    bmdef->ciname[0] = ckd_calloc(nchars, 1);
-    strcpy(bmdef->ciname[0], mdef->ciphone[0].name);
-    for (i = 1; i < bmdef->n_ciphone; ++i) {
-        assert(i > 0); /* No reason to imagine it wouldn't be, but... */
-        bmdef->ciname[i] =
-            bmdef->ciname[i - 1] + strlen(bmdef->ciname[i - 1]) + 1;
-        strcpy(bmdef->ciname[i], mdef->ciphone[i].name);
-        if (strcmp(bmdef->ciname[i - 1], bmdef->ciname[i]) > 0) {
-            /* FIXME: there should be a solution to this, actually. */
-            E_ERROR("Phone names are not in sorted order, sorry.");
-            bin_mdef_free(bmdef);
-            mdef_free(mdef);
-            return NULL;
-        }
-    }
-
-    /* Copy over phone information. */
-    bmdef->phone = ckd_calloc(bmdef->n_phone, sizeof(*bmdef->phone));
-    for (i = 0; i < mdef->n_phone; ++i) {
-        bmdef->phone[i].ssid = mdef->phone[i].ssid;
-        bmdef->phone[i].tmat = mdef->phone[i].tmat;
-        if (i < bmdef->n_ciphone) {
-            bmdef->phone[i].info.ci.filler = mdef->ciphone[i].filler;
-        }
-        else {
-            bmdef->phone[i].info.cd.wpos = mdef->phone[i].wpos;
-            bmdef->phone[i].info.cd.ctx[0] = mdef->phone[i].ci;
-            bmdef->phone[i].info.cd.ctx[1] = mdef->phone[i].lc;
-            bmdef->phone[i].info.cd.ctx[2] = mdef->phone[i].rc;
-        }
-    }
 
     /* Walk the wpos_ci_lclist once to find the total number of
      * nodes and the starting locations for each level. */
@@ -248,7 +160,110 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
             ++ci_idx;
         }
     }
+    return bmdef->cd_tree;
+}
 
+bin_mdef_t *
+bin_mdef_read_text(cmd_ln_t *config, const char *filename)
+{
+    bin_mdef_t *bmdef;
+    mdef_t *mdef;
+    int i, nchars;
+
+    (void)config;
+
+    if ((mdef = mdef_init((char *) filename,
+                          cmd_ln_boolean_r(config, "-cionly"))) == NULL)
+        return NULL;
+
+    /* Enforce some limits.  */
+    if (mdef->n_sen > BAD_SENID) {
+        E_ERROR("Number of senones exceeds limit: %d > %d\n",
+                mdef->n_sen, BAD_SENID);
+        mdef_free(mdef);
+        return NULL;
+    }
+    if (mdef->n_sseq > BAD_SSID) {
+        E_ERROR("Number of senone sequences exceeds limit: %d > %d\n",
+                mdef->n_sseq, BAD_SSID);
+        mdef_free(mdef);
+        return NULL;
+    }
+    /* We use uint8 for ciphones */
+    if (mdef->n_ciphone > 255) {
+        E_ERROR("Number of phones exceeds limit: %d > %d\n",
+                mdef->n_ciphone, 255);
+        mdef_free(mdef);
+        return NULL;
+    }
+
+    bmdef = ckd_calloc(1, sizeof(*bmdef));
+    bmdef->refcnt = 1;
+
+    /* Easy stuff.  The mdef.c code has done the heavy lifting for us. */
+    bmdef->n_ciphone = mdef->n_ciphone;
+    bmdef->n_phone = mdef->n_phone;
+    bmdef->n_emit_state = mdef->n_emit_state;
+    bmdef->n_ci_sen = mdef->n_ci_sen;
+    bmdef->n_sen = mdef->n_sen;
+    bmdef->n_tmat = mdef->n_tmat;
+    bmdef->n_sseq = mdef->n_sseq;
+    bmdef->sseq = mdef->sseq;
+    bmdef->cd2cisen = mdef->cd2cisen;
+    bmdef->sen2cimap = mdef->sen2cimap;
+    bmdef->n_ctx = 3;           /* Triphones only. */
+    bmdef->sil = mdef->sil;
+    mdef->sseq = NULL;          /* We are taking over this one. */
+    mdef->cd2cisen = NULL;      /* And this one. */
+    mdef->sen2cimap = NULL;     /* And this one. */
+
+    /* Get the phone names.  If they are not sorted
+     * ASCII-betically then we are in a world of hurt and
+     * therefore will simply refuse to continue. */
+    bmdef->ciname = ckd_calloc(bmdef->n_ciphone, sizeof(*bmdef->ciname));
+    nchars = 0;
+    for (i = 0; i < bmdef->n_ciphone; ++i)
+        nchars += strlen(mdef->ciphone[i].name) + 1;
+    bmdef->ciname[0] = ckd_calloc(nchars, 1);
+    strcpy(bmdef->ciname[0], mdef->ciphone[0].name);
+    for (i = 1; i < bmdef->n_ciphone; ++i) {
+        assert(i > 0); /* No reason to imagine it wouldn't be, but... */
+        bmdef->ciname[i] =
+            bmdef->ciname[i - 1] + strlen(bmdef->ciname[i - 1]) + 1;
+        strcpy(bmdef->ciname[i], mdef->ciphone[i].name);
+        if (strcmp(bmdef->ciname[i - 1], bmdef->ciname[i]) > 0) {
+            /* FIXME: there should be a solution to this, actually. */
+            E_ERROR("Phone names are not in sorted order, sorry.");
+            bin_mdef_free(bmdef);
+            mdef_free(mdef);
+            return NULL;
+        }
+    }
+
+    /* Copy over phone information. */
+    bmdef->phone = ckd_calloc(bmdef->n_phone, sizeof(*bmdef->phone));
+    for (i = 0; i < mdef->n_phone; ++i) {
+        bmdef->phone[i].ssid = mdef->phone[i].ssid;
+        bmdef->phone[i].tmat = mdef->phone[i].tmat;
+        if (i < bmdef->n_ciphone) {
+            bmdef->phone[i].info.ci.filler = mdef->ciphone[i].filler;
+        }
+        else {
+            bmdef->phone[i].info.cd.wpos = mdef->phone[i].wpos;
+            bmdef->phone[i].info.cd.ctx[0] = mdef->phone[i].ci;
+            bmdef->phone[i].info.cd.ctx[1] = mdef->phone[i].lc;
+            bmdef->phone[i].info.cd.ctx[2] = mdef->phone[i].rc;
+        }
+    }
+
+    /* If there are no CD phones there is no cdtree */
+    if (mdef->n_phone == mdef->n_ciphone) {
+        E_INFO("No CD phones found, will not build CD tree\n");
+        bmdef->cd_tree = NULL;
+    }
+    else {
+        build_cd_tree_from_mdef(bmdef, mdef);
+    }
     mdef_free(mdef);
 
     bmdef->alloc_mode = BIN_MDEF_FROM_TEXT;
@@ -275,7 +290,8 @@ bin_mdef_free(bin_mdef_t * m)
         ckd_free(m->ciname[0]);
         ckd_free(m->sseq[0]);
         ckd_free(m->phone);
-        ckd_free(m->cd_tree);
+        if (m->cd_tree)
+            ckd_free(m->cd_tree);
         break;
     case BIN_MDEF_IN_MEMORY:
         ckd_free(m->ciname[0]);
@@ -368,12 +384,6 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     FREAD_SWAP32_CHK(&m->n_ctx);
     FREAD_SWAP32_CHK(&m->n_cd_tree);
     FREAD_SWAP32_CHK(&m->sil);
-
-    /* Remove CD phones if requested. */
-    if (cionly) {
-        m->n_phone = m->n_ciphone;
-        m->n_sen = m->n_ci_sen;
-    }
 
     /* CI names are first in the file. */
     m->ciname = ckd_calloc(m->n_ciphone, sizeof(*m->ciname));
@@ -509,10 +519,23 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     /* Set the silence phone. */
     m->sil = bin_mdef_ciphone_id(m, S3_SILENCE_CIPHONE);
 
-    E_INFO
-        ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
-         m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
-         m->n_ci_sen, m->n_sen, m->n_sseq);
+    /* Now that we have scanned the whole file, enforce CI-only safely
+     * by simply removing the cd_tree (means that we did some extraneous
+     * scanning and byteswapping of senone sequences but that's ok) */
+    if (cionly) {
+        m->cd_tree = NULL;
+        E_INFO
+            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+             m->n_ciphone, 0, m->n_emit_state,
+             m->n_ci_sen, m->n_ci_sen, m->n_ciphone);
+    }
+    else {
+        E_INFO
+            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+             m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
+             m->n_ci_sen, m->n_sen, m->n_sseq);
+    }
+    
     return m;
  error_out:
     bin_mdef_free(m);
@@ -574,7 +597,7 @@ bin_mdef_ciphone_str(bin_mdef_t * m, int32 ci)
 }
 
 int
-bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
+bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, word_posn_t wpos)
 {
     cd_tree_t *cd_tree;
     int level, max;
@@ -582,10 +605,13 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
 
     assert(m);
 
-    /* In the future, we might back off when context is not available,
-     * but for now we'll just return the CI phone. */
-    if (lc < 0 || rc < 0)
+    /* CI phone requested, CI phone returned. */
+    if (lc < 0 && rc < 0 && wpos == WORD_POSN_UNDEFINED)
         return ci;
+
+    /* Exact match is impossible in these cases. */
+    if (m->cd_tree == NULL || lc < 0 || rc < 0 || wpos == WORD_POSN_UNDEFINED)
+        return -1;
 
     assert((ci >= 0) && (ci < m->n_ciphone));
     assert((lc >= 0) && (lc < m->n_ciphone));
@@ -632,16 +658,15 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, int32 wpos)
         cd_tree = m->cd_tree + cd_tree[i].c.down;
         ++level;
     }
-    /* We probably shouldn't get here. */
+    /* We probably shouldn't get here, but we failed in any case. */
     return -1;
 }
 
 int
-bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, int32 pos)
+bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, word_posn_t pos)
 {
-    int p, tmppos;
-
-
+    word_posn_t tmppos;
+    int p;
 
     /* In the future, we might back off when context is not available,
      * but for now we'll just return the CI phone. */
