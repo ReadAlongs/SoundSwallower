@@ -67,7 +67,7 @@ s3file_init(const void *buf, size_t len)
     s->refcount = 1;
     s->buf = buf;
     s->ptr = buf;
-    s->end = buf + len;
+    s->end = (const char *)buf + len;
 
     return s;
 }
@@ -84,7 +84,7 @@ s3file_map_file(const char *filename)
     s->mf = mf;
     s->buf = mmio_file_ptr(mf);
     s->ptr = s->buf;
-    s->end = s->buf + mmio_file_size(mf);
+    s->end = (const char *)s->buf + mmio_file_size(mf);
 
     return s;
 }
