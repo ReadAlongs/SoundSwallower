@@ -84,7 +84,7 @@ mmio_file_read(const char *filename)
                 filename, GetLastError());
         return NULL;
     }
-    if (GetFileInformationByHandle(ffm, &fileinfo) != 0) {
+    if (!GetFileInformationByHandle(ffm, &fileinfo)) {
         E_ERROR("Failed to get file information: %08x\n", GetLastError());
         CloseHandle(ffm);
         return NULL;
@@ -101,7 +101,7 @@ mmio_file_read(const char *filename)
     CloseHandle(ffm);
     CloseHandle(fd);
 
-    return (mmio_file_t *)rv;
+    return mf;
 }
 
 void
