@@ -5,13 +5,13 @@ Roadmap:
   - Asynchronous JS loading (DONE)
 	- Before: Test JSGF 981ms, JS 88k, WASM 214k, zip 119k
 	- After: Test JSGF 478ms, JS 43k, WASM 206k, zip 104k
+  - Add -cionly option (DONE)
+- 0.3.x:
   - Better browser support and packaging
 	- Just more examples and documentation for now
   - Add phoneset description and IPA input
     - phoneset.txt in model directory (DONE)
-  - Rename s3file_t to something more neutral
   - Fix C library tests (as in PocketSphinx)
-  - Add -cionly option
 - 0.4.0: User experience
   - Simple VAD with solid API
 	- Principles
@@ -50,3 +50,10 @@ Roadmap:
 
 - 2.0.0: Improved modeling
   - DNN acoustic models?
+
+Notes:
+
+- Decoder state (started / stopped) needs to be visible to application
+  so we know if we can feed it data or not
+- What actually happens if we add a word with no pronunciation?
+  - should be treated as a null transition
