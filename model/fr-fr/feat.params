@@ -9,3 +9,4 @@
 -cmn current
 -varnorm no
 -model ptm
+-remove_noise yes

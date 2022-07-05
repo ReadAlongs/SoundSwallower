@@ -40,6 +40,7 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/fe_type.h>
+#include <soundswallower/fe_noise.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -115,6 +116,7 @@ struct fe_s {
     uint8 feature_dimension;
     uint8 num_cepstra;
     uint8 remove_dc;
+
     uint8 log_spec;
     uint8 swap;
     uint8 dither;
@@ -147,6 +149,8 @@ struct fe_s {
         float32 s_float32;
     } pre_emphasis_prior;
     int is_float32;
+    /* Noise removal */
+    noise_stats_t *noise_stats;
 };
 
 void fe_init_dither(int32 seed);

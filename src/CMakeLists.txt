@@ -13,6 +13,7 @@ set(SOURCES
   err.c
   feat.c
   fe_interface.c
+  fe_noise.c
   fe_sigproc.c
   fe_warp_affine.c
   fe_warp.c

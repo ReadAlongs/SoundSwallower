@@ -216,7 +216,7 @@ acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 /**
  * Create the acmod without loading any files.
  */
-acmod_t * acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+acmod_t *acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
  * Load acoustic model files.
