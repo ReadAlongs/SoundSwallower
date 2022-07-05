@@ -4,7 +4,7 @@ include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(TestBigEndian)
 
-project(soundswallower VERSION 0.3.0
+project(soundswallower VERSION 0.3.1
   DESCRIPTION "An even smaller speech recognizer")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
