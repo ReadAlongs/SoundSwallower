@@ -16,6 +16,7 @@ set(INCLUDES
   feat.h
   fe.h
   fe_internal.h
+  fe_noise.h
   fe_type.h
   fe_warp_affine.h
   fe_warp.h
