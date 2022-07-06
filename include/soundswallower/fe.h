@@ -72,12 +72,6 @@ extern "C" {
 #define NATIVE_ENDIAN "little"
 #endif
 
-#ifdef __EMSCRIPTEN__
-#define DEFAULT_IS_FLOAT32 "yes"
-#else
-#define DEFAULT_IS_FLOAT32 "no"
-#endif    
-
 /** Default number of samples per second. */
 #ifdef __EMSCRIPTEN__
 #define DEFAULT_SAMPLING_RATE 44100
@@ -197,11 +191,6 @@ extern "C" {
     ARG_STRING, \
     NATIVE_ENDIAN, \
     "Endianness of input data, big or little, ignored if NIST or MS Wav" }, \
-   \
-  { "-input_float32", \
-    ARG_BOOLEAN, \
-    DEFAULT_IS_FLOAT32, \
-    "Input is 32-bit floating point in [-1.0, 1.0]" }, \
    \
   { "-warp_type", \
     ARG_STRING, \
@@ -330,17 +319,17 @@ void fe_get_input_size(fe_t *fe, int *out_frame_shift,
  * Finish processing an utterance.
  *
  * This function also collects any remaining samples and calculates a
- * final cepstral vector.  If there are overflow samples remaining, it
- * will pad with zeros to make a complete frame.
+ * final cepstral vector, if present.  If there are overflow samples
+ * remaining, it will pad with zeros to make a complete frame.
  *
  * @param fe Front-end object.
- * @param out_cepvector Buffer to hold a residual cepstral vector, or NULL
- *                      if you wish to ignore it.  Must be large enough
- * @param out_nframes Number of frames of residual cepstra created
- *                    (either 0 or 1).
- * @return 0 for success, <0 for error (see enum fe_error_e)
+ * @param out_cepvector Buffer to hold a residual cepstral vector,
+ *                      or NULL if you wish to ignore it.
+ * @param inout_nframes Number of frames available, will be updated
+ *                      with number written.
+ * @return number of frames written, <0 for error (see enum fe_error_e)
  */
-int fe_end_utt(fe_t *fe, mfcc_t *out_cepvector, int32 *out_nframes);
+int fe_end_utt(fe_t *fe, mfcc_t *out_cepvector, int *inout_nframes);
 
 /**
  * Retain ownership of a front end object.
@@ -358,46 +347,36 @@ fe_t *fe_retain(fe_t *fe);
  */
 int fe_free(fe_t *fe);
 
-/**
- * Process one frame of samples.
- *
- * @param spch Speech samples (signed 16-bit linear PCM)
- * @param nsamps Number of samples in <code>spch</code>
- * @param buf_cep Buffer which will receive one frame of features.
- * @return 0 for success, <0 for error (see enum fe_error_e)
- */
-int fe_process_frame(fe_t *fe, int16 const *spch,
-                     int32 nsamps, mfcc_t *out_cep);
-
 /** 
  * Process a block of samples.
  *
- * This function generates up to <code>*inout_nframes</code> of
+ * This function generates up to <code>nframes</code> frames of
  * features, or as many as can be generated from
  * <code>*inout_nsamps</code> samples.
  *
  * On exit, the <code>inout_spch</code>, <code>inout_nsamps</code>,
  * and <code>inout_nframes</code> parameters are updated to point to
  * the remaining sample data, the number of remaining samples, and the
- * number of frames processed, respectively.  This allows you to call
- * this repeatedly to process a large block of audio in small (say,
- * 5-frame) chunks:
+ * number of frames reamining to process, respectively.  This allows
+ * you to call this repeatedly to process a large block of audio in
+ * small (say, 5-frame) chunks:
  *
  *  int16 *bigbuf, *p;
  *  mfcc_t **cepstra;
  *  int32 nsamps;
- *  int32 nframes = 5;
+ *  int32 nframes;
  *
+ *  fe_process_frames(fe, NULL, &nsamps, NULL, &nframes);
  *  cepstra = (mfcc_t **)
- *      ckd_calloc_2d(nframes, fe_get_output_size(fe), sizeof(**cepstra));
+ *      ckd_calloc_2d(nframes, fe_get_output_size(fe),
+ *                    sizeof(**cepstra));
  *  p = bigbuf;
  *  while (nsamps) {
- *      nframes = 5;
- *      fe_process_frames(fe, &p, &nsamps, cepstra, &nframes);
+ *      int nvec = fe_process_frames(fe, &p, &nsamps,
+ *                                   cepstra, &nframes);
  *      // Now do something with these frames...
- *      if (nframes)
- *          do_some_stuff(cepstra, nframes);
- *  }
+ *      if (nvec > 0)
+ *          do_some_stuff(cepstra, nvec);
  *
  * @param inout_spch Input: Pointer to pointer to speech samples
  *                   (signed 16-bit linear PCM).
@@ -413,53 +392,26 @@ int fe_process_frame(fe_t *fe, int16 const *spch,
  *                <code>*inout_nframes</code>.
  * @param inout_nframes Input: Pointer to maximum number of frames to
  *                      generate.
- *                      Output: Number of frames actually generated.
- * @return 0 for success, <0 for failure (see enum fe_error_e)
+ *                      Output: Number of frames remaining to generate.
+ * @return number of frames written, or <0 on error (see fe_error_e)
  */
-int fe_process_frames(fe_t *fe,
-                      int16 const **inout_spch,
-                      size_t *inout_nsamps,
-                      mfcc_t **buf_cep,
-                      int32 *inout_nframes);
+int fe_process(fe_t *fe,
+               int16 const **inout_spch,
+               size_t *inout_nsamps,
+               mfcc_t **buf_cep,
+               int32 *inout_nframes);
 
 /** 
  * Process a block of floating-point samples.
  *
- * See fe_process_frames(), except that the input is expected to be
+ * See fe_process(), except that the input is expected to be
  * 32-bit floating point in the range of [-1.0, 1.0].
  */
-int fe_process_frames_float32(fe_t *fe,
-                              float32 const **inout_spch,
-                              size_t *inout_nsamps,
-                              mfcc_t **buf_cep,
-                              int32 *inout_nframes);
-
-/** 
- * Process a block of samples, returning as many frames as possible.
- *
- * This function processes all the samples in a block of data and
- * returns a newly allocated block of feature vectors.  This block
- * needs to be freed with fe_free_2d() after use.
- *
- * It is possible for there to be some left-over data which could not
- * fit in a complete frame.  This data can be processed with
- * fe_end_utt().
- *
- * This function is deprecated in favor of fe_process_frames().
- *
- * @return 0 for success, <0 for failure (see enum fe_error_e)
- */
-int fe_process_utt(fe_t *fe,  /**< A front end object */
-                   int16 const *spch, /**< The speech samples */
-                   size_t nsamps, /**< number of samples*/
-                   mfcc_t ***cep_block, /**< Output pointer to cepstra */
-                   int32 *nframes /**< Number of frames processed */
-	);
-
-/**
- * Free the output pointer returned by fe_process_utt().
- **/
-void fe_free_2d(void *arr);
+int fe_process_float32(fe_t *fe,
+                       float32 const **inout_spch,
+                       size_t *inout_nsamps,
+                       mfcc_t **buf_cep,
+                       int32 *inout_nframes);
 
 /**
  * Process one frame of log spectra into MFCC using discrete cosine

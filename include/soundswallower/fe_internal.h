@@ -99,6 +99,11 @@ struct melfb_s {
 /* sqrt(1/2), also used for unitary DCT-II/DCT-III */
 #define SQRT_HALF FLOAT2MFCC(0.707106781186548)
 
+/* Scale for float data. */
+#define FLOAT32_SCALE 32768.0
+/* Dithering constant for float data. */
+#define FLOAT32_DITHER 1.0
+
 /** Structure for the front-end computation. */
 struct fe_s {
     cmd_ln_t *config;
@@ -132,36 +137,30 @@ struct fe_s {
     /* Half of a Hamming Window. */
     window_t *hamming_window;
 
-    /* Temporary buffers for processing. */
-    union {
-        int16 *s_int16;
-        float32 *s_float32;
-    } spch;
-    frame_t *frame;
-    powspec_t *spec, *mfspec;
-    union {
-        int16 *s_int16;
-        float32 *s_float32;
-    } overflow_samps;
+    /* One frame's worth of PCM data. */
+    float32 *spch;
+    /* One frame's worth of extra PCM data. */
+    float32 *overflow_samps;
+    /* How many extra samples there are. */
     int num_overflow_samps;    
-    union {
-        int16 s_int16;
-        float32 s_float32;
-    } pre_emphasis_prior;
-    int is_float32;
-    /* Noise removal */
+    /* One frame's worth of waveform. */
+    frame_t *frame;
+    /* Spectrum and mel-spectrum. */
+    powspec_t *spec, *mfspec;
+    /* Carryover value from previous frame for pre-emphasis filter. */
+    float32 pre_emphasis_prior;
+
+    /* Noise removal parameters and buffers. */
     noise_stats_t *noise_stats;
 };
 
 void fe_init_dither(int32 seed);
 
 /* Load a frame of data into the fe. */
-//int fe_read_frame(fe_t *fe, int16 const *in, int32 len);
 int fe_read_frame_int16(fe_t *fe, int16 const *in, int32 len);
 int fe_read_frame_float32(fe_t *fe, float32 const *in, int32 len);
 
 /* Shift the input buffer back and read more data. */
-//int fe_shift_frame(fe_t *fe, int16 const *in, int32 len);
 int fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len);
 int fe_shift_frame_float32(fe_t *fe, float32 const *in, int32 len);
 
