@@ -512,10 +512,11 @@ fe_process_int16(fe_t *fe,
     /* Are there not enough samples to make at least 1 frame? */
     if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size) {
         if (*inout_nsamps > 0) {
-            /* Append them to the overflow buffer. */
+            /* Append them to the overflow buffer, scaling them. */
             size_t i;
             for (i = 0; i < *inout_nsamps; ++i)
-                fe->overflow_samps[fe->num_overflow_samps + i] = (*inout_spch)[i];
+                fe->overflow_samps[fe->num_overflow_samps + i]
+                    = (float32)(*inout_spch)[i] / FLOAT32_SCALE;
             fe->num_overflow_samps += *inout_nsamps;
             /* Update input-output pointers and counters. */
             *inout_spch += *inout_nsamps;
@@ -569,8 +570,6 @@ fe_process_int16(fe_t *fe,
         *inout_spch += fe->frame_size;
         *inout_nsamps -= fe->frame_size;
     }
-    E_INFO("after first frame pos %d remaining %d\n",
-           *inout_spch - orig_spch, *inout_nsamps);
 
     /* Process all remaining frames. */
     for (i = 1; i < frame_count; ++i) {
@@ -586,25 +585,16 @@ fe_process_int16(fe_t *fe,
         /* Amount of data behind the original input which is still needed. */
         if (fe->num_overflow_samps > 0)
             fe->num_overflow_samps -= fe->frame_shift;
-        E_INFO("after frame %d pos %d remaining %d\n",
-               i, *inout_spch - orig_spch, *inout_nsamps);
-        E_INFO("remaining %d overflow samples\n",
-               fe->num_overflow_samps);
     }
-    E_INFO("remaining %d overflow samples\n",
-           fe->num_overflow_samps);
-    E_INFO("remaining %d samples\n",
-           *inout_nsamps);
 
     /* If there are remaining samples, create an extra frame in
      * fe->overflow_samps, starting from the next input frame, with as
-     * much data as possible. */
+     * much data as possible.  Confusingly, this is done even in the
+     * case where we have limited the number of output frames. */
     if (fe->num_overflow_samps <= 0) {
-        /* There were no overflow samples to start with (FIXME: WHY
-         * DOES THIS MATTER?! */
         /* Amount of data past *inout_spch to copy */
         n_overflow = fe->frame_shift;
-        if (n_overflow > *inout_nsamps)
+        if ((size_t)n_overflow > *inout_nsamps)
             n_overflow = *inout_nsamps;
         /* Size of constructed overflow frame */
         fe->num_overflow_samps = (fe->frame_size - fe->frame_shift
@@ -615,21 +605,18 @@ fe_process_int16(fe_t *fe,
             const int16 *inptr = *inout_spch - (fe->frame_size
                                                 - fe->frame_shift);
             int i;
-            E_INFO("Copying %d samples from %d\n",
-                   fe->num_overflow_samps, inptr - orig_spch);
             for (i = 0; i < fe->num_overflow_samps; ++i) {
                 /* Make sure to scale it! */
                 fe->overflow_samps[i]
                     = (float32)inptr[i] / FLOAT32_SCALE;
-                E_INFOCONT("%.0f ", fe->overflow_samps[i]);
             }
-            E_INFOCONT("\n");
             /* Update the input pointer to cover this stuff. */
             *inout_spch += n_overflow;
             *inout_nsamps -= n_overflow;
         }
     }
     else {
+        int i;
         /* There is still some relevant data left in the overflow
          * buffer. */
         /* Shift existing data to the beginning (already scaled). */
@@ -640,9 +627,10 @@ fe_process_int16(fe_t *fe,
         n_overflow = *inout_spch - orig_spch + *inout_nsamps;
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)
             n_overflow = fe->frame_size - fe->num_overflow_samps;
-        int i;
+        /* Copy and scale... */
         for (i = 0; i < n_overflow; ++i)
-            fe->overflow_samps[fe->num_overflow_samps + i] = orig_spch[i];
+            fe->overflow_samps[fe->num_overflow_samps + i]
+                = (float32)orig_spch[i] / FLOAT32_SCALE;
         fe->num_overflow_samps += n_overflow;
         /* Advance the input pointers. */
         if (n_overflow > *inout_spch - orig_spch) {
@@ -676,8 +664,6 @@ fe_end_utt(fe_t *fe, mfcc_t *cepvector, int32 *nframes)
     
     /* Process any remaining data if possible. */
     if (cepvector && *nframes > 0 && fe->num_overflow_samps > 0) {
-        E_INFO("end_utt with %d overflow samples\n",
-               fe->num_overflow_samps);
         fe_read_frame_float32(fe, fe->overflow_samps,
                               fe->num_overflow_samps);
         fe_write_frame(fe, cepvector);

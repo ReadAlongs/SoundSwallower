@@ -308,12 +308,6 @@ fe_hamming_window(frame_t * in, window_t * window, int32 in_len,
 static int
 fe_spch_to_frame(fe_t * fe, int len)
 {
-    E_INFO("fe_spch_to_frame(%d): ", len);
-    int i;
-    for (i = 0; i < len; ++i) {
-        E_INFOCONT("%.0f ", fe->spch[i]);
-    }
-    E_INFOCONT("\n");
     /* Copy to the frame buffer. */
     if (fe->pre_emphasis_alpha != 0.0) {
         fe_pre_emphasis(fe->spch, fe->frame, len,
