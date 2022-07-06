@@ -147,7 +147,7 @@ create_frames(fe_t *fe, const float32 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + rv, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -178,7 +178,7 @@ create_full(fe_t *fe, const float32 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + rv, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -223,7 +223,7 @@ create_process_frames(fe_t *fe, const float32 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + 4, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -266,7 +266,59 @@ create_fragments(fe_t *fe, const float32 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepptr, &nfr);
+    E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
+    TEST_EQUAL(rv, 1);
+
+    return cepbuf;
+}
+
+
+mfcc_t **
+create_mixed_fragments(fe_t *fe, const float32 *data, const int16 *idata, size_t nsamp, int odd)
+{
+    mfcc_t **cepbuf, **cepptr;
+    const float32 *inptr;
+    const int16 *iinptr;
+    int i, rv, nfr, ncep, frame_shift, frame_size;
+    /* Should total 1024 :) */
+    size_t fragments[] = {
+        1, 145, 39, 350, 450, 39
+    };
+    
+    fe_get_input_size(fe, &frame_shift, &frame_size);
+    TEST_EQUAL(0, fe_start(fe));
+    rv = fe_process_float32(fe, NULL, &nsamp, NULL, &nfr);
+    TEST_EQUAL(0, rv);
+    TEST_EQUAL(5, nfr);
+    ncep = fe_get_output_size(fe);
+
+    cepptr = cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
+    inptr = data;
+    iinptr = idata;
+
+    /* Process with fragments of unusual size. */
+    for (i = 0; (size_t)i < sizeof(fragments) / sizeof(fragments[0]); ++i) {
+        size_t fragment = fragments[i];
+        int do_float = odd ? (i & 1) : (!(i & 1));
+        if (do_float) {
+            rv = fe_process_float32(fe, &inptr, &fragment, cepptr, &nfr);
+            iinptr += (inptr - data) - (iinptr - idata);
+        }
+        else {
+            rv = fe_process(fe, &iinptr, &fragment, cepptr, &nfr);
+            inptr += (iinptr - idata) - (inptr - data);
+        }
+        E_INFO("%s fragment %d updated inptr %ld %ld remaining nsamp %ld "
+               "processed %d remaining nfr %d\n", do_float ? "float" : "int",
+               i, inptr - data, iinptr - idata, fragment, rv, nfr);
+        TEST_EQUAL(0, fragment);
+        cepptr += rv;
+    }
+
+    /* Should get a frame here due to overflow samples. */
+    nfr = 1;
+    rv = fe_end(fe, cepptr, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
 
@@ -342,6 +394,16 @@ main(int argc, char *argv[])
 
     E_INFO("Creating features with oddly sized fragments\n");
     cepbuf1 = create_fragments(fe, buf, 1024);
+    compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
+    ckd_free_2d(cepbuf1);
+
+    E_INFO("Creating features with oddly sized fragments of mixed types\n");
+    cepbuf1 = create_mixed_fragments(fe, buf, ibuf, 1024, 1);
+    compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
+    ckd_free_2d(cepbuf1);
+
+    E_INFO("Creating features with oddly sized fragments of mixed types (other order)\n");
+    cepbuf1 = create_mixed_fragments(fe, buf, ibuf, 1024, 0);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
     ckd_free_2d(cepbuf1);
 
