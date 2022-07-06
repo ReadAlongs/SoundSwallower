@@ -295,7 +295,7 @@ fe_init(cmd_ln_t *config)
     }
 
     /*** Initialize the overflow buffers ***/
-    fe_start_utt(fe);
+    fe_start(fe);
     return fe;
 }
 
@@ -319,7 +319,7 @@ fe_init_dither(int32 seed)
 }
 
 int32
-fe_start_utt(fe_t * fe)
+fe_start(fe_t * fe)
 {
     fe->num_overflow_samps = 0;
     memset(fe->overflow_samps, 0,
@@ -345,6 +345,21 @@ fe_get_input_size(fe_t *fe, int *out_frame_shift,
         *out_frame_size = fe->frame_size;
 }
 
+static int
+output_frame_count(fe_t *fe, size_t nsamps)
+{
+    int n_full_frames = 0;
+
+    if (nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
+        n_full_frames = 0;
+    else
+        n_full_frames = 1
+            + ((nsamps + fe->num_overflow_samps - fe->frame_size) / fe->frame_shift);
+    if (((size_t)n_full_frames * fe->frame_shift + fe->frame_size) > nsamps)
+        return n_full_frames + 1;
+    return n_full_frames;
+}
+
 int
 fe_process_float32(fe_t *fe,
                    float32 const **inout_spch,
@@ -358,12 +373,7 @@ fe_process_float32(fe_t *fe,
 
     /* No output buffer, do nothing except set *inout_nframes */
     if (buf_cep == NULL) {
-        if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
-            *inout_nframes = 0;
-        else
-            *inout_nframes = 1
-                + ((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
-                   / fe->frame_shift);
+        *inout_nframes = output_frame_count(fe, *inout_nsamps);
         return 0;
     }
 
@@ -500,12 +510,7 @@ fe_process_int16(fe_t *fe,
 
     /* No output buffer, do nothing except set *inout_nframes */
     if (buf_cep == NULL) {
-        if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
-            *inout_nframes = 0;
-        else
-            *inout_nframes = 1
-                + ((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
-                   / fe->frame_shift);
+        *inout_nframes = output_frame_count(fe, *inout_nsamps);
         return 0;
     }
 
@@ -658,17 +663,20 @@ fe_process(fe_t *fe,
 }
 
 int
-fe_end_utt(fe_t *fe, mfcc_t *cepvector, int32 *nframes)
+fe_end(fe_t *fe, mfcc_t *cepvector, int *nframes)
 {
     int nfr = 0;
     
     /* Process any remaining data if possible. */
-    if (cepvector && *nframes > 0 && fe->num_overflow_samps > 0) {
+    if (cepvector && nframes
+        && *nframes > 0
+        && fe->num_overflow_samps > 0) {
         fe_read_frame_float32(fe, fe->overflow_samps,
                               fe->num_overflow_samps);
         fe_write_frame(fe, cepvector);
         nfr = 1;
-        *nframes -= nfr;
+        if (nframes)
+            *nframes -= nfr;
     }
 
     /* reset overflow buffers... */
@@ -719,11 +727,11 @@ fe_free(fe_t * fe)
     return 0;
 }
 
-int32
+int
 fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 {
     powspec_t *powspec;
-    int32 i;
+    int i;
 
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
@@ -734,11 +742,11 @@ fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
     return 0;
 }
 
-int32
+int
 fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 {
     powspec_t *powspec;
-    int32 i;
+    int i;
 
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
@@ -749,11 +757,11 @@ fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
     return 0;
 }
 
-int32
+int
 fe_mfcc_dct3(fe_t * fe, const mfcc_t * fr_cep, mfcc_t * fr_spec)
 {
     powspec_t *powspec;
-    int32 i;
+    int i;
 
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     fe_dct3(fe, fr_cep, powspec);

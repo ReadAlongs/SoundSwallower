@@ -308,7 +308,7 @@ acmod_set_grow(acmod_t *acmod, int grow_feat)
 int
 acmod_start_utt(acmod_t *acmod)
 {
-    fe_start_utt(acmod->fe);
+    fe_start(acmod->fe);
     acmod->state = ACMOD_STARTED;
     acmod->n_mfc_frame = 0;
     acmod->n_feat_frame = 0;
@@ -332,7 +332,7 @@ acmod_end_utt(acmod_t *acmod)
         /* Where to start writing them (circular buffer) */
         inptr = (acmod->mfc_outidx + acmod->n_mfc_frame) % acmod->n_mfc_alloc;
         nfr = acmod->n_mfc_alloc - inptr;
-        ntail = fe_end_utt(acmod->fe, acmod->mfc_buf[inptr], &nfr);
+        ntail = fe_end(acmod->fe, acmod->mfc_buf[inptr], &nfr);
         acmod->n_mfc_frame += ntail;
         /* Process whatever's left, and any leadout. */
         if (ntail)
@@ -391,11 +391,11 @@ acmod_process_full_raw(acmod_t *acmod,
     }
     acmod->n_mfc_frame = 0;
     acmod->mfc_outidx = 0;
-    fe_start_utt(acmod->fe);
+    fe_start(acmod->fe);
     if ((nvec = fe_process(acmod->fe, inout_raw, inout_n_samps,
                            acmod->mfc_buf, &nfr)) < 0)
         return -1;
-    ntail = fe_end_utt(acmod->fe, acmod->mfc_buf[nvec], &nfr);
+    ntail = fe_end(acmod->fe, acmod->mfc_buf[nvec], &nfr);
     nvec += ntail;
 
     cepptr = acmod->mfc_buf;
@@ -425,12 +425,12 @@ acmod_process_full_float32(acmod_t *acmod,
     }
     acmod->n_mfc_frame = 0;
     acmod->mfc_outidx = 0;
-    fe_start_utt(acmod->fe);
+    fe_start(acmod->fe);
     if ((nvec = fe_process_float32(acmod->fe,
                                    inout_raw, inout_n_samps,
                                    acmod->mfc_buf, &nfr)) < 0)
         return -1;
-    ntail = fe_end_utt(acmod->fe, acmod->mfc_buf[nvec], &nfr);
+    ntail = fe_end(acmod->fe, acmod->mfc_buf[nvec], &nfr);
     nvec += ntail;
 
     cepptr = acmod->mfc_buf;

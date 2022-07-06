@@ -70,9 +70,9 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
     cepbuf = ckd_calloc_2d(nfr + 1,
                    fe_get_output_size(ps->acmod->fe),
                    sizeof(**cepbuf));
-    fe_start_utt(ps->acmod->fe);
+    fe_start(ps->acmod->fe);
     fe_process_frames(ps->acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end_utt(ps->acmod->fe, cepbuf[nfr], &i);
+    fe_end(ps->acmod->fe, cepbuf[nfr], &i);
 
     /* Decode it with process_cep() */
     TEST_EQUAL(0, ps_start_utt(ps));

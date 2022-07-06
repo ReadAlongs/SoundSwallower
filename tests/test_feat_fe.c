@@ -44,12 +44,12 @@ main(int argc, char *argv[])
 	nsamp = ftell(raw) / sizeof(int16);
 	fe_process(fe, NULL, &nsamp, NULL, &total_frames);
 	printf("%ld samples, %d + 1 frames\n", nsamp, total_frames);
-	total_frames++; /* For the possible fe_end_utt() frame */
+	total_frames++; /* For the possible fe_end() frame */
 	cepbuf = ckd_calloc_2d(total_frames + 1, fe_get_output_size(fe), sizeof(**cepbuf));
 	fseek(raw, 0, SEEK_SET);
 
         /* fe_process_frames() had a BAD API so I changed it */
-	fe_start_utt(fe);
+	fe_start(fe);
 	cptr = cepbuf;
 	nfr = total_frames;
 	while ((nsamp = fread(buf, sizeof(int16), 2048, raw)) > 0) {
@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 			cptr += ncep;
 		}
 	}
-	fe_end_utt(fe, *cptr, &nfr);
+	fe_end(fe, *cptr, &nfr);
 
 	/* Now test some feature extraction problems. */
 	featbuf1 = feat_array_alloc(fcb, total_frames);

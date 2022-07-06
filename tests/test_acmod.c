@@ -155,12 +155,12 @@ main(int argc, char *argv[])
     cepbuf = ckd_calloc_2d(frame_counter,
                    fe_get_output_size(acmod->fe),
                    sizeof(**cepbuf));
-    fe_start_utt(acmod->fe);
+    fe_start(acmod->fe);
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
     fe_process(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end_utt(acmod->fe, cepbuf[frame_counter-1], &nfr);
+    fe_end(acmod->fe, cepbuf[frame_counter-1], &nfr);
 
     E_INFO("Incremental(MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
@@ -206,12 +206,12 @@ main(int argc, char *argv[])
 
     /* Note that we have to process the whole thing again because
      * !#@$@ s2mfc2feat modifies its argument (not for long) */
-    fe_start_utt(acmod->fe);
+    fe_start(acmod->fe);
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
     fe_process(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end_utt(acmod->fe, cepbuf[frame_counter-1], &nfr);
+    fe_end(acmod->fe, cepbuf[frame_counter-1], &nfr);
 
     E_INFO("Whole utterance (MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
