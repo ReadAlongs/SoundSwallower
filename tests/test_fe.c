@@ -147,7 +147,7 @@ create_frames(fe_t *fe, const int16 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + 4, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -178,7 +178,7 @@ create_full(fe_t *fe, const int16 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + 4, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -223,7 +223,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + 4, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
     TEST_EQUAL(nfr, 0);
@@ -266,7 +266,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
-    rv = fe_end(fe, cepbuf[4], &nfr);
+    rv = fe_end(fe, cepbuf + 4, &nfr);
     E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
     TEST_EQUAL(rv, 1);
 

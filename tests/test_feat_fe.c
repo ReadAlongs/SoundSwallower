@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 			cptr += ncep;
 		}
 	}
-	fe_end(fe, *cptr, &nfr);
+	fe_end(fe, cptr, &nfr);
 
 	/* Now test some feature extraction problems. */
 	featbuf1 = feat_array_alloc(fcb, total_frames);

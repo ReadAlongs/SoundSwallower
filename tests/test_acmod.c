@@ -160,7 +160,7 @@ main(int argc, char *argv[])
     bptr = buf;
     nfr = frame_counter;
     fe_process(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end(acmod->fe, cepbuf[frame_counter-1], &nfr);
+    fe_end(acmod->fe, cepbuf + frame_counter - 1, &nfr);
 
     E_INFO("Incremental(MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
@@ -211,7 +211,7 @@ main(int argc, char *argv[])
     bptr = buf;
     nfr = frame_counter;
     fe_process(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end(acmod->fe, cepbuf[frame_counter-1], &nfr);
+    fe_end(acmod->fe, cepbuf + frame_counter - 1, &nfr);
 
     E_INFO("Whole utterance (MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
