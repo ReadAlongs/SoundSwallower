@@ -306,7 +306,7 @@ create_mixed_fragments(fe_t *fe, const float32 *data, const int16 *idata, size_t
             iinptr += (inptr - data) - (iinptr - idata);
         }
         else {
-            rv = fe_process(fe, &iinptr, &fragment, cepptr, &nfr);
+            rv = fe_process_int16(fe, &iinptr, &fragment, cepptr, &nfr);
             inptr += (iinptr - idata) - (inptr - data);
         }
         E_INFO("%s fragment %d updated inptr %ld %ld remaining nsamp %ld "

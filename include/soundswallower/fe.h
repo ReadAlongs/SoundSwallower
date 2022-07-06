@@ -361,6 +361,7 @@ int fe_start(fe_t *fe);
  *         // Now do something with these frames...
  *         if (nvec > 0)
  *             do_some_stuff(mfcc, nvec);
+ *     }
  *     nvec = fe_end(fe, mfcc, &nframes);
  *     if (nvec > 0)
  *         do_some_stuff(mfcc, nvec);
@@ -383,7 +384,7 @@ int fe_start(fe_t *fe);
  *                      including any frames output by fe_end().
  * @return number of frames written, or <0 on error (see fe_error_e)
  */
-int fe_process(fe_t *fe,
+int fe_process_int16(fe_t *fe,
                int16 const **inout_spch,
                size_t *inout_nsamps,
                mfcc_t **buf_cep,
@@ -392,7 +393,7 @@ int fe_process(fe_t *fe,
 /** 
  * Process a block of floating-point samples.
  *
- * See fe_process(), except that the input is expected to be
+ * See fe_process_int16(), except that the input is expected to be
  * 32-bit floating point in the range of [-1.0, 1.0].
  */
 int fe_process_float32(fe_t *fe,

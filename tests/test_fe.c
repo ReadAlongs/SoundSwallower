@@ -131,7 +131,7 @@ create_frames(fe_t *fe, const int16 *data, size_t nsamp)
     int rv, nfr, ncep;
     
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process(fe, NULL, &nsamp, NULL, &nfr);
+    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
     TEST_EQUAL(0, rv);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
@@ -139,8 +139,8 @@ create_frames(fe_t *fe, const int16 *data, size_t nsamp)
     cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
     inptr = data;
 
-    rv = fe_process(fe, &inptr, &nsamp, cepbuf, &nfr);
-    E_INFO("fe_process produced %d frames, "
+    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, &nfr);
+    E_INFO("fe_process_int16 produced %d frames, "
            " %d samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
     TEST_EQUAL(nfr, 1);
@@ -163,15 +163,15 @@ create_full(fe_t *fe, const int16 *data, size_t nsamp)
     int rv, nfr, ncep;
     
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process(fe, NULL, &nsamp, NULL, &nfr);
+    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
     TEST_EQUAL(0, rv);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
 
     cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
     inptr = data;
-    rv = fe_process(fe, &inptr, &nsamp, cepbuf, &nfr);
-    E_INFO("fe_process produced %d frames, "
+    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, &nfr);
+    E_INFO("fe_process_int16 produced %d frames, "
            " %d samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
     TEST_EQUAL(nfr, 1);
@@ -195,7 +195,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
     
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process(fe, NULL, &nsamp, NULL, &nfr);
+    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
     TEST_EQUAL(0, rv);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
@@ -205,7 +205,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
 
     for (i = 0; i < 4; ++i) {
         nfr = 1;
-        rv = fe_process(fe, &inptr, &nsamp, &cepbuf[i], &nfr);
+        rv = fe_process_int16(fe, &inptr, &nsamp, &cepbuf[i], &nfr);
         E_INFO("frame %d updated inptr %ld remaining nsamp %ld "
                "processed %d remaining nfr %d\n",
                i, inptr - data, nsamp, rv, nfr);
@@ -245,7 +245,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
     
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process(fe, NULL, &nsamp, NULL, &nfr);
+    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
     TEST_EQUAL(0, rv);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
@@ -256,7 +256,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
     /* Process with fragments of unusual size. */
     for (i = 0; (size_t)i < sizeof(fragments) / sizeof(fragments[0]); ++i) {
         size_t fragment = fragments[i];
-        rv = fe_process(fe, &inptr, &fragment, cepptr, &nfr);
+        rv = fe_process_int16(fe, &inptr, &fragment, cepptr, &nfr);
         E_INFO("fragment %d updated inptr %ld remaining nsamp %ld "
                "processed %d remaining nfr %d\n",
                i, inptr - data, fragment, rv, nfr);
