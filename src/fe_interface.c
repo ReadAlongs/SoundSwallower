@@ -532,16 +532,17 @@ append_overflow_frame(fe_t *fe,
     return n_overflow;
 }
 
-int
-fe_process_float32(fe_t *fe,
-                   float32 const **inout_spch,
-                   size_t *inout_nsamps,
-                   mfcc_t **buf_cep,
-                   int32 *inout_nframes)
+static int
+fe_process(fe_t *fe,
+           void *inout_spch,
+           size_t *inout_nsamps,
+           mfcc_t **buf_cep,
+           int *inout_nframes,
+           fe_encoding_t encoding)
 {
-    int32 frame_count;
+    int frame_count;
     int outidx, i, orig_n_overflow;
-    float32 const *orig_spch;
+    void const *orig_spch;
 
     /* No output buffer, do nothing except set *inout_nframes */
     if (buf_cep == NULL) {
@@ -551,14 +552,14 @@ fe_process_float32(fe_t *fe,
 
     /* Are there not enough samples to make at least 1 frame? */
     if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
-        return overflow_append(fe, inout_spch, inout_nsamps, FE_FLOAT32);
+        return overflow_append(fe, inout_spch, inout_nsamps, encoding);
 
     /* No frames to write, nothing to do. */
     if (*inout_nframes < 1)
         return 0;
 
     /* Keep track of the original start of the buffer. */
-    orig_spch = *inout_spch;
+    orig_spch = *(void const **)inout_spch;
     orig_n_overflow = fe->num_overflow_samps;
     /* How many frames will we be able to get? */
     frame_count = 1
@@ -572,10 +573,17 @@ fe_process_float32(fe_t *fe,
 
     /* Start processing, taking care of any incoming overflow. */
     if (fe->num_overflow_samps) {
-        read_overflow_frame(fe, inout_spch, inout_nsamps, FE_FLOAT32);
+        read_overflow_frame(fe, inout_spch, inout_nsamps, encoding);
     }
     else {
-        *inout_spch += fe_read_frame_float32(fe, *inout_spch, fe->frame_size);
+        if (encoding == FE_FLOAT32) {
+            float32 const **spch = (float32 const **)inout_spch;
+            *spch += fe_read_frame_float32(fe, *spch, fe->frame_size);
+        }
+        else {
+            int16 const **spch = (int16 const **)inout_spch;
+            *spch += fe_read_frame_int16(fe, *spch, fe->frame_size);
+        }
         *inout_nsamps -= fe->frame_size;
     }
     fe_write_frame(fe, buf_cep[outidx]);
@@ -583,18 +591,26 @@ fe_process_float32(fe_t *fe,
 
     /* Process all remaining frames. */
     for (i = 1; i < frame_count; ++i) {
+        int shift;
         assert(*inout_nsamps >= (size_t)fe->frame_shift);
 
-        fe_shift_frame_float32(fe, *inout_spch, fe->frame_shift);
+        if (encoding == FE_FLOAT32) {
+            float32 const **spch = (float32 const **)inout_spch;
+            shift = fe_shift_frame_float32(fe, *spch, fe->frame_shift);
+            *spch += shift;
+        }
+        else {
+            int16 const **spch = (int16 const **)inout_spch;
+            shift = fe_shift_frame_int16(fe, *spch, fe->frame_shift);
+            *spch += shift;
+        }
         assert(outidx < frame_count);
         fe_write_frame(fe, buf_cep[outidx]);
         outidx++;
-        /* Update input-output pointers and counters. */
-        *inout_spch += fe->frame_shift;
-        *inout_nsamps -= fe->frame_shift;
         /* Amount of data behind the original input which is still needed. */
         if (fe->num_overflow_samps > 0)
-            fe->num_overflow_samps -= fe->frame_shift;
+            fe->num_overflow_samps -= shift;
+        *inout_nsamps -= shift;
     }
 
     /* If there are remaining samples, create an extra frame in
@@ -602,13 +618,13 @@ fe_process_float32(fe_t *fe,
      * much data as possible.  Confusingly, this is done even in the
      * case where we have limited the number of output frames. */
     if (fe->num_overflow_samps <= 0) {
-        create_overflow_frame(fe, inout_spch, inout_nsamps, FE_FLOAT32);
+        create_overflow_frame(fe, inout_spch, inout_nsamps, encoding);
     }
     else {
         /* There is still some relevant data left in the overflow
          * buffer. */
         append_overflow_frame(fe, inout_spch, orig_spch, inout_nsamps,
-                              orig_n_overflow, FE_FLOAT32);
+                              orig_n_overflow, encoding);
     }
 
     /* Finally update the frame counter using the number of frames we
@@ -618,88 +634,25 @@ fe_process_float32(fe_t *fe,
 }
 
 int
+fe_process_float32(fe_t *fe,
+                   float32 const **inout_spch,
+                   size_t *inout_nsamps,
+                   mfcc_t **buf_cep,
+                   int *inout_nframes)
+{
+    return fe_process(fe, inout_spch, inout_nsamps,
+                      buf_cep, inout_nframes, FE_FLOAT32);
+}
+
+int
 fe_process_int16(fe_t *fe,
                  int16 const **inout_spch,
                  size_t *inout_nsamps,
                  mfcc_t **buf_cep,
-                 int32 *inout_nframes)
+                 int *inout_nframes)
 {
-    int32 frame_count;
-    int outidx, i, orig_n_overflow;
-    int16 const *orig_spch;
-
-    /* No output buffer, do nothing except set *inout_nframes */
-    if (buf_cep == NULL) {
-        *inout_nframes = output_frame_count(fe, *inout_nsamps);
-        return 0;
-    }
-
-    /* Are there not enough samples to make at least 1 frame? */
-    if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
-        return overflow_append(fe, inout_spch, inout_nsamps, FE_PCM16);
-
-    /* No frames to write, nothing to do. */
-    if (*inout_nframes < 1)
-        return 0;
-
-    /* Keep track of the original start of the buffer. */
-    orig_spch = *inout_spch;
-    orig_n_overflow = fe->num_overflow_samps;
-    /* How many frames will we be able to get? */
-    frame_count = 1
-        + ((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
-           / fe->frame_shift);
-    /* Limit it to the number of output frames available. */
-    if (frame_count > *inout_nframes)
-        frame_count = *inout_nframes;
-    /* Index of output frame. */
-    outidx = 0;
-
-    /* Start processing, taking care of any incoming overflow. */
-    if (fe->num_overflow_samps) {
-        read_overflow_frame(fe, inout_spch, inout_nsamps, FE_PCM16);
-    }
-    else {
-        *inout_spch += fe_read_frame_int16(fe, *inout_spch, fe->frame_size);
-        *inout_nsamps -= fe->frame_size;
-    }
-    fe_write_frame(fe, buf_cep[outidx]);
-    outidx++;
-
-    /* Process all remaining frames. */
-    for (i = 1; i < frame_count; ++i) {
-        assert(*inout_nsamps >= (size_t)fe->frame_shift);
-
-        fe_shift_frame_int16(fe, *inout_spch, fe->frame_shift);
-        assert(outidx < frame_count);
-        fe_write_frame(fe, buf_cep[outidx]);
-        outidx++;
-        /* Update input-output pointers and counters. */
-        *inout_spch += fe->frame_shift;
-        *inout_nsamps -= fe->frame_shift;
-        /* Amount of data behind the original input which is still needed. */
-        if (fe->num_overflow_samps > 0)
-            fe->num_overflow_samps -= fe->frame_shift;
-    }
-
-    /* If there are remaining samples, create an extra frame in
-     * fe->overflow_samps, starting from the next input frame, with as
-     * much data as possible.  Confusingly, this is done even in the
-     * case where we have limited the number of output frames. */
-    if (fe->num_overflow_samps <= 0) {
-        create_overflow_frame(fe, inout_spch, inout_nsamps, FE_PCM16);
-    }
-    else {
-        /* There is still some relevant data left in the overflow
-         * buffer. */
-        append_overflow_frame(fe, inout_spch, orig_spch, inout_nsamps,
-                              orig_n_overflow, FE_PCM16);
-    }
-
-    /* Finally update the frame counter using the number of frames we
-     * procesed. */
-    *inout_nframes -= outidx;
-    return outidx;
+    return fe_process(fe, inout_spch, inout_nsamps,
+                      buf_cep, inout_nframes, FE_PCM16);
 }
 
 int
