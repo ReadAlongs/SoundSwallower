@@ -324,7 +324,7 @@ acmod_start_utt(acmod_t *acmod)
 int
 acmod_end_utt(acmod_t *acmod)
 {
-    int32 ntail;
+    int32 ntail = 0;
 
     acmod->state = ACMOD_ENDED;
     if (acmod->n_mfc_frame < acmod->n_mfc_alloc) {
