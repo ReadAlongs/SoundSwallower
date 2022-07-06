@@ -653,10 +653,10 @@ fe_process_int16(fe_t *fe,
 
 int
 fe_process(fe_t *fe,
-                  int16 const **inout_spch,
-                  size_t *inout_nsamps,
-                  mfcc_t **buf_cep,
-                  int32 *inout_nframes)
+           int16 const **inout_spch,
+           size_t *inout_nsamps,
+           mfcc_t **buf_cep,
+           int32 *inout_nframes)
 {
     return fe_process_int16(fe, inout_spch, inout_nsamps,
                             buf_cep, inout_nframes);
