@@ -260,6 +260,14 @@ enum fe_error_e {
 };
 
 /**
+ * Encodings for input data.
+ */
+typedef enum fe_encoding_e {
+    FE_PCM16,
+    FE_FLOAT32
+} fe_encoding_t;
+
+/**
  * Initialize a front-end object from a command-line parse.
  *
  * @param config Command-line object, as returned by cmd_ln_parse_r()

@@ -360,6 +360,42 @@ output_frame_count(fe_t *fe, size_t nsamps)
     return n_full_frames;
 }
 
+static int
+overflow_append(fe_t *fe,
+                const void *inout_spch,
+                size_t *inout_nsamps,
+                fe_encoding_t encoding)
+{
+    /* Append them to the overflow buffer, scaling them. */
+    size_t i;
+
+    if (*inout_nsamps == 0)
+        return 0;
+
+    if (encoding == FE_FLOAT32) {
+        float32 const **spch = (float32 const **)inout_spch;
+        memcpy(fe->overflow_samps + fe->num_overflow_samps,
+               *spch, *inout_nsamps * (sizeof(float32)));
+        *spch += *inout_nsamps;
+    }
+    else {
+        int16 const **spch = (int16 const **)inout_spch;
+        for (i = 0; i < *inout_nsamps; ++i) {
+            int16 sample = (*spch)[i];
+            if (fe->swap)
+                SWAP_INT16(&sample);
+            fe->overflow_samps[fe->num_overflow_samps + i]
+                = (float32)sample / FLOAT32_SCALE;
+        }
+        /* Update input-output pointers and counters. */
+        *spch += *inout_nsamps;
+    }
+    fe->num_overflow_samps += *inout_nsamps;
+    *inout_nsamps = 0;
+
+    return 0;
+}
+
 int
 fe_process_float32(fe_t *fe,
                    float32 const **inout_spch,
@@ -378,18 +414,8 @@ fe_process_float32(fe_t *fe,
     }
 
     /* Are there not enough samples to make at least 1 frame? */
-    if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size) {
-        if (*inout_nsamps > 0) {
-            /* Append them to the overflow buffer. */
-            memcpy(fe->overflow_samps + fe->num_overflow_samps,
-                   *inout_spch, *inout_nsamps * (sizeof(**inout_spch)));
-            fe->num_overflow_samps += *inout_nsamps;
-            /* Update input-output pointers and counters. */
-            *inout_spch += *inout_nsamps;
-            *inout_nsamps = 0;
-        }
-        return 0;
-    }
+    if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
+        return overflow_append(fe, inout_spch, inout_nsamps, FE_FLOAT32);
 
     /* No frames to write, nothing to do. */
     if (*inout_nframes < 1)
@@ -515,20 +541,8 @@ fe_process_int16(fe_t *fe,
     }
 
     /* Are there not enough samples to make at least 1 frame? */
-    if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size) {
-        if (*inout_nsamps > 0) {
-            /* Append them to the overflow buffer, scaling them. */
-            size_t i;
-            for (i = 0; i < *inout_nsamps; ++i)
-                fe->overflow_samps[fe->num_overflow_samps + i]
-                    = (float32)(*inout_spch)[i] / FLOAT32_SCALE;
-            fe->num_overflow_samps += *inout_nsamps;
-            /* Update input-output pointers and counters. */
-            *inout_spch += *inout_nsamps;
-            *inout_nsamps = 0;
-        }
-        return 0;
-    }
+    if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
+        return overflow_append(fe, inout_spch, inout_nsamps, FE_PCM16);
 
     /* No frames to write, nothing to do. */
     if (*inout_nframes < 1)
@@ -649,17 +663,6 @@ fe_process_int16(fe_t *fe,
      * procesed. */
     *inout_nframes -= outidx;
     return outidx;
-}
-
-int
-fe_process(fe_t *fe,
-           int16 const **inout_spch,
-           size_t *inout_nsamps,
-           mfcc_t **buf_cep,
-           int32 *inout_nframes)
-{
-    return fe_process_int16(fe, inout_spch, inout_nsamps,
-                            buf_cep, inout_nframes);
 }
 
 int
