@@ -331,21 +331,6 @@ void fe_get_input_size(fe_t *fe, int *out_frame_shift,
  */
 int fe_start(fe_t *fe);
 
-/**
- * Finish processing.
- *
- * This function also collects any remaining samples and calculates a
- * final cepstral vector, if present.  If there are overflow samples
- * remaining, it will pad with zeros to make a complete frame.
- *
- * @param fe Front-end object.
- * @param buf_cep Cepstral buffer as passed to fe_process().
- * @param inout_nframes Number of frames available, will be updated
- *                      with number written.
- * @return number of frames written, <0 for error (see enum fe_error_e)
- */
-int fe_end(fe_t *fe, mfcc_t **buf_cep, int *inout_nframes);
-
 /** 
  * Process a block of samples.
  *
@@ -415,6 +400,24 @@ int fe_process_float32(fe_t *fe,
                        size_t *inout_nsamps,
                        mfcc_t **buf_cep,
                        int *inout_nframes);
+
+/**
+ * Finish processing.
+ *
+ * This function collects any remaining samples and calculates a final
+ * cepstral vector, if present.  If there are overflow samples
+ * remaining, it will pad with zeros to make a complete frame.
+ *
+ * @param fe Front-end object.
+ * @param buf_cep Cepstral buffer as passed to fe_process().
+ * @param inout_nframes Number of frames available in buf_cep, will be
+ *                      updated with number remaining after writing,
+ *                      as in fe_process().
+ * @return number of frames written (always 0 or 1), <0 for error (see
+ *         enum fe_error_e)
+ */
+int fe_end(fe_t *fe, mfcc_t **buf_cep, int *inout_nframes);
+
 
 /**
  * Process one frame of log spectra into MFCC using discrete cosine
