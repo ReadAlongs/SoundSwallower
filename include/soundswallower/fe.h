@@ -339,12 +339,12 @@ int fe_start(fe_t *fe);
  * remaining, it will pad with zeros to make a complete frame.
  *
  * @param fe Front-end object.
- * @param out_cepvector Cepstral buffer as passed to fe_process().
+ * @param buf_cep Cepstral buffer as passed to fe_process().
  * @param inout_nframes Number of frames available, will be updated
  *                      with number written.
  * @return number of frames written, <0 for error (see enum fe_error_e)
  */
-int fe_end(fe_t *fe, mfcc_t **out_cepvector, int *inout_nframes);
+int fe_end(fe_t *fe, mfcc_t **buf_cep, int *inout_nframes);
 
 /** 
  * Process a block of samples.
