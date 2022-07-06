@@ -298,7 +298,7 @@ cmd_ln_t *fe_get_config(fe_t *fe);
  * Get the dimensionality of the output of this front-end object.
  *
  * This is guaranteed to be the number of values in one frame of
- * output from fe_end_utt(), fe_process_frame(), and
+ * output from fe_end(), fe_process_frame(), and
  * fe_process_frames().  It is usually the number of MFCC
  * coefficients, but it might be the number of log-spectrum bins, if
  * the <tt>-logspec</tt> or <tt>-smoothspec</tt> options to
@@ -339,13 +339,12 @@ int fe_start(fe_t *fe);
  * remaining, it will pad with zeros to make a complete frame.
  *
  * @param fe Front-end object.
- * @param out_cepvector Buffer to hold a residual cepstral vector,
- *                      or NULL if you wish to ignore it.
+ * @param out_cepvector Cepstral buffer as passed to fe_process().
  * @param inout_nframes Number of frames available, will be updated
  *                      with number written.
  * @return number of frames written, <0 for error (see enum fe_error_e)
  */
-int fe_end(fe_t *fe, mfcc_t *out_cepvector, int *inout_nframes);
+int fe_end(fe_t *fe, mfcc_t **out_cepvector, int *inout_nframes);
 
 /** 
  * Process a block of samples.

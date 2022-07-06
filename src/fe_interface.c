@@ -663,7 +663,7 @@ fe_process(fe_t *fe,
 }
 
 int
-fe_end(fe_t *fe, mfcc_t *cepvector, int *nframes)
+fe_end(fe_t *fe, mfcc_t **cepvector, int *nframes)
 {
     int nfr = 0;
     
@@ -673,7 +673,7 @@ fe_end(fe_t *fe, mfcc_t *cepvector, int *nframes)
         && fe->num_overflow_samps > 0) {
         fe_read_frame_float32(fe, fe->overflow_samps,
                               fe->num_overflow_samps);
-        fe_write_frame(fe, cepvector);
+        fe_write_frame(fe, *cepvector);
         nfr = 1;
         if (nframes)
             *nframes -= nfr;

@@ -332,7 +332,7 @@ acmod_end_utt(acmod_t *acmod)
         /* Where to start writing them (circular buffer) */
         inptr = (acmod->mfc_outidx + acmod->n_mfc_frame) % acmod->n_mfc_alloc;
         nfr = acmod->n_mfc_alloc - inptr;
-        ntail = fe_end(acmod->fe, acmod->mfc_buf[inptr], &nfr);
+        ntail = fe_end(acmod->fe, acmod->mfc_buf + inptr, &nfr);
         acmod->n_mfc_frame += ntail;
         /* Process whatever's left, and any leadout. */
         if (ntail)
@@ -395,7 +395,7 @@ acmod_process_full_raw(acmod_t *acmod,
     if ((nvec = fe_process(acmod->fe, inout_raw, inout_n_samps,
                            acmod->mfc_buf, &nfr)) < 0)
         return -1;
-    ntail = fe_end(acmod->fe, acmod->mfc_buf[nvec], &nfr);
+    ntail = fe_end(acmod->fe, acmod->mfc_buf + nvec, &nfr);
     nvec += ntail;
 
     cepptr = acmod->mfc_buf;
@@ -430,7 +430,7 @@ acmod_process_full_float32(acmod_t *acmod,
                                    inout_raw, inout_n_samps,
                                    acmod->mfc_buf, &nfr)) < 0)
         return -1;
-    ntail = fe_end(acmod->fe, acmod->mfc_buf[nvec], &nfr);
+    ntail = fe_end(acmod->fe, acmod->mfc_buf + nvec, &nfr);
     nvec += ntail;
 
     cepptr = acmod->mfc_buf;
