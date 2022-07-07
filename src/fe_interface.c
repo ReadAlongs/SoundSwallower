@@ -386,6 +386,10 @@ overflow_append(fe_t *fe,
                 SWAP_INT16(&sample);
             fe->overflow_samps[fe->num_overflow_samps + i]
                 = (float32)sample / FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->overflow_samps
+                             + fe->num_overflow_samps
+                             + i);
         }
         /* Update input-output pointers and counters. */
         *spch += *inout_nsamps;
@@ -421,6 +425,10 @@ read_overflow_frame(fe_t *fe,
                 SWAP_INT16(&sample);
             fe->overflow_samps[fe->num_overflow_samps + i]
                 = (float32)sample / FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->overflow_samps
+                             + fe->num_overflow_samps
+                             + i);
         }
         *spch += offset;
         *inout_nsamps -= offset;
@@ -458,6 +466,9 @@ create_overflow_frame(fe_t *fe,
                 /* Make sure to scale it! */
                 fe->overflow_samps[i]
                     = (float32)inptr[i] / FLOAT32_SCALE;
+                /* And swap it back (overflow_samps is input-endian) */
+                if (fe->swap)
+                    SWAP_FLOAT32(fe->overflow_samps + i);
             }
             /* Update the input pointer to cover this stuff. */
             *spch += n_overflow;
@@ -503,6 +514,10 @@ append_overflow_frame(fe_t *fe,
                 SWAP_INT16(&sample);
             fe->overflow_samps[fe->num_overflow_samps + i]
                 = sample / FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->overflow_samps
+                             + fe->num_overflow_samps
+                             + i);
         }
         fe->num_overflow_samps += n_overflow;
         /* Advance the input pointers. */

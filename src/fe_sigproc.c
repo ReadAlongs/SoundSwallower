@@ -371,14 +371,22 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
         len = fe->frame_size;
 
     /* Scale and dither if necessary. */
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
+    if (fe->dither) {
+        for (i = 0; i < len; ++i) {
             fe->spch[i] =
                 (in[i] * FLOAT32_SCALE
                  + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
-    else
-        for (i = 0; i < len; ++i)
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
+    else {
+        for (i = 0; i < len; ++i) {
             fe->spch[i] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
 
     return fe_spch_to_frame(fe, len);
 }
@@ -429,15 +437,29 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
     /* Shift data into the raw speech buffer. */
     memmove(fe->spch, fe->spch + fe->frame_shift,
             offset * sizeof(*fe->spch));
+    if (fe->swap) {
+        for (i = 0; i < offset; ++i) {
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
     /* Scale and dither if necessary. */
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
+    if (fe->dither) {
+        for (i = 0; i < len; ++i){
             fe->spch[i + offset] =
                 (in[i] * FLOAT32_SCALE
                  + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
-    else
-        for (i = 0; i < len; ++i)
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i + offset);
+        }
+    }
+    else {
+        for (i = 0; i < len; ++i) {
             fe->spch[i + offset] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i + offset);
+        }
+    }
 
     fe_spch_to_frame(fe, offset + len);
     return len;
