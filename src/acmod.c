@@ -332,7 +332,7 @@ acmod_end_utt(acmod_t *acmod)
         /* Where to start writing them (circular buffer) */
         inptr = (acmod->mfc_outidx + acmod->n_mfc_frame) % acmod->n_mfc_alloc;
         nfr = acmod->n_mfc_alloc - inptr;
-        ntail = fe_end(acmod->fe, acmod->mfc_buf + inptr, &nfr);
+        ntail = fe_end(acmod->fe, acmod->mfc_buf + inptr, nfr);
         acmod->n_mfc_frame += ntail;
         /* Process whatever's left, and any leadout. */
         if (ntail)
@@ -377,26 +377,26 @@ acmod_process_full_raw(acmod_t *acmod,
                        int16 const **inout_raw,
                        size_t *inout_n_samps)
 {
-    int32 nfr, nvec, ntail;
+    int32 nfr, nvec;
     mfcc_t **cepptr;
 
     /* Resize mfc_buf to fit. */
-    if (fe_process_int16(acmod->fe, NULL, inout_n_samps, NULL, &nfr) < 0)
+    if ((nfr = fe_process_int16(acmod->fe, NULL, inout_n_samps, NULL, 0)) < 0)
         return -1;
-    if (acmod->n_mfc_alloc < nfr + 1) {
+    if (acmod->n_mfc_alloc < nfr) {
         ckd_free_2d(acmod->mfc_buf);
-        acmod->mfc_buf = ckd_calloc_2d(nfr + 1, fe_get_output_size(acmod->fe),
+        acmod->mfc_buf = ckd_calloc_2d(nfr, fe_get_output_size(acmod->fe),
                                        sizeof(**acmod->mfc_buf));
-        acmod->n_mfc_alloc = nfr + 1;
+        acmod->n_mfc_alloc = nfr;
     }
     acmod->n_mfc_frame = 0;
     acmod->mfc_outidx = 0;
     fe_start(acmod->fe);
     if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
-                           acmod->mfc_buf, &nfr)) < 0)
+                                 acmod->mfc_buf, nfr)) < 0)
         return -1;
-    ntail = fe_end(acmod->fe, acmod->mfc_buf + nvec, &nfr);
-    nvec += ntail;
+    nfr -= nvec;
+    nvec += fe_end(acmod->fe, acmod->mfc_buf + nvec, nfr);
 
     cepptr = acmod->mfc_buf;
     nfr = nvec;
@@ -411,27 +411,27 @@ acmod_process_full_float32(acmod_t *acmod,
                            float32 const **inout_raw,
                            size_t *inout_n_samps)
 {
-    int32 nfr, nvec, ntail;
+    int32 nfr, nvec;
     mfcc_t **cepptr;
 
     /* Resize mfc_buf to fit. */
-    if (fe_process_float32(acmod->fe, NULL, inout_n_samps, NULL, &nfr) < 0)
+    if ((nfr = fe_process_float32(acmod->fe, NULL, inout_n_samps, NULL, 0)) < 0)
         return -1;
-    if (acmod->n_mfc_alloc < nfr + 1) {
+    if (acmod->n_mfc_alloc < nfr) {
         ckd_free_2d(acmod->mfc_buf);
-        acmod->mfc_buf = ckd_calloc_2d(nfr + 1, fe_get_output_size(acmod->fe),
+        acmod->mfc_buf = ckd_calloc_2d(nfr, fe_get_output_size(acmod->fe),
                                        sizeof(**acmod->mfc_buf));
-        acmod->n_mfc_alloc = nfr + 1;
+        acmod->n_mfc_alloc = nfr;
     }
     acmod->n_mfc_frame = 0;
     acmod->mfc_outidx = 0;
     fe_start(acmod->fe);
     if ((nvec = fe_process_float32(acmod->fe,
                                    inout_raw, inout_n_samps,
-                                   acmod->mfc_buf, &nfr)) < 0)
+                                   acmod->mfc_buf, nfr)) < 0)
         return -1;
-    ntail = fe_end(acmod->fe, acmod->mfc_buf + nvec, &nfr);
-    nvec += ntail;
+    nfr -= nvec;
+    nvec += fe_end(acmod->fe, acmod->mfc_buf + nvec, nfr);
 
     cepptr = acmod->mfc_buf;
     nfr = nvec;
@@ -500,9 +500,9 @@ acmod_process_raw(acmod_t *acmod,
 
         /* Write them in two (or more) parts if there is wraparound. */
         while (inptr + ncep > acmod->n_mfc_alloc) {
-            int ncep1 = acmod->n_mfc_alloc - inptr;
             if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
-                                   acmod->mfc_buf + inptr, &ncep1)) < 0)
+                                         acmod->mfc_buf + inptr,
+                                         acmod->n_mfc_alloc - inptr)) < 0)
                 return -1;
             /* nvec contains the number of frames actually processed.
              * This is a good thing, but it means we actually still
@@ -519,7 +519,7 @@ acmod_process_raw(acmod_t *acmod,
         }
         assert(inptr + ncep <= acmod->n_mfc_alloc);
         if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
-                               acmod->mfc_buf + inptr, &ncep)) < 0)
+                                     acmod->mfc_buf + inptr, ncep)) < 0)
             return -1;
         acmod->n_mfc_frame += nvec;
     alldone:
@@ -554,11 +554,10 @@ acmod_process_float32(acmod_t *acmod,
 
         /* Write them in two (or more) parts if there is wraparound. */
         while (inptr + ncep > acmod->n_mfc_alloc) {
-            int32 ncep1 = acmod->n_mfc_alloc - inptr;
             if ((nvec = fe_process_float32(acmod->fe, inout_raw,
                                            inout_n_samps,
                                            acmod->mfc_buf + inptr,
-                                           &ncep1)) < 0)
+                                           acmod->n_mfc_alloc - inptr)) < 0)
                 return -1;
             /* nvec contains the number of frames actually processed.
              * This is a good thing, but it means we actually still
@@ -577,7 +576,7 @@ acmod_process_float32(acmod_t *acmod,
         if ((nvec = fe_process_float32(acmod->fe, inout_raw,
                                        inout_n_samps,
                                        acmod->mfc_buf + inptr,
-                                       &ncep)) < 0)
+                                       ncep)) < 0)
             return -1;
         acmod->n_mfc_frame += nvec;
     alldone:

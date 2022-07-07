@@ -552,25 +552,23 @@ fe_process(fe_t *fe,
            void *inout_spch,
            size_t *inout_nsamps,
            mfcc_t **buf_cep,
-           int *inout_nframes,
+           int nframes,
            fe_encoding_t encoding)
 {
     int frame_count;
     int outidx, i, orig_n_overflow;
     void const *orig_spch;
 
-    /* No output buffer, do nothing except set *inout_nframes */
-    if (buf_cep == NULL) {
-        *inout_nframes = output_frame_count(fe, *inout_nsamps);
-        return 0;
-    }
+    /* No output buffer, do nothing except return max number of frames. */
+    if (buf_cep == NULL)
+        return output_frame_count(fe, *inout_nsamps);
 
     /* Are there not enough samples to make at least 1 frame? */
     if (*inout_nsamps + fe->num_overflow_samps < (size_t)fe->frame_size)
         return overflow_append(fe, inout_spch, inout_nsamps, encoding);
 
     /* No frames to write, nothing to do. */
-    if (*inout_nframes < 1)
+    if (nframes < 1)
         return 0;
 
     /* Keep track of the original start of the buffer. */
@@ -581,8 +579,8 @@ fe_process(fe_t *fe,
         + ((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
            / fe->frame_shift);
     /* Limit it to the number of output frames available. */
-    if (frame_count > *inout_nframes)
-        frame_count = *inout_nframes;
+    if (frame_count > nframes)
+        frame_count = nframes;
     /* Index of output frame. */
     outidx = 0;
 
@@ -642,9 +640,8 @@ fe_process(fe_t *fe,
                               orig_n_overflow, encoding);
     }
 
-    /* Finally update the frame counter using the number of frames we
-     * procesed. */
-    *inout_nframes -= outidx;
+    /* Return number of frames processed (user can update nframes if
+     * they want) */
     return outidx;
 }
 
@@ -653,10 +650,10 @@ fe_process_float32(fe_t *fe,
                    float32 const **inout_spch,
                    size_t *inout_nsamps,
                    mfcc_t **buf_cep,
-                   int *inout_nframes)
+                   int nframes)
 {
     return fe_process(fe, inout_spch, inout_nsamps,
-                      buf_cep, inout_nframes, FE_FLOAT32);
+                      buf_cep, nframes, FE_FLOAT32);
 }
 
 int
@@ -664,27 +661,25 @@ fe_process_int16(fe_t *fe,
                  int16 const **inout_spch,
                  size_t *inout_nsamps,
                  mfcc_t **buf_cep,
-                 int *inout_nframes)
+                 int nframes)
 {
     return fe_process(fe, inout_spch, inout_nsamps,
-                      buf_cep, inout_nframes, FE_PCM16);
+                      buf_cep, nframes, FE_PCM16);
 }
 
 int
-fe_end(fe_t *fe, mfcc_t **buf_cep, int *nframes)
+fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes)
 {
     int nfr = 0;
     
     /* Process any remaining data if possible. */
-    if (buf_cep && nframes
-        && *nframes > 0
+    if (buf_cep
+        && nframes > 0
         && fe->num_overflow_samps > 0) {
         fe_read_frame_float32(fe, fe->overflow_samps,
                               fe->num_overflow_samps);
         fe_write_frame(fe, *buf_cep);
         nfr = 1;
-        if (nframes)
-            *nframes -= nfr;
     }
 
     /* reset overflow buffers... */

@@ -131,15 +131,15 @@ create_frames(fe_t *fe, const int16 *data, size_t nsamp)
     int rv, nfr, ncep;
     
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
-    TEST_EQUAL(0, rv);
+    nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
 
     cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
     inptr = data;
 
-    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, &nfr);
+    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, nfr);
+    nfr -= rv;
     E_INFO("fe_process_int16 produced %d frames, "
            " %d samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
@@ -147,10 +147,9 @@ create_frames(fe_t *fe, const int16 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf + 4, &nfr);
-    E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
+    rv = fe_end(fe, cepbuf + 4, nfr);
+    E_INFO("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
-    TEST_EQUAL(nfr, 0);
 
     return cepbuf;
 }
@@ -163,14 +162,14 @@ create_full(fe_t *fe, const int16 *data, size_t nsamp)
     int rv, nfr, ncep;
     
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
-    TEST_EQUAL(0, rv);
+    nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
 
     cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
     inptr = data;
-    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, &nfr);
+    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, nfr);
+    nfr -= rv;
     E_INFO("fe_process_int16 produced %d frames, "
            " %d samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
@@ -178,10 +177,9 @@ create_full(fe_t *fe, const int16 *data, size_t nsamp)
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf + 4, &nfr);
-    E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
+    rv = fe_end(fe, cepbuf + 4, nfr);
+    E_INFO("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
-    TEST_EQUAL(nfr, 0);
 
     return cepbuf;
 }
@@ -195,8 +193,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
     
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
-    TEST_EQUAL(0, rv);
+    nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
 
@@ -204,13 +201,10 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
     inptr = data;
 
     for (i = 0; i < 4; ++i) {
-        nfr = 1;
-        rv = fe_process_int16(fe, &inptr, &nsamp, &cepbuf[i], &nfr);
+        rv = fe_process_int16(fe, &inptr, &nsamp, &cepbuf[i], 1);
         E_INFO("frame %d updated inptr %ld remaining nsamp %ld "
-               "processed %d remaining nfr %d\n",
-               i, inptr - data, nsamp, rv, nfr);
+               "processed %d\n", i, inptr - data, nsamp, rv);
         TEST_EQUAL(rv, 1);
-        TEST_EQUAL(nfr, 0);
         if (i < 3) {
             /* Confusingly, it will read an extra frame_shift data
                in order to make the next frame... */
@@ -222,11 +216,9 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
     }
 
     /* Should get a frame here due to overflow samples. */
-    nfr = 1;
-    rv = fe_end(fe, cepbuf + 4, &nfr);
-    E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
+    rv = fe_end(fe, cepbuf + 4, 1);
+    E_INFO("fe_end rv %d\n", rv, 1);
     TEST_EQUAL(rv, 1);
-    TEST_EQUAL(nfr, 0);
 
     return cepbuf;
 }
@@ -245,8 +237,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
     
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
-    rv = fe_process_int16(fe, NULL, &nsamp, NULL, &nfr);
-    TEST_EQUAL(0, rv);
+    nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
     TEST_EQUAL(5, nfr);
     ncep = fe_get_output_size(fe);
 
@@ -256,7 +247,8 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
     /* Process with fragments of unusual size. */
     for (i = 0; (size_t)i < sizeof(fragments) / sizeof(fragments[0]); ++i) {
         size_t fragment = fragments[i];
-        rv = fe_process_int16(fe, &inptr, &fragment, cepptr, &nfr);
+        rv = fe_process_int16(fe, &inptr, &fragment, cepptr, nfr);
+        nfr -= rv;
         E_INFO("fragment %d updated inptr %ld remaining nsamp %ld "
                "processed %d remaining nfr %d\n",
                i, inptr - data, fragment, rv, nfr);
@@ -266,8 +258,8 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
-    rv = fe_end(fe, cepbuf + 4, &nfr);
-    E_INFO("fe_end rv %d nfr %d\n", rv, nfr);
+    rv = fe_end(fe, cepptr, nfr);
+    E_INFO("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
 
     return cepbuf;

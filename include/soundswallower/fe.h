@@ -346,31 +346,28 @@ int fe_start(fe_t *fe);
  * features, or as many as can be generated from
  * <code>*inout_nsamps</code> samples.
  *
- * On exit, the <code>inout_spch</code>, <code>inout_nsamps</code>,
- * and <code>inout_nframes</code> parameters are updated to point to
- * the remaining sample data, the number of remaining samples, and the
- * number of frames reamining to process, respectively.  This allows
- * you to call this repeatedly to process a large block of audio in
- * small (say, 5-frame) chunks:
+ * On exit, the <code>inout_spch</code> and <code>inout_nsamps</code>,
+ * parameters are updated to point to the remaining sample data and
+ * the number of remaining samples.  This allows you to call this
+ * repeatedly to process a large block of audio in small (say,
+ * 5-frame) chunks:
  *
  *     int16 *bigbuf, *p;
  *     mfcc_t **mfcc;
  *     size_t nsamps;
- *     int nframes, nvec;
+ *     int nfr;
  *
- *     fe_process_frames(fe, NULL, &nsamps, NULL, &nframes);
  *     mfcc = (mfcc_t **)
- *         ckd_calloc_2d(nframes, fe_get_output_size(fe),
+ *         ckd_calloc_2d(5, fe_get_output_size(fe),
  *                       sizeof(**mfcc));
  *     p = bigbuf;
  *     fe_start(fe);
  *     while (nsamps) {
- *         nvec = fe_process(fe, &p, &nsamps, mfcc, &nframes);
- *         // Now do something with these frames...
- *         if (nvec > 0)
+ *         nfr = fe_process(fe, &p, &nsamps, mfcc, 5);
+ *         if (nfr > 0)
  *             do_some_stuff(mfcc, nvec);
  *     }
- *     nvec = fe_end(fe, mfcc, &nframes);
+ *     nfr = fe_end(fe, mfcc, 5);
  *     if (nvec > 0)
  *         do_some_stuff(mfcc, nvec);
  *
@@ -386,17 +383,16 @@ int fe_start(fe_t *fe);
  *                and the maximum number of output frames which would
  *                be generated is returned in
  *                <code>*inout_nframes</code>.
- * @param inout_nframes Input: Pointer to maximum number of frames to
- *                      generate.
- *                      Output: Number of frames remaining to generate,
- *                      including any frames output by fe_end().
- * @return number of frames written, or <0 on error (see fe_error_e)
+ * @param nframes Maximum number of frames to generate.
+ * @return number of frames written, or the if buf_cep is NULL, the
+ * number of frames that could be generated from *inout_nsamps, including
+ * the trailing frame written by fe_end().
  */
 int fe_process_int16(fe_t *fe,
                int16 const **inout_spch,
                size_t *inout_nsamps,
                mfcc_t **buf_cep,
-               int *inout_nframes);
+               int nframes);
 
 /** 
  * Process a block of floating-point samples.
@@ -408,7 +404,7 @@ int fe_process_float32(fe_t *fe,
                        float32 const **inout_spch,
                        size_t *inout_nsamps,
                        mfcc_t **buf_cep,
-                       int *inout_nframes);
+                       int nframes);
 
 /**
  * Finish processing.
@@ -419,13 +415,11 @@ int fe_process_float32(fe_t *fe,
  *
  * @param fe Front-end object.
  * @param buf_cep Cepstral buffer as passed to fe_process().
- * @param inout_nframes Number of frames available in buf_cep, will be
- *                      updated with number remaining after writing,
- *                      as in fe_process().
+ * @param nframes Number of frames available in buf_cep.
  * @return number of frames written (always 0 or 1), <0 for error (see
  *         enum fe_error_e)
  */
-int fe_end(fe_t *fe, mfcc_t **buf_cep, int *inout_nframes);
+int fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes);
 
 
 /**
