@@ -387,7 +387,7 @@ int
 ps_init_grammar(ps_decoder_t *ps)
 {
     const char *path;
-    int32 lw;
+    float32 lw;
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
@@ -411,7 +411,7 @@ ps_init_grammar(ps_decoder_t *ps)
 EXPORT int
 ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
 {
-    int32 lw;
+    float32 lw;
 
     lw = cmd_ln_float32_r(ps->config, "-lw");
 
@@ -718,7 +718,7 @@ EXPORT char *
 ps_lookup_word(ps_decoder_t *ps, const char *word)
 {
     s3wid_t wid;
-    int32 phlen, j;
+    size_t phlen, j;
     char *phones;
     dict_t *dict = ps->dict;
     
@@ -727,10 +727,10 @@ ps_lookup_word(ps_decoder_t *ps, const char *word)
 	return NULL;
 
     for (phlen = j = 0; j < dict_pronlen(dict, wid); ++j)
-        phlen += strlen(dict_ciphone_str(dict, wid, j)) + 1;
+        phlen += strlen(dict_ciphone_str(dict, wid, (int32)j)) + 1;
     phones = ckd_calloc(1, phlen);
     for (j = 0; j < dict_pronlen(dict, wid); ++j) {
-        strcat(phones, dict_ciphone_str(dict, wid, j));
+        strcat(phones, dict_ciphone_str(dict, wid, (int32)j));
         if (j != dict_pronlen(dict, wid) - 1)
             strcat(phones, " ");
     }
