@@ -22,7 +22,6 @@ set(TESTS
   test_listelem_alloc
   test_log_shifted
   test_mdef
-  test_pitch
   test_ptm_mgau
   test_s3file
   test_subvq)
@@ -48,6 +47,7 @@ set(TEST_EXECUTABLES
   test_feat
   test_fe
   test_fe_float32
+  test_pitch
   )
 foreach(TEST_EXECUTABLE ${TEST_EXECUTABLES})
   add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
@@ -83,6 +83,7 @@ set(TEST_SCRIPTS
   _test_feat.test
   _test_fe.test
   _test_fe_float32.test
+  _test_pitch.test
 )
 foreach(TEST ${TEST_SCRIPTS})
   add_test(NAME ${TEST} COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/${TEST})
