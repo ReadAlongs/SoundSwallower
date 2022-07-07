@@ -370,21 +370,23 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
     if (len > fe->frame_size)
         len = fe->frame_size;
 
-    /* Scale and dither if necessary. */
+    /* Swap, scale, and dither if necessary. */
     if (fe->dither) {
         for (i = 0; i < len; ++i) {
-            fe->spch[i] =
-                (in[i] * FLOAT32_SCALE
-                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
+            float32 sample = in[i];
             if (fe->swap)
-                SWAP_FLOAT32(fe->spch + i);
+                SWAP_FLOAT32(&sample);
+            fe->spch[i] =
+                (sample * FLOAT32_SCALE
+                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
         }
     }
     else {
         for (i = 0; i < len; ++i) {
-            fe->spch[i] = in[i] * FLOAT32_SCALE;
+            float32 sample = in[i];
             if (fe->swap)
-                SWAP_FLOAT32(fe->spch + i);
+                SWAP_FLOAT32(&sample);
+            fe->spch[i] = sample * FLOAT32_SCALE;
         }
     }
 
@@ -407,7 +409,7 @@ fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
     /* Convert to float32, swapping/dithering if necessary. */
     for (i = 0; i < len; ++i) {
         int16 sample = in[i];
-        /* Swap and dither if necessary. */
+        /* Swap and dither new data if necessary. */
         if (fe->swap)
             SWAP_INT16(&sample);
         if (fe->dither)
@@ -437,27 +439,23 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
     /* Shift data into the raw speech buffer. */
     memmove(fe->spch, fe->spch + fe->frame_shift,
             offset * sizeof(*fe->spch));
-    if (fe->swap) {
-        for (i = 0; i < offset; ++i) {
-            if (fe->swap)
-                SWAP_FLOAT32(fe->spch + i);
-        }
-    }
-    /* Scale and dither if necessary. */
+    /* Swap, scale, and dither new data if necessary. */
     if (fe->dither) {
         for (i = 0; i < len; ++i){
-            fe->spch[i + offset] =
-                (in[i] * FLOAT32_SCALE
-                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
+            float32 sample = in[i];
             if (fe->swap)
-                SWAP_FLOAT32(fe->spch + i + offset);
+                SWAP_FLOAT32(&sample);
+            fe->spch[i + offset] =
+                (sample * FLOAT32_SCALE
+                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
         }
     }
     else {
         for (i = 0; i < len; ++i) {
-            fe->spch[i + offset] = in[i] * FLOAT32_SCALE;
+            float32 sample = in[i];
             if (fe->swap)
-                SWAP_FLOAT32(fe->spch + i + offset);
+                SWAP_FLOAT32(&sample);
+            fe->spch[i + offset] = sample * FLOAT32_SCALE;
         }
     }
 

@@ -464,8 +464,7 @@ create_overflow_frame(fe_t *fe,
                 if (fe->swap)
                     SWAP_INT16(&sample);
                 /* Make sure to scale it! */
-                fe->overflow_samps[i]
-                    = (float32)inptr[i] / FLOAT32_SCALE;
+                fe->overflow_samps[i] = (float32)sample / FLOAT32_SCALE;
                 /* And swap it back (overflow_samps is input-endian) */
                 if (fe->swap)
                     SWAP_FLOAT32(fe->overflow_samps + i);
