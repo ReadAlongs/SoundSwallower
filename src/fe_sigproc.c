@@ -250,8 +250,8 @@ fe_compute_melcosine(melfb_t * mel_fb)
 }
 
 static void
-fe_pre_emphasis_int16(int16 const *in, frame_t * out, int32 len,
-                      float32 factor, int16 prior)
+fe_pre_emphasis(float32 const *in, frame_t * out, int32 len,
+                float32 factor, float32 prior)
 {
     int i;
 
@@ -261,27 +261,7 @@ fe_pre_emphasis_int16(int16 const *in, frame_t * out, int32 len,
 }
 
 static void
-fe_copy_to_frame_int16(int16 const *in, frame_t * out, int32 len)
-{
-    int i;
-
-    for (i = 0; i < len; i++)
-        out[i] = (frame_t) in[i];
-}
-
-static void
-fe_pre_emphasis_float32(float32 const *in, frame_t * out, int32 len,
-                        float32 factor, float32 prior)
-{
-    int i;
-
-    out[0] = (frame_t) in[0] - (frame_t) prior *factor;
-    for (i = 1; i < len; i++)
-        out[i] = (frame_t) in[i] - (frame_t) in[i - 1] * factor;
-}
-
-static void
-fe_copy_to_frame_float32(float32 const *in, frame_t * out, int32 len)
+fe_copy_to_frame(float32 const *in, frame_t * out, int32 len)
 {
     int i;
 
@@ -329,32 +309,20 @@ static int
 fe_spch_to_frame(fe_t * fe, int len)
 {
     /* Copy to the frame buffer. */
-    if (fe->is_float32) {
-        if (fe->pre_emphasis_alpha != 0.0) {
-            fe_pre_emphasis_float32(fe->spch.s_float32, fe->frame, len,
-                                    fe->pre_emphasis_alpha,
-                                    fe->pre_emphasis_prior.s_float32);
-            if (len >= fe->frame_shift)
-                fe->pre_emphasis_prior.s_float32 = fe->spch.s_float32[fe->frame_shift - 1];
-            else
-                fe->pre_emphasis_prior.s_float32 = fe->spch.s_float32[len - 1];
-        }
+    if (fe->pre_emphasis_alpha != 0.0) {
+        fe_pre_emphasis(fe->spch, fe->frame, len,
+                        fe->pre_emphasis_alpha,
+                        fe->pre_emphasis_prior);
+        /* FIXME: This is likely to always be true, and also, it is a
+         * bit wasteful as we redo the same (frame_len - frame_shift)
+         * samples in pre_emphasis the next time around... */
+        if (len >= fe->frame_shift)
+            fe->pre_emphasis_prior = fe->spch[fe->frame_shift - 1];
         else
-            fe_copy_to_frame_float32(fe->spch.s_float32, fe->frame, len);
+            fe->pre_emphasis_prior = fe->spch[len - 1];
     }
-    else {
-        if (fe->pre_emphasis_alpha != 0.0) {
-            fe_pre_emphasis_int16(fe->spch.s_int16, fe->frame, len,
-                                  fe->pre_emphasis_alpha,
-                                  fe->pre_emphasis_prior.s_int16);
-            if (len >= fe->frame_shift)
-                fe->pre_emphasis_prior.s_int16 = fe->spch.s_int16[fe->frame_shift - 1];
-            else
-                fe->pre_emphasis_prior.s_int16 = fe->spch.s_int16[len - 1];
-        }
-        else
-            fe_copy_to_frame_int16(fe->spch.s_int16, fe->frame, len);
-    }
+    else
+        fe_copy_to_frame(fe->spch, fe->frame, len);
 
     /* Zero pad up to FFT size. */
     memset(fe->frame + len, 0, (fe->fft_size - len) * sizeof(*fe->frame));
@@ -371,23 +339,19 @@ fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int i;
 
-    if (fe->is_float32) {
-        E_ERROR("Called fe_read_frame_int16 when -input_float32 is true\n");
-        return -1;
-    }
-
     if (len > fe->frame_size)
         len = fe->frame_size;
 
-    /* Read it into the raw speech buffer. */
-    memcpy(fe->spch.s_int16, in, len * sizeof(*in));
-    /* Swap and dither if necessary. */
-    if (fe->swap)
-        for (i = 0; i < len; ++i)
-            SWAP_INT16(&fe->spch.s_int16[i]);
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
-            fe->spch.s_int16[i] += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
+    /* Convert to float32, swapping/dithering if necessary. */
+    for (i = 0; i < len; ++i) {
+        int16 sample = in[i];
+        /* Swap and dither if necessary. */
+        if (fe->swap)
+            SWAP_INT16(&sample);
+        if (fe->dither)
+            sample += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
+        fe->spch[i] = sample;
+    }
 
     return fe_spch_to_frame(fe, len);
 }
@@ -398,31 +362,31 @@ fe_read_frame(fe_t * fe, int16 const *in, int32 len)
     return fe_read_frame_int16(fe, in, len);
 }
 
-#define FLOAT32_SCALE 32768.0
-#define FLOAT32_DITHER 1.0
-
 int
 fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
 {
     int i;
 
-    if (!fe->is_float32) {
-        E_ERROR("Called fe_read_frame_float32 when -input_float32 is false\n");
-        return -1;
-    }
-
     if (len > fe->frame_size)
         len = fe->frame_size;
 
     /* Scale and dither if necessary. */
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
-            fe->spch.s_float32[i] =
+    if (fe->dither) {
+        for (i = 0; i < len; ++i) {
+            fe->spch[i] =
                 (in[i] * FLOAT32_SCALE
                  + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
-    else
-        for (i = 0; i < len; ++i)
-            fe->spch.s_float32[i] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
+    else {
+        for (i = 0; i < len; ++i) {
+            fe->spch[i] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
 
     return fe_spch_to_frame(fe, len);
 }
@@ -432,30 +396,27 @@ fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
 {
     int offset, i;
 
-    if (fe->is_float32) {
-        E_ERROR("Called fe_shift_frame_int16 when -input_float32 is true\n");
-        return -1;
-    }
-
-
     if (len > fe->frame_shift)
         len = fe->frame_shift;
     offset = fe->frame_size - fe->frame_shift;
 
-    /* Shift data into the raw speech buffer. */
-    memmove(fe->spch.s_int16, fe->spch.s_int16 + fe->frame_shift,
-            offset * sizeof(*fe->spch.s_int16));
-    memcpy(fe->spch.s_int16 + offset, in, len * sizeof(*fe->spch.s_int16));
-    /* Swap and dither if necessary. */
-    if (fe->swap)
-        for (i = 0; i < len; ++i)
-            SWAP_INT16(&fe->spch.s_int16[offset + i]);
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
-            fe->spch.s_int16[offset + i]
-                += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
+    /* Shift back data in the raw speech buffer (FIXME: should
+     * probably use a ring buffer) */
+    memmove(fe->spch, fe->spch + fe->frame_shift,
+            offset * sizeof(*fe->spch));
+    /* Convert to float32, swapping/dithering if necessary. */
+    for (i = 0; i < len; ++i) {
+        int16 sample = in[i];
+        /* Swap and dither if necessary. */
+        if (fe->swap)
+            SWAP_INT16(&sample);
+        if (fe->dither)
+            sample += (int16)((!(s3_rand_int31() % 4)) ? 1 : 0);
+        fe->spch[i + offset] = sample;
+    }
 
-    return fe_spch_to_frame(fe, offset + len);
+    fe_spch_to_frame(fe, offset + len);
+    return len;
 }
 
 int
@@ -469,29 +430,39 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
 {
     int offset, i;
 
-    if (!fe->is_float32) {
-        E_ERROR("Called fe_read_frame_float32 when -input_float32 is false\n");
-        return -1;
-    }
-
     if (len > fe->frame_shift)
         len = fe->frame_shift;
     offset = fe->frame_size - fe->frame_shift;
 
     /* Shift data into the raw speech buffer. */
-    memmove(fe->spch.s_float32, fe->spch.s_float32 + fe->frame_shift,
-            offset * sizeof(*fe->spch.s_float32));
+    memmove(fe->spch, fe->spch + fe->frame_shift,
+            offset * sizeof(*fe->spch));
+    if (fe->swap) {
+        for (i = 0; i < offset; ++i) {
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i);
+        }
+    }
     /* Scale and dither if necessary. */
-    if (fe->dither)
-        for (i = 0; i < len; ++i)
-            fe->spch.s_float32[i + offset] =
+    if (fe->dither) {
+        for (i = 0; i < len; ++i){
+            fe->spch[i + offset] =
                 (in[i] * FLOAT32_SCALE
                  + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
-    else
-        for (i = 0; i < len; ++i)
-            fe->spch.s_float32[i + offset] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i + offset);
+        }
+    }
+    else {
+        for (i = 0; i < len; ++i) {
+            fe->spch[i + offset] = in[i] * FLOAT32_SCALE;
+            if (fe->swap)
+                SWAP_FLOAT32(fe->spch + i + offset);
+        }
+    }
 
-    return fe_spch_to_frame(fe, offset + len);
+    fe_spch_to_frame(fe, offset + len);
+    return len;
 }
 
 /**
@@ -791,17 +762,4 @@ fe_write_frame(fe_t * fe, mfcc_t * feat)
     fe_lifter(fe, feat);
 
     return 1;
-}
-
-
-void *
-fe_create_2d(int32 d1, int32 d2, int32 elem_size)
-{
-    return (void *) ckd_calloc_2d(d1, d2, elem_size);
-}
-
-void
-fe_free_2d(void *arr)
-{
-    ckd_free_2d((void **) arr);
 }
