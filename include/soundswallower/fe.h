@@ -260,14 +260,6 @@ enum fe_error_e {
 };
 
 /**
- * Encodings for input data.
- */
-typedef enum fe_encoding_e {
-    FE_PCM16,
-    FE_FLOAT32
-} fe_encoding_t;
-
-/**
  * Initialize a front-end object from a command-line parse.
  *
  * @param config Command-line object, as returned by cmd_ln_parse_r()
@@ -382,8 +374,7 @@ int fe_start(fe_t *fe);
  *                data.  If NULL, no actual processing will be done,
  *                and the maximum number of output frames which would
  *                be generated (including the trailing frame from
- *                fe_end()) is returned in
- *                <code>*inout_nframes</code>.
+ *                fe_end()) is returned.
  * @param nframes Maximum number of frames to generate.
  * @return number of frames written, or the if buf_cep is NULL, the
  * number of frames that could be generated from *inout_nsamps, including

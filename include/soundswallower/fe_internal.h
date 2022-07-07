@@ -63,6 +63,14 @@ enum {
         DCT_HTK = 2
 };
 
+/**
+ * Encodings for input data.
+ */
+typedef enum fe_encoding_e {
+    FE_PCM16,
+    FE_FLOAT32
+} fe_encoding_t;
+
 typedef struct melfb_s melfb_t;
 /** Base Struct to hold all structure for MFCC computation. */
 struct melfb_s {
