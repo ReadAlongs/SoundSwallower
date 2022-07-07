@@ -1,48 +1,45 @@
 configure_file(test_macros.h.in test_macros.h)
 set(TESTS
-  test_acmod.c
-  test_acmod_grow.c
-  test_add_words.c
-  test_bitvec.c
-  test_case.c
-  test_err.c
-  test_ckd_alloc_catch.c
-  test_ckd_alloc_fail.c
-  test_cmdln_parse_r.c
-  test_delete_hash.c
-  test_dict2pid.c
-  test_dict.c
-  test_display_hash.c
-  test_feat.c
-  test_feat_fe.c
-  test_feat_live.c
-  test_fe.c
-  test_fe_float32.c
-  test_filename.c
-  test_fsg.c
-  test_hash_iter.c
-  test_heap.c
-  test_jsgf.c
-  test_listelem_alloc.c
-  test_mdef.c
-  test_log_shifted.c
-  test_pitch.c
-  test_ptm_mgau.c
-  test_s3file.c
-  test_strfuncs.c
-  test_subvq.c)
-foreach(TEST_SOURCE ${TESTS})
-  get_filename_component(TEST_EXECUTABLE ${TEST_SOURCE} NAME_WE)
-  add_executable(${TEST_EXECUTABLE} ${TEST_SOURCE})
+  test_acmod
+  test_acmod_grow
+  test_add_words
+  test_bitvec
+  test_case
+  test_err
+  test_ckd_alloc_catch
+  test_ckd_alloc_fail
+  test_cmdln_parse_r
+  test_delete_hash
+  test_dict2pid
+  test_dict
+  test_display_hash
+  test_feat
+  test_feat_fe
+  test_feat_live
+  test_fe
+  test_fe_float32
+  test_filename
+  test_fsg
+  test_hash_iter
+  test_heap
+  test_jsgf
+  test_listelem_alloc
+  test_mdef
+  test_log_shifted
+  test_pitch
+  test_ptm_mgau
+  test_s3file
+  test_strfuncs
+  test_subvq)
+foreach(TEST_EXECUTABLE ${TESTS})
+  add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)
-  target_include_directories(${TEST_EXECUTABLE} PRIVATE
-    ${CMAKE_BINARY_DIR} # for config.h
-    ${CMAKE_CURRENT_BINARY_DIR} # for test_macros.h
-    ${PROJECT_SOURCE_DIR}/src)
-    add_custom_command(TARGET ${TEST_EXECUTABLE} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:soundswallower>
-        $<TARGET_FILE_DIR:${TEST_EXECUTABLE}>)
+  target_include_directories(
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_SOURCE_DIR}/src
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_BINARY_DIR}
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    )
+  add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
 endforeach()
 
 # weird case-changing tests, not sure where they came from
