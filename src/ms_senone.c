@@ -48,7 +48,7 @@
 static int
 senone_mgau_map_read(senone_t *s, s3file_t *s3f)
 {
-    int n_gauden_present;
+    int n_gauden_present = 0;
     int32 i;
     void *ptr;
 
