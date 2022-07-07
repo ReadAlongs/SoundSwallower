@@ -42,18 +42,25 @@ endif()
 add_definitions(-D_CRT_SECURE_NO_WARINIGS)
 add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
 
-# Always build the core library source
-add_subdirectory(src)
+# Put all the output in one place
+set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 if(EMSCRIPTEN)
   # Specific configuration for JavaScript build
+  add_subdirectory(src)
   add_subdirectory(js)
 elseif(SKBUILD)
   # Specific configuration for Python extension build
+  add_subdirectory(src)
   add_subdirectory(py)
 else()
   # C shared library build
   option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+  # Build the core library source (needs to go after BUILD_SHARED_LIBS
+  # option because CMake is magically stupid)
+  add_subdirectory(src)
   add_subdirectory(include/soundswallower)
   if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
     add_subdirectory(tests)
@@ -64,3 +71,4 @@ else()
     SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
     )
 endif()
+
