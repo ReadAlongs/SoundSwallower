@@ -42,10 +42,9 @@ main(int argc, char *argv[])
 	/* Determine how much data and how many MFCC frames we need. */
 	fseek(raw, 0, SEEK_END);
 	nsamp = ftell(raw) / sizeof(int16);
-	fe_process_int16(fe, NULL, &nsamp, NULL, &total_frames);
-	printf("%ld samples, %d + 1 frames\n", nsamp, total_frames);
-	total_frames++; /* For the possible fe_end() frame */
-	cepbuf = ckd_calloc_2d(total_frames + 1, fe_get_output_size(fe), sizeof(**cepbuf));
+	total_frames = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
+	printf("%ld samples, %d frames\n", nsamp, total_frames);
+	cepbuf = ckd_calloc_2d(total_frames, fe_get_output_size(fe), sizeof(**cepbuf));
 	fseek(raw, 0, SEEK_SET);
 
         /* fe_process_frames() had a BAD API so I changed it */
@@ -56,11 +55,12 @@ main(int argc, char *argv[])
 		int16 const *bptr = buf;
 		while (nsamp) {
 			int ncep = fe_process_int16(fe, &bptr, &nsamp,
-                                                    cptr, &nfr);
+                                                    cptr, nfr);
+                        nfr -= ncep;
 			cptr += ncep;
 		}
 	}
-	fe_end(fe, cptr, &nfr);
+	fe_end(fe, cptr, nfr);
 
 	/* Now test some feature extraction problems. */
 	featbuf1 = feat_array_alloc(fcb, total_frames);

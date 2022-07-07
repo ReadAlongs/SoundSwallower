@@ -153,14 +153,14 @@ main(int argc, char *argv[])
 
     /* Now process MFCCs and make sure we get the same results. */
     cepbuf = ckd_calloc_2d(frame_counter,
-                   fe_get_output_size(acmod->fe),
-                   sizeof(**cepbuf));
+                           fe_get_output_size(acmod->fe),
+                           sizeof(**cepbuf));
     fe_start(acmod->fe);
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
-    fe_process_int16(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end(acmod->fe, cepbuf + frame_counter - 1, &nfr);
+    fe_process_int16(acmod->fe, &bptr, &nsamps, cepbuf, nfr);
+    fe_end(acmod->fe, cepbuf + frame_counter - 1, 1);
 
     E_INFO("Incremental(MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
@@ -210,8 +210,8 @@ main(int argc, char *argv[])
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
-    fe_process_int16(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
-    fe_end(acmod->fe, cepbuf + frame_counter - 1, &nfr);
+    fe_process_int16(acmod->fe, &bptr, &nsamps, cepbuf, nfr);
+    fe_end(acmod->fe, cepbuf + frame_counter - 1, 1);
 
     E_INFO("Whole utterance (MFCC):\n");
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
@@ -263,6 +263,8 @@ main(int argc, char *argv[])
     fclose(rawfh);
     ckd_free(buf);
     acmod_free(acmod);
+    fe_free(fe);
+    feat_free(fcb);
     logmath_free(lmath);
     cmd_ln_free_r(config);
     return 0;
