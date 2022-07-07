@@ -391,13 +391,15 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     m->ciname = ckd_calloc(m->n_ciphone, sizeof(*m->ciname));
 
     if (s->do_swap) {
+        size_t rv, mdef_data_size = s->end - s->ptr;
+
         E_WARN("mdef is other-endian.  Will copy data.\n");
         /* Copy stuff so we can swap it. */
         m->alloc_mode = BIN_MDEF_IN_MEMORY;
-        m->ciname[0] = ckd_malloc(s->end - s->ptr);
-        if (s3file_get(m->ciname[0], 1, s->end - s->ptr, s)
-            != (size_t)(s->end - s->ptr)) {
-            E_FATAL("Failed to read %d bytes of data\n", s->end - s->ptr);
+        m->ciname[0] = ckd_malloc(mdef_data_size);
+        if ((rv = s3file_get(m->ciname[0], 1, mdef_data_size, s)) != mdef_data_size) {
+            E_FATAL("Failed to read %ld bytes of data: got %ld\n",
+                    mdef_data_size, rv);
             goto error_out;
         }
     }
