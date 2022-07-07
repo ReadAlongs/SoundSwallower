@@ -6,10 +6,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/fsg_search_internal.h>
-#include <soundswallower/ps_lattice_internal.h>
-
 #include "test_macros.h"
 
 int
@@ -27,10 +23,12 @@ main(int argc, char *argv[])
     (void)argc; (void)argv;
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-bestpath", "no",
-                "-samprate", "16000", NULL));
+			"-hmm", MODELDIR "/en-us",
+			"-dict", TESTDATADIR "/turtle.dic",
+			"-input_endian", "little", /* raw data demands it */
+			"-bestpath", "no",
+			"-loglevel", "INFO",
+			"-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(ps_add_word(ps, "_forward", "F AO R W ER D", FALSE) != -1);
     TEST_ASSERT(ps_add_word(ps, "_backward", "B AE K W ER D", FALSE) != -1);

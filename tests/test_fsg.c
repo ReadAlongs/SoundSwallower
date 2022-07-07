@@ -28,11 +28,12 @@ main(int argc, char *argv[])
     (void)argc; (void)argv;
     TEST_ASSERT(config =
             cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us",
-                "-fsg", TESTDATADIR "/goforward.fsg",
-                "-dict", TESTDATADIR "/turtle.dic",
-                "-bestpath", "no",
-                "-samprate", "16000", NULL));
+			"-hmm", MODELDIR "/en-us",
+			"-fsg", TESTDATADIR "/goforward.fsg",
+			"-dict", TESTDATADIR "/turtle.dic",
+			"-input_endian", "little", /* raw data demands it */
+			"-bestpath", "no",
+			"-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
 
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));

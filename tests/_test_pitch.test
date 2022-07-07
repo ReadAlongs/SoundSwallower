@@ -1,0 +1,8 @@
+#!/bin/sh
+
+: ${CMAKE_BINARY_DIR:=$(pwd)}
+. ${CMAKE_BINARY_DIR}/tests/testfuncs.sh
+
+set -e
+$CMAKE_BINARY_DIR/test_pitch > _test_pitch.out
+compare_table pitch _test_pitch.out $tests/_test_pitch.res

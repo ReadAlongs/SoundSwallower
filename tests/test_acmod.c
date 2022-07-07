@@ -49,15 +49,16 @@ main(int argc, char *argv[])
     err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
     config = cmd_ln_init(NULL, ps_args(), TRUE,
-                 "-compallsen", "true",
-                 "-cmn", "live",
-                 "-tmatfloor", "0.0001",
-                 "-mixwfloor", "0.001",
-                 "-varfloor", "0.0001",
-                 "-mmap", "no",
-                 "-topn", "4",
-                 "-ds", "1",
-                 "-samprate", "16000", NULL);
+			 "-input_endian", "little", /* raw data demands it */
+			 "-compallsen", "true",
+			 "-cmn", "live",
+			 "-tmatfloor", "0.0001",
+			 "-mixwfloor", "0.001",
+			 "-varfloor", "0.0001",
+			 "-mmap", "no",
+			 "-topn", "4",
+			 "-ds", "1",
+			 "-samprate", "16000", NULL);
     TEST_ASSERT(config);
     cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
 

@@ -98,7 +98,8 @@ main(int argc, char *argv[])
 	(void)argc; (void)argv;
 	lmath = logmath_init(1.0001, 0, 0);
 	config = cmd_ln_init(NULL, ps_args(), TRUE,
-	     "-compallsen", "yes",
+			     "-compallsen", "yes",
+			     "-input_endian", "little", /* raw data demands it */
 	     NULL);
 	cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
 

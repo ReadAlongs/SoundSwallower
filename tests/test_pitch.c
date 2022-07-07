@@ -4,6 +4,7 @@
 
 #include <soundswallower/yin.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/byteorder.h>
 
 #include "test_macros.h"
 
@@ -15,7 +16,7 @@ main(int argc, char *argv[])
 	FILE *raw;
 	yin_t *pe;
 	int16 *buf;
-	size_t nsamp, start;
+	size_t nsamp, start, i;
 	uint16 period, bestdiff;
 	int nfr;
 
@@ -27,6 +28,9 @@ main(int argc, char *argv[])
 	buf = ckd_calloc(nsamp, 2);
 	fseek(raw, 0, SEEK_SET);
 	TEST_EQUAL(nsamp, fread(buf, 2, nsamp, raw));
+	for (i = 0; i < nsamp; ++i) {
+		SWAP_LE_16(&buf[i]);
+	}
 	fclose(raw);
 
 	TEST_ASSERT(pe = yin_init(frame_size, 0.1, 0.2, 2));

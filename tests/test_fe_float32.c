@@ -1,3 +1,4 @@
+/* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
 #include <stdio.h>
@@ -8,6 +9,7 @@
 #include <soundswallower/err.h>
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/byteorder.h>
 
 #include "test_macros.h"
 
@@ -319,7 +321,8 @@ main(int argc, char *argv[])
 
     err_set_loglevel_str("INFO");
     TEST_ASSERT(config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE));
-    /* Kind of important ;-) */
+    /* Even though we make our own float32 data, we will ensure it's
+       little-endian to be consistent. */
     cmd_ln_set_str_r(config, "-input_endian", "little");
     TEST_ASSERT(fe = fe_init(config));
 
@@ -333,8 +336,13 @@ main(int argc, char *argv[])
 
     TEST_ASSERT(raw = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(1024, fread(ibuf, sizeof(int16), 1024, raw));
-    for (i = 0; i < 1024; ++i)
-        buf[i] = ibuf[i] / FLOAT32_SCALE;
+    for (i = 0; i < 1024; ++i) {
+	int16 sample = ibuf[i];
+	SWAP_LE_16(&sample);
+        buf[i] = sample / FLOAT32_SCALE;
+	/* Ensure ibuf and buf are both little-endian as noted above */
+	SWAP_LE_32((int32 *)(char *)&buf[i]);
+    }
 
     printf("Creating reference features\n");
     cepbuf = create_reference(fe, buf, 1024);

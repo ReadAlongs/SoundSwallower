@@ -32,6 +32,7 @@ main(int argc, char *argv[])
 		cmd_ln_init(NULL, ps_args(), TRUE,
 			    "-hmm", MODELDIR "/en-us",
 			    "-dict", TESTDATADIR "/turtle.dic",
+			    "-input_endian", "little", /* raw data demands it */
 			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
 
@@ -64,6 +65,7 @@ main(int argc, char *argv[])
 			    "-hmm", MODELDIR "/en-us",
 			    "-dict", TESTDATADIR "/turtle.dic",
 			    "-jsgf", TESTDATADIR "/goforward.gram",
+			    "-input_endian", "little", /* raw data demands it */
 			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
@@ -86,6 +88,7 @@ main(int argc, char *argv[])
 			    "-hmm", MODELDIR "/en-us",
 			    "-dict", TESTDATADIR "/turtle.dic",
 			    "-jsgf", TESTDATADIR "/goforward.gram",
+			    "-input_endian", "little", /* raw data demands it */
 			    "-toprule", "goforward.move2",
 			    "-samprate", "16000", NULL));
     TEST_ASSERT(ps = ps_init(config));

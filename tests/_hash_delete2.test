@@ -4,5 +4,5 @@
 . ${CMAKE_BINARY_DIR}/tests/testfuncs.sh
 
 set -e
-$CMAKE_BINARY_DIR/deletehash -subvq > _hash_delete2.out 2>&1 
+$CMAKE_BINARY_DIR/test_delete_hash -subvq > _hash_delete2.out 2>&1 
 compare_table delete2 _hash_delete2.out $tests/_hash_delete2.res

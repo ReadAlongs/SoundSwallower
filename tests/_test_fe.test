@@ -5,4 +5,4 @@
 
 set -e
 $CMAKE_BINARY_DIR/test_fe > _test_fe.out
-compare_table feat _test_fe.out $tests/_test_fe.res
+compare_table fe _test_fe.out $tests/_test_fe.res
