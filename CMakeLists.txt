@@ -59,4 +59,8 @@ else()
     add_subdirectory(tests)
   endif()
   install(TARGETS soundswallower DESTINATION lib)
+  set_target_properties(soundswallower PROPERTIES
+    VERSION ${CMAKE_PROJECT_VERSION}
+    SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
+    )
 endif()
