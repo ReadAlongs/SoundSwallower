@@ -124,37 +124,6 @@ create_shifted(fe_t *fe, int16 *data, size_t nsamp)
 }
 
 mfcc_t **
-create_frames(fe_t *fe, const int16 *data, size_t nsamp)
-{
-    mfcc_t **cepbuf;
-    const int16 *inptr;
-    int rv, nfr, ncep;
-    
-    TEST_EQUAL(0, fe_start(fe));
-    nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
-    TEST_EQUAL(5, nfr);
-    ncep = fe_get_output_size(fe);
-
-    cepbuf = ckd_calloc_2d(nfr, ncep, sizeof(**cepbuf));
-    inptr = data;
-
-    rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, nfr);
-    nfr -= rv;
-    E_INFO("fe_process_int16 produced %d frames, "
-           " %d samples remaining\n", rv, nsamp);
-    TEST_EQUAL(rv, 4);
-    TEST_EQUAL(nfr, 1);
-    TEST_EQUAL(inptr - data, 1024);
-    TEST_EQUAL(nsamp, 0);
-    /* Should get a frame here due to overflow samples. */
-    rv = fe_end(fe, cepbuf + 4, nfr);
-    E_INFO("fe_end rv %d\n", rv);
-    TEST_EQUAL(rv, 1);
-
-    return cepbuf;
-}
-
-mfcc_t **
 create_full(fe_t *fe, const int16 *data, size_t nsamp)
 {
     mfcc_t **cepbuf;
