@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>SoundSwallower aligment test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <h1>JSON output:</h1>
+    <pre id="output"></pre>
+    <script src="soundswallower.js"></script>
+    <script>
+(async () => {
+    var ssjs = await Module();
+    const AudioContext = window.AudioContext;
+    var audioCtx = new AudioContext();
+    var output = document.getElementById("output");
+    output.textContent += "Initialized audio\n";
+    var response = await fetch("testdata/ap_dan.wav");
+    var blob = await response.blob();
+    var audioBuf = await audioCtx.decodeAudioData(await blob.arrayBuffer())
+    output.textContent += "Audio data downloaded\n";
+    let decoder = new ssjs.Decoder({
+	fsg: "testdata/ap_dan.fsg",
+	dict: "testdata/ap_dan.dict",
+	samprate: audioBuf.sampleRate,
+        beam: 1e-100, wbeam: 1e-100, pbeam: 1e-100
+    });
+    await decoder.initialize();
+    output.textContent += "Initialized speech recognition\n";
+    await decoder.start();
+    await decoder.process(audioBuf.getChannelData(0), false, true);
+    await decoder.stop();
+    let hypseg = decoder.get_hypseg();
+    output.textContent += JSON.stringify(hypseg, null, 4);
+    decoder.delete();
+})();
+    </script>
+  </body>
+</html>
