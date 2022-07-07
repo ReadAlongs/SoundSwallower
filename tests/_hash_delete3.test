@@ -1,7 +1,8 @@
 #!/bin/sh
-. ../testfuncs.sh
+
+: ${CMAKE_BINARY_DIR:=$(pwd)}
+. ${CMAKE_BINARY_DIR}/tests/testfuncs.sh
 
 set -e
-./deletehash -svq4svq > _hash_delete3.out 2>&1 
-compare_table delete3 _hash_delete3.out $tests/unit/test_hash/_hash_delete3.res
-rm -f _hash_delete3.out
+$CMAKE_BINARY_DIR/deletehash -svq4svq > _hash_delete3.out 2>&1 
+compare_table delete3 _hash_delete3.out $tests/_hash_delete3.res

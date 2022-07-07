@@ -1,35 +1,32 @@
+find_program(BASH_PROGRAM bash)
 configure_file(test_macros.h.in test_macros.h)
+configure_file(testfuncs.sh.in testfuncs.sh @ONLY)
+# All tests that require no particular intervention
 set(TESTS
   test_acmod
   test_acmod_grow
   test_add_words
   test_bitvec
-  test_case
-  test_err
+  test_ckd_alloc
   test_ckd_alloc_catch
-  test_ckd_alloc_fail
-  test_cmdln_parse_r
-  test_delete_hash
   test_dict2pid
   test_dict
-  test_display_hash
-  test_feat
-  test_feat_fe
-  test_feat_live
+  test_err
   test_fe
   test_fe_float32
+  test_feat_fe
+  test_feat_live
   test_filename
   test_fsg
   test_hash_iter
   test_heap
   test_jsgf
   test_listelem_alloc
-  test_mdef
   test_log_shifted
+  test_mdef
   test_pitch
   test_ptm_mgau
   test_s3file
-  test_strfuncs
   test_subvq)
 foreach(TEST_EXECUTABLE ${TESTS})
   add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
@@ -42,53 +39,49 @@ foreach(TEST_EXECUTABLE ${TESTS})
   add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
 endforeach()
 
-# weird case-changing tests, not sure where they came from
-add_test(lcase1 test_case lcase 5 3)
-add_test(lcase2 test_case lcase 1 1)
-add_test(lcase3 test_case lcase)
-add_test(ucase1 test_case ucase 2 4)
-add_test(ucase2 test_case ucase 1 1)
-add_test(lcase3 test_case ucase)
-add_test(strcmp1 test_case strcmp_nocase 2 3)
-add_test(strcmp2 test_case strcmp_nocase 1 1)
-add_test(strcmp3 test_case strcmp_nocase)
+# Tests that require separate definition (expected to fail, comparing
+# output, etc)
+set(TEST_EXECUTABLES
+  test_case
+  test_ckd_alloc_fail
+  test_ckd_alloc_abort
+  test_display_hash
+  test_delete_hash
+  test_feat
+  )
+foreach(TEST_EXECUTABLE ${TEST_EXECUTABLES})
+  add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
+  target_link_libraries(${TEST_EXECUTABLE} soundswallower)
+  target_include_directories(
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_SOURCE_DIR}/src
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_BINARY_DIR}
+    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    )
+endforeach()
+add_test(NAME test_ckd_alloc_fail COMMAND test_ckd_alloc_fail)
+set_property(TEST test_ckd_alloc_fail PROPERTY WILL_FAIL TRUE)
+# CTest won't find test_case here unless we use the named-argument
+# format (see this bug, mysteriously closed with no explanation:
+# https://gitlab.kitware.com/cmake/cmake/-/issues/21099)
+add_test(NAME lcase1 COMMAND test_case lcase 5 3)
+add_test(NAME lcase2 COMMAND test_case lcase 1 1)
+add_test(NAME lcase3 COMMAND test_case lcase)
+add_test(NAME ucase1 COMMAND test_case ucase 2 4)
+add_test(NAME ucase2 COMMAND test_case ucase 1 1)
+add_test(NAME ucase3 COMMAND test_case ucase)
+add_test(NAME strcmp1 COMMAND test_case strcmp_nocase 2 3)
+add_test(NAME strcmp2 COMMAND test_case strcmp_nocase 1 1)
+add_test(NAME strcmp3 COMMAND test_case strcmp_nocase)
 
-# string tests
-add_test(string_join test_strfuncs string_join)
-add_test(string_trim test_strfuncs string_trim)
-
-# utility tests
-add_test(bitvec test_bitvec)
-add_test(ckd_alloc_catch test_ckd_alloc_catch)
-add_test(ckd_alloc_fail test_ckd_alloc_fail)
-set_tests_properties(ckd_alloc_fail PROPERTIES WILL_FAIL TRUE)
-add_test(filename test_filename)
-add_test(hash_iter test_hash_iter)
-add_test(heap test_heap)
-# invert requires output FIXME
-add_test(listelem_alloc test_listelem_alloc)
-# solve requires output FIXME
-
-# command-line tests require output FIXME
-
-# delete and display hash tests require output FIXME
-
-# determinant test requires output FIXME
-
-
-# component tests
-add_test(acmod test_acmod)
-add_test(acmod_grow test_acmod_grow)
-add_test(dict2pid test_dict2pid)
-add_test(dict test_dict)
-add_test(fe test_fe)
-add_test(feat_fe test_feat_fe)
-add_test(feat_live test_feat_live)
-# test_feat reqiures output FIXME
-add_test(ptm_mgau test_ptm_mgau)
-add_test(subvq test_subvq)
-
-# functional-ish tests
-add_test(jsgf test_jsgf)
-add_test(fsg test_fsg)
-add_test(pitch test_pitch)
+set(TEST_SCRIPTS
+  _hash_delete1.test
+  _hash_delete2.test
+  _hash_delete3.test
+  _hash_delete4.test
+  _hash_delete5.test
+  test_ckd_alloc_abort.sh
+)
+foreach(TEST ${TEST_SCRIPTS})
+  add_test(NAME ${TEST} COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/${TEST})
+  set_property(TEST ${TEST} PROPERTY ENVIRONMENT CMAKE_BINARY_DIR=${CMAKE_BINARY_DIR})
+endforeach()
