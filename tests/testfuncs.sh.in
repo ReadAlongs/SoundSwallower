@@ -11,7 +11,8 @@ programs=$builddir
 
 # Automatically report failures on exit
 failures=""
-trap "report_failures" 0
+trap "fail 'command on line $LINENO'" ERR
+trap "report_failures" EXIT
 
 run_program() {
     program="$1"
