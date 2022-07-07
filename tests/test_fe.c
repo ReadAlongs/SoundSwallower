@@ -25,12 +25,12 @@ create_reference(fe_t *fe, int16 *data, size_t nsamp)
     /* Number of full frames that can be extracted from the given
      * number of samples. */
     nfr_full = 1 + (nsamp - frame_size) / frame_shift;
-    E_INFO("1 + (%d samples - %d frame_size) / %d frame_shift = %d\n",
+    printf("1 + (%ld samples - %d frame_size) / %d frame_shift = %d\n",
            nsamp, frame_size, frame_shift, nfr_full);
     /* Number that will be extracted overall. */
     if ((size_t)(nfr_full - 1) * frame_shift + frame_size < nsamp) {
         nfr_output = nfr_full + 1;
-        E_INFO("%d extra samples, nfr = %d\n",
+        printf("%ld extra samples, nfr = %d\n",
                nsamp - ((nfr_full - 1) * frame_shift + frame_size),
                nfr_output);
     }
@@ -38,11 +38,11 @@ create_reference(fe_t *fe, int16 *data, size_t nsamp)
         nfr_output = nfr_full;
     }
     ncep = fe_get_output_size(fe);
-    E_INFO("ncep = %d\n", ncep);
+    printf("ncep = %d\n", ncep);
     cepbuf = ckd_calloc_2d(nfr_output, ncep, sizeof(**cepbuf));
 
     for (i = 0; i < nfr_full; ++i) {
-        E_INFO("frame %d from %d to %d\n",
+        printf("frame %d from %d to %d\n",
                i, i * frame_shift, i * frame_shift + frame_size);
         fe_read_frame_int16(fe, data + (i * frame_shift), frame_size);
         fe_write_frame(fe, cepbuf[i]);
@@ -53,7 +53,7 @@ create_reference(fe_t *fe, int16 *data, size_t nsamp)
         int last_frame_size = nsamp - nfr_full * frame_shift;
         int16 *last_frame = ckd_calloc(last_frame_size,
                                        sizeof(*last_frame));
-        E_INFO("frame %d from %d to %d (%d samples)\n",
+        printf("frame %d from %d to %ld (%d samples)\n",
                nfr_full, nfr_full * frame_shift, nsamp,
                last_frame_size);
         memcpy(last_frame,
@@ -66,12 +66,12 @@ create_reference(fe_t *fe, int16 *data, size_t nsamp)
 
     for (i = 0; i < 5; ++i) {
         int j;
-        E_INFO("%d: ", i);
+        printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
-            E_INFOCONT("%.2f ",
+            printf("%.2f ",
                        MFCC2FLOAT(cepbuf[i][j]));
         }
-        E_INFOCONT("\n");
+        printf("\n");
     }
     return cepbuf;
 }
@@ -100,25 +100,25 @@ create_shifted(fe_t *fe, int16 *data, size_t nsamp)
     cepbuf = ckd_calloc_2d(nfr_output, ncep, sizeof(**cepbuf));
 
     inptr = data;
-    E_INFO("start inptr = %ld\n", inptr - data);
+    printf("start inptr = %ld\n", inptr - data);
     inptr += fe_read_frame_int16(fe, inptr, frame_size);
     fe_write_frame(fe, cepbuf[0]);
-    E_INFO("after first frame = %ld\n", inptr - data);
+    printf("after first frame = %ld\n", inptr - data);
     for (i = 1; i < nfr_output; ++i) {
         inptr += fe_shift_frame_int16(fe, inptr, data + nsamp - inptr);
         fe_write_frame(fe, cepbuf[i]);
-        E_INFO("after frame %d = %ld\n", i, inptr - data);
+        printf("after frame %d = %ld\n", i, inptr - data);
     }
     TEST_EQUAL(inptr, data + nsamp);
 
     for (i = 0; i < nfr_output; ++i) {
         int j;
-        E_INFO("%d: ", i);
+        printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
-            E_INFOCONT("%.2f ",
-                       MFCC2FLOAT(cepbuf[i][j]));
+            printf("%.2f ",
+                   MFCC2FLOAT(cepbuf[i][j]));
         }
-        E_INFOCONT("\n");
+        printf("\n");
     }
     return cepbuf;
 }
@@ -139,15 +139,15 @@ create_full(fe_t *fe, const int16 *data, size_t nsamp)
     inptr = data;
     rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, nfr);
     nfr -= rv;
-    E_INFO("fe_process_int16 produced %d frames, "
-           " %d samples remaining\n", rv, nsamp);
+    printf("fe_process_int16 produced %d frames, "
+           " %ld samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
     TEST_EQUAL(nfr, 1);
     TEST_EQUAL(inptr - data, 1024);
     TEST_EQUAL(nsamp, 0);
     /* Should get a frame here due to overflow samples. */
     rv = fe_end(fe, cepbuf + 4, nfr);
-    E_INFO("fe_end rv %d\n", rv);
+    printf("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
 
     return cepbuf;
@@ -171,7 +171,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
 
     for (i = 0; i < 4; ++i) {
         rv = fe_process_int16(fe, &inptr, &nsamp, &cepbuf[i], 1);
-        E_INFO("frame %d updated inptr %ld remaining nsamp %ld "
+        printf("frame %d updated inptr %ld remaining nsamp %ld "
                "processed %d\n", i, inptr - data, nsamp, rv);
         TEST_EQUAL(rv, 1);
         if (i < 3) {
@@ -186,7 +186,7 @@ create_process_frames(fe_t *fe, const int16 *data, size_t nsamp)
 
     /* Should get a frame here due to overflow samples. */
     rv = fe_end(fe, cepbuf + 4, 1);
-    E_INFO("fe_end rv %d\n", rv, 1);
+    printf("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
 
     return cepbuf;
@@ -218,7 +218,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
         size_t fragment = fragments[i];
         rv = fe_process_int16(fe, &inptr, &fragment, cepptr, nfr);
         nfr -= rv;
-        E_INFO("fragment %d updated inptr %ld remaining nsamp %ld "
+        printf("fragment %d updated inptr %ld remaining nsamp %ld "
                "processed %d remaining nfr %d\n",
                i, inptr - data, fragment, rv, nfr);
         TEST_EQUAL(0, fragment);
@@ -228,7 +228,7 @@ create_fragments(fe_t *fe, const int16 *data, size_t nsamp)
     /* Should get a frame here due to overflow samples. */
     nfr = 1;
     rv = fe_end(fe, cepptr, nfr);
-    E_INFO("fe_end rv %d\n", rv);
+    printf("fe_end rv %d\n", rv);
     TEST_EQUAL(rv, 1);
 
     return cepbuf;
@@ -239,14 +239,14 @@ compare_cepstra(mfcc_t **c1, mfcc_t **c2, int nfr, int ncep)
 {
     int i, j;
     for (i = 0; i < nfr; ++i) {
-        E_INFO("%d: ", i);
+        printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
-            E_INFOCONT("%.2f,%.2f ",
+            printf("%.2f,%.2f ",
                        MFCC2FLOAT(c1[i][j]),
                        MFCC2FLOAT(c2[i][j]));
             TEST_EQUAL_FLOAT(c1[i][j], c2[i][j]);
         }
-        E_INFOCONT("\n");
+        printf("\n");
     }
 }
 
@@ -279,25 +279,25 @@ main(int argc, char *argv[])
     TEST_ASSERT(raw = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(1024, fread(buf, sizeof(int16), 1024, raw));
 
-    E_INFO("Creating reference features\n");
+    printf("Creating reference features\n");
     cepbuf = create_reference(fe, buf, 1024);
  
-    E_INFO("Creating features with frame_shift\n");
+    printf("Creating features with frame_shift\n");
     cepbuf1 = create_shifted(fe, buf, 1024);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
     ckd_free_2d(cepbuf1);
 
-    E_INFO("Creating features with full buffer\n");
+    printf("Creating features with full buffer\n");
     cepbuf1 = create_full(fe, buf, 1024);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
     ckd_free_2d(cepbuf1);
 
-    E_INFO("Creating features with individual frames\n");
+    printf("Creating features with individual frames\n");
     cepbuf1 = create_process_frames(fe, buf, 1024);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
     ckd_free_2d(cepbuf1);
 
-    E_INFO("Creating features with oddly sized fragments\n");
+    printf("Creating features with oddly sized fragments\n");
     cepbuf1 = create_fragments(fe, buf, 1024);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);
     ckd_free_2d(cepbuf1);

@@ -12,8 +12,6 @@ set(TESTS
   test_dict2pid
   test_dict
   test_err
-  test_fe
-  test_fe_float32
   test_feat_fe
   test_feat_live
   test_filename
@@ -48,6 +46,8 @@ set(TEST_EXECUTABLES
   test_display_hash
   test_delete_hash
   test_feat
+  test_fe
+  test_fe_float32
   )
 foreach(TEST_EXECUTABLE ${TEST_EXECUTABLES})
   add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
@@ -81,6 +81,8 @@ set(TEST_SCRIPTS
   _hash_delete5.test
   test_ckd_alloc_abort.sh
   _test_feat.test
+  _test_fe.test
+  _test_fe_float32.test
 )
 foreach(TEST ${TEST_SCRIPTS})
   add_test(NAME ${TEST} COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/${TEST})
