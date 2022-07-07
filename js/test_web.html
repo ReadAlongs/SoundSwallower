@@ -318,6 +318,38 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	    assert.equal("W AH N", phones);
 	});
     });
+    describe("Test AudioBuffer loading", () => {
+	it('Should recognize "go forward ten meters"', async () => {
+            const AudioContext = window.AudioContext;
+            var audioCtx = new AudioContext();
+            assert.ok(audioCtx);
+            var response = await fetch("testdata/goforward.wav");
+            assert.ok(response.ok);
+            var blob = await response.blob();
+            var audioBuf = await audioCtx.decodeAudioData(await blob.arrayBuffer())
+            console.log(audioBuf);
+	    let decoder = new ssjs.Decoder({
+		fsg: "testdata/goforward.fsg",
+		samprate: audioBuf.sampleRate,
+	    });
+	    await decoder.initialize();
+	    await decoder.start();
+	    await decoder.process(audioBuf.getChannelData(0), false, true);
+	    await decoder.stop();
+	    assert.equal("go forward ten meters", decoder.get_hyp());
+	    let hypseg = decoder.get_hypseg();
+            console.log(hypseg);
+	    let hypseg_words = []
+	    for (const seg of hypseg) {
+		assert.ok(seg.end >= seg.start);
+                if (seg.word != "<sil>" && seg.word != "(NULL)")
+		    hypseg_words.push(seg.word);
+	    }
+	    assert.deepStrictEqual(hypseg_words,
+				   ["go", "forward", "ten", "meters"]);
+	    decoder.delete();
+        });
+    });
 })();
     </script>
     <script class="mocha-exec">
