@@ -357,11 +357,11 @@ int fe_start(fe_t *fe);
  *     while (nsamps) {
  *         nfr = fe_process(fe, &p, &nsamps, mfcc, 5);
  *         if (nfr > 0)
- *             do_some_stuff(mfcc, nvec);
+ *             do_some_stuff(mfcc, nfr);
  *     }
  *     nfr = fe_end(fe, mfcc, 5);
- *     if (nvec > 0)
- *         do_some_stuff(mfcc, nvec);
+ *     if (nfr > 0)
+ *         do_some_stuff(mfcc, nfr);
  *
  * @param inout_spch Input: Pointer to pointer to speech samples
  *                   (signed 16-bit linear PCM).
