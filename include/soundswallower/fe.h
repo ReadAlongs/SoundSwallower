@@ -381,7 +381,8 @@ int fe_start(fe_t *fe);
  *                ckd_calloc_2d()) which will receive frames of output
  *                data.  If NULL, no actual processing will be done,
  *                and the maximum number of output frames which would
- *                be generated is returned in
+ *                be generated (including the trailing frame from
+ *                fe_end()) is returned in
  *                <code>*inout_nframes</code>.
  * @param nframes Maximum number of frames to generate.
  * @return number of frames written, or the if buf_cep is NULL, the
