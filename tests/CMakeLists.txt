@@ -80,6 +80,7 @@ set(TEST_SCRIPTS
   _hash_delete4.test
   _hash_delete5.test
   test_ckd_alloc_abort.sh
+  _test_feat.test
 )
 foreach(TEST ${TEST_SCRIPTS})
   add_test(NAME ${TEST} COMMAND ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/${TEST})
