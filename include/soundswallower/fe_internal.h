@@ -151,7 +151,7 @@ struct fe_s {
     float32 *overflow_samps;
     /* How many extra samples there are. */
     int num_overflow_samps;    
-    /* One frame's worth of waveform. */
+    /* One frame's worth of waveform (FIXME: redundant with spch/overflow). */
     frame_t *frame;
     /* Spectrum and mel-spectrum. */
     powspec_t *spec, *mfspec;
