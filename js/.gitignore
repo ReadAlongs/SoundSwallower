@@ -10,3 +10,4 @@ soundswallower.js
 soundswallower.wasm
 *.wasm.map
 *_tracker.c
+*.a
