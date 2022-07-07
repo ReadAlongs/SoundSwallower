@@ -354,7 +354,7 @@ output_frame_count(fe_t *fe, size_t nsamps)
         n_full_frames = 0;
     else
         n_full_frames = 1
-            + ((nsamps + fe->num_overflow_samps - fe->frame_size) / fe->frame_shift);
+            + (int)((nsamps + fe->num_overflow_samps - fe->frame_size) / fe->frame_shift);
     if (((size_t)n_full_frames * fe->frame_shift + fe->frame_size) > nsamps)
         return n_full_frames + 1;
     return n_full_frames;
@@ -394,7 +394,8 @@ overflow_append(fe_t *fe,
         /* Update input-output pointers and counters. */
         *spch += *inout_nsamps;
     }
-    fe->num_overflow_samps += *inout_nsamps;
+    assert(*inout_nsamps <= MAX_INT16);
+    fe->num_overflow_samps += (int)*inout_nsamps;
     *inout_nsamps = 0;
 
     return 0;
@@ -447,8 +448,9 @@ create_overflow_frame(fe_t *fe,
 {
     /* Amount of data past *inout_spch to copy */
     int n_overflow = fe->frame_shift;
+    assert(*inout_nsamps <= MAX_INT16);
     if ((size_t)n_overflow > *inout_nsamps)
-        n_overflow = *inout_nsamps;
+        n_overflow = (int)*inout_nsamps;
     /* Size of constructed overflow frame */
     fe->num_overflow_samps = (fe->frame_size - fe->frame_shift
                               + n_overflow);
@@ -499,11 +501,12 @@ append_overflow_frame(fe_t *fe,
             fe->overflow_samps + orig_n_overflow - fe->num_overflow_samps,
             fe->num_overflow_samps * sizeof(float32));
 
+    assert(*inout_nsamps <= MAX_INT16);
     if (encoding == FE_PCM16) {
         int16 const **spch = (int16 const **)inout_spch;
         int16 const *orig = (int16 const *)orig_spch;
         /* Copy in whatever we had in the original speech buffer. */
-        n_overflow = *spch - orig + *inout_nsamps;
+        n_overflow = (int)(*spch - orig + *inout_nsamps);
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)
             n_overflow = fe->frame_size - fe->num_overflow_samps;
         /* Copy and scale... */
@@ -521,7 +524,7 @@ append_overflow_frame(fe_t *fe,
         fe->num_overflow_samps += n_overflow;
         /* Advance the input pointers. */
         if (n_overflow > *spch - orig) {
-            n_overflow -= (*spch - orig);
+            n_overflow -= (int)(*spch - orig);
             *spch += n_overflow;
             *inout_nsamps -= n_overflow;
         }
@@ -530,7 +533,7 @@ append_overflow_frame(fe_t *fe,
         float32 const **spch = (float32 const **)inout_spch;
         float32 const *orig = (float32 const *)orig_spch;
         /* Copy in whatever we had in the original speech buffer. */
-        n_overflow = *spch - orig + *inout_nsamps;
+        n_overflow = (int)(*spch - orig + *inout_nsamps);
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)
             n_overflow = fe->frame_size - fe->num_overflow_samps;
         memcpy(fe->overflow_samps + fe->num_overflow_samps,
@@ -538,7 +541,7 @@ append_overflow_frame(fe_t *fe,
         fe->num_overflow_samps += n_overflow;
         /* Advance the input pointers. */
         if (n_overflow > *spch - orig) {
-            n_overflow -= (*spch - orig);
+            n_overflow -= (int)(*spch - orig);
             *spch += n_overflow;
             *inout_nsamps -= n_overflow;
         }
@@ -575,7 +578,7 @@ fe_process(fe_t *fe,
     orig_n_overflow = fe->num_overflow_samps;
     /* How many frames will we be able to get? */
     frame_count = 1
-        + ((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
+        + (int)((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
            / fe->frame_shift);
     /* Limit it to the number of output frames available. */
     if (frame_count > nframes)
@@ -651,7 +654,7 @@ fe_process_float32(fe_t *fe,
                    mfcc_t **buf_cep,
                    int nframes)
 {
-    return fe_process(fe, inout_spch, inout_nsamps,
+    return fe_process(fe, (void *)inout_spch, inout_nsamps,
                       buf_cep, nframes, FE_FLOAT32);
 }
 
@@ -662,7 +665,7 @@ fe_process_int16(fe_t *fe,
                  mfcc_t **buf_cep,
                  int nframes)
 {
-    return fe_process(fe, inout_spch, inout_nsamps,
+    return fe_process(fe, (void *)inout_spch, inout_nsamps,
                       buf_cep, nframes, FE_PCM16);
 }
 

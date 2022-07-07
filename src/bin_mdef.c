@@ -223,7 +223,7 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
     bmdef->ciname = ckd_calloc(bmdef->n_ciphone, sizeof(*bmdef->ciname));
     nchars = 0;
     for (i = 0; i < bmdef->n_ciphone; ++i)
-        nchars += strlen(mdef->ciphone[i].name) + 1;
+        nchars += (int)strlen(mdef->ciphone[i].name) + 1;
     bmdef->ciname[0] = ckd_calloc(nchars, 1);
     strcpy(bmdef->ciname[0], mdef->ciphone[0].name);
     for (i = 1; i < bmdef->n_ciphone; ++i) {
@@ -250,9 +250,9 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
         }
         else {
             bmdef->phone[i].info.cd.wpos = mdef->phone[i].wpos;
-            bmdef->phone[i].info.cd.ctx[0] = mdef->phone[i].ci;
-            bmdef->phone[i].info.cd.ctx[1] = mdef->phone[i].lc;
-            bmdef->phone[i].info.cd.ctx[2] = mdef->phone[i].rc;
+            bmdef->phone[i].info.cd.ctx[0] = (uint8)mdef->phone[i].ci;
+            bmdef->phone[i].info.cd.ctx[1] = (uint8)mdef->phone[i].lc;
+            bmdef->phone[i].info.cd.ctx[2] = (uint8)mdef->phone[i].rc;
         }
     }
 

@@ -26,13 +26,13 @@ create_reference(fe_t *fe, float32 *data, size_t nsamp)
     fe_get_input_size(fe, &frame_shift, &frame_size);
     /* Number of full frames that can be extracted from the given
      * number of samples. */
-    nfr_full = 1 + (nsamp - frame_size) / frame_shift;
-    printf("1 + (%ld samples - %d frame_size) / %d frame_shift = %d\n",
+    nfr_full = 1 + (int)((nsamp - frame_size) / frame_shift);
+    printf("1 + (%lu samples - %d frame_size) / %d frame_shift = %d\n",
            nsamp, frame_size, frame_shift, nfr_full);
     /* Number that will be extracted overall. */
     if ((size_t)(nfr_full - 1) * frame_shift + frame_size < nsamp) {
         nfr_output = nfr_full + 1;
-        printf("%ld extra samples, nfr = %d\n",
+        printf("%lu extra samples, nfr = %d\n",
                nsamp - ((nfr_full - 1) * frame_shift + frame_size),
                nfr_output);
     }
@@ -52,10 +52,10 @@ create_reference(fe_t *fe, float32 *data, size_t nsamp)
 
     /* Create the last frame explicitly to ensure no lossage. */
     if (nfr_output > nfr_full) {
-        int last_frame_size = nsamp - nfr_full * frame_shift;
+        int last_frame_size = (int)(nsamp - nfr_full * frame_shift);
         float32 *last_frame = ckd_calloc(last_frame_size,
                                        sizeof(*last_frame));
-        printf("frame %d from %d to %ld (%d samples)\n",
+        printf("frame %d from %d to %lu (%d samples)\n",
                nfr_full, nfr_full * frame_shift, nsamp,
                last_frame_size);
         memcpy(last_frame,
@@ -92,7 +92,7 @@ create_shifted(fe_t *fe, float32 *data, size_t nsamp)
     fe_get_input_size(fe, &frame_shift, &frame_size);
     /* Number of full frames that can be extracted from the given
      * number of samples. */
-    nfr_full = 1 + (nsamp - frame_size) / frame_shift;
+    nfr_full = 1 + (int)((nsamp - frame_size) / frame_shift);
     /* Number that will be extracted overall. */
     if ((size_t)(nfr_full - 1) * frame_shift + frame_size < nsamp)
         nfr_output = nfr_full + 1;
@@ -102,14 +102,14 @@ create_shifted(fe_t *fe, float32 *data, size_t nsamp)
     cepbuf = ckd_calloc_2d(nfr_output, ncep, sizeof(**cepbuf));
 
     inptr = data;
-    printf("start inptr = %ld\n", inptr - data);
+    printf("start inptr = %lu\n", inptr - data);
     inptr += fe_read_frame_float32(fe, inptr, frame_size);
     fe_write_frame(fe, cepbuf[0]);
-    printf("after first frame = %ld\n", inptr - data);
+    printf("after first frame = %lu\n", inptr - data);
     for (i = 1; i < nfr_output; ++i) {
         inptr += fe_shift_frame_float32(fe, inptr, data + nsamp - inptr);
         fe_write_frame(fe, cepbuf[i]);
-        printf("after frame %d = %ld\n", i, inptr - data);
+        printf("after frame %d = %lu\n", i, inptr - data);
     }
     TEST_EQUAL(inptr, data + nsamp);
 
@@ -142,7 +142,7 @@ create_full(fe_t *fe, const float32 *data, size_t nsamp)
     rv = fe_process_float32(fe, &inptr, &nsamp, cepbuf, nfr);
     nfr -= rv;
     printf("fe_process_float32 produced %d frames, "
-           " %ld samples remaining\n", rv, nsamp);
+           " %lu samples remaining\n", rv, nsamp);
     TEST_EQUAL(rv, 4);
     TEST_EQUAL(nfr, 1);
     TEST_EQUAL(inptr - data, 1024);
@@ -173,7 +173,7 @@ create_process_frames(fe_t *fe, const float32 *data, size_t nsamp)
 
     for (i = 0; i < 4; ++i) {
         rv = fe_process_float32(fe, &inptr, &nsamp, &cepbuf[i], 1);
-        printf("frame %d updated inptr %ld remaining nsamp %ld "
+        printf("frame %d updated inptr %lu remaining nsamp %lu "
                "processed %d\n", i, inptr - data, nsamp, rv);
         TEST_EQUAL(rv, 1);
         if (i < 3) {
@@ -220,7 +220,7 @@ create_fragments(fe_t *fe, const float32 *data, size_t nsamp)
         size_t fragment = fragments[i];
         rv = fe_process_float32(fe, &inptr, &fragment, cepptr, nfr);
         nfr -= rv;
-        printf("fragment %d updated inptr %ld remaining nsamp %ld "
+        printf("fragment %d updated inptr %lu remaining nsamp %lu "
                "processed %d remaining nfr %d\n",
                i, inptr - data, fragment, rv, nfr);
         TEST_EQUAL(0, fragment);
@@ -272,7 +272,7 @@ create_mixed_fragments(fe_t *fe, const float32 *data, const int16 *idata, size_t
             nfr -= rv;
             inptr += (iinptr - idata) - (inptr - data);
         }
-        printf("%s fragment %d updated inptr %ld %ld remaining nsamp %ld "
+        printf("%s fragment %d updated inptr %lu %lu remaining nsamp %lu "
                "processed %d remaining nfr %d\n", do_float ? "float" : "int",
                i, inptr - data, iinptr - idata, fragment, rv, nfr);
         TEST_EQUAL(0, fragment);

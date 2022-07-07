@@ -229,7 +229,7 @@ extern "C" {
 /** MFCC computation type. */
 typedef float32 mfcc_t;
 /** Convert a floating-point value to mfcc_t. */
-#define FLOAT2MFCC(x) (x)
+#define FLOAT2MFCC(x) ((mfcc_t)(x))
 /** Convert a mfcc_t value to floating-point. */
 #define MFCC2FLOAT(x) (x)
 /** Multiply two mfcc_t values. */

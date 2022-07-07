@@ -108,9 +108,9 @@ struct melfb_s {
 #define SQRT_HALF FLOAT2MFCC(0.707106781186548)
 
 /* Scale for float data. */
-#define FLOAT32_SCALE 32768.0
+#define FLOAT32_SCALE 32768.0F
 /* Dithering constant for float data. */
-#define FLOAT32_DITHER 1.0
+#define FLOAT32_DITHER 1.0F
 
 /** Structure for the front-end computation. */
 struct fe_s {

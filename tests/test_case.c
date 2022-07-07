@@ -13,10 +13,10 @@
 
 #define STR0 "this string should NEVER show up"
 #define STR1 ""
-#define STR2 "az3o%\tW@^#\\\n\r[]{}|\() '\""
-#define STR3 "az3o%\tw@^#\\\n\r[]{}|\() '\""
-#define STR4 "AZ3O%\tW@^#\\\n\r[]{}|\() '\""
-#define STR5 "AZ3O%\tw@^#\\\n\r[]{}|\() '\""
+#define STR2 "az3o%\tW@^#\\\n\r[]{}|\\() '\""
+#define STR3 "az3o%\tw@^#\\\n\r[]{}|\\() '\""
+#define STR4 "AZ3O%\tW@^#\\\n\r[]{}|\\() '\""
+#define STR5 "AZ3O%\tw@^#\\\n\r[]{}|\\() '\""
 
 
 int

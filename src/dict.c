@@ -416,7 +416,7 @@ dict_word2basestr(char *word)
 {
     int32 i, len;
 
-    len = strlen(word);
+    len = (int32)strlen(word);
     if (word[len - 1] == ')') {
         for (i = len - 2; (i > 0) && (word[i] != '('); --i);
 

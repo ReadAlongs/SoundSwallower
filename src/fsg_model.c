@@ -651,7 +651,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
                 E_ERROR("Line[%d]: trans-prob missing\n", lineno);
                 goto parse_error;
             }
-            p = atof(word);
+            p = (float32)atof(word);
             if ((p <= 0.0) || (p > 1.0)) {
                 E_ERROR
                     ("Line[%d]: transition spec malformed; Expecting float as transition probability\n",
@@ -854,7 +854,7 @@ fsg_model_write_fsm_trans(fsg_model_t * fsg, int i, FILE * fp)
         fprintf(fp, "%d %d %s %f\n",
                 tl->from_state, tl->to_state,
                 (tl->wid < 0) ? "<eps>" : fsg_model_word_str(fsg, tl->wid),
-                -logmath_log_to_ln(fsg->lmath, tl->logs2prob / fsg->lw));
+                -logmath_log_to_ln(fsg->lmath, (int)(tl->logs2prob / fsg->lw)));
     }
 }
 

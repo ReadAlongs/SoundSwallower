@@ -367,9 +367,9 @@ s3file_copy_header_value(s3file_t *s, size_t idx)
 }
 
 static uint32
-chksum_accum(const void *buf, int32 el_sz, int32 n_el, uint32 sum)
+chksum_accum(const void *buf, size_t el_sz, size_t n_el, uint32 sum)
 {
-    int32 i;
+    size_t i;
     uint8 *i8;
     uint16 *i16;
     uint32 *i32;

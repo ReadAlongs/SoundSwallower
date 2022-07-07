@@ -764,7 +764,7 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
      * will become more flexible in the future. */
     s->sen2cb = ckd_calloc(s->n_sen, sizeof(*s->sen2cb));
     for (i = 0; i < s->n_sen; ++i)
-        s->sen2cb[i] = bin_mdef_sen2cimap(acmod->mdef, i);
+        s->sen2cb[i] = (uint8)bin_mdef_sen2cimap(acmod->mdef, i);
 
     /* Allocate fast-match history buffers.  We need enough for the
      * phoneme lookahead window, plus the current frame, plus one for

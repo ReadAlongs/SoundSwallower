@@ -800,7 +800,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
         bprob = 0;
         /* Add in this link's acoustic score, which was a constant
            factor in previous computations (if any). */
-        link->alpha += (link->ascr << SENSCR_SHIFT) * ascale;
+        link->alpha += (int32)((link->ascr << SENSCR_SHIFT) * ascale);
 
         if (w2_is_fil) {
             w2_is_fil = w3_is_fil;
@@ -868,7 +868,7 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
         }
     }
     /* FIXME: floating point... */
-    dag->norm += (int32)(dag->final_node_ascr << SENSCR_SHIFT) * ascale;
+    dag->norm += (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
 
     E_INFO("Bestpath score: %d\n", bestescr);
     E_INFO("Normalizer P(O) = alpha(%s:%d:%d) = %d\n",
@@ -887,7 +887,7 @@ ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
     /* Sort of a hack... */
     lmset = NULL;
 
-    jprob = (dag->final_node_ascr << SENSCR_SHIFT) * ascale;
+    jprob = (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
     while (link) {
         if (lmset) {
             int32 from_wid, to_wid;
@@ -914,7 +914,7 @@ ps_lattice_joint(ps_lattice_t *dag, ps_latlink_t *link, float32 ascale)
         /* If there is no language model, we assume that the language
            model probability (such as it is) has been included in the
            link score. */
-        jprob += (link->ascr << SENSCR_SHIFT) * ascale;
+        jprob += (int32)((link->ascr << SENSCR_SHIFT) * ascale);
         link = link->best_prev;
     }
 
@@ -981,14 +981,14 @@ ps_lattice_posterior(ps_lattice_t *dag, void *lmset,
                 bestend = link;
             }
             /* Imaginary exit link from final node has beta = 1.0 */
-            link->beta = bprob + (dag->final_node_ascr << SENSCR_SHIFT) * ascale;
+            link->beta = bprob + (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
         }
         else {
             /* Update beta from all outgoing betas. */
             for (x = link->to->exits; x; x = x->next) {
                 link->beta = logmath_add(lmath, link->beta,
                                          x->link->beta + bprob
-                                         + (x->link->ascr << SENSCR_SHIFT) * ascale);
+                                         + (int)((x->link->ascr << SENSCR_SHIFT) * ascale));
             }
         }
     }

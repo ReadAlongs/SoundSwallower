@@ -90,10 +90,10 @@ parse_options(cmd_ln_t *, const arg_t *, int32, char* [], int32);
  * Find max length of name and default fields in the given defn array.
  * Return #items in defn array.
  */
-static int32
-arg_strlen(const arg_t * defn, int32 * namelen, int32 * deflen)
+static size_t
+arg_strlen(const arg_t * defn, size_t * namelen, size_t * deflen)
 {
-    int32 i, l;
+    size_t i, l;
 
     *namelen = *deflen = 0;
     for (i = 0; defn[i].name; i++) {
@@ -123,15 +123,15 @@ cmp_name(const void *a, const void *b)
 }
 
 static arg_t const **
-arg_sort(const arg_t * defn, int32 n)
+arg_sort(const arg_t * defn, size_t n)
 {
     const arg_t ** pos;
-    int32 i;
+    size_t i;
 
     pos = (arg_t const **) ckd_calloc(n, sizeof(arg_t *));
     for (i = 0; i < n; ++i)
         pos[i] = &defn[i];
-    qsort(pos, n, sizeof(arg_t *), cmp_name);
+    qsort((void *)pos, n, sizeof(arg_t *), cmp_name);
 
     return pos;
 }
@@ -224,8 +224,8 @@ static void
 arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc, int32 lineno)
 {
     arg_t const **pos;
-    int32 i, n;
-    int32 namelen, deflen;
+    size_t i, n;
+    size_t namelen, deflen;
     cmd_ln_val_t const *vp;
 
     /* No definitions, do nothing. */
@@ -292,7 +292,7 @@ arg_log_r(cmd_ln_t *cmdln, const arg_t * defn, int32 doc, int32 lineno)
 
         E_INFOCONT("\n");
     }
-    ckd_free(pos);
+    ckd_free((void *)pos);
     E_INFOCONT("\n");
 }
 
