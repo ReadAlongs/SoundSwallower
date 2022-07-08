@@ -1,0 +1,8 @@
+{
+    "files": ["test_typescript.ts"],
+    "compilerOptions": {
+        "downlevelIteration": true,
+        "esModuleInterop": true,
+        "lib": ["es2015", "dom"]
+    }
+}

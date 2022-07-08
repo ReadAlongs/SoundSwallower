@@ -11,3 +11,4 @@ soundswallower.wasm
 *.wasm.map
 *_tracker.c
 *.a
+test_typescript.js
