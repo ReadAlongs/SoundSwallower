@@ -1,13 +1,13 @@
 /// <reference types="emscripten" />
-declare class Config implements Iterable<string> {
+export class Config implements Iterable<string> {
     delete(): void;
     set(key: string, val: string|number): boolean;
     get(key: string): string|number;
     model_file_path(key: string, modelfile: string): string;
     has(key: string): boolean;
-    [Symbol.iterator](): IterableIterator<any>;
+    [Symbol.iterator](): IterableIterator<string>;
 }
-declare class Decoder {
+export class Decoder {
     delete(): void;
     initialize(config?: Config|Object): Promise<any>;
     reinitialize_audio(): Promise<void>;
@@ -19,26 +19,25 @@ declare class Decoder {
     lookup_word(word: string): string;
     add_word(word:string, pron: string, update?: boolean): Promise<number>;
     create_fsg(name:string, start_state: number, final_state: number,
-               transitions: Array<Transition>): FSG;
-    parse_jsgf(jsgf_string:string, toprule?: string): FSG;
-    set_fsg(fsg: FSG): Promise<void>;
+               transitions: Array<Transition>): Grammar;
+    parse_jsgf(jsgf_string:string, toprule?: string): Grammar;
+    set_fsg(fsg: Grammar): Promise<void>;
 }
-interface FSG {
-    fsg: any;
+export interface Grammar {
     delete(): void;
 }
-interface Transition {
+export interface Transition {
     from: number;
     to: number;
     prob?: number;
     word?: string;
 }
-interface Segment {
+export interface Segment {
     start: number;
     end: number;
     word: string;
 }
-interface SoundSwallowerModule extends EmscriptenModule {
+export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(string): string;
     Config: {
         /* Everything else is declared above.. */
@@ -48,5 +47,5 @@ interface SoundSwallowerModule extends EmscriptenModule {
         new(config?: Config|Object): Decoder;
     }
 }
-declare const soundswallower_factory: EmscriptenModuleFactory<SoundSwallowerModule>;
-export = soundswallower_factory;
+declare const Module: EmscriptenModuleFactory<SoundSwallowerModule>;
+export default Module;
