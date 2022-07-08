@@ -7,8 +7,6 @@ import * as assert from "assert";
     const soundswallower = await soundswallower_factory();
     const config = new soundswallower.Config();
     console.log(config.get("samprate"));
-    /* This will silently fail (produce no output) without
-     * --downLevelIteration... WHY?!?!? */
     let nkeys = 0;
     for (const key of config) {
         ++nkeys;
