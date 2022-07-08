@@ -38,7 +38,7 @@ export interface Segment {
     word: string;
 }
 export interface SoundSwallowerModule extends EmscriptenModule {
-    get_model_path(string): string;
+    get_model_path(subpath: string): string;
     Config: {
         /* Everything else is declared above.. */
         new(dict?: Object): Config;
