@@ -669,6 +669,7 @@ ps_add_word(ps_decoder_t *ps,
     np = 0;
     while (*ptr) {
         char *phone;
+        int final;
         /* Leading whitespace if any */
         while (*ptr && isspace_c(*ptr))
             ++ptr;
@@ -677,6 +678,7 @@ ps_add_word(ps_decoder_t *ps,
         phone = ptr;
         while (*ptr && !isspace_c(*ptr))
             ++ptr;
+        final = (*ptr == '\0');
         *ptr = '\0';
         pron[np] = bin_mdef_ciphone_id(ps->acmod->mdef, phone);
         if (pron[np] == -1) {
@@ -687,7 +689,7 @@ ps_add_word(ps_decoder_t *ps,
             return -1;
         }
         ++np;
-        if (*ptr == '\0')
+        if (final)
             break;
         ++ptr;
     }
@@ -718,7 +720,7 @@ EXPORT char *
 ps_lookup_word(ps_decoder_t *ps, const char *word)
 {
     s3wid_t wid;
-    size_t phlen, j;
+    int phlen, j;
     char *phones;
     dict_t *dict = ps->dict;
     
@@ -727,10 +729,10 @@ ps_lookup_word(ps_decoder_t *ps, const char *word)
 	return NULL;
 
     for (phlen = j = 0; j < dict_pronlen(dict, wid); ++j)
-        phlen += strlen(dict_ciphone_str(dict, wid, (int32)j)) + 1;
+        phlen += (int)strlen(dict_ciphone_str(dict, wid, j)) + 1;
     phones = ckd_calloc(1, phlen);
     for (j = 0; j < dict_pronlen(dict, wid); ++j) {
-        strcat(phones, dict_ciphone_str(dict, wid, (int32)j));
+        strcat(phones, dict_ciphone_str(dict, wid, j));
         if (j != dict_pronlen(dict, wid) - 1)
             strcat(phones, " ");
     }

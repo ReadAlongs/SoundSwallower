@@ -15,6 +15,7 @@ main(int argc, char *argv[])
     fsg_model_t *fsg;
     cmd_ln_t *config;
     const char *hyp;
+    char *phones;
     int32 score, prob;
     FILE *rawfh;
     int16 buf[2048];
@@ -32,6 +33,12 @@ main(int argc, char *argv[])
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(ps_add_word(ps, "_forward", "F AO R W ER D", FALSE) != -1);
     TEST_ASSERT(ps_add_word(ps, "_backward", "B AE K W ER D", FALSE) != -1);
+    phones = ps_lookup_word(ps, "_forward");
+    TEST_ASSERT(0 == strcmp(phones, "F AO R W ER D"));
+    ckd_free(phones);
+    phones = ps_lookup_word(ps, "_backward");
+    TEST_ASSERT(0 == strcmp(phones, "B AE K W ER D"));
+    ckd_free(phones);
     fsg = fsg_model_readfile(TESTDATADIR "/goforward3.fsg", ps_get_logmath(ps), 1.0);
     ps_set_fsg(ps, "_default", fsg);
     fsg_model_free(fsg);
