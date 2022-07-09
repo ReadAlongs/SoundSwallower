@@ -8,6 +8,8 @@ export class Config implements Iterable<string> {
     [Symbol.iterator](): IterableIterator<string>;
 }
 export class Decoder {
+    config: Config;
+    initialized: boolean;
     delete(): void;
     initialize(config?: Config|Object): Promise<any>;
     reinitialize_audio(): Promise<void>;
