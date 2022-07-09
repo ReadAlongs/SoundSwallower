@@ -1,10 +1,10 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14) # I like pie
 include(CheckTypeSize)
 include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(TestBigEndian)
 
-project(soundswallower VERSION 0.3.1
+project(soundswallower VERSION 0.3.2
   DESCRIPTION "An even smaller speech recognizer")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
