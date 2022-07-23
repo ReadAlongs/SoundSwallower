@@ -9,6 +9,9 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 [tool.cibuildwheel]
-build = ["pp38*", "cp37-*", "cp38-*", "cp39-*", "cp310-*"]
+# Build the versions found in Ubuntu LTS and the stable PyPy
+build = ["pp38*", "cp36-*", "cp38-*", "cp310-*"]
+# PyPy 3.8 will choke on CPython 3.8 build leftovers...
+before-build = "rm -rf _skbuild"
 skip = ["*musl*", "*_i686", "*-win32"]
 build-verbosity = 2
