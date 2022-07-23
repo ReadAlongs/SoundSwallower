@@ -13,5 +13,5 @@ build-backend = "setuptools.build_meta"
 build = ["pp38*", "cp36-*", "cp38-*", "cp310-*"]
 # PyPy 3.8 will choke on CPython 3.8 build leftovers...
 before-build = "rm -rf _skbuild"
-skip = ["*musl*", "*_i686", "*-win32"]
-build-verbosity = 2
+# PyPy builds are broken on Windows, and skip 32-bit and musl
+skip = ["*musl*", "*_i686", "*-win32", "pp*win*"]
