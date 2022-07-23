@@ -13,7 +13,7 @@ many2014_run() {
 }
 	       
 
-python setup.py clean
+python setup.py clean || true
 rm -rf *.whl dist/* _skbuild py/soundswallower.egg-info
 python -m build --sdist
 docker pull quay.io/pypa/manylinux1_x86_64
