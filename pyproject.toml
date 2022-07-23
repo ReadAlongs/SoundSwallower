@@ -1,11 +1,14 @@
 [build-system]
 requires = [
-	 "setuptools>=42",
+	 "setuptools>=45",
 	 "wheel",
-	 "scikit-build~=0.13",
+	 "scikit-build~=0.15",
 	 "cmake",
 	 "Cython",
-	 "ninja; platform_system!='Windows'"
+	 "ninja"
 ]
 build-backend = "setuptools.build_meta"
-
+[tool.cibuildwheel]
+build = ["pp38*", "cp37-*", "cp38-*", "cp39-*", "cp310-*"]
+skip = ["*musl*", "*_i686", "*-win32"]
+build-verbosity = 2
