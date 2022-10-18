@@ -11,12 +11,12 @@ jobs:
       - name: Build
         run: |
           mkdir build
-          (cd build && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install ..)
-          (cd build && make)
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=install
+          cmake --build build
 
       - name: Run tests
         run: |
-          (cd build && make test)
+          cmake --build build --target check
   pytest:
     runs-on: ubuntu-latest
     steps:
