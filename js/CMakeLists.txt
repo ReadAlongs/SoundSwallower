@@ -10,8 +10,10 @@ set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
+# Sigh, more random undocumented changes to random undocumented Emscripten things
+# See https://github.com/emscripten-core/emscripten/issues/9786
 target_link_options(ssjs PRIVATE
-  -Oz -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432)
+  -Oz -sLEGACY_RUNTIME=1 -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
