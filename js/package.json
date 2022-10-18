@@ -1,6 +1,6 @@
 {
    "name": "soundswallower",
-   "version": "0.3.2",
+   "version": "0.4.0",
    "description": "An even smaller speech recognizer",
    "main": "soundswallower.js",
    "scripts": {
