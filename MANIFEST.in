@@ -49,6 +49,8 @@ include tests/test_macros.h.in
 exclude MANIFEST.in
 exclude .readthedocs.yml
 exclude .travis.yml
+exclude .gitignore
+recursive-exclude .github *
 recursive-exclude _skbuild *
 recursive-exclude * .gitignore
 recursive-exclude * *.py[co]
