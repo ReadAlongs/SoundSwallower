@@ -18,7 +18,7 @@ target_compile_options(ssjs PRIVATE -Oz)
 # https://stackoverflow.com/questions/68775616/how-not-to-have-dollar-sign-in-target-link-options-mangled
 # https://discourse.cmake.org/t/how-not-to-have-dollar-sign-in-target-link-options-mangled/3939/3
 set(CMAKE_EXE_LINKER_FLAGS
-  "-Oz -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$allocateUTF8OnStack -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432")
+  "-Oz -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$allocateUTF8OnStack\",\"$ccall\"] -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432")
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
