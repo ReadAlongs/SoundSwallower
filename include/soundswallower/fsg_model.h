@@ -65,8 +65,9 @@ extern "C" {
 }
 #endif
 
-/*
- * A single transition in the FSG.
+/**
+ * @struct fsg_link_t
+ * @brief A single transition in the FSG.
  */
 typedef struct fsg_link_s {
     int32 from_state;
@@ -82,12 +83,21 @@ typedef struct fsg_link_s {
 #define fsg_link_logs2prob(l)	((l)->logs2prob)
 
 /**
- * Adjacency list (opaque) for a state in an FSG.
+ * @struct trans_list_t
+ * @brief Adjacency list for a state in an FSG.
+ *
+ * Actually we use hash tables so that random access is a bit faster.
+ * Plus it allows us to make the lookup code a bit less ugly.
  */
-typedef struct trans_list_s trans_list_t;
+typedef struct trans_list_s {
+    hash_table_t *null_trans;   /* Null transitions keyed by state. */
+    hash_table_t *trans;        /* Lists of non-null transitions keyed by state. */
+} trans_list_t;
 
 /**
- * Word level FSG definition.
+ * @struct fsg_model_t
+ * @brief Word level FSG definition.
+ *
  * States are simply integers 0..n_state-1.
  * A transition emits a word and has a given probability of being taken.
  * There can also be null or epsilon transitions, with no associated emitted
@@ -123,8 +133,12 @@ typedef struct fsg_model_s {
 
 /**
  * Iterator over arcs.
+ * Implementation of arc iterator.
  */
-typedef struct fsg_arciter_s fsg_arciter_t;
+typedef struct fsg_arciter_s {
+    hash_iter_t *itor, *null_itor;
+    gnode_t *gn;
+} fsg_arciter_t;
 
 /**
  * Have silence transitions been added?

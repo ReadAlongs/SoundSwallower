@@ -47,26 +47,6 @@
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/bitvec.h>
 
-/**
- * Adjacency list (opaque) for a state in an FSG.
- *
- * Actually we use hash tables so that random access is a bit faster.
- * Plus it allows us to make the lookup code a bit less ugly.
- */
-
-struct trans_list_s {
-    hash_table_t *null_trans;   /* Null transitions keyed by state. */
-    hash_table_t *trans;        /* Lists of non-null transitions keyed by state. */
-};
-
-/**
- * Implementation of arc iterator.
- */
-struct fsg_arciter_s {
-    hash_iter_t *itor, *null_itor;
-    gnode_t *gn;
-};
-
 #define FSG_MODEL_BEGIN_DECL		"FSG_BEGIN"
 #define FSG_MODEL_END_DECL		"FSG_END"
 #define FSG_MODEL_N_DECL			"N"
@@ -696,7 +676,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     for (itor = hash_table_iter(vocab); itor;
          itor = hash_table_iter_next(itor)) {
         char const *word = hash_entry_key(itor->ent);
-        int32 wid = (int32) (long) hash_entry_val(itor->ent);
+        int32 wid = (int32) (size_t) hash_entry_val(itor->ent);
         fsg->vocab[wid] = (char *) word;
     }
     hash_table_free(vocab);
@@ -705,7 +685,11 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     if (fsgname)
         ckd_free(fsgname);
 
-    /* Do transitive closure on null transitions */
+    /* Do transitive closure on null transitions.  FIXME: This is
+     * actually quite inefficient as it *creates* a lot of new links
+     * as opposed to just *calculating* the epsilon-closure for each
+     * state.  Ideally we would epsilon-remove or determinize the FSG
+     * (but note that tag transitions are not really epsilons...) */
     nulls = fsg_model_null_trans_closure(fsg, nulls);
     glist_free(nulls);
     return fsg;
