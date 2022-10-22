@@ -1,5 +1,7 @@
-# type name
+# type names
 s/cmd_ln_t/config_t/g;
+s/cmd_ln_val_t/config_val_t/g;
+s/arg_t/config_param_t/g;
 # dashes
 s/cmd_ln_((?:set_)?[^_]+)_r(.*?)"-/config_${1}${2}"/g;
 # declarations, etc

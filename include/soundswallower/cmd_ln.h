@@ -81,28 +81,28 @@ extern "C" {
 #endif
 
 /**
- * @struct arg_t
+ * @struct config_param_t
  * Argument definition structure.
  */
-typedef struct arg_s {
+typedef struct config_param_s {
 	char const *name;   /**< Name of the command line switch */
 	int type;           /**< Type of the argument in question */
 	char const *deflt;  /**< Default value (as a character string), or NULL if none */
 	char const *doc;    /**< Documentation/description string */
-} arg_t;
+} config_param_t;
 
 /**
- * @struct cmd_ln_val_t
+ * @struct config_val_t
  * Configuration parameter structure.
  */
-typedef struct cmd_ln_val_s {
+typedef struct config_val_s {
     anytype_t val;
     int type;
     char *name;
-} cmd_ln_val_t;
+} config_val_t;
 
 /**
- * @name Values for arg_t::type
+ * @name Values for config_param_t::type
  */
 /* @{ */
 /**
@@ -162,7 +162,7 @@ typedef struct config_s {
     hash_table_t *ht;
     char **f_argv;
     uint32 f_argc;
-    arg_t const *defn;
+    config_param_t const *defn;
 } config_t;
 
 /**
@@ -183,7 +183,7 @@ typedef struct config_s {
  * @param strict Whether to fail on duplicate or unknown arguments.
  * @return A config_t* containing the results of command line parsing, or NULL on failure.
  */
-config_t *cmd_ln_init(config_t *inout_cmdln, arg_t const *defn, int32 strict, ...);
+config_t *cmd_ln_init(config_t *inout_cmdln, config_param_t const *defn, int32 strict, ...);
 
 /**
  * Retain ownership of a command-line argument set.
@@ -220,7 +220,7 @@ int config_free(config_t *cmdln);
  **/
 config_t *config_parse(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
-                         arg_t const *defn,	/**< In: Array of argument name definitions */
+                         config_param_t const *defn,	/**< In: Array of argument name definitions */
                          int32 argc,		/**< In: Number of actual arguments */
                          char *argv[],		/**< In: Actual arguments */
                          int32 strict           /**< In: Fail on duplicate or unknown
@@ -236,7 +236,7 @@ config_t *config_parse(config_t *inout_cmdln, /**< In/Out: Previous command-line
  */
 config_t *cmd_ln_parse_file_r(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
-                              arg_t const *defn,   /**< In: Array of argument name definitions*/
+                              config_param_t const *defn,   /**< In: Array of argument name definitions*/
                               char const *filename,/**< In: A file that contains all
                                                      the arguments */ 
                               int32 strict         /**< In: Fail on duplicate or unknown
@@ -259,7 +259,7 @@ config_t *cmd_ln_parse_file_r(config_t *inout_cmdln, /**< In/Out: Previous comma
  *         value is legitimately NULL and where the corresponding flag
  *         is unknown.
  */
-cmd_ln_val_t *config_access(config_t *cmdln, char const *name);
+config_val_t *config_access(config_t *cmdln, char const *name);
 
 /**
  * Access the type of a configuration parameter.
@@ -369,7 +369,7 @@ int config_exists(config_t *cmdln, char const *name);
  * @param cmdln command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_help_r(config_t *cmdln, const arg_t *defn);
+void cmd_ln_log_help_r(config_t *cmdln, const config_param_t *defn);
 
 /**
  * Print current configuration values and defaults.
@@ -377,7 +377,7 @@ void cmd_ln_log_help_r(config_t *cmdln, const arg_t *defn);
  * @param cmdln  command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_values_r(config_t *cmdln, const arg_t *defn);
+void cmd_ln_log_values_r(config_t *cmdln, const config_param_t *defn);
 
 
 #ifdef __cplusplus

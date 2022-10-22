@@ -81,17 +81,17 @@
 #include <soundswallower/strfuncs.h>
 
 static void
-arg_log_r(config_t *, arg_t const *, int32, int32);
+arg_log_r(config_t *, config_param_t const *, int32, int32);
 
 static config_t *
-parse_options(config_t *, const arg_t *, int32, char* [], int32);
+parse_options(config_t *, const config_param_t *, int32, char* [], int32);
 
 /*
  * Find max length of name and default fields in the given defn array.
  * Return #items in defn array.
  */
 static size_t
-arg_strlen(const arg_t * defn, size_t * namelen, size_t * deflen)
+arg_strlen(const config_param_t * defn, size_t * namelen, size_t * deflen)
 {
     size_t i, l;
 
@@ -118,20 +118,20 @@ static int32
 cmp_name(const void *a, const void *b)
 {
     return (strcmp_nocase
-            ((* (arg_t**) a)->name,
-             (* (arg_t**) b)->name));
+            ((* (config_param_t**) a)->name,
+             (* (config_param_t**) b)->name));
 }
 
-static arg_t const **
-arg_sort(const arg_t * defn, size_t n)
+static config_param_t const **
+arg_sort(const config_param_t * defn, size_t n)
 {
-    const arg_t ** pos;
+    const config_param_t ** pos;
     size_t i;
 
-    pos = (arg_t const **) ckd_calloc(n, sizeof(arg_t *));
+    pos = (config_param_t const **) ckd_calloc(n, sizeof(config_param_t *));
     for (i = 0; i < n; ++i)
         pos[i] = &defn[i];
-    qsort((void *)pos, n, sizeof(arg_t *), cmp_name);
+    qsort((void *)pos, n, sizeof(config_param_t *), cmp_name);
 
     return pos;
 }
@@ -221,12 +221,12 @@ arg_resolve_env(const char *str)
 }
 
 static void
-arg_log_r(config_t *cmdln, const arg_t * defn, int32 doc, int32 lineno)
+arg_log_r(config_t *cmdln, const config_param_t * defn, int32 doc, int32 lineno)
 {
-    arg_t const **pos;
+    config_param_t const **pos;
     size_t i, n;
     size_t namelen, deflen;
-    cmd_ln_val_t const *vp;
+    config_val_t const *vp;
 
     /* No definitions, do nothing. */
     if (defn == NULL)
@@ -296,10 +296,10 @@ arg_log_r(config_t *cmdln, const arg_t * defn, int32 doc, int32 lineno)
     E_INFOCONT("\n");
 }
 
-static cmd_ln_val_t *
+static config_val_t *
 cmd_ln_val_init(int t, const char *name, const char *str)
 {
-    cmd_ln_val_t *v;
+    config_val_t *v;
     anytype_t val;
     char *e_str;
 
@@ -353,7 +353,7 @@ cmd_ln_val_init(int t, const char *name, const char *str)
             return NULL;
     }
 
-    v = (cmd_ln_val_t *)ckd_calloc(1, sizeof(*v));
+    v = (config_val_t *)ckd_calloc(1, sizeof(*v));
     memcpy(v, &val, sizeof(val));
     v->type = t;
     v->name = ckd_salloc(name);
@@ -367,7 +367,7 @@ cmd_ln_val_init(int t, const char *name, const char *str)
  * DO NOT call it from config_parse()
  */
 static config_t *
-parse_options(config_t *cmdln, const arg_t *defn, int32 argc, char* argv[], int32 strict)
+parse_options(config_t *cmdln, const config_param_t *defn, int32 argc, char* argv[], int32 strict)
 {
     config_t *new_cmdln;
 
@@ -403,7 +403,7 @@ parse_options(config_t *cmdln, const arg_t *defn, int32 argc, char* argv[], int3
 }
 
 void
-cmd_ln_val_free(cmd_ln_val_t *val)
+cmd_ln_val_free(config_val_t *val)
 {
     if (val->type & ARG_STRING)
         ckd_free(val->val.ptr);
@@ -413,7 +413,7 @@ cmd_ln_val_free(cmd_ln_val_t *val)
 
 
 EXPORT config_t *
-config_parse(config_t *inout_cmdln, const arg_t * defn,
+config_parse(config_t *inout_cmdln, const config_param_t * defn,
                int32 argc, char *argv[], int strict)
 {
     int32 i, j, n, argstart;
@@ -460,8 +460,8 @@ config_parse(config_t *inout_cmdln, const arg_t * defn,
 
     /* Parse command line arguments (name-value pairs) */
     for (j = argstart; j < argc; j += 2) {
-        arg_t *argdef;
-        cmd_ln_val_t *val;
+        config_param_t *argdef;
+        config_val_t *val;
         void *v;
 
         if (hash_table_lookup(defidx, argv[j], &v) < 0) {
@@ -474,7 +474,7 @@ config_parse(config_t *inout_cmdln, const arg_t * defn,
             else
                 continue;
         }
-        argdef = (arg_t *)v;
+        argdef = (config_param_t *)v;
 
         /* Enter argument value */
         if (j + 1 >= argc) {
@@ -503,14 +503,14 @@ config_parse(config_t *inout_cmdln, const arg_t * defn,
             }
             else {
                 v = hash_table_replace(cmdln->ht, val->name, (void *)val);
-                cmd_ln_val_free((cmd_ln_val_t *)v);
+                cmd_ln_val_free((config_val_t *)v);
             }
         }
     }
 
     /* Fill in default values, if any, for unspecified arguments */
     for (i = 0; i < n; i++) {
-        cmd_ln_val_t *val;
+        config_val_t *val;
         void *v;
 
         if (hash_table_lookup(cmdln->ht, defn[i].name, &v) < 0) {
@@ -559,7 +559,7 @@ config_parse(config_t *inout_cmdln, const arg_t * defn,
 }
 
 EXPORT config_t *
-cmd_ln_init(config_t *inout_cmdln, const arg_t *defn, int32 strict, ...)
+cmd_ln_init(config_t *inout_cmdln, const config_param_t *defn, int32 strict, ...)
 {
     va_list args;
     const char *arg, *val;
@@ -597,7 +597,7 @@ cmd_ln_init(config_t *inout_cmdln, const arg_t *defn, int32 strict, ...)
 
 #ifndef __EMSCRIPTEN__
 config_t *
-cmd_ln_parse_file_r(config_t *inout_cmdln, const arg_t * defn, const char *filename, int32 strict)
+cmd_ln_parse_file_r(config_t *inout_cmdln, const config_param_t * defn, const char *filename, int32 strict)
 {
     FILE *file;
     int argc;
@@ -729,7 +729,7 @@ cmd_ln_parse_file_r(config_t *inout_cmdln, const arg_t * defn, const char *filen
 #endif /* not __EMSCRIPTEN__ */
 
 void
-cmd_ln_log_help_r(config_t *cmdln, arg_t const* defn)
+cmd_ln_log_help_r(config_t *cmdln, config_param_t const* defn)
 {
     if (defn == NULL)
         return;
@@ -744,7 +744,7 @@ cmd_ln_log_help_r(config_t *cmdln, arg_t const* defn)
 }
 
 void
-cmd_ln_log_values_r(config_t *cmdln, arg_t const* defn)
+cmd_ln_log_values_r(config_t *cmdln, config_param_t const* defn)
 {
     if (defn == NULL)
         return;
@@ -761,7 +761,7 @@ config_exists(config_t *cmdln, const char *name)
     return (hash_table_lookup(cmdln->ht, name, &val) == 0);
 }
 
-cmd_ln_val_t *
+config_val_t *
 config_access(config_t *cmdln, const char *name)
 {
     void *val;
@@ -769,13 +769,13 @@ config_access(config_t *cmdln, const char *name)
         E_ERROR("Unknown argument: %s\n", name);
         return NULL;
     }
-    return (cmd_ln_val_t *)val;
+    return (config_val_t *)val;
 }
 
 EXPORT int
 config_type_r(config_t *cmdln, char const *name)
 {
-    cmd_ln_val_t *val = config_access(cmdln, name);
+    config_val_t *val = config_access(cmdln, name);
     if (val == NULL)
         return 0;
     return val->type;
@@ -785,7 +785,7 @@ config_type_r(config_t *cmdln, char const *name)
 EXPORT char const *
 config_str(config_t *cmdln, char const *name)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL)
         return NULL;
@@ -799,7 +799,7 @@ config_str(config_t *cmdln, char const *name)
 EXPORT long
 config_int(config_t *cmdln, char const *name)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL)
         return 0L;
@@ -813,7 +813,7 @@ config_int(config_t *cmdln, char const *name)
 EXPORT double
 config_float(config_t *cmdln, char const *name)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL)
         return 0.0;
@@ -827,7 +827,7 @@ config_float(config_t *cmdln, char const *name)
 EXPORT void
 config_set_str(config_t *cmdln, char const *name, char const *str)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
@@ -844,7 +844,7 @@ config_set_str(config_t *cmdln, char const *name, char const *str)
 void
 cmd_ln_set_str_extra_r(config_t *cmdln, char const *name, char const *str)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     if (hash_table_lookup(cmdln->ht, name, (void **)&val) < 0) {
 	val = cmd_ln_val_init(ARG_STRING, name, str);
 	hash_table_enter(cmdln->ht, val->name, (void *)val);
@@ -861,7 +861,7 @@ cmd_ln_set_str_extra_r(config_t *cmdln, char const *name, char const *str)
 EXPORT void
 config_set_int(config_t *cmdln, char const *name, long iv)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
@@ -877,7 +877,7 @@ config_set_int(config_t *cmdln, char const *name, long iv)
 EXPORT void
 config_set_float(config_t *cmdln, char const *name, double fv)
 {
-    cmd_ln_val_t *val;
+    config_val_t *val;
     val = config_access(cmdln, name);
     if (val == NULL) {
         E_ERROR("Unknown argument: %s\n", name);
@@ -913,7 +913,7 @@ config_free(config_t *cmdln)
         entries = hash_table_tolist(cmdln->ht, &n);
         for (gn = entries; gn; gn = gnode_next(gn)) {
             hash_entry_t *e = (hash_entry_t *)gnode_ptr(gn);
-            cmd_ln_val_free((cmd_ln_val_t *)e->val);
+            cmd_ln_val_free((config_val_t *)e->val);
         }
         glist_free(entries);
         hash_table_free(cmdln->ht);

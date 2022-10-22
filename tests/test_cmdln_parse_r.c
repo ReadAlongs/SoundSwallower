@@ -8,7 +8,7 @@
 #include <soundswallower/cmd_ln.h>
 #include <soundswallower/ckd_alloc.h>
 
-const arg_t defs[] = {
+const config_param_t defs[] = {
     { "-a", ARG_INTEGER, "42", "This is the first argument." },
     { "-b", ARG_STRING, NULL, "This is the second argument." },
     { "-c", ARG_BOOLEAN, "no", "This is the third argument." },

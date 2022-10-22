@@ -15,7 +15,7 @@ enum { AGC_NONE };
 int
 main(int argc, char *argv[])
 {
-	static const arg_t fe_args[] = {
+	static const config_param_t fe_args[] = {
 		waveform_to_cepstral_command_line_macro(),
 		cepstral_to_feature_command_line_macro(),
 		{ NULL, 0, NULL, NULL }

@@ -47,7 +47,7 @@
 #include <soundswallower/fe_internal.h>
 #include <soundswallower/fe_warp.h>
 
-static const arg_t fe_args[] = {
+static const config_param_t fe_args[] = {
     waveform_to_cepstral_command_line_macro(),
     { NULL, 0, NULL, NULL }
 };
@@ -299,7 +299,7 @@ fe_init(config_t *config)
     return fe;
 }
 
-arg_t const *
+config_param_t const *
 fe_get_args(void)
 {
     return fe_args;

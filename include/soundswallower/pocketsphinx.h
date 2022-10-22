@@ -131,7 +131,7 @@ fe_t * ps_reinit_fe(ps_decoder_t *ps, config_t *config);
  * This is here to avoid exporting global data, which is problematic
  * on Win32 and Symbian (and possibly other platforms).
  */
-arg_t const *ps_args(void);
+config_param_t const *ps_args(void);
 
 /**
  * Retain a pointer to the decoder.

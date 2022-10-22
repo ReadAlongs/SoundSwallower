@@ -60,7 +60,7 @@
 #include <soundswallower/ps_lattice_internal.h>
 #include <soundswallower/fsg_search_internal.h>
 
-static const arg_t ps_args_def[] = {
+static const config_param_t ps_args_def[] = {
     POCKETSPHINX_OPTIONS,
     CMDLN_EMPTY_OPTION
 };
@@ -117,7 +117,7 @@ ps_expand_model_config(ps_decoder_t *ps)
 #else
     char const *hmmdir, *featparams;
     /* Feature and front-end parameters that may be in feat.params */
-    static const arg_t feat_defn[] = {
+    static const config_param_t feat_defn[] = {
     waveform_to_cepstral_command_line_macro(),
     cepstral_to_feature_command_line_macro(),
     CMDLN_EMPTY_OPTION
@@ -502,7 +502,7 @@ ps_init(config_t *config)
     return ps;
 }
 
-EXPORT arg_t const *
+EXPORT config_param_t const *
 ps_args(void)
 {
     return ps_args_def;

@@ -58,14 +58,14 @@ cdef extern from "soundswallower/hash_table.h":
 
 
 cdef extern from "soundswallower/cmd_ln.h":
-    ctypedef struct arg_t:
+    ctypedef struct config_param_t:
         const char *name
         int type
         const char *deflt
         const char *doc
     ctypedef struct config_t:
         hash_table_t *ht
-        const arg_t *defn
+        const config_param_t *defn
     cdef enum:
         ARG_REQUIRED,
         ARG_INTEGER,
@@ -76,10 +76,10 @@ cdef extern from "soundswallower/cmd_ln.h":
         REQARG_FLOATING,
         REQARG_STRING,
         REQARG_BOOLEAN
-    ctypedef struct cmd_ln_val_t:
+    ctypedef struct config_val_t:
         int type
         
-    config_t *config_parse(config_t *inout_cmdln, arg_t *defn,
+    config_t *config_parse(config_t *inout_cmdln, config_param_t *defn,
                              int argc, char **argv, int strict)
     int config_free(config_t *cmdln)
 
@@ -90,7 +90,7 @@ cdef extern from "soundswallower/cmd_ln.h":
     void config_set_str(config_t *cmdln, const char *name, const char *str)
     void config_set_int(config_t *cmdln, const char *name, long iv)
     void config_set_float(config_t *cmdln, const char *name, double fv)
-    cmd_ln_val_t *config_access(config_t *cmdln, const char *name)
+    config_val_t *config_access(config_t *cmdln, const char *name)
 
     int config_exists(config_t *cmdln, const char *name)
 
@@ -139,7 +139,7 @@ cdef extern from "soundswallower/pocketsphinx.h":
         pass
     ctypedef struct ps_seg_t:
         pass
-    arg_t *ps_args()
+    config_param_t *ps_args()
     ps_decoder_t *ps_init(config_t *config)
     int ps_free(ps_decoder_t *ps)
     int ps_reinit(ps_decoder_t *ps, config_t *config)

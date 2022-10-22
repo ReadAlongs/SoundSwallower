@@ -253,7 +253,7 @@ compare_cepstra(mfcc_t **c1, mfcc_t **c2, int nfr, int ncep)
 int
 main(int argc, char *argv[])
 {
-    static const arg_t fe_args[] = {
+    static const config_param_t fe_args[] = {
         waveform_to_cepstral_command_line_macro(),
         { NULL, 0, NULL, NULL }
     };
