@@ -43,12 +43,13 @@
 #include <soundswallower/genrand.h>
 #include <soundswallower/err.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/fe_internal.h>
 #include <soundswallower/fe_warp.h>
 
 static const config_param_t fe_args[] = {
-    waveform_to_cepstral_command_line_macro(),
+    FE_OPTIONS,
     { NULL, 0, NULL, NULL }
 };
 

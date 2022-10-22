@@ -61,8 +61,8 @@
 #include <soundswallower/fsg_search_internal.h>
 
 static const config_param_t ps_args_def[] = {
-    POCKETSPHINX_OPTIONS,
-    CMDLN_EMPTY_OPTION
+    CONFIG_OPTIONS,
+    CONFIG_EMPTY_OPTION
 };
 
 #ifndef __EMSCRIPTEN__
@@ -118,9 +118,9 @@ ps_expand_model_config(ps_decoder_t *ps)
     char const *hmmdir, *featparams;
     /* Feature and front-end parameters that may be in feat.params */
     static const config_param_t feat_defn[] = {
-    waveform_to_cepstral_command_line_macro(),
-    cepstral_to_feature_command_line_macro(),
-    CMDLN_EMPTY_OPTION
+        FE_OPTIONS,
+        FEAT_OPTIONS,
+        CONFIG_EMPTY_OPTION
     };
 
     /* Get acoustic model filenames and add them to the command-line */

@@ -45,19 +45,19 @@
 #include <soundswallower/fe.h>
 
 /** Minimal set of command-line options for PocketSphinx. */
-#define POCKETSPHINX_OPTIONS \
-    waveform_to_cepstral_command_line_macro(), \
-    cepstral_to_feature_command_line_macro(), \
-        POCKETSPHINX_ACMOD_OPTIONS,           \
-        POCKETSPHINX_BEAM_OPTIONS,   \
-        POCKETSPHINX_SEARCH_OPTIONS, \
-        POCKETSPHINX_DICT_OPTIONS,   \
-        POCKETSPHINX_NGRAM_OPTIONS,  \
-        POCKETSPHINX_FSG_OPTIONS,    \
-        POCKETSPHINX_DEBUG_OPTIONS
+#define CONFIG_OPTIONS \
+    FE_OPTIONS,                                \
+        FEAT_OPTIONS,                          \
+        ACMOD_OPTIONS,                         \
+        BEAM_OPTIONS,                          \
+        SEARCH_OPTIONS,                        \
+        DICT_OPTIONS,                          \
+        NGRAM_OPTIONS,                         \
+        FSG_OPTIONS,                           \
+        DEBUG_OPTIONS
 
 /** Options for debugging and logging. */
-#define POCKETSPHINX_DEBUG_OPTIONS                      \
+#define DEBUG_OPTIONS                      \
     { "logfn",                                         \
             ARG_STRING,                                 \
             NULL,                                       \
@@ -68,7 +68,7 @@
             "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" }
 
 /** Options defining beam width parameters for tuning the search. */
-#define POCKETSPHINX_BEAM_OPTIONS                                       \
+#define BEAM_OPTIONS                                       \
 { "beam",                                                              \
       ARG_FLOATING,                                                      \
       "1e-48",                                                          \
@@ -83,7 +83,7 @@
       "Beam width applied to phone transitions" }
 
 /** Options defining other parameters for tuning the search. */
-#define POCKETSPHINX_SEARCH_OPTIONS \
+#define SEARCH_OPTIONS \
 { "compallsen",                                                                                \
       ARG_BOOLEAN,                                                                              \
       "no",                                                                                     \
@@ -102,7 +102,7 @@
       "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
 
 /** Command-line options for finite state grammars. */
-#define POCKETSPHINX_FSG_OPTIONS \
+#define FSG_OPTIONS \
     { "fsg",                                                   \
             ARG_STRING,                                         \
             NULL,                                               \
@@ -125,7 +125,7 @@
         "Insert filler words at each state."}
 
 /** Command-line options for statistical language models (not used) and grammars. */
-#define POCKETSPHINX_NGRAM_OPTIONS \
+#define NGRAM_OPTIONS \
 { "lw",										\
       ARG_FLOATING,									\
       "6.5",										\
@@ -152,7 +152,7 @@
         "Filler word transition probability" } \
 
 /** Command-line options for dictionaries. */
-#define POCKETSPHINX_DICT_OPTIONS \
+#define DICT_OPTIONS \
     { "dict",							\
       ARG_STRING,						\
       NULL,							\
@@ -167,7 +167,7 @@
       "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" }	\
 
 /** Command-line options for acoustic modeling */
-#define POCKETSPHINX_ACMOD_OPTIONS \
+#define ACMOD_OPTIONS \
 { "hmm",                                                                       \
       REQARG_STRING,                                                            \
       NULL,                                                                     \
@@ -249,6 +249,199 @@
       "no",                                                                    \
       "Use only context-independent phones (faster, useful for alignment)" }    \
 
-#define CMDLN_EMPTY_OPTION { NULL, 0, NULL, NULL }
+#if WORDS_BIGENDIAN
+#define NATIVE_ENDIAN "big"
+#else
+#define NATIVE_ENDIAN "little"
+#endif
+
+/** Default number of samples per second. */
+#ifdef __EMSCRIPTEN__
+#define DEFAULT_SAMPLING_RATE 44100
+#else
+#define DEFAULT_SAMPLING_RATE 16000
+#endif
+/** Default number of frames per second. */
+#define DEFAULT_FRAME_RATE 100
+/** Default spacing between frame starts (equal to
+ * DEFAULT_SAMPLING_RATE/DEFAULT_FRAME_RATE) */
+#define DEFAULT_FRAME_SHIFT 160
+/** Default size of each frame (410 samples @ 16000Hz). */
+#define DEFAULT_WINDOW_LENGTH 0.025625 
+/** Default number of FFT points. */
+#ifdef __EMSCRIPTEN__
+#define DEFAULT_FFT_SIZE 2048
+#else
+#define DEFAULT_FFT_SIZE 512
+#endif
+/** Default number of MFCC coefficients in output. */
+#define DEFAULT_NUM_CEPSTRA 13
+/** Default number of filter bands used to generate MFCCs. */
+#define DEFAULT_NUM_FILTERS 40
+/** Default lower edge of mel filter bank. */
+#define DEFAULT_LOWER_FILT_FREQ 133.33334
+/** Default upper edge of mel filter bank. */
+#define DEFAULT_UPPER_FILT_FREQ 6855.4976
+/** Default pre-emphasis filter coefficient. */
+#define DEFAULT_PRE_EMPHASIS_ALPHA 0.97
+/** Default type of frequency warping to use for VTLN. */
+#define DEFAULT_WARP_TYPE "inverse_linear"
+/** Default random number seed to use for dithering. */
+#define SEED  -1
+
+#define FE_OPTIONS \
+  { "logspec", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Write out logspectral files instead of cepstra" }, \
+   \
+  { "smoothspec", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Write out cepstral-smoothed logspectral files" }, \
+   \
+  { "transform", \
+    ARG_STRING, \
+    "legacy", \
+    "Which type of transform to use to calculate cepstra (legacy, dct, or htk)" }, \
+   \
+  { "alpha", \
+    ARG_FLOATING, \
+    ARG_STRINGIFY(DEFAULT_PRE_EMPHASIS_ALPHA), \
+    "Preemphasis parameter" }, \
+   \
+  { "samprate", \
+    ARG_INTEGER, \
+    ARG_STRINGIFY(DEFAULT_SAMPLING_RATE), \
+    "Sampling rate" }, \
+   \
+  { "frate", \
+    ARG_INTEGER, \
+    ARG_STRINGIFY(DEFAULT_FRAME_RATE), \
+    "Frame rate" }, \
+   \
+  { "wlen", \
+    ARG_FLOATING, \
+    ARG_STRINGIFY(DEFAULT_WINDOW_LENGTH), \
+    "Hamming window length" }, \
+   \
+  { "nfft", \
+    ARG_INTEGER, \
+    "0", \
+    "Size of FFT, or 0 to set automatically (recommended)" }, \
+   \
+  { "nfilt", \
+    ARG_INTEGER, \
+    ARG_STRINGIFY(DEFAULT_NUM_FILTERS), \
+    "Number of filter banks" }, \
+   \
+  { "lowerf", \
+    ARG_FLOATING, \
+    ARG_STRINGIFY(DEFAULT_LOWER_FILT_FREQ), \
+    "Lower edge of filters" }, \
+   \
+  { "upperf", \
+    ARG_FLOATING, \
+    ARG_STRINGIFY(DEFAULT_UPPER_FILT_FREQ), \
+    "Upper edge of filters" }, \
+   \
+  { "unit_area", \
+    ARG_BOOLEAN, \
+    "yes", \
+    "Normalize mel filters to unit area" }, \
+   \
+  { "round_filters", \
+    ARG_BOOLEAN, \
+    "yes", \
+    "Round mel filter frequencies to DFT points" }, \
+   \
+  { "ncep", \
+    ARG_INTEGER, \
+    ARG_STRINGIFY(DEFAULT_NUM_CEPSTRA), \
+    "Number of cep coefficients" }, \
+   \
+  { "doublebw", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Use double bandwidth filters (same center freq)" }, \
+   \
+  { "lifter", \
+    ARG_INTEGER, \
+    "0", \
+    "Length of sin-curve for liftering, or 0 for no liftering." }, \
+   \
+  { "input_endian", \
+    ARG_STRING, \
+    NATIVE_ENDIAN, \
+    "Endianness of input data, big or little, ignored if NIST or MS Wav" }, \
+   \
+  { "warp_type", \
+    ARG_STRING, \
+    DEFAULT_WARP_TYPE, \
+    "Warping function type (or shape)" }, \
+   \
+  { "warp_params", \
+    ARG_STRING, \
+    NULL, \
+    "Parameters defining the warping function" }, \
+   \
+  { "dither", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Add 1/2-bit noise" }, \
+   \
+  { "seed", \
+    ARG_INTEGER, \
+    ARG_STRINGIFY(SEED), \
+    "Seed for random number generator; if less than zero, pick our own" }, \
+   \
+  { "remove_dc", \
+    ARG_BOOLEAN, \
+    "no", \
+    "Remove DC offset from each frame" }, \
+  { "remove_noise", \
+    ARG_BOOLEAN,                          \
+    "no",                                        \
+    "Remove noise using spectral subtraction" }, \
+  { "verbose",                                 \
+          ARG_BOOLEAN,                          \
+          "no",                                 \
+          "Show input filenames" }
+
+#define FEAT_OPTIONS \
+{ "feat",                                                              \
+      ARG_STRING,                                                       \
+      "1s_c_d_dd",                                                      \
+      "Feature stream type, depends on the acoustic model" },           \
+{ "ceplen",                                                            \
+      ARG_INTEGER,                                                        \
+      "13",                                                             \
+     "Number of components in the input feature vector" },              \
+{ "cmn",                                                               \
+      ARG_STRING,                                                       \
+      "live",                                                        \
+      "Cepstral mean normalization scheme ('live', 'batch', or 'none')" }, \
+{ "cmninit",                                                           \
+      ARG_STRING,                                                       \
+      "40,3,-1",                                                        \
+      "Initial values (comma-separated) for cepstral mean when 'live' is used" }, \
+{ "varnorm",                                                           \
+      ARG_BOOLEAN,                                                      \
+      "no",                                                             \
+      "Variance normalize each utterance (only if CMN == current)" },   \
+{ "lda",                                                               \
+      ARG_STRING,                                                       \
+      NULL,                                                             \
+      "File containing transformation matrix to be applied to features (single-stream features only)" }, \
+{ "ldadim",                                                            \
+      ARG_INTEGER,                                                        \
+      "0",                                                              \
+      "Dimensionality of output of feature transformation (0 to use entire matrix)" }, \
+{"svspec",                                                             \
+     ARG_STRING,                                                        \
+     NULL,                                                           \
+     "Subvector specification (e.g., 24,0-11/25,12-23/26-38 or 0-12/13-25/26-38)"}
+
+#define CONFIG_EMPTY_OPTION { NULL, 0, NULL, NULL }
 
 #endif /* __PS_CMDLN_MACRO_H__ */
