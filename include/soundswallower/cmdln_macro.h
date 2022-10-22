@@ -58,193 +58,193 @@
 
 /** Options for debugging and logging. */
 #define POCKETSPHINX_DEBUG_OPTIONS                      \
-    { "-logfn",                                         \
+    { "logfn",                                         \
             ARG_STRING,                                 \
             NULL,                                       \
             "File to write log messages in" },          \
-    { "-loglevel",                                       \
+    { "loglevel",                                       \
             ARG_STRING,                                 \
             "WARN",                                       \
             "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" }
 
 /** Options defining beam width parameters for tuning the search. */
 #define POCKETSPHINX_BEAM_OPTIONS                                       \
-{ "-beam",                                                              \
+{ "beam",                                                              \
       ARG_FLOATING,                                                      \
       "1e-48",                                                          \
       "Beam width applied to every frame in Viterbi search (smaller values mean wider beam)" }, \
-{ "-wbeam",                                                             \
+{ "wbeam",                                                             \
       ARG_FLOATING,                                                      \
       "7e-29",                                                          \
       "Beam width applied to word exits" },                             \
-{ "-pbeam",                                                             \
+{ "pbeam",                                                             \
       ARG_FLOATING,                                                      \
       "1e-48",                                                          \
       "Beam width applied to phone transitions" }
 
 /** Options defining other parameters for tuning the search. */
 #define POCKETSPHINX_SEARCH_OPTIONS \
-{ "-compallsen",                                                                                \
+{ "compallsen",                                                                                \
       ARG_BOOLEAN,                                                                              \
       "no",                                                                                     \
       "Compute all senone scores in every frame (can be faster when there are many senones)" }, \
-{ "-bestpath",                                                                                  \
+{ "bestpath",                                                                                  \
       ARG_BOOLEAN,                                                                              \
       "yes",                                                                                    \
       "Run bestpath (Dijkstra) search over word lattice (3rd pass)" },                          \
-{ "-backtrace",                                                                                 \
+{ "backtrace",                                                                                 \
       ARG_BOOLEAN,                                                                              \
       "no",                                                                                     \
       "Print results and backtraces to log." },                                                 \
-{ "-maxhmmpf",                                                                                  \
+{ "maxhmmpf",                                                                                  \
       ARG_INTEGER,                                                                                \
       "30000",                                                                                  \
       "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
 
 /** Command-line options for finite state grammars. */
 #define POCKETSPHINX_FSG_OPTIONS \
-    { "-fsg",                                                   \
+    { "fsg",                                                   \
             ARG_STRING,                                         \
             NULL,                                               \
             "Sphinx format finite state grammar file"},         \
-{ "-jsgf",                                                      \
+{ "jsgf",                                                      \
         ARG_STRING,                                             \
         NULL,                                                   \
         "JSGF grammar file" },                                  \
-{ "-toprule",                                                   \
+{ "toprule",                                                   \
         ARG_STRING,                                             \
         NULL,                                                   \
         "Start rule for JSGF (first public rule is default)" }, \
-{ "-fsgusealtpron",                                             \
+{ "fsgusealtpron",                                             \
         ARG_BOOLEAN,                                            \
         "yes",                                                  \
         "Add alternate pronunciations to FSG"},                 \
-{ "-fsgusefiller",                                              \
+{ "fsgusefiller",                                              \
         ARG_BOOLEAN,                                            \
         "yes",                                                  \
         "Insert filler words at each state."}
 
 /** Command-line options for statistical language models (not used) and grammars. */
 #define POCKETSPHINX_NGRAM_OPTIONS \
-{ "-lw",										\
+{ "lw",										\
       ARG_FLOATING,									\
       "6.5",										\
       "Language model probability weight" },						\
-{ "-ascale",										\
+{ "ascale",										\
       ARG_FLOATING,									\
       "20.0",										\
       "Inverse of acoustic model scale for confidence score calculation" },		\
-{ "-wip",										\
+{ "wip",										\
       ARG_FLOATING,									\
       "0.65",										\
       "Word insertion penalty" },							\
-{ "-pip",										\
+{ "pip",										\
       ARG_FLOATING,									\
       "1.0",										\
       "Phone insertion penalty" },							\
-{ "-silprob",										\
+{ "silprob",										\
       ARG_FLOATING,									\
       "0.005",										\
       "Silence word transition probability" },						\
-{ "-fillprob",										\
+{ "fillprob",										\
       ARG_FLOATING,									\
       "1e-8",										\
         "Filler word transition probability" } \
 
 /** Command-line options for dictionaries. */
 #define POCKETSPHINX_DICT_OPTIONS \
-    { "-dict",							\
+    { "dict",							\
       ARG_STRING,						\
       NULL,							\
       "Main pronunciation dictionary (lexicon) input file" },	\
-    { "-fdict",							\
+    { "fdict",							\
       ARG_STRING,						\
       NULL,							\
       "Noise word pronunciation dictionary input file" },	\
-    { "-dictcase",						\
+    { "dictcase",						\
       ARG_BOOLEAN,						\
       "no",							\
       "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" }	\
 
 /** Command-line options for acoustic modeling */
 #define POCKETSPHINX_ACMOD_OPTIONS \
-{ "-hmm",                                                                       \
+{ "hmm",                                                                       \
       REQARG_STRING,                                                            \
       NULL,                                                                     \
       "Directory containing acoustic model files."},                            \
-{ "-featparams",                                                                \
+{ "featparams",                                                                \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "File containing feature extraction parameters."},                        \
-{ "-mdef",                                                                      \
+{ "mdef",                                                                      \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Model definition input file" },                                          \
-{ "-senmgau", \
+{ "senmgau", \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Senone to codebook mapping input file (usually not needed)" }, \
-{ "-tmat",                                                                      \
+{ "tmat",                                                                      \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "HMM state transition matrix input file" },                               \
-{ "-tmatfloor",                                                                 \
+{ "tmatfloor",                                                                 \
       ARG_FLOATING,                                                              \
       "0.0001",                                                                 \
       "HMM state transition probability floor (applied to -tmat file)" },       \
-{ "-mean",                                                                      \
+{ "mean",                                                                      \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Mixture gaussian means input file" },                                    \
-{ "-var",                                                                       \
+{ "var",                                                                       \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Mixture gaussian variances input file" },                                \
-{ "-varfloor",                                                                  \
+{ "varfloor",                                                                  \
       ARG_FLOATING,                                                              \
       "0.0001",                                                                 \
       "Mixture gaussian variance floor (applied to data from -var file)" },     \
-{ "-mixw",                                                                      \
+{ "mixw",                                                                      \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Senone mixture weights input file (uncompressed)" },                     \
-{ "-mixwfloor",                                                                 \
+{ "mixwfloor",                                                                 \
       ARG_FLOATING,                                                              \
       "0.0000001",                                                              \
       "Senone mixture weights floor (applied to data from -mixw file)" },       \
-{ "-aw",                                                                \
+{ "aw",                                                                \
     ARG_INTEGER,                                                          \
     "1", \
         "Inverse weight applied to acoustic scores." },                 \
-{ "-sendump",                                                                   \
+{ "sendump",                                                                   \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "Senone dump (compressed mixture weights) input file" },                  \
-{ "-mllr",                                                                      \
+{ "mllr",                                                                      \
       ARG_STRING,                                                               \
       NULL,                                                                     \
       "MLLR transformation to apply to means and variances" },                  \
-{ "-mmap",                                                                      \
+{ "mmap",                                                                      \
       ARG_BOOLEAN,                                                              \
       "yes",                                                                    \
       "Use memory-mapped I/O (if possible) for model files" },                  \
-{ "-ds",                                                                        \
+{ "ds",                                                                        \
       ARG_INTEGER,                                                                \
       "1",                                                                      \
       "Frame GMM computation downsampling ratio" },                             \
-{ "-topn",                                                                      \
+{ "topn",                                                                      \
       ARG_INTEGER,                                                                \
       "4",                                                                      \
       "Maximum number of top Gaussians to use in scoring." },                   \
-{ "-topn_beam",                                                                 \
+{ "topn_beam",                                                                 \
       ARG_STRING,                                                               \
       "0",                                                                     \
       "Beam width used to determine top-N Gaussians (or a list, per-feature)" },\
-{ "-logbase",                                                                   \
+{ "logbase",                                                                   \
       ARG_FLOATING,                                                              \
       "1.0001",                                                                 \
       "Base in which all log-likelihoods calculated" },                         \
-{ "-cionly",                                                                      \
+{ "cionly",                                                                      \
       ARG_BOOLEAN,                                                              \
       "no",                                                                    \
       "Use only context-independent phones (faster, useful for alignment)" }    \
