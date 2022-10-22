@@ -80,11 +80,11 @@ typedef struct ps_seg_s ps_seg_t;
  * elsewhere, you can free it.
  *
  * @param config a command-line structure, as created by
- * cmd_ln_parse_r() or cmd_ln_parse_file_r().  If NULL, the
+ * config_parse() or cmd_ln_parse_file_r().  If NULL, the
  * decoder will be allocated but not initialized.  You can
  * proceed to initialize it with ps_reinit().
  */
-ps_decoder_t *ps_init(cmd_ln_t *config);
+ps_decoder_t *ps_init(config_t *config);
 
 /**
  * Reinitialize the decoder with updated configuration.
@@ -102,7 +102,7 @@ ps_decoder_t *ps_init(cmd_ln_t *config);
  *               with any changes applied.
  * @return 0 for success, <0 for failure.
  */
-int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config);
+int ps_reinit(ps_decoder_t *ps, config_t *config);
 
 /**
  * Reinitialize only the feature extractor with updated configuration.
@@ -123,7 +123,7 @@ int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config);
  *         pointer, so you should not attempt to free it manually.
  *         Use fe_retain() if you wish to reuse it elsewhere.
  */
-fe_t * ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config);
+fe_t * ps_reinit_fe(ps_decoder_t *ps, config_t *config);
 
 /**
  * Returns the argument definitions used in ps_init().
@@ -163,7 +163,7 @@ int ps_free(ps_decoder_t *ps);
  *         manually.  Use cmd_ln_retain() if you wish to reuse it
  *         elsewhere.
  */
-cmd_ln_t *ps_get_config(ps_decoder_t *ps);
+config_t *ps_get_config(ps_decoder_t *ps);
 
 /**
  * Get the log-math computation object for this decoder.

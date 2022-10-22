@@ -21,7 +21,7 @@ main(int argc, char *argv[])
 		{ NULL, 0, NULL, NULL }
 	};
 	FILE *raw;
-	cmd_ln_t *config;
+	config_t *config;
 	fe_t *fe;
 	feat_t *fcb;
 	int16 buf[2048];
@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 		return 1;
 	}
 
-	config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE);
+	config = config_parse(NULL, fe_args, argc, argv, FALSE);
 	fe = fe_init(config);
 	fcb = feat_init(config);
 
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 	feat_array_free(featbuf2);
 	feat_free(fcb);
 	ckd_free_2d(cepbuf);
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

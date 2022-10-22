@@ -43,7 +43,7 @@ enum agc_type_e { AGC_NONE };
 int
 main(int argc, char *argv[])
 {
-	cmd_ln_t *config;
+	config_t *config;
 	feat_t *fcb;
 	mfcc_t **in_feats, ***out_feats;
 	int32 i, j, ncep;
@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	ckd_free_3d(out_feats);
 
 	/* Test "raw" features with concatenation */
-	cmd_ln_set_str_r(config, "-feat", "13:1");
+	config_set_str(config, "feat", "13:1");
 	fcb = feat_init(config);
 
 	in_feats = (mfcc_t **)ckd_alloc_2d_ptr(6, 13, data, sizeof(mfcc_t));
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	feat_free(fcb);
 
 	/* Test 1s_c_d_dd features */
-	cmd_ln_set_str_r(config, "-feat", "1s_c_d_dd");
+	config_set_str(config, "feat", "1s_c_d_dd");
 	fcb = feat_init(config);
 	ncep = 6;
 	feat_s2mfc2feat_live(fcb, in_feats, &ncep, 1, 1, out_feats);
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 	ckd_free_3d(out_feats);
 
 	/* Test LDA (sort of). */
-	cmd_ln_set_str_r(config, "-feat", "1s_c_d_dd");
+	config_set_str(config, "feat", "1s_c_d_dd");
 	fcb = feat_init(config);
 	feat_read_lda(fcb, TESTDATADIR "/feature_transform", 12);
 	out_feats = (mfcc_t ***)ckd_calloc_3d(8, 1, 39, sizeof(mfcc_t));
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 	feat_free(fcb);
 	ckd_free(in_feats);
 	ckd_free_3d(out_feats);
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

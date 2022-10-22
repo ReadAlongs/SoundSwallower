@@ -716,9 +716,9 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 feat_t *
-feat_init(cmd_ln_t *config)
+feat_init(config_t *config)
 {
-    const char *ldapath = cmd_ln_str_r(config, "_lda");
+    const char *ldapath = config_str(config, "_lda");
     s3file_t *lda = NULL;
     feat_t *feat;
 
@@ -734,13 +734,13 @@ feat_init(cmd_ln_t *config)
 }
 
 feat_t *
-feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
+feat_init_s3file(config_t *config, s3file_t *lda)
 {
     feat_t *fcb;
-    const char *type = cmd_ln_str_r(config, "-feat");
-    cmn_type_t cmn = cmn_type_from_str(cmd_ln_str_r(config,"-cmn"));
-    int varnorm = cmd_ln_boolean_r(config, "-varnorm");
-    int cepsize = cmd_ln_int32_r(config, "-ceplen");
+    const char *type = config_str(config, "feat");
+    cmn_type_t cmn = cmn_type_from_str(config_str(config,"cmn"));
+    int varnorm = config_bool(config, "varnorm");
+    int cepsize = config_int32(config, "ceplen");
 
     if (cepsize == 0)
         cepsize = 13;
@@ -899,11 +899,11 @@ feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
     /* Set up CMN initialization if requested */
     if (cmn != CMN_NONE) {
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
-        if (cmd_ln_exists_r(config, "-cmninit")) {
+        if (config_exists(config, "cmninit")) {
             char *c, *cc, *vallist;
             int32 nvals;
 
-            vallist = ckd_salloc(cmd_ln_str_r(config, "-cmninit"));
+            vallist = ckd_salloc(config_str(config, "cmninit"));
             c = vallist;
             nvals = 0;
             while (nvals < fcb->cmn_struct->veclen
@@ -935,15 +935,15 @@ feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
     /* Load LDA. */
     if (lda) {
         if (feat_read_lda_s3file(fcb, lda,
-                                 cmd_ln_int32_r(config, "-ldadim")) < 0)
+                                 config_int32(config, "ldadim")) < 0)
             goto error_out;
     }
     /* Set up subvector specification */
-    if (cmd_ln_str_r(config, "-svspec")) {
+    if (config_str(config, "svspec")) {
         int32 **subvecs;
         E_INFO("Using subvector specification %s\n",
-               cmd_ln_str_r(config, "-svspec"));
-        if ((subvecs = parse_subvecs(cmd_ln_str_r(config, "-svspec"))) == NULL)
+               config_str(config, "svspec"));
+        if ((subvecs = parse_subvecs(config_str(config, "svspec"))) == NULL)
             goto error_out;
         if ((feat_set_subvecs(fcb, subvecs)) < 0)
             goto error_out;

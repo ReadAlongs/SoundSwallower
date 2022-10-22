@@ -713,7 +713,7 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
 
     /* Read means and variances. */
     if ((s->g = gauden_init_s3file(means, vars,
-                                   cmd_ln_float32_r(s->config, "-varfloor"),
+                                   config_float32(s->config, "varfloor"),
                                    s->lmath)) == NULL) {
         E_ERROR("Failed to read means and variances\n");	
         goto error_out;
@@ -752,12 +752,12 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         s->sendump_mmap = s3file_retain(sendump);
     }
     else {
-        float32 mixw_floor = cmd_ln_float32_r(s->config, "-mixwfloor");
+        float32 mixw_floor = config_float32(s->config, "mixwfloor");
         if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
     }
-    s->ds_ratio = cmd_ln_int32_r(s->config, "-ds");
-    s->max_topn = cmd_ln_int32_r(s->config, "-topn");
+    s->ds_ratio = config_int32(s->config, "ds");
+    s->max_topn = config_int32(s->config, "topn");
     E_INFO("Maximum top-N: %d\n", s->max_topn);
 
     /* Assume mapping of senones to their base phones, though this
@@ -812,19 +812,19 @@ ptm_mgau_init(acmod_t *acmod)
     const char *path;
     ps_mgau_t *ps = NULL;
 
-    path = cmd_ln_str_r(acmod->config, "_mean");
+    path = config_str(acmod->config, "_mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((means = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", path);
         goto error_out;
     }
-    path = cmd_ln_str_r(acmod->config, "_var");
+    path = config_str(acmod->config, "_var");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((vars = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", path);
         goto error_out;
     }
-    if ((path = cmd_ln_str_r(acmod->config, "_sendump"))) {
+    if ((path = config_str(acmod->config, "_sendump"))) {
         E_INFO("Loading senones from dump file %s\n", path);
         if ((sendump = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
@@ -832,7 +832,7 @@ ptm_mgau_init(acmod_t *acmod)
         }
     }
     else {
-        path = cmd_ln_str_r(acmod->config, "_mixw");
+        path = config_str(acmod->config, "_mixw");
         E_INFO("Reading senone mixture weights: %s\n", path);
         if ((mixw = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",

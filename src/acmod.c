@@ -66,8 +66,8 @@ acmod_load_am(acmod_t *acmod)
     char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
     /* Read model definition. */
-    if ((mdeffn = cmd_ln_str_r(acmod->config, "_mdef")) == NULL) {
-        if ((hmmdir = cmd_ln_str_r(acmod->config, "-hmm")) == NULL)
+    if ((mdeffn = config_str(acmod->config, "_mdef")) == NULL) {
+        if ((hmmdir = config_str(acmod->config, "hmm")) == NULL)
             E_ERROR("Acoustic model definition is not specified either "
                     "with -mdef option or with -hmm\n");
         else
@@ -83,22 +83,22 @@ acmod_load_am(acmod_t *acmod)
     }
 
     /* Read transition matrices. */
-    if ((tmatfn = cmd_ln_str_r(acmod->config, "_tmat")) == NULL) {
+    if ((tmatfn = config_str(acmod->config, "_tmat")) == NULL) {
         E_ERROR("No tmat file specified\n");
         return -1;
     }
     acmod->tmat = tmat_init(tmatfn, acmod->lmath,
-                            cmd_ln_float32_r(acmod->config, "-tmatfloor"));
+                            config_float32(acmod->config, "tmatfloor"));
 
     /* Read the acoustic models. */
-    if ((cmd_ln_str_r(acmod->config, "_mean") == NULL)
-        || (cmd_ln_str_r(acmod->config, "_var") == NULL)
-        || (cmd_ln_str_r(acmod->config, "_tmat") == NULL)) {
+    if ((config_str(acmod->config, "_mean") == NULL)
+        || (config_str(acmod->config, "_var") == NULL)
+        || (config_str(acmod->config, "_tmat") == NULL)) {
         E_ERROR("No mean/var/tmat files specified\n");
         return -1;
     }
 
-    if (cmd_ln_str_r(acmod->config, "_senmgau")) {
+    if (config_str(acmod->config, "_senmgau")) {
         E_INFO("Using general multi-stream GMM computation\n");
         acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
@@ -120,7 +120,7 @@ acmod_load_am(acmod_t *acmod)
     }
 
     /* If there is an MLLR transform, apply it. */
-    if ((mllrfn = cmd_ln_str_r(acmod->config, "-mllr"))) {
+    if ((mllrfn = config_str(acmod->config, "mllr"))) {
         ps_mllr_t *mllr = ps_mllr_read(mllrfn);
         if (mllr == NULL)
             return -1;
@@ -143,7 +143,7 @@ acmod_init_senscr(acmod_t *acmod)
     acmod->senone_active = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
                                                      sizeof(*acmod->senone_active));
     acmod->log_zero = logmath_get_zero(acmod->lmath);
-    acmod->compallsen = cmd_ln_boolean_r(acmod->config, "-compallsen");
+    acmod->compallsen = config_bool(acmod->config, "compallsen");
 
     return 0;
 }
@@ -152,10 +152,10 @@ int
 acmod_fe_mismatch(acmod_t *acmod, fe_t *fe)
 {
     /* Output vector dimension needs to be the same. */
-    if (cmd_ln_int32_r(acmod->config, "-ceplen") != fe_get_output_size(fe)) {
+    if (config_int32(acmod->config, "ceplen") != fe_get_output_size(fe)) {
         E_ERROR("Configured feature length %d doesn't match feature "
                 "extraction output size %d\n",
-                cmd_ln_int32_r(acmod->config, "-ceplen"),
+                config_int32(acmod->config, "ceplen"),
                 fe_get_output_size(fe));
         return TRUE;
     }
@@ -168,17 +168,17 @@ int
 acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
 {
     /* Feature type needs to be the same. */
-    if (0 != strcmp(cmd_ln_str_r(acmod->config, "-feat"), feat_name(fcb)))
+    if (0 != strcmp(config_str(acmod->config, "feat"), feat_name(fcb)))
         return TRUE;
     /* Input vector dimension needs to be the same. */
-    if (cmd_ln_int32_r(acmod->config, "-ceplen") != feat_cepsize(fcb))
+    if (config_int32(acmod->config, "ceplen") != feat_cepsize(fcb))
         return TRUE;
     /* FIXME: Need to check LDA and stuff too. */
     return FALSE;
 }
 
 acmod_t *
-acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
     
@@ -214,7 +214,7 @@ error_out:
 }
 
 acmod_t *
-acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+acmod_init(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
 
@@ -242,7 +242,7 @@ acmod_free(acmod_t *acmod)
 
     feat_free(acmod->fcb);
     fe_free(acmod->fe);
-    cmd_ln_free_r(acmod->config);
+    config_free(acmod->config);
 
     if (acmod->mfc_buf)
         ckd_free_2d((void **)acmod->mfc_buf);

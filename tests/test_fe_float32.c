@@ -311,7 +311,7 @@ main(int argc, char *argv[])
         { NULL, 0, NULL, NULL }
     };
     FILE *raw;
-    cmd_ln_t *config;
+    config_t *config;
     fe_t *fe;
     int16 ibuf[1024];
     float32 buf[1024];
@@ -320,10 +320,10 @@ main(int argc, char *argv[])
     size_t i;
 
     err_set_loglevel_str("INFO");
-    TEST_ASSERT(config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE));
+    TEST_ASSERT(config = config_parse(NULL, fe_args, argc, argv, FALSE));
     /* Even though we make our own float32 data, we will ensure it's
        little-endian to be consistent. */
-    cmd_ln_set_str_r(config, "-input_endian", "little");
+    config_set_str(config, "input_endian", "little");
     TEST_ASSERT(fe = fe_init(config));
 
     TEST_EQUAL(fe_get_output_size(fe), DEFAULT_NUM_CEPSTRA);
@@ -380,7 +380,7 @@ main(int argc, char *argv[])
     ckd_free_2d(cepbuf);
     fclose(raw);
     fe_free(fe);
-    cmd_ln_free_r(config);
+    config_free(config);
 
     return 0;
 }

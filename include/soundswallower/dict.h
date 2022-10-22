@@ -99,14 +99,14 @@ typedef struct dict_s {
  *
  * Return ptr to dict_t if successful, NULL otherwise.
  */
-dict_t *dict_init(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
+dict_t *dict_init(config_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
                   bin_mdef_t *mdef  /**< For looking up CI phone IDs (or NULL) */
     );
 
 /**
  * Initialize a new dictionary from in-memory files.
  */
-dict_t *dict_init_s3file(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
+dict_t *dict_init_s3file(config_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
                          bin_mdef_t *mdef, /**< For looking up CI phone IDs (or NULL) */
                          s3file_t *dict,   /**< Dictionary file. */
                          s3file_t *fdict   /**< Filler dictionary file (if any) */

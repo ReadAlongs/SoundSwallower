@@ -103,7 +103,7 @@ struct ps_search_s {
     char *type;
     char *name;
     
-    cmd_ln_t *config;      /**< Configuration. */
+    config_t *config;      /**< Configuration. */
     acmod_t *acmod;        /**< Acoustic model. */
     dict_t *dict;        /**< Pronunciation dictionary. */
     dict2pid_t *d2p;       /**< Dictionary to senone mappings. */
@@ -152,7 +152,7 @@ struct ps_search_s {
  */
 void ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
 		    const char *type, const char *name,
-                    cmd_ln_t *config, acmod_t *acmod, dict_t *dict,
+                    config_t *config, acmod_t *acmod, dict_t *dict,
                     dict2pid_t *d2p);
 
 
@@ -195,7 +195,7 @@ struct ps_seg_s {
  */
 struct ps_decoder_s {
     /* Model parameters and such. */
-    cmd_ln_t *config;  /**< Configuration. */
+    config_t *config;  /**< Configuration. */
     int refcount;      /**< Reference count. */
 
     /* Basic units of computation. */

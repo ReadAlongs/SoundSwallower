@@ -7,7 +7,7 @@
 int
 main(int argc, char *argv[])
 {
-    cmd_ln_t *config;
+    config_t *config;
     ps_decoder_t *ps;
 
     (void)argc; (void)argv;
@@ -22,7 +22,7 @@ main(int argc, char *argv[])
 			 "-loglevel", "INFO",
 			 "-samprate", "16000", NULL);
     ps = ps_init(config);
-    cmd_ln_free_r(config);
+    config_free(config);
     ps_set_logfile(ps, NULL);
     E_INFO("HELLO\n");
     ps_set_logfile(ps, "test2.log");

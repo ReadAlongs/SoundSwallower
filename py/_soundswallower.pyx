@@ -54,7 +54,7 @@ cdef class Config:
     See :doc:`config_params` for a description of existing parameters.
 
  """
-    cdef cmd_ln_t *cmd_ln
+    cdef config_t *cmd_ln
     
     def __cinit__(self, *args, **kwargs):
         cdef char **argv
@@ -76,26 +76,26 @@ cdef class Config:
                     argv[i] = NULL
                 else:
                     argv[i] = buf
-            self.cmd_ln = cmd_ln_parse_r(NULL, ps_args(),
+            self.cmd_ln = config_parse(NULL, ps_args(),
                                          len(args), argv, 0)
             free(argv)
         else:
-            self.cmd_ln = cmd_ln_parse_r(NULL, ps_args(), 0, NULL, 0)
+            self.cmd_ln = config_parse(NULL, ps_args(), 0, NULL, 0)
 
     def __init__(self, *args, **kwargs):
         pass
 
     def __dealloc__(self):
-        cmd_ln_free_r(self.cmd_ln)
+        config_free(self.cmd_ln)
 
     def get_float(self, key):
-        return cmd_ln_float_r(self.cmd_ln, key.encode('utf-8'))
+        return config_float(self.cmd_ln, key.encode('utf-8'))
 
     def get_int(self, key):
-        return cmd_ln_int_r(self.cmd_ln, key.encode('utf-8'))
+        return config_int(self.cmd_ln, key.encode('utf-8'))
 
     def get_string(self, key):
-        cdef const char *val = cmd_ln_str_r(self.cmd_ln,
+        cdef const char *val = config_str(self.cmd_ln,
                                             key.encode('utf-8'))
         if val == NULL:
             return None
@@ -103,22 +103,22 @@ cdef class Config:
             return val.decode('utf-8')
 
     def get_boolean(self, key):
-        return cmd_ln_int_r(self.cmd_ln, key.encode('utf-8')) != 0
+        return config_int(self.cmd_ln, key.encode('utf-8')) != 0
 
     def set_float(self, key, double val):
-        cmd_ln_set_float_r(self.cmd_ln, key.encode('utf-8'), val)
+        config_set_float(self.cmd_ln, key.encode('utf-8'), val)
 
     def set_int(self, key, long val):
-        cmd_ln_set_int_r(self.cmd_ln, key.encode('utf-8'), val)
+        config_set_int(self.cmd_ln, key.encode('utf-8'), val)
 
     def set_boolean(self, key, val):
-        cmd_ln_set_int_r(self.cmd_ln, key.encode('utf-8'), val != 0)
+        config_set_int(self.cmd_ln, key.encode('utf-8'), val != 0)
 
     def set_string(self, key, val):
         if val == None:
-            cmd_ln_set_str_r(self.cmd_ln, key.encode('utf-8'), NULL)
+            config_set_str(self.cmd_ln, key.encode('utf-8'), NULL)
         else:
-            cmd_ln_set_str_r(self.cmd_ln, key.encode('utf-8'), val.encode('utf-8'))
+            config_set_str(self.cmd_ln, key.encode('utf-8'), val.encode('utf-8'))
 
     def exists(self, key):
         return key in self
@@ -132,17 +132,17 @@ cdef class Config:
             elif key[0] == "-":
                 # Ask for dash, get underscore or dash
                 under_key = ("_" + key[1:]).encode('utf-8')
-                if cmd_ln_exists_r(self.cmd_ln, under_key):
+                if config_exists(self.cmd_ln, under_key):
                     return under_key
                 else:
                     return key.encode('utf-8')
             else:
                 # No dash or underscore, try underscore, then dash
                 under_key = ("_" + key).encode('utf-8')
-                if cmd_ln_exists_r(self.cmd_ln, under_key):
+                if config_exists(self.cmd_ln, under_key):
                     return under_key
                 dash_key = ("-" + key).encode('utf-8')
-                if cmd_ln_exists_r(self.cmd_ln, dash_key):
+                if config_exists(self.cmd_ln, dash_key):
                     return dash_key
         return key.encode('utf-8')
 
@@ -154,48 +154,48 @@ cdef class Config:
             return key[1:]
 
     def __contains__(self, key):
-        return cmd_ln_exists_r(self.cmd_ln, self._normalize_key(key))
+        return config_exists(self.cmd_ln, self._normalize_key(key))
 
     def __getitem__(self, key):
         cdef const char *cval
         cdef cmd_ln_val_t *at;
         ckey = self._normalize_key(key)
-        at = cmd_ln_access_r(self.cmd_ln, ckey)
+        at = config_access(self.cmd_ln, ckey)
         if at == NULL:
             raise KeyError("Unknown key %s" % key)
         elif at.type & ARG_STRING:
-            cval = cmd_ln_str_r(self.cmd_ln, ckey)
+            cval = config_str(self.cmd_ln, ckey)
             if cval == NULL:
                 return None
             else:
                 return cval.decode('utf-8')
         elif at.type & ARG_INTEGER:
-            return cmd_ln_int_r(self.cmd_ln, ckey)
+            return config_int(self.cmd_ln, ckey)
         elif at.type & ARG_FLOATING:
-            return cmd_ln_float_r(self.cmd_ln, ckey)
+            return config_float(self.cmd_ln, ckey)
         elif at.type & ARG_BOOLEAN:
-            return cmd_ln_int_r(self.cmd_ln, ckey) != 0
+            return config_int(self.cmd_ln, ckey) != 0
         else:
             raise ValueError("Unable to handle parameter type %d" % at.type)
 
     def __setitem__(self, key, val):
         cdef cmd_ln_val_t *at;
         ckey = self._normalize_key(key)
-        at = cmd_ln_access_r(self.cmd_ln, ckey)
+        at = config_access(self.cmd_ln, ckey)
         if at == NULL:
             # FIXME: for now ... but should handle this
             raise KeyError("Unknown key %s" % key)
         elif at.type & ARG_STRING:
             if val is None:
-                cmd_ln_set_str_r(self.cmd_ln, ckey, NULL)
+                config_set_str(self.cmd_ln, ckey, NULL)
             else:
-                cmd_ln_set_str_r(self.cmd_ln, ckey, str(val).encode('utf-8'))
+                config_set_str(self.cmd_ln, ckey, str(val).encode('utf-8'))
         elif at.type & ARG_INTEGER:
-            cmd_ln_set_int_r(self.cmd_ln, ckey, int(val))
+            config_set_int(self.cmd_ln, ckey, int(val))
         elif at.type & ARG_FLOATING:
-            cmd_ln_set_float_r(self.cmd_ln, ckey, float(val))
+            config_set_float(self.cmd_ln, ckey, float(val))
         elif at.type & ARG_BOOLEAN:
-            cmd_ln_set_int_r(self.cmd_ln, ckey, val != 0)
+            config_set_int(self.cmd_ln, ckey, val != 0)
         else:
             raise ValueError("Unable to handle parameter type %d" % at.type)
 
@@ -392,7 +392,7 @@ cdef class Decoder:
                             attribute will be reloaded.
 
         """
-        cdef cmd_ln_t *cconfig
+        cdef config_t *cconfig
         if config is None:
             cconfig = NULL
         else:
@@ -410,7 +410,7 @@ cdef class Decoder:
                             attribute will be reloaded.
 
         """
-        cdef cmd_ln_t *cconfig
+        cdef config_t *cconfig
         if config is None:
             cconfig = NULL
         else:
@@ -538,7 +538,7 @@ cdef class Decoder:
         cdef logmath_t *lmath
         cdef float lw
 
-        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lw = config_float(self.config.cmd_ln, "lw")
         lmath = ps_get_logmath(self.ps)
         fsg = FsgModel()
         # FIXME: not the proper way to encode filenames on Windows, I think
@@ -563,7 +563,7 @@ cdef class Decoder:
         cdef logmath_t *lmath
         cdef float lw
 
-        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lw = config_float(self.config.cmd_ln, "lw")
         lmath = ps_get_logmath(self.ps)
         fsg = FsgModel()
         fsg.fsg = jsgf_read_file(filename.encode(), lmath, lw)
@@ -607,7 +607,7 @@ cdef class Decoder:
         cdef float lw
         cdef int wid
 
-        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lw = config_float(self.config.cmd_ln, "lw")
         lmath = ps_get_logmath(self.ps)
         fsg = FsgModel()
         n_state = max(itertools.chain(*((t[0], t[1]) for t in transitions))) + 1
@@ -663,7 +663,7 @@ cdef class Decoder:
             if rule == NULL:
                 jsgf_grammar_free(jsgf)
                 raise RuntimeError("No public rules found in JSGF")
-        lw = cmd_ln_float_r(self.config.cmd_ln, "-lw")
+        lw = config_float(self.config.cmd_ln, "lw")
         lmath = ps_get_logmath(self.ps)
         fsg = FsgModel()
         fsg.fsg = jsgf_build_fsg(jsgf, rule, lmath, lw)

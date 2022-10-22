@@ -23,7 +23,7 @@ fsg_set_states(fsg_model_t *fsg, int start_state, int final_state)
 }
 
 EMSCRIPTEN_KEEPALIVE hash_iter_t *
-cmd_ln_hash_iter(cmd_ln_t *cmd_ln)
+cmd_ln_hash_iter(config_t *cmd_ln)
 {
     if (cmd_ln == NULL || cmd_ln->ht == NULL)
 	return NULL;

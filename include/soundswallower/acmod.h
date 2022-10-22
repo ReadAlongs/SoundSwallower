@@ -151,7 +151,7 @@ struct ps_mgau_s {
  */
 struct acmod_s {
     /* Global objects, not retained. */
-    cmd_ln_t *config;          /**< Configuration. */
+    config_t *config;          /**< Configuration. */
     logmath_t *lmath;          /**< Log-math computation. */
     glist_t strings;           /**< Temporary acoustic model filenames. */
 
@@ -211,12 +211,12 @@ typedef struct acmod_s acmod_t;
  *           pointer is retained.
  * @return a newly initialized acmod_t, or NULL on failure.
  */
-acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+acmod_t *acmod_init(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
  * Create the acmod without loading any files.
  */
-acmod_t *acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+acmod_t *acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
  * Load acoustic model files.

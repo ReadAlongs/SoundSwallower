@@ -62,7 +62,7 @@ typedef struct vqFeature_s vqFeature_t;
 typedef struct s2_semi_mgau_s s2_semi_mgau_t;
 struct s2_semi_mgau_s {
     ps_mgau_t base;     /**< base structure. */
-    cmd_ln_t *config;   /* configuration parameters */
+    config_t *config;   /* configuration parameters */
 
     gauden_t *g;        /* Set of Gaussians (pointers below point in here and will go away soon) */
 

@@ -82,7 +82,7 @@ ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
 	              const char *hmmdir, const char *file)
 {
     const char *val;
-    if ((val = cmd_ln_str_r(ps->config, arg)) != NULL) {
+    if ((val = config_str(ps->config, arg)) != NULL) {
         E_INFO("Overriding %s from command line %s: %s\n",
                extra_arg, arg, val);
 	cmd_ln_set_str_extra_r(ps->config, extra_arg, val);
@@ -124,7 +124,7 @@ ps_expand_model_config(ps_decoder_t *ps)
     };
 
     /* Get acoustic model filenames and add them to the command-line */
-    hmmdir = cmd_ln_str_r(ps->config, "-hmm");
+    hmmdir = config_str(ps->config, "hmm");
     if (!ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.bin"))
         if (!ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef"))
             ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.txt");
@@ -139,7 +139,7 @@ ps_expand_model_config(ps_decoder_t *ps)
     ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
     /* Look for feat.params in acoustic model dir. */
     ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
-    if ((featparams = cmd_ln_str_r(ps->config, "_featparams"))) {
+    if ((featparams = config_str(ps->config, "_featparams"))) {
         if (NULL !=
             cmd_ln_parse_file_r(ps->config, feat_defn, featparams, FALSE))
             E_INFO("Parsed model-specific feature parameters from %s\n",
@@ -158,10 +158,10 @@ ps_free_searches(ps_decoder_t *ps)
 }
 
 static int
-set_loglevel(cmd_ln_t *config)
+set_loglevel(config_t *config)
 {
     const char *loglevel;
-    loglevel = cmd_ln_str_r(config, "-loglevel");
+    loglevel = config_str(config, "loglevel");
     if (loglevel) {
         if (err_set_loglevel_str(loglevel) == NULL) {
             E_ERROR("Invalid log level: %s\n", loglevel);
@@ -213,21 +213,21 @@ ps_set_logfile(ps_decoder_t *ps, const char *logfn)
 }
 
 static void
-set_logfile(ps_decoder_t *ps, cmd_ln_t *config)
+set_logfile(ps_decoder_t *ps, config_t *config)
 {
 #ifdef __EMSCRIPTEN__
     (void)ps;
     (void)config;
 #else
     const char *logfn;
-    logfn = cmd_ln_str_r(config, "-logfn");
+    logfn = config_str(config, "logfn");
     if (logfn)
         ps_set_logfile(ps, logfn);
 #endif
 }
 
 EXPORT int
-ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
+ps_init_config(ps_decoder_t *ps, config_t *config)
 {
     /* Set up logging. We do this immediately because we want to dump
        the information to the configured log, not to the stderr. */
@@ -235,7 +235,7 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
         if (set_loglevel(config) < 0)
             return -1;
         set_logfile(ps, config);
-        cmd_ln_free_r(ps->config);
+        config_free(ps->config);
         ps->config = cmd_ln_retain(config);
     }
     
@@ -248,11 +248,11 @@ ps_init_config(ps_decoder_t *ps, cmd_ln_t *config)
     /* Logmath computation (used in acmod and search) */
     if (ps->lmath == NULL
         || (logmath_get_base(ps->lmath) !=
-            (float64)cmd_ln_float32_r(ps->config, "-logbase"))) {
+            (float64)config_float32(ps->config, "logbase"))) {
         if (ps->lmath)
             logmath_free(ps->lmath);
         ps->lmath = logmath_init
-            ((float64)cmd_ln_float32_r(ps->config, "-logbase"), 0, TRUE);
+            ((float64)config_float32(ps->config, "logbase"), 0, TRUE);
     }
 
     /* Initialize performance timer. */
@@ -389,13 +389,13 @@ ps_init_grammar(ps_decoder_t *ps)
     const char *path;
     float32 lw;
 
-    lw = cmd_ln_float32_r(ps->config, "-lw");
+    lw = config_float32(ps->config, "lw");
 
-    if ((path = cmd_ln_str_r(ps->config, "-jsgf"))) {
+    if ((path = config_str(ps->config, "jsgf"))) {
         if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
             return -1;
     }
-    else if ((path = cmd_ln_str_r(ps->config, "-fsg"))) {
+    else if ((path = config_str(ps->config, "fsg"))) {
         fsg_model_t *fsg = fsg_model_readfile(path, ps->lmath, lw);
         if (!fsg)
             return -1;
@@ -413,7 +413,7 @@ ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file
 {
     float32 lw;
 
-    lw = cmd_ln_float32_r(ps->config, "-lw");
+    lw = config_float32(ps->config, "lw");
 
     /* JSGF takes precedence */
     if (jsgf_file) {
@@ -438,12 +438,12 @@ ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file
 }
 
 EXPORT fe_t *
-ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
+ps_reinit_fe(ps_decoder_t *ps, config_t *config)
 {
     fe_t *new_fe;
     
     if (config && config != ps->config) {
-        cmd_ln_free_r(ps->config);
+        config_free(ps->config);
         ps->config = cmd_ln_retain(config);
     }
     if ((new_fe = fe_init(ps->config)) == NULL)
@@ -462,7 +462,7 @@ ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
 }
 
 int
-ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
+ps_reinit(ps_decoder_t *ps, config_t *config)
 {
     if (ps_init_config(ps, config) < 0)
         return -1;
@@ -483,7 +483,7 @@ ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
 }
 
 EXPORT ps_decoder_t *
-ps_init(cmd_ln_t *config)
+ps_init(config_t *config)
 {
     ps_decoder_t *ps;
     
@@ -529,7 +529,7 @@ ps_free(ps_decoder_t *ps)
     fe_free(ps->fe);
     acmod_free(ps->acmod);
     logmath_free(ps->lmath);
-    cmd_ln_free_r(ps->config);
+    config_free(ps->config);
 #ifndef __EMSCRIPTEN__
     if (ps->logfh) {
         fclose(ps->logfh);
@@ -540,7 +540,7 @@ ps_free(ps_decoder_t *ps)
     return 0;
 }
 
-EXPORT cmd_ln_t *
+EXPORT config_t *
 ps_get_config(ps_decoder_t *ps)
 {
     return ps->config;
@@ -586,7 +586,7 @@ ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
 
   rule = NULL;
   /* Take the -toprule if specified. */
-  if ((toprule = cmd_ln_str_r(ps->config, "-toprule"))) {
+  if ((toprule = config_str(ps->config, "toprule"))) {
       rule = jsgf_get_rule(jsgf, toprule);
       if (rule == NULL) {
           E_ERROR("Start rule %s not found\n", toprule);
@@ -602,7 +602,7 @@ ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
       }
   }
 
-  lw = cmd_ln_float32_r(ps->config, "-lw");
+  lw = config_float32(ps->config, "lw");
   fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
   result = ps_set_fsg(ps, name, fsg);
   fsg_model_free(fsg);
@@ -625,7 +625,7 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
 
   rule = NULL;
   /* Take the -toprule if specified. */
-  if ((toprule = cmd_ln_str_r(ps->config, "-toprule"))) {
+  if ((toprule = config_str(ps->config, "toprule"))) {
       rule = jsgf_get_rule(jsgf, toprule);
       if (rule == NULL) {
           E_ERROR("Start rule %s not found\n", toprule);
@@ -641,7 +641,7 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
       }
   }
 
-  lw = cmd_ln_float32_r(ps->config, "-lw");
+  lw = config_float32(ps->config, "lw");
   fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
   result = ps_set_fsg(ps, name, fsg);
   fsg_model_free(fsg);
@@ -930,7 +930,7 @@ ps_end_utt(ps_decoder_t *ps)
     }
     ptmr_stop(&ps->perf);
     /* Log a backtrace if requested. */
-    if (cmd_ln_boolean_r(ps->config, "-backtrace")) {
+    if (config_bool(ps->config, "backtrace")) {
         const char* hyp;
         ps_seg_t *seg;
         int32 score;
@@ -1124,7 +1124,7 @@ ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
 {
     int32 frate;
 
-    frate = cmd_ln_int32_r(ps->config, "-frate");
+    frate = config_int32(ps->config, "frate");
     *out_nspeech = (double)ps->acmod->output_frame / frate;
     *out_ncpu = ps->perf.t_cpu;
     *out_nwall = ps->perf.t_elapsed;
@@ -1136,7 +1136,7 @@ ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
 {
     int32 frate;
 
-    frate = cmd_ln_int32_r(ps->config, "-frate");
+    frate = config_int32(ps->config, "frate");
     *out_nspeech = (double)ps->n_frame / frate;
     *out_ncpu = ps->perf.t_tot_cpu;
     *out_nwall = ps->perf.t_tot_elapsed;
@@ -1146,7 +1146,7 @@ void
 ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
 	       const char *type,
 	       const char *name,
-               cmd_ln_t *config, acmod_t *acmod, dict_t *dict,
+               config_t *config, acmod_t *acmod, dict_t *dict,
                dict2pid_t *d2p)
 {
     search->vt = vt;

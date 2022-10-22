@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 	bin_mdef_t *mdef;
 	dict_t *dict;
 	dict2pid_t *d2p;
-	cmd_ln_t *config;
+	config_t *config;
 
 	(void)argc; (void)argv;
 	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
@@ -30,7 +30,7 @@ main(int argc, char *argv[])
 	dict_free(dict);
 	dict2pid_free(d2p);
 	bin_mdef_free(mdef);
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

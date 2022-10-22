@@ -7,7 +7,7 @@
 #include "test_macros.h"
 
 int
-ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
+ps_decoder_test(config_t *config, char const *sname, char const *expected)
 {
     ps_decoder_t *ps;
     mfcc_t **cepbuf;
@@ -111,7 +111,7 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
 
     fclose(rawfh);
     ps_free(ps);
-    cmd_ln_free_r(config);
+    config_free(config);
     ckd_free_2d(cepbuf);
     ckd_free(buf);
 

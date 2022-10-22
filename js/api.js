@@ -42,7 +42,7 @@ class Config {
      * @param {number} [dict.samprate=44100] - Sampling rate of input.
      */
     constructor(dict) {
-	this.cmd_ln = Module._cmd_ln_parse_r(0, Module._ps_args(), 0, 0, 0);
+	this.cmd_ln = Module._config_parse(0, Module._ps_args(), 0, 0, 0);
 	if (typeof(dict) === 'undefined') {
 	    if (Module.defaultModel !== null)
 		dict = { hmm: Module.get_model_path(Module.defaultModel) };
@@ -62,7 +62,7 @@ class Config {
      */
     delete() {
 	if (this.cmd_ln)
-	    Module._cmd_ln_free_r(this.cmd_ln);
+	    Module._config_free(this.cmd_ln);
 	this.cmd_ln = 0;
     }
     normalize_key(key) {
@@ -110,19 +110,19 @@ class Config {
     set(key, val) {
 	const nkey = this.normalize_key(key);
 	const ckey = allocateUTF8OnStack(nkey);
-	const type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
+	const type = Module._config_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
 	    const cval = allocateUTF8OnStack(val);
-	    Module._cmd_ln_set_str_r(this.cmd_ln, ckey, cval);
+	    Module._config_set_str(this.cmd_ln, ckey, cval);
 	}
 	else if (type & ARG_FLOATING) {
-	    Module._cmd_ln_set_float_r(this.cmd_ln, ckey, val);
+	    Module._config_set_float(this.cmd_ln, ckey, val);
 	}
 	else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
-	    Module._cmd_ln_set_int_r(this.cmd_ln, ckey, val);
+	    Module._config_set_int(this.cmd_ln, ckey, val);
 	}
 	else {
 	    return false;
@@ -137,24 +137,24 @@ class Config {
      */
     get(key) {
 	const ckey = allocateUTF8OnStack(this.normalize_key(key));
-	const type = Module._cmd_ln_type_r(this.cmd_ln, ckey);
+	const type = Module._config_type_r(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    const val = Module._cmd_ln_str_r(this.cmd_ln, ckey);
+	    const val = Module._config_str(this.cmd_ln, ckey);
 	    if (val == 0)
 		return null;
 	    return UTF8ToString(val);
 	}
 	else if (type & ARG_FLOATING) {
-	    return Module._cmd_ln_float_r(this.cmd_ln, ckey);
+	    return Module._config_float(this.cmd_ln, ckey);
 	}
 	else if (type & ARG_INTEGER) {
-	    return Module._cmd_ln_int_r(this.cmd_ln, ckey);
+	    return Module._config_int(this.cmd_ln, ckey);
 	}
 	else if (type & ARG_BOOLEAN) {
-	    return Boolean(Module._cmd_ln_int_r(this.cmd_ln, ckey));
+	    return Boolean(Module._config_int(this.cmd_ln, ckey));
 	}
 	else {
 	    throw new TypeError("Unsupported type "+type+" for parameter"+key);
@@ -178,7 +178,7 @@ class Config {
      */
     has(key) {
 	const ckey = allocateUTF8OnStack(key);
-	return Module._cmd_ln_exists_r(this.cmd_ln, ckey);
+	return Module._config_exists(this.cmd_ln, ckey);
     }
     *[Symbol.iterator]() {
 	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
@@ -513,7 +513,7 @@ class Decoder {
 	this.assert_initialized();
 	let itor = Module._ps_seg_iter(this.ps);
 	const config = Module._ps_get_config(this.ps);
-	const frate = Module._cmd_ln_int_r(config, allocateUTF8OnStack("-frate"));
+	const frate = Module._config_int(config, allocateUTF8OnStack("frate"));
 	const seg = [];
 	while (itor != 0) {
 	    const frames = stackAlloc(8);
@@ -581,7 +581,7 @@ class Decoder {
 	this.assert_initialized();
 	const logmath = Module._ps_get_logmath(this.ps);
 	const config = Module._ps_get_config(this.ps);
-	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	let n_state = 0;
 	for (const t of transitions) {
 	    n_state = Math.max(n_state, t.from, t.to);
@@ -632,7 +632,7 @@ class Decoder {
 	this.assert_initialized();
 	const logmath = Module._ps_get_logmath(this.ps);
 	const config = Module._ps_get_config(this.ps);
-	const lw = Module._cmd_ln_float_r(config, allocateUTF8OnStack("-lw"));
+	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	const cjsgf = allocateUTF8OnStack(jsgf_string);
 	const jsgf = Module._jsgf_parse_string(cjsgf, 0);
 	if (jsgf == 0)

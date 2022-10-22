@@ -53,13 +53,13 @@ static const arg_t fe_args[] = {
 };
 
 int
-fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
+fe_parse_general_params(config_t *config, fe_t * fe)
 {
     int j, frate, window_samples;
 
     fe->config = cmd_ln_retain(config);
-    fe->sampling_rate = cmd_ln_float32_r(config, "-samprate");
-    frate = cmd_ln_int32_r(config, "-frate");
+    fe->sampling_rate = config_float32(config, "samprate");
+    frate = config_int32(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {
         E_ERROR
             ("Frame rate %d can not be bigger than sample rate %.02f\n",
@@ -68,22 +68,22 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
     }
 
     fe->frame_rate = (int16)frate;
-    if (cmd_ln_boolean_r(config, "-dither")) {
+    if (config_bool(config, "dither")) {
         fe->dither = 1;
-        fe->dither_seed = cmd_ln_int32_r(config, "-seed");
+        fe->dither_seed = config_int32(config, "seed");
     }
 #if WORDS_BIGENDIAN
     /* i.e. if input_endian is *not* "big", then fe->swap is true. */
-    fe->swap = strcmp("big", cmd_ln_str_r(config, "-input_endian"));
+    fe->swap = strcmp("big", config_str(config, "input_endian"));
 #else        
     /* and vice versa */
-    fe->swap = strcmp("little", cmd_ln_str_r(config, "-input_endian"));
+    fe->swap = strcmp("little", config_str(config, "input_endian"));
 #endif
-    fe->window_length = cmd_ln_float32_r(config, "-wlen");
-    fe->pre_emphasis_alpha = cmd_ln_float32_r(config, "-alpha");
+    fe->window_length = config_float32(config, "wlen");
+    fe->pre_emphasis_alpha = config_float32(config, "alpha");
 
-    fe->num_cepstra = (uint8)cmd_ln_int32_r(config, "-ncep");
-    fe->fft_size = (int16)cmd_ln_int32_r(config, "-nfft");
+    fe->num_cepstra = (uint8)config_int32(config, "ncep");
+    fe->fft_size = (int16)config_int32(config, "nfft");
 
     window_samples = (int)(fe->window_length * fe->sampling_rate);
     E_INFO("Frames are %d samples at intervals of %d\n",
@@ -122,51 +122,51 @@ fe_parse_general_params(cmd_ln_t *config, fe_t * fe)
         }
     }
 
-    fe->remove_dc = cmd_ln_boolean_r(config, "-remove_dc");
+    fe->remove_dc = config_bool(config, "remove_dc");
 
-    if (0 == strcmp(cmd_ln_str_r(config, "-transform"), "dct"))
+    if (0 == strcmp(config_str(config, "transform"), "dct"))
         fe->transform = DCT_II;
-    else if (0 == strcmp(cmd_ln_str_r(config, "-transform"), "legacy"))
+    else if (0 == strcmp(config_str(config, "transform"), "legacy"))
         fe->transform = LEGACY_DCT;
-    else if (0 == strcmp(cmd_ln_str_r(config, "-transform"), "htk"))
+    else if (0 == strcmp(config_str(config, "transform"), "htk"))
         fe->transform = DCT_HTK;
     else {
         E_ERROR("Invalid transform type (values are 'dct', 'legacy', 'htk')\n");
         return -1;
     }
 
-    if (cmd_ln_boolean_r(config, "-logspec"))
+    if (config_bool(config, "logspec"))
         fe->log_spec = RAW_LOG_SPEC;
-    if (cmd_ln_boolean_r(config, "-smoothspec"))
+    if (config_bool(config, "smoothspec"))
         fe->log_spec = SMOOTH_LOG_SPEC;
 
     return 0;
 }
 
 static int
-fe_parse_melfb_params(cmd_ln_t *config, fe_t *fe, melfb_t * mel)
+fe_parse_melfb_params(config_t *config, fe_t *fe, melfb_t * mel)
 {
     mel->sampling_rate = fe->sampling_rate;
     mel->fft_size = fe->fft_size;
     mel->num_cepstra = fe->num_cepstra;
-    mel->num_filters = cmd_ln_int32_r(config, "-nfilt");
+    mel->num_filters = config_int32(config, "nfilt");
 
     if (fe->log_spec)
         fe->feature_dimension = mel->num_filters;
     else
         fe->feature_dimension = fe->num_cepstra;
 
-    mel->upper_filt_freq = cmd_ln_float32_r(config, "-upperf");
-    mel->lower_filt_freq = cmd_ln_float32_r(config, "-lowerf");
+    mel->upper_filt_freq = config_float32(config, "upperf");
+    mel->lower_filt_freq = config_float32(config, "lowerf");
 
-    mel->doublewide = cmd_ln_boolean_r(config, "-doublebw");
+    mel->doublewide = config_bool(config, "doublebw");
 
-    mel->warp_type = cmd_ln_str_r(config, "-warp_type");
-    mel->warp_params = cmd_ln_str_r(config, "-warp_params");
-    mel->lifter_val = cmd_ln_int32_r(config, "-lifter");
+    mel->warp_type = config_str(config, "warp_type");
+    mel->warp_params = config_str(config, "warp_params");
+    mel->lifter_val = config_int32(config, "lifter");
 
-    mel->unit_area = cmd_ln_boolean_r(config, "-unit_area");
-    mel->round_filters = cmd_ln_boolean_r(config, "-round_filters");
+    mel->unit_area = config_bool(config, "unit_area");
+    mel->round_filters = config_bool(config, "round_filters");
 
     if (fe_warp_set(mel, mel->warp_type) != FE_SUCCESS) {
         E_ERROR("Failed to initialize the warping function.\n");
@@ -212,7 +212,7 @@ fe_print_current(fe_t const *fe)
 }
 
 fe_t *
-fe_init(cmd_ln_t *config)
+fe_init(config_t *config)
 {
     fe_t *fe;
 
@@ -275,7 +275,7 @@ fe_init(cmd_ln_t *config)
     
     fe_build_melfilters(fe->mel_fb);
     fe_compute_melcosine(fe->mel_fb);
-    if (cmd_ln_boolean_r(config, "-remove_noise"))
+    if (config_bool(config, "remove_noise"))
         fe->noise_stats = fe_init_noisestats(fe->mel_fb->num_filters);
 
     /* Create temporary FFT, spectrum and mel-spectrum buffers. */
@@ -290,7 +290,7 @@ fe_init(cmd_ln_t *config)
     fe->sss = ckd_calloc(fe->fft_size / 4, sizeof(*fe->sss));
     fe_create_twiddle(fe);
 
-    if (cmd_ln_boolean_r(config, "-verbose")) {
+    if (config_bool(config, "verbose")) {
         fe_print_current(fe);
     }
 
@@ -305,7 +305,7 @@ fe_get_args(void)
     return fe_args;
 }
 
-cmd_ln_t *
+config_t *
 fe_get_config(fe_t *fe)
 {
     return fe->config;
@@ -726,7 +726,7 @@ fe_free(fe_t * fe)
     ckd_free(fe->hamming_window);
     if (fe->noise_stats)
         fe_free_noisestats(fe->noise_stats);
-    cmd_ln_free_r(fe->config);
+    config_free(fe->config);
     ckd_free(fe);
 
     return 0;

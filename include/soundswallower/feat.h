@@ -271,12 +271,12 @@ void feat_array_free(mfcc_t ***feat);
  * @return (feat_t *) descriptor if successful, NULL if error.  Caller 
  * must not directly modify the contents of the returned value.
  */
-feat_t *feat_init(cmd_ln_t *config);
+feat_t *feat_init(config_t *config);
 
 /**
  * Initialize feature module with an s3file_t for LDA.
  */
-feat_t *feat_init_s3file(cmd_ln_t *config, s3file_t *lda);
+feat_t *feat_init_s3file(config_t *config, s3file_t *lda);
 
 /**
  * Add an LDA transformation to the feature module from a file.

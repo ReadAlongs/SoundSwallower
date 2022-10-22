@@ -154,7 +154,7 @@ typedef struct cmd_ln_val_s {
 #define ARG_STRINGIFY1(s) #s
 
 /**
- * @struct cmd_ln_t
+ * @struct config_t
  * Structure (no longer opaque) used to hold the results of command-line parsing.
  */
 typedef struct cmd_ln_s {
@@ -163,12 +163,12 @@ typedef struct cmd_ln_s {
     char **f_argv;
     uint32 f_argc;
     arg_t const *defn;
-} cmd_ln_t;
+} config_t;
 
 /**
- * Create a cmd_ln_t from NULL-terminated list of arguments.
+ * Create a config_t from NULL-terminated list of arguments.
  *
- * This function creates a cmd_ln_t from a NULL-terminated list of
+ * This function creates a config_t from a NULL-terminated list of
  * argument strings.  For example, to create the equivalent of passing
  * "-hmm foodir -dsratio 2 -lm bar.lm" on the command-line:
  *
@@ -181,23 +181,23 @@ typedef struct cmd_ln_s {
  * @param inout_cmdln Previous command-line to update, or NULL to create a new one.
  * @param defn Array of argument name definitions, or NULL to allow any arguments.
  * @param strict Whether to fail on duplicate or unknown arguments.
- * @return A cmd_ln_t* containing the results of command line parsing, or NULL on failure.
+ * @return A config_t* containing the results of command line parsing, or NULL on failure.
  */
-cmd_ln_t *cmd_ln_init(cmd_ln_t *inout_cmdln, arg_t const *defn, int32 strict, ...);
+config_t *cmd_ln_init(config_t *inout_cmdln, arg_t const *defn, int32 strict, ...);
 
 /**
  * Retain ownership of a command-line argument set.
  *
  * @return pointer to retained command-line argument set.
  */
-cmd_ln_t *cmd_ln_retain(cmd_ln_t *cmdln);
+config_t *cmd_ln_retain(config_t *cmdln);
 
 /**
  * Release a command-line argument set and all associated strings.
  *
  * @return new reference count (0 if freed completely)
  */
-int cmd_ln_free_r(cmd_ln_t *cmdln);
+int config_free(config_t *cmdln);
 
 /**
  * Parse a list of strings into argumetns.
@@ -211,14 +211,14 @@ int cmd_ln_free_r(cmd_ln_t *cmdln);
  *
  * @note It is currently assumed that the strings in argv are
  *       allocated statically, or at least that they will be valid as
- *       long as the cmd_ln_t returned from this function.
+ *       long as the config_t returned from this function.
  *       Unpredictable behaviour will result if they are freed or
  *       otherwise become invalidated.
  *
- * @return A cmd_ln_t containing the results of command line parsing,
+ * @return A config_t containing the results of command line parsing,
  *         or NULL on failure.
  **/
-cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-line to update,
+config_t *config_parse(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
                          arg_t const *defn,	/**< In: Array of argument name definitions */
                          int32 argc,		/**< In: Number of actual arguments */
@@ -232,9 +232,9 @@ cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-li
  * Parse an arguments file by deliminating on " \r\t\n" and putting each tokens
  * into an argv[] for cmd_ln_parse().
  *
- * @return A cmd_ln_t containing the results of command line parsing, or NULL on failure.
+ * @return A config_t containing the results of command line parsing, or NULL on failure.
  */
-cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous command-line to update,
+config_t *cmd_ln_parse_file_r(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
                                                      or NULL to create a new one. */
                               arg_t const *defn,   /**< In: Array of argument name definitions*/
                               char const *filename,/**< In: A file that contains all
@@ -247,7 +247,7 @@ cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous comma
 /**
  * Access the value and metadata for a configuration parameter.
  *
- * This structure is owned by the cmd_ln_t, assume that you must copy
+ * This structure is owned by the config_t, assume that you must copy
  * anything inside it, including strings, if you wish to retain it,
  * and should never free it manually.
  *
@@ -255,11 +255,11 @@ cmd_ln_t *cmd_ln_parse_file_r(cmd_ln_t *inout_cmdln, /**< In/Out: Previous comma
  * @param name the command-line flag to retrieve.
  * @return the value and metadata associated with <tt>name</tt>, or
  *         NULL if <tt>name</tt> does not exist.  You must use
- *         cmd_ln_exists_r() to distinguish between cases where a
+ *         config_exists() to distinguish between cases where a
  *         value is legitimately NULL and where the corresponding flag
  *         is unknown.
  */
-cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, char const *name);
+cmd_ln_val_t *config_access(config_t *cmdln, char const *name);
 
 /**
  * Access the type of a configuration parameter.
@@ -272,7 +272,7 @@ cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, char const *name);
  * @return the type of the parameter (as a combination of the ARG_*
  *         bits), or 0 if no such parameter exists.
  */
-int cmd_ln_type_r(cmd_ln_t *cmdln, char const *name);
+int config_type_r(config_t *cmdln, char const *name);
 
 /**
  * Retrieve a string from a command-line object.
@@ -284,11 +284,11 @@ int cmd_ln_type_r(cmd_ln_t *cmdln, char const *name);
  * @param name the command-line flag to retrieve.
  * @return the string value associated with <tt>name</tt>, or NULL if
  *         <tt>name</tt> does not exist.  You must use
- *         cmd_ln_exists_r() to distinguish between cases where a
+ *         config_exists() to distinguish between cases where a
  *         value is legitimately NULL and where the corresponding flag
  *         is unknown.
  */
-char const *cmd_ln_str_r(cmd_ln_t *cmdln, char const *name);
+char const *config_str(config_t *cmdln, char const *name);
 
 /**
  * Retrieve an integer from a command-line object.
@@ -297,11 +297,11 @@ char const *cmd_ln_str_r(cmd_ln_t *cmdln, char const *name);
  * @param name the command-line flag to retrieve.
  * @return the integer value associated with <tt>name</tt>, or 0 if
  *         <tt>name</tt> does not exist.  You must use
- *         cmd_ln_exists_r() to distinguish between cases where a
+ *         config_exists() to distinguish between cases where a
  *         value is legitimately zero and where the corresponding flag
  *         is unknown.
  */
-long cmd_ln_int_r(cmd_ln_t *cmdln, char const *name);
+long config_int(config_t *cmdln, char const *name);
 
 /**
  * Retrieve a floating-point number from a command-line object.
@@ -310,16 +310,16 @@ long cmd_ln_int_r(cmd_ln_t *cmdln, char const *name);
  * @param name the command-line flag to retrieve.
  * @return the float value associated with <tt>name</tt>, or 0.0 if
  *         <tt>name</tt> does not exist.  You must use
- *         cmd_ln_exists_r() to distinguish between cases where a
+ *         config_exists() to distinguish between cases where a
  *         value is legitimately zero and where the corresponding flag
  *         is unknown.
  */
-double cmd_ln_float_r(cmd_ln_t *cmdln, char const *name);
+double config_float(config_t *cmdln, char const *name);
 
 /**
  * Retrieve a boolean value from a command-line object.
  */
-#define cmd_ln_boolean_r(c,n) (cmd_ln_int_r(c,n) != 0)
+#define config_bool(c,n) (config_int(c,n) != 0)
 
 /**
  * Set a string in a command-line object.
@@ -329,7 +329,7 @@ double cmd_ln_float_r(cmd_ln_t *cmdln, char const *name);
  * @param str String value to set.  The command-line object does not
  *            retain ownership of this pointer.
  */
-void cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str);
+void config_set_str(config_t *cmdln, char const *name, char const *str);
 
 /**
  * Set a string in a command-line object even if it is not present in argument
@@ -341,7 +341,7 @@ void cmd_ln_set_str_r(cmd_ln_t *cmdln, char const *name, char const *str);
  * @param str String value to set.  The command-line object does not
  *            retain ownership of this pointer.
  */
-void cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str);
+void cmd_ln_set_str_extra_r(config_t *cmdln, char const *name, char const *str);
 
 /**
  * Set an integer in a command-line object.
@@ -350,7 +350,7 @@ void cmd_ln_set_str_extra_r(cmd_ln_t *cmdln, char const *name, char const *str);
  * @param name The command-line flag to set.
  * @param iv Integer value to set.
  */
-void cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv);
+void config_set_int(config_t *cmdln, char const *name, long iv);
 
 /**
  * Set a floating-point number in a command-line object.
@@ -359,30 +359,30 @@ void cmd_ln_set_int_r(cmd_ln_t *cmdln, char const *name, long iv);
  * @param name The command-line flag to set.
  * @param fv Integer value to set.
  */
-void cmd_ln_set_float_r(cmd_ln_t *cmdln, char const *name, double fv);
+void config_set_float(config_t *cmdln, char const *name, double fv);
 
 /**
  * Set a boolean value in a command-line object.
  */
-#define cmd_ln_set_boolean_r(c,n,b) (cmd_ln_set_int_r(c,n,(b)!=0))
+#define config_set_bool(c,n,b) (config_set_int(c,n,(b)!=0))
 
 /*
  * Compatibility macros
  */
-#define cmd_ln_int32_r(c,n)	(int32)cmd_ln_int_r(c,n)
-#define cmd_ln_float32_r(c,n)	(float32)cmd_ln_float_r(c,n)
-#define cmd_ln_float64_r(c,n)	(float64)cmd_ln_float_r(c,n)
-#define cmd_ln_set_int32_r(c,n,i)   cmd_ln_set_int_r(c,n,i)
-#define cmd_ln_set_float32_r(c,n,f) cmd_ln_set_float_r(c,n,(double)f)
-#define cmd_ln_set_float64_r(c,n,f) cmd_ln_set_float_r(c,n,(double)f)
+#define config_int32(c,n)	(int32)config_int(c,n)
+#define config_float32(c,n)	(float32)config_float(c,n)
+#define config_float64(c,n)	(float64)config_float(c,n)
+#define config_set_int32(c,n,i)   config_set_int(c,n,i)
+#define config_set_float32(c,n,f) config_set_float(c,n,(double)f)
+#define config_set_float64(c,n,f) config_set_float(c,n,(double)f)
 
 /**
  * Re-entrant version of cmd_ln_exists().
  *
  * @return True if the command line argument exists (i.e. it
- * was one of the arguments defined in the call to cmd_ln_parse_r().
+ * was one of the arguments defined in the call to config_parse().
  */
-int cmd_ln_exists_r(cmd_ln_t *cmdln, char const *name);
+int config_exists(config_t *cmdln, char const *name);
 
 /**
  * Print a help message listing the valid argument names, and the associated
@@ -391,7 +391,7 @@ int cmd_ln_exists_r(cmd_ln_t *cmdln, char const *name);
  * @param cmdln command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_help_r (cmd_ln_t *cmdln, const arg_t *defn);
+void cmd_ln_log_help_r (config_t *cmdln, const arg_t *defn);
 
 /**
  * Print current configuration values and defaults.
@@ -399,7 +399,7 @@ void cmd_ln_log_help_r (cmd_ln_t *cmdln, const arg_t *defn);
  * @param cmdln  command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_values_r (cmd_ln_t *cmdln, const arg_t *defn);
+void cmd_ln_log_values_r (config_t *cmdln, const arg_t *defn);
 
 
 #ifdef __cplusplus

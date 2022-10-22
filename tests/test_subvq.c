@@ -44,7 +44,7 @@ main(int argc, char *argv[])
 	static char const svspec[] = "1-12/14-25/0,13,26/27-38";
 	int32 **subvecs, i, j, k, ncep;
 	mfcc_t **in_feats, ***out_feats;
-	cmd_ln_t *config;
+	config_t *config;
 	feat_t *fcb;
 
 	(void)argc; (void)argv;

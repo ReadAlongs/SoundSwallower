@@ -19,45 +19,45 @@ const arg_t defs[] = {
 int
 main(int argc, char *argv[])
 {
-    cmd_ln_t *config;
+    config_t *config;
 
-    config = cmd_ln_parse_r(NULL, defs, argc, argv, TRUE);
+    config = config_parse(NULL, defs, argc, argv, TRUE);
     if (config == NULL)
         return 1;
     printf("%d %s %d %f\n",
-           cmd_ln_int32_r(config, "-a"),
-           cmd_ln_str_r(config, "-b") ? cmd_ln_str_r(config, "-b") : "(null)",
-           cmd_ln_boolean_r(config, "-c"),
-           cmd_ln_float64_r(config, "-d"));
-    cmd_ln_free_r(config);
+           config_int32(config, "a"),
+           config_str(config, "b") ? config_str(config, "b") : "(null)",
+           config_bool(config, "c"),
+           config_float64(config, "d"));
+    config_free(config);
 
     config = cmd_ln_init(NULL, NULL, FALSE,
                          "-b", "foobie", NULL);
     if (config == NULL)
         return 1;
-    cmd_ln_free_r(config);
+    config_free(config);
 
     config = cmd_ln_init(NULL, defs, TRUE,
                          "-b", "foobie", NULL);
     if (config == NULL)
         return 1;
     printf("%d %s %d %f\n",
-           cmd_ln_int32_r(config, "-a"),
-           cmd_ln_str_r(config, "-b") ? cmd_ln_str_r(config, "-b") : "(null)",
-           cmd_ln_boolean_r(config, "-c"),
-           cmd_ln_float64_r(config, "-d"));
-    cmd_ln_free_r(config);
+           config_int32(config, "a"),
+           config_str(config, "b") ? config_str(config, "b") : "(null)",
+           config_bool(config, "c"),
+           config_float64(config, "d"));
+    config_free(config);
 
     config = cmd_ln_init(NULL, NULL, FALSE,
                          "-b", "foobie", NULL);
     if (config == NULL)
         return 1;
     printf("%s\n",
-           cmd_ln_str_r(config, "-b") ? cmd_ln_str_r(config, "-b") : "(null)");
-    cmd_ln_set_str_r(config, "-b", "blatz");
+           config_str(config, "b") ? config_str(config, "b") : "(null)");
+    config_set_str(config, "b", "blatz");
     printf("%s\n",
-           cmd_ln_str_r(config, "-b") ? cmd_ln_str_r(config, "-b") : "(null)");
-    cmd_ln_free_r(config);
+           config_str(config, "b") ? config_str(config, "b") : "(null)");
+    config_free(config);
            
     return 0;
 }

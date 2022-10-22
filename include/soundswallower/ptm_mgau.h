@@ -71,7 +71,7 @@ typedef struct ptm_fast_eval_s {
 
 struct ptm_mgau_s {
     ps_mgau_t base;     /**< base structure. */
-    cmd_ln_t *config;   /**< Configuration parameters */
+    config_t *config;   /**< Configuration parameters */
     gauden_t *g;        /**< Set of Gaussians. */
     int32 n_sen;       /**< Number of senones. */
     uint8 *sen2cb;     /**< Senone to codebook mapping. */

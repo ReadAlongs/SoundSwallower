@@ -15,7 +15,7 @@ main(int argc, char *argv[])
 {
 	bin_mdef_t *mdef;
 	dict_t *dict;
-	cmd_ln_t *config;
+	config_t *config;
 
 	int i;
 	char buf[100];
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 	}
 	dict_free(dict);
 
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

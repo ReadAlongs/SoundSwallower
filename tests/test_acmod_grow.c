@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 {
     acmod_t *acmod;
     logmath_t *lmath;
-    cmd_ln_t *config;
+    config_t *config;
     fe_t *fe;
     feat_t *fcb;
     FILE *rawfh;
@@ -146,6 +146,6 @@ main(int argc, char *argv[])
     ckd_free(buf);
     acmod_free(acmod);
     logmath_free(lmath);
-    cmd_ln_free_r(config);
+    config_free(config);
     return 0;
 }

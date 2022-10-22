@@ -114,7 +114,7 @@ struct melfb_s {
 
 /** Structure for the front-end computation. */
 struct fe_s {
-    cmd_ln_t *config;
+    config_t *config;
     int refcount;
 
     float32 sampling_rate;

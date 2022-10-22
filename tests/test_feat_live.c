@@ -40,7 +40,7 @@ mfcc_t data[6][13] = {
 int
 main(int argc, char *argv[])
 {
-	cmd_ln_t *config;
+	config_t *config;
 	feat_t *fcb;
 	mfcc_t **in_feats, ***out_feats, ***out_feats2, ***optr;
 	int32 i, j, ncep, nfr, nfr1, nfr2;

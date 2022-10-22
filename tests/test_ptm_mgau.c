@@ -87,7 +87,7 @@ int
 main(int argc, char *argv[])
 {
 	logmath_t *lmath;
-	cmd_ln_t *config;
+	config_t *config;
 	acmod_t *acmod;
 	fe_t *fe;
 	feat_t *fcb;
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 #if 0
 	/* Replace it with ms_mgau. */
 	ptm_mgau_free(ps);
-	cmd_ln_set_str_r(config,
+	config_set_str(config,
 			 "-mixw",
 			 MODELDIR "/en-us/mixture_weights");
 	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
@@ -147,6 +147,6 @@ main(int argc, char *argv[])
 	fe_free(fe);
 	feat_free(fcb);
 	logmath_free(lmath);
-	cmd_ln_free_r(config);
+	config_free(config);
 	return 0;
 }

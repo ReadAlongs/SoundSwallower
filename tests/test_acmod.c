@@ -33,7 +33,7 @@ main(int argc, char *argv[])
 {
     acmod_t *acmod;
     logmath_t *lmath;
-    cmd_ln_t *config;
+    config_t *config;
     FILE *rawfh;
     int16 *buf;
     int16 const *bptr;
@@ -267,6 +267,6 @@ main(int argc, char *argv[])
     fe_free(fe);
     feat_free(fcb);
     logmath_free(lmath);
-    cmd_ln_free_r(config);
+    config_free(config);
     return 0;
 }

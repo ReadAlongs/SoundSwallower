@@ -16,7 +16,7 @@ int
 main(int argc, char *argv[])
 {
     ps_decoder_t *ps;
-    cmd_ln_t *config;
+    config_t *config;
     ps_lattice_t *dag;
     const char *hyp;
     ps_seg_t *seg;
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
            ps_lattice_hyp(dag, ps_lattice_bestpath(dag, NULL, 15.0)));
     ps_lattice_posterior(dag, NULL, 15.0);
     ps_free(ps);
-    cmd_ln_free_r(config);
+    config_free(config);
 
     return 0;
 }

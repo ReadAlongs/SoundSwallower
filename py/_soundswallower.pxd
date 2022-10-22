@@ -63,7 +63,7 @@ cdef extern from "soundswallower/cmd_ln.h":
         int type
         const char *deflt
         const char *doc
-    ctypedef struct cmd_ln_t:
+    ctypedef struct config_t:
         hash_table_t *ht
         const arg_t *defn
     cdef enum:
@@ -79,20 +79,20 @@ cdef extern from "soundswallower/cmd_ln.h":
     ctypedef struct cmd_ln_val_t:
         int type
         
-    cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, arg_t *defn,
+    config_t *config_parse(config_t *inout_cmdln, arg_t *defn,
                              int argc, char **argv, int strict)
-    int cmd_ln_free_r(cmd_ln_t *cmdln)
+    int config_free(config_t *cmdln)
 
-    double cmd_ln_float_r(cmd_ln_t *cmdln, const char *name)
-    int cmd_ln_type_r(cmd_ln_t *cmdln, const char *name)
-    long cmd_ln_int_r(cmd_ln_t *cmdln, const char *name)
-    const char *cmd_ln_str_r(cmd_ln_t *cmdln, const char *name)
-    void cmd_ln_set_str_r(cmd_ln_t *cmdln, const char *name, const char *str)
-    void cmd_ln_set_int_r(cmd_ln_t *cmdln, const char *name, long iv)
-    void cmd_ln_set_float_r(cmd_ln_t *cmdln, const char *name, double fv)
-    cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
+    double config_float(config_t *cmdln, const char *name)
+    int config_type_r(config_t *cmdln, const char *name)
+    long config_int(config_t *cmdln, const char *name)
+    const char *config_str(config_t *cmdln, const char *name)
+    void config_set_str(config_t *cmdln, const char *name, const char *str)
+    void config_set_int(config_t *cmdln, const char *name, long iv)
+    void config_set_float(config_t *cmdln, const char *name, double fv)
+    cmd_ln_val_t *config_access(config_t *cmdln, const char *name)
 
-    int cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
+    int config_exists(config_t *cmdln, const char *name)
 
 
 cdef extern from "soundswallower/fsg_model.h":
@@ -140,10 +140,10 @@ cdef extern from "soundswallower/pocketsphinx.h":
     ctypedef struct ps_seg_t:
         pass
     arg_t *ps_args()
-    ps_decoder_t *ps_init(cmd_ln_t *config)
+    ps_decoder_t *ps_init(config_t *config)
     int ps_free(ps_decoder_t *ps)
-    int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
-    fe_t *ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
+    int ps_reinit(ps_decoder_t *ps, config_t *config)
+    fe_t *ps_reinit_fe(ps_decoder_t *ps, config_t *config)
     logmath_t *ps_get_logmath(ps_decoder_t *ps)
     int ps_start_utt(ps_decoder_t *ps)
     int ps_process_raw(ps_decoder_t *ps,

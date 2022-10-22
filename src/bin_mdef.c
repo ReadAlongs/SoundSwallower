@@ -164,7 +164,7 @@ build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
 }
 
 bin_mdef_t *
-bin_mdef_read_text(cmd_ln_t *config, const char *filename)
+bin_mdef_read_text(config_t *config, const char *filename)
 {
     bin_mdef_t *bmdef;
     mdef_t *mdef;
@@ -172,7 +172,7 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 
     (void)config;
 
-    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
         return NULL;
 
@@ -309,7 +309,7 @@ bin_mdef_free(bin_mdef_t * m)
 }
 
 bin_mdef_t *
-bin_mdef_read(cmd_ln_t *config, const char *filename)
+bin_mdef_read(config_t *config, const char *filename)
 {
     bin_mdef_t *m;
     s3file_t *s;
@@ -325,7 +325,7 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         return NULL;
     }
 
-    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     m = bin_mdef_read_s3file(s, cionly);
     s3file_free(s);
     return m;

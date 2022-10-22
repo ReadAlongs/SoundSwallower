@@ -13,7 +13,7 @@ main(int argc, char *argv[])
 {
     ps_decoder_t *ps;
     fsg_model_t *fsg;
-    cmd_ln_t *config;
+    config_t *config;
     const char *hyp;
     char *phones;
     int32 score, prob;
@@ -55,7 +55,7 @@ main(int argc, char *argv[])
     printf("%s (%d, %d)\n", hyp, score, prob);
     TEST_EQUAL(0, strcmp("go _forward two meters", hyp));
     ps_free(ps);
-    cmd_ln_free_r(config);
+    config_free(config);
 
     return 0;
 }

@@ -262,12 +262,12 @@ enum fe_error_e {
 /**
  * Initialize a front-end object from a command-line parse.
  *
- * @param config Command-line object, as returned by cmd_ln_parse_r()
+ * @param config Command-line object, as returned by config_parse()
  *               or cmd_ln_parse_file().  Ownership is retained by the
  *               fe_t, so you may free this if you no longer need it.
  * @return Newly created front-end object.
  */
-fe_t *fe_init(cmd_ln_t *config);
+fe_t *fe_init(config_t *config);
 
 /**
  * Retain ownership of a front end object.
@@ -292,7 +292,7 @@ int fe_free(fe_t *fe);
  *         owned by the fe_t, so you should not attempt to free it
  *         manually.
  */
-cmd_ln_t *fe_get_config(fe_t *fe);
+config_t *fe_get_config(fe_t *fe);
 
 /**
  * Get the dimensionality of the output of this front-end object.
