@@ -87,7 +87,6 @@ typedef struct feat_s {
     cmn_type_t cmn;	/**< Type of CMN to be performed on each utterance */
     int32 varnorm;	/**< Whether variance normalization is to be performed on each utt;
                            Irrelevant if no CMN is performed */
-    int agc;		/**< UNUSED */
 
     /**
      * Feature computation function. 
@@ -104,7 +103,6 @@ typedef struct feat_s {
     void (*compute_feat)(struct feat_s *fcb, mfcc_t **input, mfcc_t **feat);
     cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral 
                            means normalization*/
-    void *agc_struct;	/**< UNUSED*/
 
     mfcc_t **cepbuf;    /**< Circular buffer of MFCC frames for live feature computation. */
     mfcc_t **tmpcepbuf; /**< Array of pointers into cepbuf to handle border cases. */
@@ -224,7 +222,7 @@ void feat_array_free(mfcc_t ***feat);
  * Initialize feature module to use the selected type of feature
  * stream.  One-time only initialization at the beginning of the
  * program.  Uses configuration parameters as defined in
- * <cmdln_macro.h>. The `-type` is a string defining the kind of
+ * <config_defs.h>. The `-type` is a string defining the kind of
  * input->feature conversion desired:
  *
  * - "s2_4x":     s2mfc->Sphinx-II 4-feature stream,

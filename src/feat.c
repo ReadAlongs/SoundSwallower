@@ -896,29 +896,8 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         ckd_free(wd);
     }
 
-    /* Set up CMN initialization if requested */
-    if (cmn != CMN_NONE) {
+    if (cmn != CMN_NONE)
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
-        if (config_exists(config, "cmninit")) {
-            char *c, *cc, *vallist;
-            int32 nvals;
-
-            vallist = ckd_salloc(config_str(config, "cmninit"));
-            c = vallist;
-            nvals = 0;
-            while (nvals < fcb->cmn_struct->veclen
-                   && (cc = strchr(c, ',')) != NULL) {
-                *cc = '\0';
-                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-                c = cc + 1;
-                ++nvals;
-            }
-            if (nvals < fcb->cmn_struct->veclen && *c != '\0') {
-                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-            }
-            ckd_free(vallist);
-        }
-    }
     fcb->cmn = cmn;
     fcb->varnorm = varnorm;
     /*
@@ -1191,8 +1170,7 @@ feat_free(feat_t * f)
         ckd_free(f->sv_buf);
     subvecs_free(f->subvecs);
 
-    if (f->cmn_struct)
-        cmn_free(f->cmn_struct);
+    cmn_free(f->cmn_struct);
     ckd_free(f);
     return 0;
 }

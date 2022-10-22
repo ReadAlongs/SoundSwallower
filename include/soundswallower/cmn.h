@@ -122,11 +122,13 @@ cmn_type_t cmn_type_from_str(const char *str);
  */
 
 typedef struct {
-    mfcc_t *cmn_mean;   /**< Temporary variable: current means */
-    mfcc_t *cmn_var;    /**< Temporary variables: stored the cmn variance */
-    mfcc_t *sum;        /**< The sum of the cmn frames */
+    mfcc_t *cmn_mean;   /**< Current means */
+    mfcc_t *cmn_var;    /**< Stored cmn variance */
+    mfcc_t *sum;        /**< Accumulated cepstra for computing mean */
     int32 nframe;	/**< Number of frames */
     int32 veclen;	/**< Length of cepstral vector */
+    char *repr;         /**< String representation of current means */
+    int refcount;
 } cmn_t;
 
 cmn_t* cmn_init(int32 veclen);
@@ -161,17 +163,34 @@ void cmn_live(cmn_t *cmn,        /**< In/Out: cmn normalization, which contains
 void cmn_live_update(cmn_t *cmn);
 
 /**
- * Set the live mean.
+ * Set live mean from a vector of length cmn->veclen
  */
-void cmn_live_set(cmn_t *cmn, mfcc_t const *vec);
+void cmn_live_set(cmn_t *cmn, mfcc_t const * vec);
 
 /**
- * Get the live mean.
+ * Get the string representation of the live mean.
  */
-void cmn_live_get(cmn_t *cmn, mfcc_t *vec);
+#define cmn_repr(cmn) (cmn)->repr
 
-/* RAH, free previously allocated memory */
-void cmn_free (cmn_t *cmn);
+/**
+ * Update the string representation.
+ */
+const char *cmn_update_repr(cmn_t *cmn);
+
+/**
+ * Set the live mean from a string.
+ */
+int cmn_set_repr(cmn_t *cmn, char const *repr);
+
+/**
+ * Retain a CMN.
+ */
+cmn_t *cmn_retain(cmn_t *cmn);
+
+/**
+ * Release a CMN, possibly freeing it.
+ */
+int cmn_free (cmn_t *cmn);
 
 #ifdef __cplusplus
 }
