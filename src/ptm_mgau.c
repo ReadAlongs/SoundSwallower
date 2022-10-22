@@ -127,7 +127,10 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
             obs += 4;
             mean += 4;
         }
-        insertion_sort_topn(topn, i, (int32)d);
+        if (d < (mfcc_t)MAX_NEG_INT32)  /* Redundant if FIXED_POINT */
+            insertion_sort_topn(topn, i, MAX_NEG_INT32);
+        else
+            insertion_sort_topn(topn, i, (int32)d);
     }
 
     return topn[0].score;
@@ -214,7 +217,10 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         }
         if (i < s->max_topn)
             continue;       /* already there.  Don't insert */
-        insertion_sort_cb(&cur, worst, best, cw, (int32)d);
+        if (d < (mfcc_t)MAX_NEG_INT32)  /* Redundant if FIXED_POINT */
+            insertion_sort_cb(&cur, worst, best, cw, MAX_NEG_INT32);
+        else
+            insertion_sort_cb(&cur, worst, best, cw, (int32)d);
     }
 
     return best->score;
@@ -272,7 +278,6 @@ ptm_mgau_codebook_norm(ptm_mgau_t *s, mfcc_t **z, int frame)
             if (norm < s->f->topn[i][j][0].score >> SENSCR_SHIFT)
                 norm = s->f->topn[i][j][0].score >> SENSCR_SHIFT;
         }
-        assert(norm != WORST_SCORE);
         for (i = 0; i < s->g->n_mgau; ++i) {
             int32 k;
             if (bitvec_is_clear(s->f->mgau_active, i))
@@ -688,6 +693,34 @@ read_mixw(s3file_t *s3f, gauden_t *g, logmath_t *lmath,
     return n_sen;
 }
 
+void
+ptm_mgau_reset_fast_hist(ps_mgau_t *ps)
+{
+    ptm_mgau_t *s = (ptm_mgau_t *)ps;
+    int i;
+
+    for (i = 0; i < s->n_fast_hist; ++i) {
+        int j, k, m;
+        /* Top-N codewords for every codebook and feature. */
+        s->hist[i].topn = ckd_calloc_3d(s->g->n_mgau, s->g->n_feat,
+                                        s->max_topn, sizeof(ptm_topn_t));
+        /* Initialize them to sane (yet arbitrary) defaults. */
+        for (j = 0; j < s->g->n_mgau; ++j) {
+            for (k = 0; k < s->g->n_feat; ++k) {
+                for (m = 0; m < s->max_topn; ++m) {
+                    s->hist[i].topn[j][k][m].cw = m;
+                    s->hist[i].topn[j][k][m].score = WORST_DIST;
+                }
+            }
+        }
+        /* Active codebook mapping (just codebook, not features,
+           at least not yet) */
+        s->hist[i].mgau_active = bitvec_alloc(s->g->n_mgau);
+        /* Start with them all on, prune them later. */
+        bitvec_set_all(s->hist[i].mgau_active, s->g->n_mgau);
+    }
+}
+
 EXPORT ps_mgau_t *
 ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                      s3file_t *mixw, s3file_t *sendump)
@@ -773,28 +806,9 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     s->hist = ckd_calloc(s->n_fast_hist, sizeof(*s->hist));
     /* s->f will be a rotating pointer into s->hist. */
     s->f = s->hist;
-    for (i = 0; i < s->n_fast_hist; ++i) {
-        int j, k, m;
-        /* Top-N codewords for every codebook and feature. */
-        s->hist[i].topn = ckd_calloc_3d(s->g->n_mgau, s->g->n_feat,
-                                        s->max_topn, sizeof(ptm_topn_t));
-        /* Initialize them to sane (yet arbitrary) defaults. */
-        for (j = 0; j < s->g->n_mgau; ++j) {
-            for (k = 0; k < s->g->n_feat; ++k) {
-                for (m = 0; m < s->max_topn; ++m) {
-                    s->hist[i].topn[j][k][m].cw = m;
-                    s->hist[i].topn[j][k][m].score = WORST_DIST;
-                }
-            }
-        }
-        /* Active codebook mapping (just codebook, not features,
-           at least not yet) */
-        s->hist[i].mgau_active = bitvec_alloc(s->g->n_mgau);
-        /* Start with them all on, prune them later. */
-        bitvec_set_all(s->hist[i].mgau_active, s->g->n_mgau);
-    }
 
     ps = (ps_mgau_t *)s;
+    ptm_mgau_reset_fast_hist(ps);
     ps->vt = &ptm_mgau_funcs;
     return ps;
 error_out:
