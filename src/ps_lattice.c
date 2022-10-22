@@ -868,7 +868,8 @@ ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
         }
     }
     /* FIXME: floating point... */
-    dag->norm += (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
+    /* FIXME: possible under/overflow!!! */
+    dag->norm += (int32)(dag->final_node_ascr << SENSCR_SHIFT) * ascale;
 
     E_INFO("Bestpath score: %d\n", bestescr);
     E_INFO("Normalizer P(O) = alpha(%s:%d:%d) = %d\n",

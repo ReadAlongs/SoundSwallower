@@ -2,6 +2,7 @@ Roadmap:
 
 - 0.4.0: Merge PocketSphinx 5.0.0
   - Config updates, but smaller (no s3kr3t command-line, etc)
+  - CMN interface
   - Overflow fixes
   - VAD/Endpointer
   - Two-pass alignment (but easier)
