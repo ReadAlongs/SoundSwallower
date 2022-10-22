@@ -53,7 +53,7 @@
 #include <soundswallower/bitvec.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-#include <soundswallower/ps_mllr.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>

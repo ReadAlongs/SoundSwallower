@@ -48,9 +48,9 @@
 #include <soundswallower/acmod.h>
 #include <soundswallower/dict.h>
 #include <soundswallower/dict2pid.h>
-#include <soundswallower/ps_alignment.h>
-#include <soundswallower/ps_lattice.h>
-#include <soundswallower/ps_mllr.h>
+#include <soundswallower/alignment.h>
+#include <soundswallower/lattice.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/profile.h>
 

@@ -41,7 +41,7 @@
 #include <float.h>
 
 #include <soundswallower/err.h>
-#include <soundswallower/ps_mllr.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/ms_gauden.h>
 
