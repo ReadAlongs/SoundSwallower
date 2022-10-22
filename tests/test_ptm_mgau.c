@@ -4,8 +4,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <soundswallower/pocketsphinx.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/decoder.h>
+
 #include <soundswallower/ptm_mgau.h>
 #include <soundswallower/ms_mgau.h>
 

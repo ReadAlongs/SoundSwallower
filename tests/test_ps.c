@@ -1,8 +1,8 @@
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx_internal.h>
+
 
 #include "test_macros.h"
 

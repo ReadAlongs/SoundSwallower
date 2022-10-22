@@ -58,9 +58,7 @@
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/configuration.h>
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/ps_lattice_internal.h>
-#include <soundswallower/fsg_search_internal.h>
+#include <soundswallower/fsg_search.h>
 #include <soundswallower/fsg_history.h>
 #include <soundswallower/fsg_lextree.h>
 

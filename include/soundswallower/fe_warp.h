@@ -37,7 +37,7 @@
 #ifndef FE_WARP_H
 #define FE_WARP_H
 
-#include "fe_internal.h"
+#include <soundswallower/fe.h>
 
 #ifdef __cplusplus
 extern "C" {

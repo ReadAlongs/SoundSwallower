@@ -37,7 +37,7 @@
 
 
 /**
- * @file acmod.c Acoustic model structures for PocketSphinx.
+ * @file acmod.c Acoustic model structures
  * @author David Huggins-Daines <dhdaines@gmail.com>
  */
 

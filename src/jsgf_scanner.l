@@ -37,7 +37,7 @@
 /* YOU MUST USE FLEX 2.6.1 OR NEWER TO PROCESS THIS FILE!!! */
 %{
 
-#include <soundswallower/jsgf_internal.h>
+#include <soundswallower/jsgf.h>
 #include "jsgf_parser.h"
 
 %}

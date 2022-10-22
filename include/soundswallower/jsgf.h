@@ -176,6 +176,70 @@ fsg_model_t *jsgf_read_file(const char *file, logmath_t * lmath, float32 lw);
  */
 fsg_model_t *jsgf_read_string(const char *string, logmath_t * lmath, float32 lw);
 
+
+#define YY_NO_INPUT /* Silence a compiler warning. */
+
+typedef struct jsgf_rhs_s jsgf_rhs_t;
+typedef struct jsgf_atom_s jsgf_atom_t;
+typedef struct jsgf_link_s jsgf_link_t;
+
+struct jsgf_s {
+    char *version;  /**< JSGF version (from header) */
+    char *charset;  /**< JSGF charset (default UTF-8) */
+    char *locale;   /**< JSGF locale (default C) */
+    char *name;     /**< Grammar name */
+
+    hash_table_t *rules;   /**< Defined or imported rules in this grammar. */
+    hash_table_t *imports; /**< Pointers to imported grammars. */
+    jsgf_t *parent;        /**< Parent grammar (if this is an imported one) */
+    glist_t searchpath;    /**< List of directories to search for grammars. */
+
+    /* Scratch variables for FSG conversion. */
+    int nstate;            /**< Number of generated states. */
+    glist_t links;	   /**< Generated FSG links. */
+    glist_t rulestack;     /**< Stack of currently expanded rules. */
+};
+
+struct jsgf_rule_s {
+    int refcnt;      /**< Reference count. */
+    char *name;      /**< Rule name (NULL for an alternation/grouping) */
+    int is_public;   /**< Is this rule marked 'public'? */
+    jsgf_rhs_t *rhs; /**< Expansion */
+
+    int entry;       /**< Entry state for current instance of this rule. */
+    int exit;        /**< Exit state for current instance of this rule. */
+};
+
+struct jsgf_rhs_s {
+    glist_t atoms;   /**< Sequence of items */
+    jsgf_rhs_t *alt; /**< Linked list of alternates */
+};
+
+struct jsgf_atom_s {
+    char *name;        /**< Rule or token name */
+    glist_t tags;      /**< Tags, if any (glist_t of char *) */
+    float weight;      /**< Weight (default 1) */
+};
+
+struct jsgf_link_s {
+    jsgf_atom_t *atom; /**< Name, tags, weight */
+    int from;          /**< From state */
+    int to;            /**< To state */
+};
+
+#define jsgf_atom_is_rule(atom) ((atom)->name[0] == '<')
+
+void jsgf_add_link(jsgf_t *grammar, jsgf_atom_t *atom, int from, int to);
+jsgf_atom_t *jsgf_atom_new(char *name, float weight);
+jsgf_atom_t *jsgf_kleene_new(jsgf_t *jsgf, jsgf_atom_t *atom, int plus);
+jsgf_rule_t *jsgf_optional_new(jsgf_t *jsgf, jsgf_rhs_t *exp);
+jsgf_rule_t *jsgf_define_rule(jsgf_t *jsgf, char *name, jsgf_rhs_t *rhs, int is_public);
+jsgf_rule_t *jsgf_import_rule(jsgf_t *jsgf, char *name);
+
+int jsgf_atom_free(jsgf_atom_t *atom);
+int jsgf_rule_free(jsgf_rule_t *rule);
+jsgf_rule_t *jsgf_rule_retain(jsgf_rule_t *rule);
+
 #ifdef __cplusplus
 }
 #endif

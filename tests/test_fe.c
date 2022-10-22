@@ -4,7 +4,7 @@
 #include <string.h>
 
 #include <soundswallower/fe.h>
-#include <soundswallower/fe_internal.h>
+
 #include <soundswallower/err.h>
 #include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>

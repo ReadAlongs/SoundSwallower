@@ -44,7 +44,7 @@
 #include <soundswallower/filename.h>
 #include <soundswallower/err.h>
 #include <soundswallower/jsgf.h>
-#include <soundswallower/jsgf_internal.h>
+
 #include <soundswallower/export.h>
 
 #include "jsgf_parser.h"

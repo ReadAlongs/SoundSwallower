@@ -37,7 +37,6 @@
 #ifndef FE_TYPE_H
 #define FE_TYPE_H
 
-#include <soundswallower/fe.h>
 #include <soundswallower/prim_type.h>
 
 typedef float64 frame_t;

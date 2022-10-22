@@ -43,7 +43,7 @@
 #include <soundswallower/hash_table.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
-#include <soundswallower/jsgf_internal.h>
+#include <soundswallower/jsgf.h>
 
 #include "jsgf_parser.h"
 #include "jsgf_scanner.h"
@@ -57,7 +57,7 @@ void yyerror(yyscan_t lex, jsgf_t *jsgf, const char *s);
 
 %}
 
-%pure-parser
+%define api.pure
 %lex-param { void* yyscanner }
 %parse-param { void* yyscanner }
 %parse-param { jsgf_t *jsgf }

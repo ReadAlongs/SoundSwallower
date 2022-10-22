@@ -1,14 +1,14 @@
 /* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/fsg_search_internal.h>
-#include <soundswallower/ps_lattice_internal.h>
+
+
+
 
 #include "test_macros.h"
 

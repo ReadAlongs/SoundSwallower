@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/ckd_alloc.h>
 #include "test_macros.h"

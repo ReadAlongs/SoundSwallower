@@ -42,8 +42,8 @@
 
 #include <soundswallower/glist.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/fsg_model.h>
-#include <soundswallower/pocketsphinx_internal.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/fsg_history.h>
 #include <soundswallower/fsg_lextree.h>

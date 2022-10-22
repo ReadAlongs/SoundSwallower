@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4 -*- */
 #include <soundswallower/err.h>
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 
 #include "test_macros.h"
 

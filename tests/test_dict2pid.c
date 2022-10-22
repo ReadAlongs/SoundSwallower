@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/dict.h>
 #include <soundswallower/dict2pid.h>

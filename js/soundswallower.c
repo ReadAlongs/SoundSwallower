@@ -7,7 +7,7 @@
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/configuration.h>
 #include <soundswallower/hash_table.h>
-#include <soundswallower/pocketsphinx_internal.h>
+
 #include <soundswallower/acmod.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/tmat.h>

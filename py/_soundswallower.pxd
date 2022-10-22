@@ -134,7 +134,7 @@ cdef extern from "soundswallower/jsgf.h":
                                 logmath_t *lmath, float lw)
 
 
-cdef extern from "soundswallower/pocketsphinx.h":
+cdef extern from "soundswallower/decoder.h":
     ctypedef struct ps_decoder_t:
         pass
     ctypedef struct ps_seg_t:

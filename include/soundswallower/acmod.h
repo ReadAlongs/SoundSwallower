@@ -80,19 +80,6 @@ typedef enum acmod_state_e {
  */
 #define SENSCR_DUMMY 0x7fff
 
-/**
- * Feature space linear transform structure.
- */
-struct ps_mllr_s {
-    int refcnt;     /**< Reference count. */
-    int n_class;    /**< Number of MLLR classes. */
-    int n_feat;     /**< Number of feature streams. */
-    int *veclen;    /**< Length of input vectors for each stream. */
-    float32 ****A;  /**< Rotation part of mean transformations. */
-    float32 ***b;   /**< Bias part of mean transformations. */
-    float32 ***h;   /**< Diagonal transformation of variances. */
-    int32 *cb2mllr; /**< Mapping from codebooks to transformations. */
-};
 
 /**
  * Acoustic model parameter structure. 

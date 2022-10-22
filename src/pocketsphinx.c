@@ -44,7 +44,6 @@
 #include <unistd.h>
 #endif
 
-/* SphinxBase headers. */
 #include <soundswallower/export.h>
 #include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
@@ -53,12 +52,9 @@
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/config_defs.h>
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
+#include <soundswallower/fsg_search.h>
 
-/* Local headers. */
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/ps_lattice_internal.h>
-#include <soundswallower/fsg_search_internal.h>
 
 static const config_param_t ps_args_def[] = {
     CONFIG_OPTIONS,

@@ -54,7 +54,7 @@
 #include <soundswallower/logmath.h>
 #include <soundswallower/configuration.h>
 #include <soundswallower/vector.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/ps_mllr.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/s3file.h>
 

@@ -45,7 +45,7 @@
 #include <soundswallower/configuration.h>
 #include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/fe_internal.h>
+
 #include <soundswallower/fe_warp.h>
 
 static const config_param_t fe_args[] = {

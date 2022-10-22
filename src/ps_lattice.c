@@ -47,9 +47,29 @@
 #include <soundswallower/listelem_alloc.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/ps_lattice_internal.h>
 #include <soundswallower/dict.h>
+#include <soundswallower/decoder.h>
+
+/**
+ * Segmentation "iterator" for backpointer table results.
+ */
+typedef struct dag_seg_s {
+    ps_seg_t base;       /**< Base structure. */
+    ps_latlink_t **links;   /**< Array of lattice links. */
+    int32 norm;     /**< Normalizer for posterior probabilities. */
+    int16 n_links;  /**< Number of lattice links. */
+    int16 cur;      /**< Current position in bpidx. */
+} dag_seg_t;
+
+/**
+ * Segmentation "iterator" for A* search results.
+ */
+typedef struct astar_seg_s {
+    ps_seg_t base;
+    ps_latnode_t **nodes;
+    int n_nodes;
+    int cur;
+} astar_seg_t;
 
 /*
  * Create a directed link between "from" and "to" nodes, but if a link already exists,

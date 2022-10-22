@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/acmod.h>
 
