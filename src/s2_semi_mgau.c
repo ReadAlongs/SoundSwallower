@@ -46,7 +46,7 @@
 #include <limits.h>
 #include <math.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>

@@ -96,7 +96,7 @@
 #ifndef _LIBFBS_MS_CONT_MGAU_H_
 #define _LIBFBS_MS_CONT_MGAU_H_
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/acmod.h>

@@ -57,7 +57,7 @@ cdef extern from "soundswallower/hash_table.h":
     const char *hash_entry_key(hash_entry_t *ent)
 
 
-cdef extern from "soundswallower/cmd_ln.h":
+cdef extern from "soundswallower/configuration.h":
     ctypedef struct config_param_t:
         const char *name
         int type

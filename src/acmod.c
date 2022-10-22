@@ -48,11 +48,11 @@
 
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/ptm_mgau.h>

@@ -44,7 +44,7 @@
 #ifndef __POCKETSPHINX_INTERNAL_H__
 #define __POCKETSPHINX_INTERNAL_H__
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/hash_table.h>

@@ -56,7 +56,7 @@
 #ifndef _NEW_FE_H_
 #define _NEW_FE_H_
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 
 #ifdef __cplusplus
 extern "C" {

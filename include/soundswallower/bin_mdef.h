@@ -56,7 +56,7 @@ extern "C" {
 #endif
 
 #include <soundswallower/s3file.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/mdef.h>
 
 #define BIN_MDEF_FORMAT_VERSION 1

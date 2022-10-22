@@ -39,7 +39,7 @@
 #ifndef __S2_FSG_LEXTREE_H__
 #define __S2_FSG_LEXTREE_H__
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/dict.h>

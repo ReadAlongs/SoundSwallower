@@ -6,7 +6,7 @@
 #include <soundswallower/fe.h>
 #include <soundswallower/fe_internal.h>
 #include <soundswallower/err.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 
 #include "test_macros.h"

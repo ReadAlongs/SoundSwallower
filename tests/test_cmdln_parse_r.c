@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 
 const config_param_t defs[] = {

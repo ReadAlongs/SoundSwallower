@@ -1,3 +1,6 @@
+# header names
+s,soundswallower/cmd_ln.h,soundswallower/configuration.h,g;
+s,soundswallower/cmdln_macro.h,soundswallower/config_defs.h,g;
 # type names
 s/cmd_ln_t/config_t/g;
 s/cmd_ln_val_t/config_val_t/g;

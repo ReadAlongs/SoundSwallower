@@ -40,11 +40,11 @@
 
 
 #include <stdio.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ps_lattice.h>
 #include <soundswallower/ps_mllr.h>
 #include <soundswallower/fsg_model.h>

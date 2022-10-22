@@ -35,7 +35,7 @@
  *
  */
 /*
- * cmd_ln.h -- Command line argument parsing.
+ * configuration.h -- Command line argument parsing.
  *
  * **********************************************
  * CMU ARPA Speech Project
@@ -65,7 +65,7 @@
 #include <soundswallower/hash_table.h>
 
 /**
- * @file cmd_ln.h
+ * @file configuration.h
  * @brief Command-line and other configuration parsing and handling.
  *  
  * Configuration parameters, optionally parsed from the command line.

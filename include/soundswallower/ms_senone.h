@@ -44,7 +44,7 @@
 
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
 #include <soundswallower/bin_mdef.h>

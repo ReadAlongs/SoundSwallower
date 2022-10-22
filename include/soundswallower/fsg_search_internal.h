@@ -41,7 +41,7 @@
 #define __S2_FSG_SEARCH_H__
 
 #include <soundswallower/glist.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/pocketsphinx_internal.h>
 #include <soundswallower/hmm.h>

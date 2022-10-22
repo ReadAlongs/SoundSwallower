@@ -52,7 +52,7 @@
 #include <soundswallower/acmod.h>
 #include <soundswallower/jsgf.h>
 #include <soundswallower/hash_table.h>
-#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/pocketsphinx.h>
 
 /* Local headers. */

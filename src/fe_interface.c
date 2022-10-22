@@ -42,7 +42,7 @@
 #include <soundswallower/byteorder.h>
 #include <soundswallower/genrand.h>
 #include <soundswallower/err.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/fe_internal.h>
 #include <soundswallower/fe_warp.h>

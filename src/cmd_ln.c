@@ -74,7 +74,7 @@
 #endif
 
 #include <soundswallower/export.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/case.h>

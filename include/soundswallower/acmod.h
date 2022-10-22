@@ -46,7 +46,7 @@
 /* System headers. */
 #include <stdio.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>

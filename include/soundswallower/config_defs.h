@@ -40,7 +40,7 @@
 #ifndef __PS_CMDLN_MACRO_H__
 #define __PS_CMDLN_MACRO_H__
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/fe.h>
 
