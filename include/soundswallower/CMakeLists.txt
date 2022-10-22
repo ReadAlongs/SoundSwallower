@@ -16,7 +16,6 @@ err.h
 export.h
 feat.h
 fe.h
-fe_internal.h
 fe_noise.h
 fe_type.h
 fe_warp_affine.h
@@ -27,14 +26,12 @@ filename.h
 fsg_history.h
 fsg_lextree.h
 fsg_model.h
-fsg_search_internal.h
 genrand.h
 glist.h
 hash_table.h
 heap.h
 hmm.h
 jsgf.h
-jsgf_internal.h
 listelem_alloc.h
 logmath.h
 mdef.h
@@ -46,7 +43,6 @@ prim_type.h
 profile.h
 ps_alignment.h
 ps_lattice.h
-ps_lattice_internal.h
 ps_mllr.h
 ptm_mgau.h
 s2_semi_mgau.h
