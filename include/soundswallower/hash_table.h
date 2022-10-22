@@ -218,7 +218,7 @@ void *hash_table_enter(hash_table_t *h, /**< In: Handle of hash table in which t
  * Add a 32-bit integer value to a hash table.
  */
 #define hash_table_enter_int32(h,k,v) \
-    ((int32)hash_table_enter((h),(k),(void *)(v)))
+    ((int32)(size_t)hash_table_enter((h),(k),(void *)(size_t)(v)))
 
 /**
  * Add a new entry with given key and value to hash table h.  If the
@@ -243,7 +243,7 @@ void *hash_table_replace(hash_table_t *h, /**< In: Handle of hash table in which
  * Replace a 32-bit integer value in a hash table.
  */
 #define hash_table_replace_int32(h,k,v) \
-    ((int32)hash_table_replace((h),(k),(void *)(v)))
+    ((int32)(size_t)hash_table_replace((h),(k),(void *)(v)))
 
 /**
  * Delete an entry with given key and associated value to hash table
@@ -297,7 +297,7 @@ void *hash_table_enter_bkey(hash_table_t *h,	/**< In: Handle of hash table
  * on 64-bit platforms.
  */
 #define hash_table_enter_bkey_int32(h,k,l,v) \
-    ((int32)(long)hash_table_enter_bkey((h),(k),(l),(void *)(long)(v)))
+    ((int32)(size_t)hash_table_enter_bkey((h),(k),(l),(void *)(size_t)(v)))
 
 /**
  * Like hash_table_replace, but with an explicitly specified key length,
@@ -319,7 +319,7 @@ void *hash_table_replace_bkey(hash_table_t *h, /**< In: Handle of hash table in 
  * on 64-bit platforms.
  */
 #define hash_table_replace_bkey_int32(h,k,l,v)                          \
-    ((int32)(long)hash_table_replace_bkey((h),(k),(l),(void *)(long)(v)))
+    ((int32)(size_t)hash_table_replace_bkey((h),(k),(l),(void *)(size_t)(v)))
 
 /**
  * Look up a key in a hash table and optionally return the associated
