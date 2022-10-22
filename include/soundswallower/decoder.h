@@ -38,7 +38,6 @@
 #ifndef __DECODER_H__
 #define __DECODER_H__
 
-
 #include <stdio.h>
 
 #include <soundswallower/configuration.h>
@@ -640,7 +639,6 @@ struct ps_seg_s {
 #define ps_search_seg_next(seg) (*(seg->vt->seg_next))(seg)
 #define ps_search_seg_free(s) (*(seg->vt->seg_free))(seg)
 
-
 /**
  * Decoder object.
  */
@@ -667,11 +665,6 @@ struct ps_decoder_s {
     /* Logging. */
     FILE *logfh;
 #endif
-};
-
-
-struct ps_search_iter_s {
-    hash_iter_t itor;
 };
 
 #ifdef __cplusplus
