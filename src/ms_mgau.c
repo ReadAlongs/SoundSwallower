@@ -100,7 +100,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
     msg->s = NULL;
     
     if ((g = msg->g = gauden_init_s3file(means, vars,
-                                         config_float32(config, "varfloor"),
+                                         config_float(config, "varfloor"),
                                          lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
@@ -122,10 +122,10 @@ ms_mgau_init_s3file(acmod_t *acmod,
 
     s = msg->s = senone_init_s3file(msg->g,
                                     mixw, senmgau,
-                                    config_float32(config, "mixwfloor"),
+                                    config_float(config, "mixwfloor"),
                                     lmath, mdef);
 
-    s->aw = config_int32(config, "aw");
+    s->aw = config_int(config, "aw");
 
     /* Verify senone parameters against gauden parameters */
     if (s->n_feat != (uint32)g->n_feat)
@@ -141,7 +141,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
         E_ERROR("Senones use fewer codebooks (%d) than present (%d)\n",
                 s->n_gauden, g->n_mgau);
 
-    msg->topn = config_int32(config, "topn");
+    msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
         E_WARN
@@ -185,7 +185,7 @@ ms_mgau_init(acmod_t *acmod)
     
     if ((g = msg->g = gauden_init(config_str(config, "_mean"),
                              config_str(config, "_var"),
-                             config_float32(config, "varfloor"),
+                             config_float(config, "varfloor"),
                              lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
@@ -208,10 +208,10 @@ ms_mgau_init(acmod_t *acmod)
     s = msg->s = senone_init(msg->g,
                              config_str(config, "_mixw"),
                              config_str(config, "_senmgau"),
-                             config_float32(config, "mixwfloor"),
+                             config_float(config, "mixwfloor"),
                              lmath, mdef);
 
-    s->aw = config_int32(config, "aw");
+    s->aw = config_int(config, "aw");
 
     /* Verify senone parameters against gauden parameters */
     if (s->n_feat != (uint32)g->n_feat)
@@ -227,7 +227,7 @@ ms_mgau_init(acmod_t *acmod)
         E_ERROR("Senones use fewer codebooks (%d) than present (%d)\n",
                 s->n_gauden, g->n_mgau);
 
-    msg->topn = config_int32(config, "topn");
+    msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
         E_WARN

@@ -66,7 +66,7 @@
 
 /**
  * @file cmd_ln.h
- * @brief Command-line and other configurationparsing and handling.
+ * @brief Command-line and other configuration parsing and handling.
  *  
  * Configuration parameters, optionally parsed from the command line.
  */
@@ -157,7 +157,7 @@ typedef struct cmd_ln_val_s {
  * @struct config_t
  * Structure (no longer opaque) used to hold the results of command-line parsing.
  */
-typedef struct cmd_ln_s {
+typedef struct config_s {
     int refcount;
     hash_table_t *ht;
     char **f_argv;
@@ -272,7 +272,7 @@ cmd_ln_val_t *config_access(config_t *cmdln, char const *name);
  * @return the type of the parameter (as a combination of the ARG_*
  *         bits), or 0 if no such parameter exists.
  */
-int config_type_r(config_t *cmdln, char const *name);
+int config_type(config_t *cmdln, char const *name);
 
 /**
  * Retrieve a string from a command-line object.
@@ -332,18 +332,6 @@ double config_float(config_t *cmdln, char const *name);
 void config_set_str(config_t *cmdln, char const *name, char const *str);
 
 /**
- * Set a string in a command-line object even if it is not present in argument
- * description. Useful for setting extra values computed from configuration, propagated
- * to other parts.
- *
- * @param cmdln Command-line object.
- * @param name The command-line flag to set.
- * @param str String value to set.  The command-line object does not
- *            retain ownership of this pointer.
- */
-void cmd_ln_set_str_extra_r(config_t *cmdln, char const *name, char const *str);
-
-/**
  * Set an integer in a command-line object.
  *
  * @param cmdln Command-line object.
@@ -366,16 +354,6 @@ void config_set_float(config_t *cmdln, char const *name, double fv);
  */
 #define config_set_bool(c,n,b) (config_set_int(c,n,(b)!=0))
 
-/*
- * Compatibility macros
- */
-#define config_int32(c,n)	(int32)config_int(c,n)
-#define config_float32(c,n)	(float32)config_float(c,n)
-#define config_float64(c,n)	(float64)config_float(c,n)
-#define config_set_int32(c,n,i)   config_set_int(c,n,i)
-#define config_set_float32(c,n,f) config_set_float(c,n,(double)f)
-#define config_set_float64(c,n,f) config_set_float(c,n,(double)f)
-
 /**
  * Re-entrant version of cmd_ln_exists().
  *
@@ -391,7 +369,7 @@ int config_exists(config_t *cmdln, char const *name);
  * @param cmdln command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_help_r (config_t *cmdln, const arg_t *defn);
+void cmd_ln_log_help_r(config_t *cmdln, const arg_t *defn);
 
 /**
  * Print current configuration values and defaults.
@@ -399,7 +377,7 @@ void cmd_ln_log_help_r (config_t *cmdln, const arg_t *defn);
  * @param cmdln  command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_values_r (config_t *cmdln, const arg_t *defn);
+void cmd_ln_log_values_r(config_t *cmdln, const arg_t *defn);
 
 
 #ifdef __cplusplus

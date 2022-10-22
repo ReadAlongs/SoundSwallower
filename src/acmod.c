@@ -88,7 +88,7 @@ acmod_load_am(acmod_t *acmod)
         return -1;
     }
     acmod->tmat = tmat_init(tmatfn, acmod->lmath,
-                            config_float32(acmod->config, "tmatfloor"));
+                            config_float(acmod->config, "tmatfloor"));
 
     /* Read the acoustic models. */
     if ((config_str(acmod->config, "_mean") == NULL)
@@ -152,10 +152,10 @@ int
 acmod_fe_mismatch(acmod_t *acmod, fe_t *fe)
 {
     /* Output vector dimension needs to be the same. */
-    if (config_int32(acmod->config, "ceplen") != fe_get_output_size(fe)) {
+    if (config_int(acmod->config, "ceplen") != fe_get_output_size(fe)) {
         E_ERROR("Configured feature length %d doesn't match feature "
                 "extraction output size %d\n",
-                config_int32(acmod->config, "ceplen"),
+                config_int(acmod->config, "ceplen"),
                 fe_get_output_size(fe));
         return TRUE;
     }
@@ -171,7 +171,7 @@ acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
     if (0 != strcmp(config_str(acmod->config, "feat"), feat_name(fcb)))
         return TRUE;
     /* Input vector dimension needs to be the same. */
-    if (config_int32(acmod->config, "ceplen") != feat_cepsize(fcb))
+    if (config_int(acmod->config, "ceplen") != feat_cepsize(fcb))
         return TRUE;
     /* FIXME: Need to check LDA and stuff too. */
     return FALSE;

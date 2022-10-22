@@ -932,7 +932,7 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
 
     /* Read means and variances. */
     if ((s->g = gauden_init_s3file(means, vars,
-                                   config_float32(s->config, "varfloor"),
+                                   config_float(s->config, "varfloor"),
                                    s->lmath)) == NULL) {
         E_ERROR("Failed to read means and variances\n");	
         goto error_out;
@@ -966,15 +966,15 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         s->sendump_mmap = s3file_retain(sendump);
     }
     else {
-        float32 mixw_floor = config_float32(s->config, "mixwfloor");
+        float32 mixw_floor = config_float(s->config, "mixwfloor");
         if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
     }
-    s->ds_ratio = config_int32(s->config, "ds");
+    s->ds_ratio = config_int(s->config, "ds");
 
     /* Determine top-N for each feature */
     s->topn_beam = ckd_calloc(n_feat, sizeof(*s->topn_beam));
-    s->max_topn = config_int32(s->config, "topn");
+    s->max_topn = config_int(s->config, "topn");
     split_topn(config_str(s->config, "topn_beam"), s->topn_beam, n_feat);
     E_INFO("Maximum top-N: %d ", s->max_topn);
     E_INFOCONT("Top-N beams:");

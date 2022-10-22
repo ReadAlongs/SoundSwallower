@@ -542,6 +542,6 @@ gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, config_t *config)
 
     /* Re-precompute (if we aren't adapting variances this isn't
      * actually necessary...) */
-    gauden_dist_precompute(g, g->lmath, config_float32(config, "varfloor"));
+    gauden_dist_precompute(g, g->lmath, config_float(config, "varfloor"));
     return 0;
 }

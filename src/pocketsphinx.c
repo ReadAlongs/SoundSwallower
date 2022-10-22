@@ -248,11 +248,11 @@ ps_init_config(ps_decoder_t *ps, config_t *config)
     /* Logmath computation (used in acmod and search) */
     if (ps->lmath == NULL
         || (logmath_get_base(ps->lmath) !=
-            (float64)config_float32(ps->config, "logbase"))) {
+            (float64)config_float(ps->config, "logbase"))) {
         if (ps->lmath)
             logmath_free(ps->lmath);
         ps->lmath = logmath_init
-            ((float64)config_float32(ps->config, "logbase"), 0, TRUE);
+            ((float64)config_float(ps->config, "logbase"), 0, TRUE);
     }
 
     /* Initialize performance timer. */
@@ -389,7 +389,7 @@ ps_init_grammar(ps_decoder_t *ps)
     const char *path;
     float32 lw;
 
-    lw = config_float32(ps->config, "lw");
+    lw = config_float(ps->config, "lw");
 
     if ((path = config_str(ps->config, "jsgf"))) {
         if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
@@ -413,7 +413,7 @@ ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file
 {
     float32 lw;
 
-    lw = config_float32(ps->config, "lw");
+    lw = config_float(ps->config, "lw");
 
     /* JSGF takes precedence */
     if (jsgf_file) {
@@ -602,7 +602,7 @@ ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
       }
   }
 
-  lw = config_float32(ps->config, "lw");
+  lw = config_float(ps->config, "lw");
   fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
   result = ps_set_fsg(ps, name, fsg);
   fsg_model_free(fsg);
@@ -641,7 +641,7 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
       }
   }
 
-  lw = config_float32(ps->config, "lw");
+  lw = config_float(ps->config, "lw");
   fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
   result = ps_set_fsg(ps, name, fsg);
   fsg_model_free(fsg);
@@ -1124,7 +1124,7 @@ ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
 {
     int32 frate;
 
-    frate = config_int32(ps->config, "frate");
+    frate = config_int(ps->config, "frate");
     *out_nspeech = (double)ps->acmod->output_frame / frate;
     *out_ncpu = ps->perf.t_cpu;
     *out_nwall = ps->perf.t_elapsed;
@@ -1136,7 +1136,7 @@ ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
 {
     int32 frate;
 
-    frate = config_int32(ps->config, "frate");
+    frate = config_int(ps->config, "frate");
     *out_nspeech = (double)ps->n_frame / frate;
     *out_ncpu = ps->perf.t_tot_cpu;
     *out_nwall = ps->perf.t_tot_elapsed;

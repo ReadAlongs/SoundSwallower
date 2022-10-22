@@ -107,7 +107,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
      */
     /* Add silence self-loops to all states. */
     fsg_model_add_silence(fsg, "<sil>", -1,
-                          config_float32(ps_search_config(fsgs), "silprob"));
+                          config_float(ps_search_config(fsgs), "silprob"));
     n_sil = 0;
     /* Add self-loops for all other fillers. */
     for (wid = dict_filler_start(dict); wid < dict_filler_end(dict); ++wid) {
@@ -115,7 +115,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
         if (wid == dict_startwid(dict) || wid == dict_finishwid(dict))
             continue;
         fsg_model_add_silence(fsg, word, -1,
-                              config_float32(ps_search_config(fsgs), "fillprob"));
+                              config_float(ps_search_config(fsgs), "fillprob"));
         ++n_sil;
     }
 
@@ -200,26 +200,26 @@ fsg_search_init(const char *name,
     /* Get search pruning parameters */
     fsgs->beam_factor = 1.0f;
     fsgs->beam = fsgs->beam_orig
-        = (int32) logmath_log(acmod->lmath, config_float64(config, "beam"))
+        = (int32) logmath_log(acmod->lmath, config_float(config, "beam"))
         >> SENSCR_SHIFT;
     fsgs->pbeam = fsgs->pbeam_orig
-        = (int32) logmath_log(acmod->lmath, config_float64(config, "pbeam"))
+        = (int32) logmath_log(acmod->lmath, config_float(config, "pbeam"))
         >> SENSCR_SHIFT;
     fsgs->wbeam = fsgs->wbeam_orig
-        = (int32) logmath_log(acmod->lmath, config_float64(config, "wbeam"))
+        = (int32) logmath_log(acmod->lmath, config_float(config, "wbeam"))
         >> SENSCR_SHIFT;
 
     /* LM related weights/penalties */
-    fsgs->lw = config_float32(config, "lw");
-    fsgs->pip = (int32) (logmath_log(acmod->lmath, config_float32(config, "pip"))
+    fsgs->lw = config_float(config, "lw");
+    fsgs->pip = (int32) (logmath_log(acmod->lmath, config_float(config, "pip"))
                            * fsgs->lw)
         >> SENSCR_SHIFT;
-    fsgs->wip = (int32) (logmath_log(acmod->lmath, config_float32(config, "wip"))
+    fsgs->wip = (int32) (logmath_log(acmod->lmath, config_float(config, "wip"))
                            * fsgs->lw)
         >> SENSCR_SHIFT;
 
     /* Acoustic score scale for posterior probabilities. */
-    fsgs->ascale = (float32)(1.0 / config_float32(config, "ascale"));
+    fsgs->ascale = (float32)(1.0 / config_float(config, "ascale"));
 
     E_INFO("FSG(beam: %d, pbeam: %d, wbeam: %d; wip: %d, pip: %d)\n",
            fsgs->beam_orig, fsgs->pbeam_orig, fsgs->wbeam_orig,
@@ -264,7 +264,7 @@ fsg_search_free(ps_search_t *search)
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
     double n_speech = (double)fsgs->n_tot_frame
-            / config_int32(ps_search_config(fsgs), "frate");
+            / config_int(ps_search_config(fsgs), "frate");
 
     E_INFO("TOTAL fsg %.2f CPU %.3f xRT\n",
            fsgs->perf.t_tot_cpu,
@@ -379,7 +379,7 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
     fsgs->n_hmm_eval += n;
 
     /* Adjust beams if #active HMMs larger than absolute threshold */
-    maxhmmpf = config_int32(ps_search_config(fsgs), "maxhmmpf");
+    maxhmmpf = config_int(ps_search_config(fsgs), "maxhmmpf");
     if (maxhmmpf != -1 && n > maxhmmpf) {
         /*
          * Too many HMMs active; reduce the beam factor applied to the default
@@ -870,7 +870,7 @@ fsg_search_finish(ps_search_t *search)
     cf = ps_search_acmod(fsgs)->output_frame;
     if (cf > 0) {
         double n_speech = (double) (cf + 1)
-            / config_int32(ps_search_config(fsgs), "frate");
+            / config_int(ps_search_config(fsgs), "frate");
         E_INFO("fsg %.2f CPU %.3f xRT\n",
                fsgs->perf.t_cpu, fsgs->perf.t_cpu / n_speech);
         E_INFO("fsg %.2f wall %.3f xRT\n",
@@ -1547,11 +1547,11 @@ fsg_search_lattice(ps_search_t *search)
         int32 silpen, fillpen;
 
         silpen = (int32)(logmath_log(fsg->lmath,
-                                     config_float32(ps_search_config(fsgs), "silprob"))
+                                     config_float(ps_search_config(fsgs), "silprob"))
                          * fsg->lw)
             >> SENSCR_SHIFT;
         fillpen = (int32)(logmath_log(fsg->lmath,
-                                      config_float32(ps_search_config(fsgs), "fillprob"))
+                                      config_float(ps_search_config(fsgs), "fillprob"))
                           * fsg->lw)
             >> SENSCR_SHIFT;
 	

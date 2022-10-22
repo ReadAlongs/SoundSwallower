@@ -740,7 +740,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
     const char *type = config_str(config, "feat");
     cmn_type_t cmn = cmn_type_from_str(config_str(config,"cmn"));
     int varnorm = config_bool(config, "varnorm");
-    int cepsize = config_int32(config, "ceplen");
+    int cepsize = config_int(config, "ceplen");
 
     if (cepsize == 0)
         cepsize = 13;
@@ -935,7 +935,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
     /* Load LDA. */
     if (lda) {
         if (feat_read_lda_s3file(fcb, lda,
-                                 config_int32(config, "ldadim")) < 0)
+                                 config_int(config, "ldadim")) < 0)
             goto error_out;
     }
     /* Set up subvector specification */

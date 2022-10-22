@@ -58,8 +58,8 @@ fe_parse_general_params(config_t *config, fe_t * fe)
     int j, frate, window_samples;
 
     fe->config = cmd_ln_retain(config);
-    fe->sampling_rate = config_float32(config, "samprate");
-    frate = config_int32(config, "frate");
+    fe->sampling_rate = config_float(config, "samprate");
+    frate = config_int(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {
         E_ERROR
             ("Frame rate %d can not be bigger than sample rate %.02f\n",
@@ -70,7 +70,7 @@ fe_parse_general_params(config_t *config, fe_t * fe)
     fe->frame_rate = (int16)frate;
     if (config_bool(config, "dither")) {
         fe->dither = 1;
-        fe->dither_seed = config_int32(config, "seed");
+        fe->dither_seed = config_int(config, "seed");
     }
 #if WORDS_BIGENDIAN
     /* i.e. if input_endian is *not* "big", then fe->swap is true. */
@@ -79,11 +79,11 @@ fe_parse_general_params(config_t *config, fe_t * fe)
     /* and vice versa */
     fe->swap = strcmp("little", config_str(config, "input_endian"));
 #endif
-    fe->window_length = config_float32(config, "wlen");
-    fe->pre_emphasis_alpha = config_float32(config, "alpha");
+    fe->window_length = config_float(config, "wlen");
+    fe->pre_emphasis_alpha = config_float(config, "alpha");
 
-    fe->num_cepstra = (uint8)config_int32(config, "ncep");
-    fe->fft_size = (int16)config_int32(config, "nfft");
+    fe->num_cepstra = (uint8)config_int(config, "ncep");
+    fe->fft_size = (int16)config_int(config, "nfft");
 
     window_samples = (int)(fe->window_length * fe->sampling_rate);
     E_INFO("Frames are %d samples at intervals of %d\n",
@@ -149,21 +149,21 @@ fe_parse_melfb_params(config_t *config, fe_t *fe, melfb_t * mel)
     mel->sampling_rate = fe->sampling_rate;
     mel->fft_size = fe->fft_size;
     mel->num_cepstra = fe->num_cepstra;
-    mel->num_filters = config_int32(config, "nfilt");
+    mel->num_filters = config_int(config, "nfilt");
 
     if (fe->log_spec)
         fe->feature_dimension = mel->num_filters;
     else
         fe->feature_dimension = fe->num_cepstra;
 
-    mel->upper_filt_freq = config_float32(config, "upperf");
-    mel->lower_filt_freq = config_float32(config, "lowerf");
+    mel->upper_filt_freq = config_float(config, "upperf");
+    mel->lower_filt_freq = config_float(config, "lowerf");
 
     mel->doublewide = config_bool(config, "doublebw");
 
     mel->warp_type = config_str(config, "warp_type");
     mel->warp_params = config_str(config, "warp_params");
-    mel->lifter_val = config_int32(config, "lifter");
+    mel->lifter_val = config_int(config, "lifter");
 
     mel->unit_area = config_bool(config, "unit_area");
     mel->round_filters = config_bool(config, "round_filters");

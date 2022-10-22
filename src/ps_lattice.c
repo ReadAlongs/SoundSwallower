@@ -215,7 +215,7 @@ ps_lattice_init_search(ps_search_t *search, int n_frame)
     dag->search = search;
     dag->dict = dict_retain(search->dict);
     dag->lmath = logmath_retain(search->acmod->lmath);
-    dag->frate = config_int32(dag->search->config, "frate");
+    dag->frate = config_int(dag->search->config, "frate");
     dag->silence = dict_silwid(dag->dict);
     dag->n_frames = n_frame;
     dag->latnode_alloc = listelem_alloc_init(sizeof(ps_latnode_t));

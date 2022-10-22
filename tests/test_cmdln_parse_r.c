@@ -25,10 +25,10 @@ main(int argc, char *argv[])
     if (config == NULL)
         return 1;
     printf("%d %s %d %f\n",
-           config_int32(config, "a"),
+           config_int(config, "a"),
            config_str(config, "b") ? config_str(config, "b") : "(null)",
            config_bool(config, "c"),
-           config_float64(config, "d"));
+           config_float(config, "d"));
     config_free(config);
 
     config = cmd_ln_init(NULL, NULL, FALSE,
@@ -42,10 +42,10 @@ main(int argc, char *argv[])
     if (config == NULL)
         return 1;
     printf("%d %s %d %f\n",
-           config_int32(config, "a"),
+           config_int(config, "a"),
            config_str(config, "b") ? config_str(config, "b") : "(null)",
            config_bool(config, "c"),
-           config_float64(config, "d"));
+           config_float(config, "d"));
     config_free(config);
 
     config = cmd_ln_init(NULL, NULL, FALSE,
