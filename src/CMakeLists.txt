@@ -27,7 +27,6 @@ set(SOURCES
   genrand.c
   glist.c
   hash_table.c
-  heap.c
   hmm.c
   jsgf.c
   jsgf_parser.c
@@ -40,7 +39,7 @@ set(SOURCES
   ms_gauden.c
   ms_mgau.c
   ms_senone.c
-  pocketsphinx.c
+  decoder.c
   profile.c
   ps_lattice.c
   ps_mllr.c
