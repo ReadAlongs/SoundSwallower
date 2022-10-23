@@ -36,11 +36,11 @@
  */
 
 /**
- * @file ps_alignment.h Multi-level alignment structure
+ * @file alignment.h Multi-level alignment structure
  */
 
-#ifndef __PS_ALIGNMENT_H__
-#define __PS_ALIGNMENT_H__
+#ifndef __ALIGNMENT_H__
+#define __ALIGNMENT_H__
 
 
 #include <soundswallower/prim_type.h>
@@ -54,25 +54,40 @@ extern "C" {
 }
 #endif
 
-#define PS_ALIGNMENT_NONE ((uint16)0xffff)
-
-struct alignment_entry_s {
+/**
+ * @struct alignment_entry_t
+ * @brief Entry (phone, word, or state) in an alignment
+ */
+typedef struct alignment_entry_s {
+    int32 start;  /**< Start frame index. */
+    int32 duration; /**< Duration in frames. */
+    int32 score;  /**< Alignment score (fairly meaningless). */
+    /**
+     * Index of parent node.
+     *
+     * You can use this to determine if you have crossed a parent
+     * boundary.  For example if you wish to iterate only over phones
+     * inside a word, you can store this for the first phone and stop
+     * iterating once it changes. */
+    int parent;
+    int child;  /**< Index of child node. */
+    /**
+     * ID or IDs for this entry.
+     *
+     * This is complex, though perhaps not needlessly so.  We need all
+     * this information to do state alignment.
+     */
     union {
-        int32 wid;
+        int32 wid;  /**< Word ID (for words) */
         struct {
-            uint16 ssid;
-            uint16 cipid;
-            uint16 tmatid;
+            int16 cipid;  /**< Phone ID, which you care about. */
+            uint16 ssid;  /**< Senone sequence ID, which you don't. */
+            int32 tmatid; /**< Transition matrix ID, almost certainly
+                             the same as cipid. */
         } pid;
         uint16 senid;
     } id;
-    int16 start;
-    int16 duration;
-    int32 score;
-    uint16 parent;
-    uint16 child;
-};
-typedef struct alignment_entry_s alignment_entry_t;
+} alignment_entry_t;
 
 struct alignment_vector_s {
     alignment_entry_t *seq;
@@ -80,6 +95,11 @@ struct alignment_vector_s {
 };
 typedef struct alignment_vector_s alignment_vector_t;
 
+/**
+ * @struct alignment_t
+ * @brief Multi-level alignment (words, phones, states) over an utterance.
+ */
+typedef struct alignment_s alignment_t;
 struct alignment_s {
     int refcount;
     dict2pid_t *d2p;
@@ -87,14 +107,29 @@ struct alignment_s {
     alignment_vector_t sseq;
     alignment_vector_t state;
 };
-typedef struct alignment_s alignment_t;
 
+/**
+ * @struct alignment_iter_t
+ * @brief Iterator over entries in an alignment.
+ */
+typedef struct alignment_iter_s alignment_iter_t;
 struct alignment_iter_s {
     alignment_t *al;
     alignment_vector_t *vec;
     int pos;
+    int parent;
+    char *name;
 };
-typedef struct alignment_iter_s alignment_iter_t;
+
+#define alignment_n_words(al) (int)(al)->word.n_ent
+#define alignment_n_phones(al) (int)(al)->sseq.n_ent
+#define alignment_n_states(al) (int)(al)->state.n_ent
+
+/**
+ * Value indicating no parent or child for an entry.
+ * @related alignment_t
+ */
+#define ALIGNMENT_NONE -1
 
 /**
  * Create a new, empty alignment.
@@ -102,20 +137,10 @@ typedef struct alignment_iter_s alignment_iter_t;
 alignment_t *alignment_init(dict2pid_t *d2p);
 
 /**
- * Retain an alighment
- */
-alignment_t *alignment_retain(alignment_t *al);
-
-/**
- * Release an alignment
- */
-int ps_alignment_free(alignment_t *al);
-
-/**
  * Append a word.
  */
-int ps_alignment_add_word(alignment_t *al,
-                          int32 wid, int duration);
+int alignment_add_word(alignment_t *al,
+                          int32 wid, int start, int duration);
 
 /**
  * Populate lower layers using available word information.
@@ -133,36 +158,6 @@ int alignment_populate_ci(alignment_t *al);
 int alignment_propagate(alignment_t *al);
 
 /**
- * Number of words.
- */
-int alignment_n_words(alignment_t *al);
-
-/**
- * Number of phones.
- */
-int alignment_n_phones(alignment_t *al);
-
-/**
- * Number of states.
- */
-int alignment_n_states(alignment_t *al);
-
-/**
- * Iterate over the alignment starting at the first word.
- */
-alignment_iter_t *alignment_words(alignment_t *al);
-
-/**
- * Iterate over the alignment starting at the first phone.
- */
-alignment_iter_t *alignment_phones(alignment_t *al);
-
-/**
- * Iterate over the alignment starting at the first state.
- */
-alignment_iter_t *alignment_states(alignment_t *al);
-
-/**
  * Get the alignment entry pointed to by an iterator.
  *
  * The iterator retains ownership of this so don't try to free it.
@@ -175,36 +170,78 @@ alignment_entry_t *alignment_iter_get(alignment_iter_t *itor);
 alignment_iter_t *alignment_iter_goto(alignment_iter_t *itor, int pos);
 
 /**
+ * Retain an alighment
+ * @memberof alignment_t
+ */
+alignment_t *alignment_retain(alignment_t *al);
+
+/**
+ * Release an alignment
+ * @memberof alignment_t
+ */
+int alignment_free(alignment_t *al);
+
+/**
+ * Iterate over the alignment starting at the first word.
+ * @memberof alignment_t
+ */
+alignment_iter_t *alignment_words(alignment_t *al);
+
+/**
+ * Iterate over the alignment starting at the first phone.
+ * @memberof alignment_t
+ */
+alignment_iter_t *alignment_phones(alignment_t *al);
+
+/**
+ * Iterate over the alignment starting at the first state.
+ * @memberof alignment_t
+ */
+alignment_iter_t *alignment_states(alignment_t *al);
+
+/**
+ * Get the human-readable name of the current segment for an alignment.
+ *
+ * @memberof alignment_iter_t
+ * @return Name of this segment as a string (word, phone, or state
+ * number).  This pointer is owned by the iterator, do not free it
+ * yourself.
+ */
+const char *alignment_iter_name(alignment_iter_t *itor);
+
+/**
+ * Get the timing and score information for the current segment of an aligment.
+ *
+ * @memberof alignment_iter_t
+ * @arg start Output pointer for start frame
+ * @arg duration Output pointer for duration
+ * @return Acoustic score for this segment
+ */
+int alignment_iter_seg(alignment_iter_t *itor, int *start, int *duration);
+
+/**
  * Move an alignment iterator forward.
  *
  * If the end of the alignment is reached, this will free the iterator
  * and return NULL.
+ *
+ * @memberof alignment_iter_t
  */
 alignment_iter_t *alignment_iter_next(alignment_iter_t *itor);
 
 /**
- * Move an alignment iterator back.
+ * Iterate over the children of the current alignment entry.
  *
- * If the start of the alignment is reached, this will free the iterator
- * and return NULL.
- */
-alignment_iter_t *alignment_iter_prev(alignment_iter_t *itor);
-
-/**
- * Get a new iterator starting at the parent of the current node.
+ * If there are no child nodes, NULL is returned.
  *
- * If there is no parent node, NULL is returned.
+ * @memberof alignment_iter_t
  */
-alignment_iter_t *alignment_iter_up(alignment_iter_t *itor);
-/**
- * Get a new iterator starting at the first child of the current node.
- *
- * If there is no child node, NULL is returned.
- */
-alignment_iter_t *alignment_iter_down(alignment_iter_t *itor);
+alignment_iter_t *alignment_iter_children(alignment_iter_t *itor);
 
 /**
  * Release an iterator before completing all iterations.
+ *
+ * @memberof alignment_iter_t
  */
 int alignment_iter_free(alignment_iter_t *itor);
 
@@ -212,4 +249,4 @@ int alignment_iter_free(alignment_iter_t *itor);
 } /* extern "C" */
 #endif
 
-#endif /* __PS_ALIGNMENT_H__ */
+#endif /* __ALIGNMENT_H__ */

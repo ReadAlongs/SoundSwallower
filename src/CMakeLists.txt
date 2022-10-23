@@ -58,6 +58,7 @@ ms_gauden.c
 ms_mgau.c
 ms_senone.c
 profile.c
+ps_alignment.c
 ps_endpointer.c
 ps_lattice.c
 ps_mllr.c
