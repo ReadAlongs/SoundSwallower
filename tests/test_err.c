@@ -8,7 +8,7 @@ int
 main(int argc, char *argv[])
 {
     config_t *config;
-    ps_decoder_t *ps;
+    decoder_t *ps;
 
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);

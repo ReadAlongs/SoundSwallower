@@ -7,9 +7,9 @@
 #include "test_macros.h"
 
 int
-ps_decoder_test(config_t *config, char const *sname, char const *expected)
+decoder_test(config_t *config, char const *sname, char const *expected)
 {
-    ps_decoder_t *ps;
+    decoder_t *ps;
     mfcc_t **cepbuf;
     FILE *rawfh;
     int16 *buf;
@@ -19,7 +19,7 @@ ps_decoder_test(config_t *config, char const *sname, char const *expected)
     int32 nfr, i, score, prob;
     char const *hyp;
     double n_speech, n_cpu, n_wall;
-    ps_seg_t *seg;
+    seg_iter_t *seg;
 
     TEST_ASSERT(ps = ps_init(config));
     /* Test it first with pocketsphinx_decode_raw() */

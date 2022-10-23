@@ -55,7 +55,7 @@
 #include <soundswallower/ptm_mgau.h>
 #include <soundswallower/export.h>
 
-static ps_mgaufuncs_t ptm_mgau_funcs = {
+static mgaufuncs_t ptm_mgau_funcs = {
     "ptm",
     ptm_mgau_frame_eval,      /* frame_eval */
     ptm_mgau_mllr_transform,  /* transform */
@@ -407,7 +407,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
  * Compute senone scores for the active senones.
  */
 int32
-ptm_mgau_frame_eval(ps_mgau_t *ps,
+ptm_mgau_frame_eval(mgau_t *ps,
                     int16 *senone_scores,
                     uint8 *senone_active,
                     int32 n_senone_active,
@@ -694,7 +694,7 @@ read_mixw(s3file_t *s3f, gauden_t *g, logmath_t *lmath,
 }
 
 void
-ptm_mgau_reset_fast_hist(ps_mgau_t *ps)
+ptm_mgau_reset_fast_hist(mgau_t *ps)
 {
     ptm_mgau_t *s = (ptm_mgau_t *)ps;
     int i;
@@ -721,12 +721,12 @@ ptm_mgau_reset_fast_hist(ps_mgau_t *ps)
     }
 }
 
-EXPORT ps_mgau_t *
+EXPORT mgau_t *
 ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                      s3file_t *mixw, s3file_t *sendump)
 {
     ptm_mgau_t *s;
-    ps_mgau_t *ps;
+    mgau_t *ps;
     int i;
 
     s = ckd_calloc(1, sizeof(*s));
@@ -807,7 +807,7 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     /* s->f will be a rotating pointer into s->hist. */
     s->f = s->hist;
 
-    ps = (ps_mgau_t *)s;
+    ps = (mgau_t *)s;
     ptm_mgau_reset_fast_hist(ps);
     ps->vt = &ptm_mgau_funcs;
     return ps;
@@ -816,7 +816,7 @@ error_out:
     return NULL;
 }
 
-ps_mgau_t *
+mgau_t *
 ptm_mgau_init(acmod_t *acmod)
 {
     s3file_t *means = NULL;
@@ -824,7 +824,7 @@ ptm_mgau_init(acmod_t *acmod)
     s3file_t *mixw = NULL;
     s3file_t *sendump = NULL;
     const char *path;
-    ps_mgau_t *ps = NULL;
+    mgau_t *ps = NULL;
 
     path = config_str(acmod->config, "_mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
@@ -865,15 +865,15 @@ error_out:
 }
 
 int
-ptm_mgau_mllr_transform(ps_mgau_t *ps,
-                            ps_mllr_t *mllr)
+ptm_mgau_mllr_transform(mgau_t *ps,
+                            mllr_t *mllr)
 {
     ptm_mgau_t *s = (ptm_mgau_t *)ps;
     return gauden_mllr_transform(s->g, mllr, s->config);
 }
 
 void
-ptm_mgau_free(ps_mgau_t *ps)
+ptm_mgau_free(mgau_t *ps)
 {
     int i;
     ptm_mgau_t *s = (ptm_mgau_t *)ps;

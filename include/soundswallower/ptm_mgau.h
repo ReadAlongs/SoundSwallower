@@ -70,7 +70,7 @@ typedef struct ptm_fast_eval_s {
 } ptm_fast_eval_t;
 
 struct ptm_mgau_s {
-    ps_mgau_t base;     /**< base structure. */
+    mgau_t base;     /**< base structure. */
     config_t *config;   /**< Configuration parameters */
     gauden_t *g;        /**< Set of Gaussians. */
     int32 n_sen;       /**< Number of senones. */
@@ -91,20 +91,20 @@ struct ptm_mgau_s {
     logmath_t *lmath;
 };
 
-ps_mgau_t *ptm_mgau_init(acmod_t *acmod);
-ps_mgau_t *ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
+mgau_t *ptm_mgau_init(acmod_t *acmod);
+mgau_t *ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                                 s3file_t *mixw, s3file_t *sendump);
-void ptm_mgau_free(ps_mgau_t *s);
-int ptm_mgau_frame_eval(ps_mgau_t *s,
+void ptm_mgau_free(mgau_t *s);
+int ptm_mgau_frame_eval(mgau_t *s,
                         int16 *senone_scores,
                         uint8 *senone_active,
                         int32 n_senone_active,
                         mfcc_t **featbuf,
                         int32 frame,
                         int32 compallsen);
-int ptm_mgau_mllr_transform(ps_mgau_t *s,
-                            ps_mllr_t *mllr);
-void ptm_mgau_reset_fast_hist(ps_mgau_t *ps);
+int ptm_mgau_mllr_transform(mgau_t *s,
+                            mllr_t *mllr);
+void ptm_mgau_reset_fast_hist(mgau_t *ps);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -465,7 +465,7 @@ gauden_dist(gauden_t * g,
 }
 
 int32
-gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, config_t *config)
+gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
 {
     int32 i, m, f, d, *flen;
     const char *meanfile, *varfile;

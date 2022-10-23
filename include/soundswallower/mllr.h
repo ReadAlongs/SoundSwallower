@@ -36,7 +36,7 @@
  */
 
 /**
- * @file ps_mllr.h Model-space linear transforms for speaker adaptation
+ * @file mllr.h Model-space linear transforms for speaker adaptation
  */
 
 #ifndef __PS_MLLR_H__
@@ -54,8 +54,8 @@ extern "C" {
 /**
  * Feature space linear transform object.
  */
-typedef struct ps_mllr_s ps_mllr_t;
-struct ps_mllr_s {
+typedef struct mllr_s mllr_t;
+struct mllr_s {
     int refcnt;     /**< Reference count. */
     int n_class;    /**< Number of MLLR classes. */
     int n_feat;     /**< Number of feature streams. */
@@ -69,17 +69,17 @@ struct ps_mllr_s {
 /**
  * Read a speaker-adaptive linear transform from a file.
  */
-ps_mllr_t *ps_mllr_read(char const *file);
+mllr_t *mllr_read(char const *file);
 
 /**
  * Retain a pointer to a linear transform.
  */
-ps_mllr_t *ps_mllr_retain(ps_mllr_t *mllr);
+mllr_t *mllr_retain(mllr_t *mllr);
 
 /**
  * Release a pointer to a linear transform.
  */
-int ps_mllr_free(ps_mllr_t *mllr);
+int mllr_free(mllr_t *mllr);
 
 #ifdef __cplusplus
 }

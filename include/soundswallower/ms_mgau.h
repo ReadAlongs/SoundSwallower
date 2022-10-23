@@ -116,7 +116,7 @@ extern "C" {
 */
 
 typedef struct ms_mgau_model_s {
-    ps_mgau_t base;
+    mgau_t base;
     gauden_t* g;   /**< The codebook */
     senone_t* s;   /**< The senone */
     int topn;      /**< Top-n gaussian will be computed */
@@ -131,20 +131,20 @@ typedef struct ms_mgau_model_s {
 #define ms_mgau_senone(msg) (msg->s)
 #define ms_mgau_topn(msg) (msg->topn)
 
-ps_mgau_t *ms_mgau_init(acmod_t *acmod);
-ps_mgau_t *ms_mgau_init_s3file(acmod_t *acmod,
+mgau_t *ms_mgau_init(acmod_t *acmod);
+mgau_t *ms_mgau_init_s3file(acmod_t *acmod,
                                s3file_t *means, s3file_t *vars, s3file_t *mixw,
                                s3file_t *senmgau);
-void ms_mgau_free(ps_mgau_t *g);
-int32 ms_cont_mgau_frame_eval(ps_mgau_t * msg,
+void ms_mgau_free(mgau_t *g);
+int32 ms_cont_mgau_frame_eval(mgau_t * msg,
                               int16 *senscr,
                               uint8 *senone_active,
                               int32 n_senone_active,
                               mfcc_t ** feat,
                               int32 frame,
                               int32 compallsen);
-int32 ms_mgau_mllr_transform(ps_mgau_t *s,
-                             ps_mllr_t *mllr);
+int32 ms_mgau_mllr_transform(mgau_t *s,
+                             mllr_t *mllr);
 
 #ifdef __cplusplus
 } /* extern "C" */

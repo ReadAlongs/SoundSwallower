@@ -36,7 +36,7 @@
  */
 
 /**
- * @file ps_lattice.h Word graph search
+ * @file lattice.h Word graph search
  */
 
 #ifndef __PS_LATTICE_H__
@@ -51,13 +51,13 @@ extern "C" {
 }
 #endif
 
-typedef struct ps_search_s ps_search_t;
-typedef struct ps_seg_s ps_seg_t;
+typedef struct search_module_s search_module_t;
+typedef struct seg_iter_s seg_iter_t;
 
 /**
  * Word graph structure used in bestpath/nbest search.
  */
-typedef struct ps_lattice_s ps_lattice_t;
+typedef struct lattice_s lattice_t;
 
 /**
  * DAG nodes.
@@ -65,12 +65,12 @@ typedef struct ps_lattice_s ps_lattice_t;
  * A node corresponds to a number of hypothesized instances of a word
  * which all share the same starting point.
  */
-typedef struct ps_latnode_s ps_latnode_t;
+typedef struct latnode_s latnode_t;
 
 /**
  * Iterator over DAG nodes.
  */
-typedef struct ps_latnode_s ps_latnode_iter_t; /* pay no attention to the man behind the curtain */
+typedef struct latnode_s latnode_iter_t; /* pay no attention to the man behind the curtain */
 
 /**
  * Links between DAG nodes.
@@ -78,33 +78,33 @@ typedef struct ps_latnode_s ps_latnode_iter_t; /* pay no attention to the man be
  * A link corresponds to a single hypothesized instance of a word with
  * a given start and end point.
  */
-typedef struct ps_latlink_s ps_latlink_t;
+typedef struct latlink_s latlink_t;
 
 /**
  * Iterator over DAG links.
  */
-typedef struct latlink_list_s ps_latlink_iter_t;
+typedef struct latlink_list_s latlink_iter_t;
 
 /* Forward declaration needed to avoid circular includes */
-struct ps_decoder_s;
+struct decoder_s;
 
 /**
  * Retain a lattice.
  *
  * This function retains ownership of a lattice for the caller,
  * preventing it from being freed automatically.  You must call
- * ps_lattice_free() to free it after having called this function.
+ * lattice_free() to free it after having called this function.
  *
  * @return pointer to the retained lattice.
  */
-ps_lattice_t *ps_lattice_retain(ps_lattice_t *dag);
+lattice_t *lattice_retain(lattice_t *dag);
 
 /**
  * Free a lattice.
  *
  * @return new reference count (0 if dag was freed)
  */
-int ps_lattice_free(ps_lattice_t *dag);
+int lattice_free(lattice_t *dag);
 
 /**
  * Get the log-math computation object for this lattice
@@ -114,7 +114,7 @@ int ps_lattice_free(ps_lattice_t *dag);
  *         free it manually.  Use logmath_retain() if you wish to
  *         reuse it elsewhere.
  */
-logmath_t *ps_lattice_get_logmath(ps_lattice_t *dag);
+logmath_t *lattice_get_logmath(lattice_t *dag);
 
 
 /**
@@ -126,25 +126,25 @@ logmath_t *ps_lattice_get_logmath(ps_lattice_t *dag);
  * @param dag Lattice to iterate over.
  * @return Iterator over lattice nodes.
  */
-ps_latnode_iter_t *ps_latnode_iter(ps_lattice_t *dag);
+latnode_iter_t *ps_latnode_iter(lattice_t *dag);
 
 /**
  * Move to next node in iteration.
  * @param itor Node iterator.
  * @return Updated node iterator, or NULL if finished
  */
-ps_latnode_iter_t *ps_latnode_iter_next(ps_latnode_iter_t *itor);
+latnode_iter_t *ps_latnode_iter_next(latnode_iter_t *itor);
 
 /**
  * Stop iterating over nodes.
  * @param itor Node iterator.
  */
-void ps_latnode_iter_free(ps_latnode_iter_t *itor);
+void ps_latnode_iter_free(latnode_iter_t *itor);
 
 /**
  * Get node from iterator.
  */
-ps_latnode_t *ps_latnode_iter_node(ps_latnode_iter_t *itor);
+latnode_t *ps_latnode_iter_node(latnode_iter_t *itor);
 
 /**
  * Get start and end time range for a node.
@@ -154,7 +154,7 @@ ps_latnode_t *ps_latnode_iter_node(ps_latnode_iter_t *itor);
  * @param out_lef Output: End frame of last exit from this node.
  * @return Start frame for all edges exiting this node.
  */
-int ps_latnode_times(ps_latnode_t *node, int16 *out_fef, int16 *out_lef);
+int latnode_times(latnode_t *node, int16 *out_fef, int16 *out_lef);
 
 /**
  * Get word string for this node.
@@ -163,7 +163,7 @@ int ps_latnode_times(ps_latnode_t *node, int16 *out_fef, int16 *out_lef);
  * @param node Node inquired about.
  * @return Word string for this node (possibly a pronunciation variant).
  */
-char const *ps_latnode_word(ps_lattice_t *dag, ps_latnode_t *node);
+char const *ps_latnode_word(lattice_t *dag, latnode_t *node);
 
 /**
  * Get base word string for this node.
@@ -172,7 +172,7 @@ char const *ps_latnode_word(ps_lattice_t *dag, ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Base word string for this node.
  */
-char const *ps_latnode_baseword(ps_lattice_t *dag, ps_latnode_t *node);
+char const *ps_latnode_baseword(lattice_t *dag, latnode_t *node);
 
 /**
  * Iterate over exits from this node.
@@ -180,7 +180,7 @@ char const *ps_latnode_baseword(ps_lattice_t *dag, ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Iterator over exit links from this node.
  */
-ps_latlink_iter_t *ps_latnode_exits(ps_latnode_t *node);
+latlink_iter_t *ps_latnode_exits(latnode_t *node);
 
 /**
  * Iterate over entries to this node.
@@ -188,7 +188,7 @@ ps_latlink_iter_t *ps_latnode_exits(ps_latnode_t *node);
  * @param node Node inquired about.
  * @return Iterator over entry links to this node.
  */
-ps_latlink_iter_t *ps_latnode_entries(ps_latnode_t *node);
+latlink_iter_t *ps_latnode_entries(latnode_t *node);
 
 /**
  * Get best posterior probability and associated acoustic score from a lattice node.
@@ -199,10 +199,10 @@ ps_latlink_iter_t *ps_latnode_entries(ps_latnode_t *node);
  * @return Posterior probability of the best link exiting this node.
  *         Log is expressed in the log-base used in the decoder.  To
  *         convert to linear floating-point, use
- *         logmath_exp(ps_lattice_get_logmath(), pprob).
+ *         logmath_exp(lattice_get_logmath(), pprob).
  */
-int32 ps_latnode_prob(ps_lattice_t *dag, ps_latnode_t *node,
-                      ps_latlink_t **out_link);
+int32 ps_latnode_prob(lattice_t *dag, latnode_t *node,
+                      latlink_t **out_link);
 
 /**
  * Get next link from a lattice link iterator.
@@ -210,18 +210,18 @@ int32 ps_latnode_prob(ps_lattice_t *dag, ps_latnode_t *node,
  * @param itor Iterator.
  * @return Updated iterator, or NULL if finished.
  */
-ps_latlink_iter_t *ps_latlink_iter_next(ps_latlink_iter_t *itor);
+latlink_iter_t *ps_latlink_iter_next(latlink_iter_t *itor);
 
 /**
  * Stop iterating over links.
  * @param itor Link iterator.
  */
-void ps_latlink_iter_free(ps_latlink_iter_t *itor);
+void ps_latlink_iter_free(latlink_iter_t *itor);
 
 /**
  * Get link from iterator.
  */
-ps_latlink_t *ps_latlink_iter_link(ps_latlink_iter_t *itor);
+latlink_t *ps_latlink_iter_link(latlink_iter_t *itor);
 
 /**
  * Get start and end times from a lattice link.
@@ -233,7 +233,7 @@ ps_latlink_t *ps_latlink_iter_link(ps_latlink_iter_t *itor);
  * @param out_sf Output: (optional) start frame of this link.
  * @return End frame of this link.
  */
-int ps_latlink_times(ps_latlink_t *link, int16 *out_sf);
+int latlink_times(latlink_t *link, int16 *out_sf);
 
 /**
  * Get destination and source nodes from a lattice link
@@ -242,7 +242,7 @@ int ps_latlink_times(ps_latlink_t *link, int16 *out_sf);
  * @param out_src Output: (optional) source node.
  * @return destination node
  */
-ps_latnode_t *ps_latlink_nodes(ps_latlink_t *link, ps_latnode_t **out_src);
+latnode_t *ps_latlink_nodes(latlink_t *link, latnode_t **out_src);
 
 /**
  * Get word string from a lattice link.
@@ -251,7 +251,7 @@ ps_latnode_t *ps_latlink_nodes(ps_latlink_t *link, ps_latnode_t **out_src);
  * @param link Link inquired about
  * @return Word string for this link (possibly a pronunciation variant).
  */
-char const *ps_latlink_word(ps_lattice_t *dag, ps_latlink_t *link);
+char const *ps_latlink_word(lattice_t *dag, latlink_t *link);
 
 /**
  * Get base word string from a lattice link.
@@ -260,7 +260,7 @@ char const *ps_latlink_word(ps_lattice_t *dag, ps_latlink_t *link);
  * @param link Link inquired about
  * @return Base word string for this link
  */
-char const *ps_latlink_baseword(ps_lattice_t *dag, ps_latlink_t *link);
+char const *ps_latlink_baseword(lattice_t *dag, latlink_t *link);
 
 /**
  * Get predecessor link in best path.
@@ -268,7 +268,7 @@ char const *ps_latlink_baseword(ps_lattice_t *dag, ps_latlink_t *link);
  * @param link Link inquired about
  * @return Best previous link from bestpath search, if any.  Otherwise NULL
  */
-ps_latlink_t *ps_latlink_pred(ps_latlink_t *link);
+latlink_t *ps_latlink_pred(latlink_t *link);
 
 /**
  * Get acoustic score and posterior probability from a lattice link.
@@ -278,15 +278,15 @@ ps_latlink_t *ps_latlink_pred(ps_latlink_t *link);
  * @param out_ascr Output: (optional) acoustic score.
  * @return Posterior probability for this link.  Log is expressed in
  *         the log-base used in the decoder.  To convert to linear
- *         floating-point, use logmath_exp(ps_lattice_get_logmath(), pprob).
+ *         floating-point, use logmath_exp(lattice_get_logmath(), pprob).
  */
-int32 ps_latlink_prob(ps_lattice_t *dag, ps_latlink_t *link, int32 *out_ascr);
+int32 ps_latlink_prob(lattice_t *dag, latlink_t *link, int32 *out_ascr);
 
 /**
  * Create a directed link between "from" and "to" nodes, but if a link already exists,
  * choose one with the best link_scr.
  */
-void ps_lattice_link(ps_lattice_t *dag, ps_latnode_t *from, ps_latnode_t *to,
+void lattice_link(lattice_t *dag, latnode_t *from, latnode_t *to,
                      int32 score, int32 ef);
 
 /**
@@ -304,7 +304,7 @@ void ps_lattice_link(ps_lattice_t *dag, ps_latnode_t *from, ps_latnode_t *to,
  * @param end End node (goal) of traversal.
  * @return First link in traversal.
  */
-ps_latlink_t *ps_lattice_traverse_edges(ps_lattice_t *dag, ps_latnode_t *start, ps_latnode_t *end);
+latlink_t *lattice_traverse_edges(lattice_t *dag, latnode_t *start, latnode_t *end);
 
 /**
  * Get the next link in forward traversal.
@@ -313,19 +313,19 @@ ps_latlink_t *ps_lattice_traverse_edges(ps_lattice_t *dag, ps_latnode_t *start, 
  * @param end End node (goal) of traversal.
  * @return Next link in traversal.
  */
-ps_latlink_t *ps_lattice_traverse_next(ps_lattice_t *dag, ps_latnode_t *end);
+latlink_t *lattice_traverse_next(lattice_t *dag, latnode_t *end);
 
 /**
  * Start a reverse traversal of edges in a word graph.
  *
- * @note See ps_lattice_traverse_edges() for why this API is the way it is.
+ * @note See lattice_traverse_edges() for why this API is the way it is.
  *
  * @param dag Lattice to be traversed.
  * @param start Start node (goal) of traversal.
  * @param end End node (source) of traversal.
  * @return First link in traversal.
  */
-ps_latlink_t *ps_lattice_reverse_edges(ps_lattice_t *dag, ps_latnode_t *start, ps_latnode_t *end);
+latlink_t *lattice_reverse_edges(lattice_t *dag, latnode_t *start, latnode_t *end);
 
 /**
  * Get the next link in reverse traversal.
@@ -334,7 +334,7 @@ ps_latlink_t *ps_lattice_reverse_edges(ps_lattice_t *dag, ps_latnode_t *start, p
  * @param start Start node (goal) of traversal.
  * @return Next link in traversal.
  */
-ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
+latlink_t *lattice_reverse_next(lattice_t *dag, latnode_t *start);
 
 /**
  * Do best-path search on a word graph.
@@ -344,7 +344,7 @@ ps_latlink_t *ps_lattice_reverse_next(ps_lattice_t *dag, ps_latnode_t *start);
  *
  * @return Final link in best path, NULL on error.
  */
-ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
+latlink_t *lattice_bestpath(lattice_t *dag, void *lmset,
                                   float32 ascale);
 
 /**
@@ -354,21 +354,21 @@ ps_latlink_t *ps_lattice_bestpath(ps_lattice_t *dag, void *lmset,
  *
  * @return Posterior probability of the utterance as a whole.
  */
-int32 ps_lattice_posterior(ps_lattice_t *dag, void *lmset,
+int32 lattice_posterior(lattice_t *dag, void *lmset,
                            float32 ascale);
 
 /**
  * Prune all links (and associated nodes) below a certain posterior probability.
  *
- * This function assumes that ps_lattice_posterior() has already been called.
+ * This function assumes that lattice_posterior() has already been called.
  *
  * @param beam Minimum posterior probability for links. This is
  *         expressed in the log-base used in the decoder.  To convert
  *         from linear floating-point, use
- *         logmath_log(ps_lattice_get_logmath(), prob).
+ *         logmath_log(lattice_get_logmath(), prob).
  * @return number of arcs removed.
  */
-int32 ps_lattice_posterior_prune(ps_lattice_t *dag, int32 beam);
+int32 lattice_posterior_prune(lattice_t *dag, int32 beam);
 
 /**
  * Get the number of frames in the lattice.
@@ -376,7 +376,7 @@ int32 ps_lattice_posterior_prune(ps_lattice_t *dag, int32 beam);
  * @param dag The lattice in question.
  * @return Number of frames in this lattice.
  */
-int ps_lattice_n_frames(ps_lattice_t *dag);
+int lattice_n_frames(lattice_t *dag);
 
 
 /**
@@ -388,25 +388,25 @@ int ps_lattice_n_frames(ps_lattice_t *dag);
  * here, but it wastes 4 bytes per entry on 32-bit machines.
  */
 typedef struct latlink_list_s {
-    ps_latlink_t *link;
+    latlink_t *link;
     struct latlink_list_s *next;
 } latlink_list_t;
 
 /**
  * Word graph structure used in bestpath/nbest search.
  */
-struct ps_lattice_s {
+struct lattice_s {
     int refcount;      /**< Reference count. */
 
     logmath_t *lmath;    /**< Log-math object. */
-    ps_search_t *search; /**< Search (if generated by search). */
+    search_module_t *search; /**< Search (if generated by search). */
     dict_t *dict;	 /**< Dictionary for this DAG. */
     int32 silence;       /**< Silence word ID. */
     int32 frate;         /**< Frame rate. */
 
-    ps_latnode_t *nodes;  /**< List of all nodes. */
-    ps_latnode_t *start;  /**< Starting node. */
-    ps_latnode_t *end;    /**< Ending node. */
+    latnode_t *nodes;  /**< List of all nodes. */
+    latnode_t *start;  /**< Starting node. */
+    latnode_t *end;    /**< Ending node. */
 
     frame_idx_t n_frames;    /**< Number of frames for this utterance. */
     int32 n_nodes;     /**< Number of nodes in this lattice. */
@@ -430,10 +430,10 @@ struct ps_lattice_s {
  * a given start and end point.
 
  */
-struct ps_latlink_s {
-    struct ps_latnode_s *from;	/**< From node */
-    struct ps_latnode_s *to;	/**< To node */
-    struct ps_latlink_s *best_prev;
+struct latlink_s {
+    struct latnode_s *from;	/**< From node */
+    struct latnode_s *to;	/**< To node */
+    struct latlink_s *best_prev;
     int32 ascr;			/**< Score for from->wid (from->sf to this->ef) */
     int32 path_scr;		/**< Best path score from root of DAG */
     frame_idx_t ef;			/**< Ending frame of this word  */
@@ -447,7 +447,7 @@ struct ps_latlink_s {
  * A node corresponds to a number of hypothesized instances of a word
  * which all share the same starting point.
  */
-struct ps_latnode_s {
+struct latnode_s {
     int32 id;			/**< Unique id for this node */
     int32 wid;			/**< Dictionary word id */
     int32 basewid;		/**< Dictionary base word id */
@@ -466,8 +466,8 @@ struct ps_latnode_s {
     latlink_list_t *exits;      /**< Links out of this node */
     latlink_list_t *entries;    /**< Links into this node */
 
-    struct ps_latnode_s *alt;   /**< Node with alternate pronunciation for this word */
-    struct ps_latnode_s *next;	/**< Next node in DAG (no ordering implied) */
+    struct latnode_s *alt;   /**< Node with alternate pronunciation for this word */
+    struct latnode_s *next;	/**< Next node in DAG (no ordering implied) */
 };
 
 /**
@@ -476,18 +476,18 @@ struct ps_latnode_s {
  * Each partial path (latpath_t) is constructed by extending another
  * partial path--parent--by one node.
  */
-typedef struct ps_latpath_s {
-    ps_latnode_t *node;            /**< Node ending this path. */
-    struct ps_latpath_s *parent;   /**< Previous element in this path. */
-    struct ps_latpath_s *next;     /**< Pointer to next path in list of paths. */
+typedef struct latpath_s {
+    latnode_t *node;            /**< Node ending this path. */
+    struct latpath_s *parent;   /**< Previous element in this path. */
+    struct latpath_s *next;     /**< Pointer to next path in list of paths. */
     int32 score;                  /**< Exact score from start node up to node->sf. */
-} ps_latpath_t;
+} latpath_t;
 
 /**
  * A* search structure.
  */
-typedef struct ps_astar_s {
-    ps_lattice_t *dag;
+typedef struct astar_search_s {
+    lattice_t *dag;
     void *lmset;
 
     frame_idx_t sf;
@@ -501,59 +501,59 @@ typedef struct ps_astar_s {
     int32 insert_depth;
     int32 n_path;
 
-    ps_latpath_t *path_list;
-    ps_latpath_t *path_tail;
-    ps_latpath_t *top;
+    latpath_t *path_list;
+    latpath_t *path_tail;
+    latpath_t *top;
 
     glist_t hyps;	             /**< List of hypothesis strings. */
     listelem_alloc_t *latpath_alloc; /**< Path allocator for N-best search. */
-} ps_astar_t;
+} astar_search_t;
 
 /**
  * Construct an empty word graph with reference to a search structure.
  */
-ps_lattice_t *ps_lattice_init_search(ps_search_t *search, int n_frame);
+lattice_t *lattice_init_search(search_module_t *search, int n_frame);
 
 /**
  * Insert penalty for fillers
  */
-void ps_lattice_penalize_fillers(ps_lattice_t *dag, int32 silpen, int32 fillpen);
+void lattice_penalize_fillers(lattice_t *dag, int32 silpen, int32 fillpen);
 
 /**
  * Remove nodes marked as unreachable.
  */
-void ps_lattice_delete_unreachable(ps_lattice_t *dag);
+void lattice_delete_unreachable(lattice_t *dag);
 
 /**
  * Add an edge to the traversal queue.
  */
-void ps_lattice_pushq(ps_lattice_t *dag, ps_latlink_t *link);
+void lattice_pushq(lattice_t *dag, latlink_t *link);
 
 /**
  * Remove an edge from the traversal queue.
  */
-ps_latlink_t *ps_lattice_popq(ps_lattice_t *dag);
+latlink_t *lattice_popq(lattice_t *dag);
 
 /**
  * Clear and reset the traversal queue.
  */
-void ps_lattice_delq(ps_lattice_t *dag);
+void lattice_delq(lattice_t *dag);
 
 /**
  * Create a new lattice link element.
  */
-latlink_list_t *latlink_list_new(ps_lattice_t *dag, ps_latlink_t *link,
+latlink_list_t *latlink_list_new(lattice_t *dag, latlink_t *link,
                                  latlink_list_t *next);
 
 /**
  * Get hypothesis string after bestpath search.
  */
-char const *ps_lattice_hyp(ps_lattice_t *dag, ps_latlink_t *link);
+char const *lattice_hyp(lattice_t *dag, latlink_t *link);
 
 /**
  * Get hypothesis segmentation iterator after bestpath search.
  */
-ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link);
+seg_iter_t *lattice_seg_iter(lattice_t *dag, latlink_t *link);
 
 /**
  * Begin N-Gram based A* search on a word graph.
@@ -564,7 +564,7 @@ ps_seg_t *ps_lattice_seg_iter(ps_lattice_t *dag, ps_latlink_t *link);
  * @param w2 Second context word, or -1 for none.
  * @return 0 for success, <0 on error.
  */
-ps_astar_t *ps_astar_start(ps_lattice_t *dag,
+astar_search_t *astar_search_start(lattice_t *dag,
                            void *lmset,
                            int sf, int ef,
                            int w1, int w2);
@@ -574,22 +574,22 @@ ps_astar_t *ps_astar_start(ps_lattice_t *dag,
  *
  * @return a complete path, or NULL if no more hypotheses exist.
  */
-ps_latpath_t *ps_astar_next(ps_astar_t *nbest);
+latpath_t *astar_next(astar_search_t *nbest);
 
 /**
  * Finish N-best search, releasing resources associated with it.
  */
-void ps_astar_finish(ps_astar_t *nbest);
+void astar_finish(astar_search_t *nbest);
 
 /**
  * Get hypothesis string from A* search.
  */
-char const *ps_astar_hyp(ps_astar_t *nbest, ps_latpath_t *path);
+char const *astar_hyp(astar_search_t *nbest, latpath_t *path);
 
 /**
  * Get hypothesis segmentation from A* search.
  */
-ps_seg_t *ps_astar_seg_iter(ps_astar_t *astar, ps_latpath_t *path);
+seg_iter_t *astar_search_seg_iter(astar_search_t *astar, latpath_t *path);
 
 #ifdef __cplusplus
 }

@@ -11,7 +11,7 @@
 int
 main(int argc, char *argv[])
 {
-    ps_decoder_t *ps;
+    decoder_t *ps;
     fsg_model_t *fsg;
     config_t *config;
     const char *hyp;

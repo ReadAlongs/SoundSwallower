@@ -16,7 +16,7 @@
 int
 main(int argc, char *argv[])
 {
-    ps_decoder_t *ps;
+    decoder_t *ps;
     config_t *config;
     jsgf_t *jsgf;
     jsgf_rule_t *rule;

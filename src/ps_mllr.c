@@ -36,7 +36,7 @@
  */
 
 /**
- * @file ps_mllr.c Model-space linear transforms for speaker adaptation
+ * @file mllr.c Model-space linear transforms for speaker adaptation
  */
 
 #include <stdio.h>
@@ -44,10 +44,10 @@
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/acmod.h>
 
-ps_mllr_t *
-ps_mllr_read(char const *regmatfile)
+mllr_t *
+mllr_read(char const *regmatfile)
 {
-    ps_mllr_t *mllr;
+    mllr_t *mllr;
     FILE *fp;
     int n, i, m, j, k;
 
@@ -126,19 +126,19 @@ ps_mllr_read(char const *regmatfile)
 error_out:
     if (fp)
         fclose(fp);
-    ps_mllr_free(mllr);
+    mllr_free(mllr);
     return NULL;
 }
 
-ps_mllr_t *
-ps_mllr_retain(ps_mllr_t *mllr)
+mllr_t *
+mllr_retain(mllr_t *mllr)
 {
     ++mllr->refcnt;
     return mllr;
 }
 
 int
-ps_mllr_free(ps_mllr_t *mllr)
+mllr_free(mllr_t *mllr)
 {
     int i;
 

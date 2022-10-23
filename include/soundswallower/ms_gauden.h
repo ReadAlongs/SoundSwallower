@@ -118,7 +118,7 @@ gauden_t *gauden_init_s3file(s3file_t *meanfile,/**< Input: File containing mean
 void gauden_free(gauden_t *g); /**< In: The gauden_t to free */
 
 /** Transform Gaussians according to an MLLR matrix (or, eventually, more). */
-int32 gauden_mllr_transform(gauden_t *s, ps_mllr_t *mllr, config_t *config);
+int32 gauden_mllr_transform(gauden_t *s, mllr_t *mllr, config_t *config);
 
 /**
  * Compute gaussian density values for the given input observation vector wrt the

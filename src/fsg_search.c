@@ -67,11 +67,11 @@
 #define __FSG_DBG_CHAN__	0
 #define __FSG_ALLOW_BESTPATH__	0
 
-static ps_seg_t *fsg_search_seg_iter(ps_search_t *search);
-static ps_lattice_t *fsg_search_lattice(ps_search_t *search);
-static int fsg_search_prob(ps_search_t *search);
+static seg_iter_t *fsg_search_seg_iter(search_module_t *search);
+static lattice_t *fsg_search_lattice(search_module_t *search);
+static int fsg_search_prob(search_module_t *search);
 
-static ps_searchfuncs_t fsg_funcs = {
+static searchfuncs_t fsg_funcs = {
     /* start: */  fsg_search_start,
     /* step: */   fsg_search_step,
     /* finish: */ fsg_search_finish,
@@ -90,7 +90,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
     int32 wid;
     int n_sil;
 
-    dict = ps_search_dict(fsgs);
+    dict = search_module_dict(fsgs);
     /*
      * NOTE: Unlike N-Gram search, we do not use explicit start and
      * end symbols.  This is because the start and end nodes are
@@ -105,7 +105,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
      */
     /* Add silence self-loops to all states. */
     fsg_model_add_silence(fsg, "<sil>", -1,
-                          config_float(ps_search_config(fsgs), "silprob"));
+                          config_float(search_module_config(fsgs), "silprob"));
     n_sil = 0;
     /* Add self-loops for all other fillers. */
     for (wid = dict_filler_start(dict); wid < dict_filler_end(dict); ++wid) {
@@ -113,7 +113,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
         if (wid == dict_startwid(dict) || wid == dict_finishwid(dict))
             continue;
         fsg_model_add_silence(fsg, word, -1,
-                              config_float(ps_search_config(fsgs), "fillprob"));
+                              config_float(search_module_config(fsgs), "fillprob"));
         ++n_sil;
     }
 
@@ -127,7 +127,7 @@ fsg_search_check_dict(fsg_search_t *fsgs, fsg_model_t *fsg)
     dict_t *dict;
     int i;
 
-    dict = ps_search_dict(fsgs);
+    dict = search_module_dict(fsgs);
     for (i = 0; i < fsg_model_n_word(fsg); ++i) {
         char const *word;
         int32 wid;
@@ -150,7 +150,7 @@ fsg_search_add_altpron(fsg_search_t *fsgs, fsg_model_t *fsg)
     int n_alt, n_word;
     int i;
 
-    dict = ps_search_dict(fsgs);
+    dict = search_module_dict(fsgs);
     /* Scan FSG's vocabulary for words that have alternate pronunciations. */
     n_alt = 0;
     n_word = fsg_model_n_word(fsg);
@@ -171,7 +171,7 @@ fsg_search_add_altpron(fsg_search_t *fsgs, fsg_model_t *fsg)
     return n_alt;
 }
 
-ps_search_t *
+search_module_t *
 fsg_search_init(const char *name,
 		fsg_model_t *fsg,
                 config_t *config,
@@ -180,14 +180,14 @@ fsg_search_init(const char *name,
                 dict2pid_t *d2p)
 {
     fsg_search_t *fsgs = ckd_calloc(1, sizeof(*fsgs));
-    ps_search_init(ps_search_base(fsgs), &fsg_funcs, PS_SEARCH_TYPE_FSG, name, config, acmod, dict, d2p);
+    search_module_init(search_module_base(fsgs), &fsg_funcs, PS_SEARCH_TYPE_FSG, name, config, acmod, dict, d2p);
 
     fsgs->fsg = fsg_model_retain(fsg);
     /* Initialize HMM context. */
     fsgs->hmmctx = hmm_context_init(bin_mdef_n_emit_state(acmod->mdef),
                                     acmod->tmat->tp, NULL, acmod->mdef->sseq);
     if (fsgs->hmmctx == NULL) {
-        ps_search_free(ps_search_base(fsgs));
+        search_module_free(search_module_base(fsgs));
         return NULL;
     }
 
@@ -224,7 +224,7 @@ fsg_search_init(const char *name,
            fsgs->wip, fsgs->pip);
 
     if (!fsg_search_check_dict(fsgs, fsg)) {
-        fsg_search_free(ps_search_base(fsgs));
+        fsg_search_free(search_module_base(fsgs));
         return NULL;
     }
 
@@ -237,32 +237,32 @@ fsg_search_init(const char *name,
         fsg_search_add_altpron(fsgs, fsg);
 
 #if __FSG_ALLOW_BESTPATH__
-    /* If bestpath is enabled, hypotheses are generated from a ps_lattice_t.
+    /* If bestpath is enabled, hypotheses are generated from a lattice_t.
      * This is not allowed by default because it tends to be very slow. */
     if (config_bool(config, "bestpath"))
         fsgs->bestpath = TRUE;
 #endif
 
-    if (fsg_search_reinit(ps_search_base(fsgs),
-                          ps_search_dict(fsgs),
-                          ps_search_dict2pid(fsgs)) < 0)
+    if (fsg_search_reinit(search_module_base(fsgs),
+                          search_module_dict(fsgs),
+                          search_module_dict2pid(fsgs)) < 0)
     {
-        ps_search_free(ps_search_base(fsgs));
+        search_module_free(search_module_base(fsgs));
         return NULL;
     
     }
     ptmr_init(&fsgs->perf);
         
-    return ps_search_base(fsgs);
+    return search_module_base(fsgs);
 }
 
 void
-fsg_search_free(ps_search_t *search)
+fsg_search_free(search_module_t *search)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
     double n_speech = (double)fsgs->n_tot_frame
-            / config_int(ps_search_config(fsgs), "frate");
+            / config_int(search_module_config(fsgs), "frate");
 
     E_INFO("TOTAL fsg %.2f CPU %.3f xRT\n",
            fsgs->perf.t_tot_cpu,
@@ -271,7 +271,7 @@ fsg_search_free(ps_search_t *search)
            fsgs->perf.t_tot_elapsed,
            fsgs->perf.t_tot_elapsed / n_speech);
 
-    ps_search_base_free(search);
+    search_module_base_free(search);
     fsg_lextree_free(fsgs->lextree);
     if (fsgs->history) {
         fsg_history_reset(fsgs->history);
@@ -284,7 +284,7 @@ fsg_search_free(ps_search_t *search)
 }
 
 int
-fsg_search_reinit(ps_search_t *search, dict_t *dict, dict2pid_t *d2p)
+fsg_search_reinit(search_module_t *search, dict_t *dict, dict2pid_t *d2p)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
@@ -293,14 +293,14 @@ fsg_search_reinit(ps_search_t *search, dict_t *dict, dict2pid_t *d2p)
         fsg_lextree_free(fsgs->lextree);
 
     /* Free old dict2pid, dict */
-    ps_search_base_reinit(search, dict, d2p);
+    search_module_base_reinit(search, dict, d2p);
     
     /* Update the number of words (not used by this module though). */
     search->n_words = dict_size(dict);
 
     /* Allocate new lextree for the given FSG */
     fsgs->lextree = fsg_lextree_init(fsgs->fsg, dict, d2p,
-                                     ps_search_acmod(fsgs)->mdef,
+                                     search_module_acmod(fsgs)->mdef,
                                      fsgs->hmmctx, fsgs->wip, fsgs->pip);
 
     /* Inform the history module of the new fsg */
@@ -317,13 +317,13 @@ fsg_search_sen_active(fsg_search_t *fsgs)
     fsg_pnode_t *pnode;
     hmm_t *hmm;
 
-    acmod_clear_active(ps_search_acmod(fsgs));
+    acmod_clear_active(search_module_acmod(fsgs));
 
     for (gn = fsgs->pnode_active; gn; gn = gnode_next(gn)) {
         pnode = (fsg_pnode_t *) gnode_ptr(gn);
         hmm = fsg_pnode_hmmptr(pnode);
         assert(hmm_frame(hmm) == fsgs->frame);
-        acmod_activate_hmm(ps_search_acmod(fsgs), hmm);
+        acmod_activate_hmm(search_module_acmod(fsgs), hmm);
     }
 }
 
@@ -377,7 +377,7 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
     fsgs->n_hmm_eval += n;
 
     /* Adjust beams if #active HMMs larger than absolute threshold */
-    maxhmmpf = config_int(ps_search_config(fsgs), "maxhmmpf");
+    maxhmmpf = config_int(search_module_config(fsgs), "maxhmmpf");
     if (maxhmmpf != -1 && n > maxhmmpf) {
         /*
          * Too many HMMs active; reduce the beam factor applied to the default
@@ -473,8 +473,8 @@ fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
      */
     if (fsg_model_is_filler(fsgs->fsg, wid)
         /* FIXME: This might be slow due to repeated calls to dict_to_id(). */
-        || (dict_is_single_phone(ps_search_dict(fsgs),
-                                   dict_wordid(ps_search_dict(fsgs),
+        || (dict_is_single_phone(search_module_dict(fsgs),
+                                   dict_wordid(search_module_dict(fsgs),
                                                fsg_model_word_str(fsgs->fsg, wid))))) {
         /* Create a dummy context structure that applies to all right contexts */
         fsg_pnode_add_all_ctxt(&ctxt);
@@ -688,7 +688,7 @@ fsg_search_word_trans(fsg_search_t *fsgs)
 
 
 int
-fsg_search_step(ps_search_t *search, int frame_idx)
+fsg_search_step(search_module_t *search, int frame_idx)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
     int16 const *senscr;
@@ -771,7 +771,7 @@ fsg_search_step(ps_search_t *search, int frame_idx)
  * (Executed at the start of each utterance.)
  */
 int
-fsg_search_start(ps_search_t *search)
+fsg_search_start(search_module_t *search)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
     int32 silcipid;
@@ -783,7 +783,7 @@ fsg_search_start(ps_search_t *search)
     fsgs->pbeam = fsgs->pbeam_orig;
     fsgs->wbeam = fsgs->wbeam_orig;
 
-    silcipid = bin_mdef_ciphone_id(ps_search_acmod(fsgs)->mdef, "SIL");
+    silcipid = bin_mdef_ciphone_id(search_module_acmod(fsgs)->mdef, "SIL");
 
     /* Initialize EVERYTHING to be inactive */
     assert(fsgs->pnode_active == NULL);
@@ -828,7 +828,7 @@ fsg_search_start(ps_search_t *search)
  * Cleanup at the end of each utterance.
  */
 int
-fsg_search_finish(ps_search_t *search)
+fsg_search_finish(search_module_t *search)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
     gnode_t *gn;
@@ -865,10 +865,10 @@ fsg_search_finish(ps_search_t *search)
     /* Print out some statistics. */
     ptmr_stop(&fsgs->perf);
     /* This is the number of frames processed. */
-    cf = ps_search_acmod(fsgs)->output_frame;
+    cf = search_module_acmod(fsgs)->output_frame;
     if (cf > 0) {
         double n_speech = (double) (cf + 1)
-            / config_int(ps_search_config(fsgs), "frate");
+            / config_int(search_module_config(fsgs), "frate");
         E_INFO("fsg %.2f CPU %.3f xRT\n",
                fsgs->perf.t_cpu, fsgs->perf.t_cpu / n_speech);
         E_INFO("fsg %.2f wall %.3f xRT\n",
@@ -953,21 +953,21 @@ fsg_search_find_exit(fsg_search_t *fsgs, int frame_idx, int final, int32 *out_sc
 }
 
 /* FIXME: Mostly duplicated with ngram_search_bestpath(). */
-static ps_latlink_t *
-fsg_search_bestpath(ps_search_t *search, int32 *out_score, int backward)
+static latlink_t *
+fsg_search_bestpath(search_module_t *search, int32 *out_score, int backward)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
     (void)backward;
     if (search->last_link == NULL) {
-        search->last_link = ps_lattice_bestpath(search->dag, NULL,
+        search->last_link = lattice_bestpath(search->dag, NULL,
                                                 fsgs->ascale);
         if (search->last_link == NULL)
             return NULL;
         /* Also calculate betas so we can fill in the posterior
          * probability field in the segmentation. */
         if (search->post == 0)
-            search->post = ps_lattice_posterior(search->dag, NULL, fsgs->ascale);
+            search->post = lattice_posterior(search->dag, NULL, fsgs->ascale);
     }
     if (out_score)
         *out_score = search->last_link->path_scr + search->dag->final_node_ascr;
@@ -975,10 +975,10 @@ fsg_search_bestpath(ps_search_t *search, int32 *out_score, int backward)
 }
 
 char const *
-fsg_search_hyp(ps_search_t *search, int32 *out_score)
+fsg_search_hyp(search_module_t *search, int32 *out_score)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
-    dict_t *dict = ps_search_dict(search);
+    dict_t *dict = search_module_dict(search);
     char *c;
     size_t len;
     int bp, bpidx;
@@ -993,8 +993,8 @@ fsg_search_hyp(ps_search_t *search, int32 *out_score)
     /* If bestpath is enabled and the utterance is complete, then run it.
      * Note that setting bestpath in fsg_search_init is disabled by default. */
     if (fsgs->bestpath && fsgs->final) {
-        ps_lattice_t *dag;
-        ps_latlink_t *link;
+        lattice_t *dag;
+        latlink_t *link;
 
         if ((dag = fsg_search_lattice(search)) == NULL) {
     	    E_WARN("Failed to obtain the lattice while bestpath enabled\n");
@@ -1004,7 +1004,7 @@ fsg_search_hyp(ps_search_t *search, int32 *out_score)
     	    E_WARN("Failed to find the bestpath in a lattice\n");
             return NULL;
         }
-        return ps_lattice_hyp(dag, link);
+        return lattice_hyp(dag, link);
     }
 
     bp = bpidx;
@@ -1060,7 +1060,7 @@ fsg_search_hyp(ps_search_t *search, int32 *out_score)
 }
 
 static void
-fsg_seg_bp2itor(ps_seg_t *seg, fsg_hist_entry_t *hist_entry)
+fsg_seg_bp2itor(seg_iter_t *seg, fsg_hist_entry_t *hist_entry)
 {
     fsg_search_t *fsgs = (fsg_search_t *)seg->search;
     fsg_hist_entry_t *ph = NULL;
@@ -1086,15 +1086,15 @@ fsg_seg_bp2itor(ps_seg_t *seg, fsg_hist_entry_t *hist_entry)
 
 
 static void
-fsg_seg_free(ps_seg_t *seg)
+fsg_seg_free(seg_iter_t *seg)
 {
     fsg_seg_t *itor = (fsg_seg_t *)seg;
     ckd_free(itor->hist);
     ckd_free(itor);
 }
 
-static ps_seg_t *
-fsg_seg_next(ps_seg_t *seg)
+static seg_iter_t *
+fsg_seg_next(seg_iter_t *seg)
 {
     fsg_seg_t *itor = (fsg_seg_t *)seg;
 
@@ -1112,8 +1112,8 @@ static ps_segfuncs_t fsg_segfuncs = {
     /* seg_free */ fsg_seg_free
 };
 
-static ps_seg_t *
-fsg_search_seg_iter(ps_search_t *search)
+static seg_iter_t *
+fsg_search_seg_iter(search_module_t *search)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
     fsg_seg_t *itor;
@@ -1128,14 +1128,14 @@ fsg_search_seg_iter(ps_search_t *search)
     /* If bestpath is enabled and the utterance is complete, then run it.
      * Note that setting bestpath in fsg_search_init is disabled by default. */
     if (fsgs->bestpath && fsgs->final) {
-        ps_lattice_t *dag;
-        ps_latlink_t *link;
+        lattice_t *dag;
+        latlink_t *link;
 
         if ((dag = fsg_search_lattice(search)) == NULL)
             return NULL;
         if ((link = fsg_search_bestpath(search, &out_score, TRUE)) == NULL)
             return NULL;
-        return ps_lattice_seg_iter(dag, link);
+        return lattice_seg_iter(dag, link);
     }
 
     /* Calling this an "iterator" is a bit of a misnomer since we have
@@ -1167,21 +1167,21 @@ fsg_search_seg_iter(ps_search_t *search)
     }
 
     /* Fill in relevant fields for first element. */
-    fsg_seg_bp2itor((ps_seg_t *)itor, itor->hist[0]);
+    fsg_seg_bp2itor((seg_iter_t *)itor, itor->hist[0]);
     
-    return (ps_seg_t *)itor;
+    return (seg_iter_t *)itor;
 }
 
 static int
-fsg_search_prob(ps_search_t *search)
+fsg_search_prob(search_module_t *search)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
     /* If bestpath is enabled and the utterance is complete, then run it.
      * Note that setting bestpath in fsg_search_init is disabled by default. */
     if (fsgs->bestpath && fsgs->final) {
-        ps_lattice_t *dag;
-        ps_latlink_t *link;
+        lattice_t *dag;
+        latlink_t *link;
 
         if ((dag = fsg_search_lattice(search)) == NULL)
             return 0;
@@ -1195,10 +1195,10 @@ fsg_search_prob(ps_search_t *search)
     }
 }
 
-static ps_latnode_t *
-find_node(ps_lattice_t *dag, fsg_model_t *fsg, int sf, int32 wid, int32 node_id)
+static latnode_t *
+find_node(lattice_t *dag, fsg_model_t *fsg, int sf, int32 wid, int32 node_id)
 {
-    ps_latnode_t *node;
+    latnode_t *node;
 
     (void)fsg;
     for (node = dag->nodes; node; node = node->next)
@@ -1207,10 +1207,10 @@ find_node(ps_lattice_t *dag, fsg_model_t *fsg, int sf, int32 wid, int32 node_id)
     return node;
 }
 
-static ps_latnode_t *
-new_node(ps_lattice_t *dag, fsg_model_t *fsg, int sf, int ef, int32 wid, int32 node_id, int32 ascr)
+static latnode_t *
+new_node(lattice_t *dag, fsg_model_t *fsg, int sf, int ef, int32 wid, int32 node_id, int32 ascr)
 {
-    ps_latnode_t *node;
+    latnode_t *node;
 
     node = find_node(dag, fsg, sf, wid, node_id);
 
@@ -1244,10 +1244,10 @@ new_node(ps_lattice_t *dag, fsg_model_t *fsg, int sf, int ef, int32 wid, int32 n
     return node;
 }
 
-static ps_latnode_t *
-find_start_node(fsg_search_t *fsgs, ps_lattice_t *dag)
+static latnode_t *
+find_start_node(fsg_search_t *fsgs, lattice_t *dag)
 {
-    ps_latnode_t *node;
+    latnode_t *node;
     glist_t start = NULL;
     int nstart = 0;
 
@@ -1277,16 +1277,16 @@ find_start_node(fsg_search_t *fsgs, ps_lattice_t *dag)
             bitvec_set(fsgs->fsg->silwords, wid);
         node = new_node(dag, fsgs->fsg, 0, 0, wid, -1, 0);
         for (st = start; st; st = gnode_next(st))
-            ps_lattice_link(dag, node, gnode_ptr(st), 0, 0);
+            lattice_link(dag, node, gnode_ptr(st), 0, 0);
     }
     glist_free(start);
     return node;
 }
 
-static ps_latnode_t *
-find_end_node(fsg_search_t *fsgs, ps_lattice_t *dag)
+static latnode_t *
+find_end_node(fsg_search_t *fsgs, lattice_t *dag)
 {
-    ps_latnode_t *node;
+    latnode_t *node;
     glist_t end = NULL;
     int nend = 0;
 
@@ -1305,7 +1305,7 @@ find_end_node(fsg_search_t *fsgs, ps_lattice_t *dag)
         node = gnode_ptr(end);
     }
     else if (nend == 0) {
-        ps_latnode_t *last = NULL;
+        latnode_t *last = NULL;
         int ef = 0;
 
         /* If there were no end node candidates, then just use the
@@ -1335,8 +1335,8 @@ find_end_node(fsg_search_t *fsgs, ps_lattice_t *dag)
         /* Use the "best" (in reality it will be the only) exit link
          * score from this final node as the link score. */
         for (st = end; st; st = gnode_next(st)) {
-            ps_latnode_t *src = gnode_ptr(st);
-            ps_lattice_link(dag, src, node, src->info.best_exit, fsgs->frame);
+            latnode_t *src = gnode_ptr(st);
+            lattice_link(dag, src, node, src->info.best_exit, fsgs->frame);
         }
     }
     glist_free(end);
@@ -1344,7 +1344,7 @@ find_end_node(fsg_search_t *fsgs, ps_lattice_t *dag)
 }
 
 static void
-mark_reachable(ps_lattice_t *dag, ps_latnode_t *end)
+mark_reachable(lattice_t *dag, latnode_t *end)
 {
     glist_t q;
 
@@ -1353,14 +1353,14 @@ mark_reachable(ps_lattice_t *dag, ps_latnode_t *end)
     end->reachable = TRUE;
     q = glist_add_ptr(NULL, end);
     while (q) {
-        ps_latnode_t *node = gnode_ptr(q);
+        latnode_t *node = gnode_ptr(q);
         latlink_list_t *x;
 
         /* Pop the front of the list. */
         q = gnode_free(q, NULL);
         /* Expand all its predecessors that haven't been seen yet. */
         for (x = node->entries; x; x = x->next) {
-            ps_latnode_t *next = x->link->from;
+            latnode_t *next = x->link->from;
             if (!next->reachable) {
                 next->reachable = TRUE;
                 q = glist_add_ptr(q, next);
@@ -1377,13 +1377,13 @@ mark_reachable(ps_lattice_t *dag, ps_latnode_t *end)
  * crucial difference here is that the word lattice is acyclic, and it
  * also contains timing information.
  */
-static ps_lattice_t *
-fsg_search_lattice(ps_search_t *search)
+static lattice_t *
+fsg_search_lattice(search_module_t *search)
 {
     fsg_search_t *fsgs;
     fsg_model_t *fsg;
-    ps_latnode_t *node;
-    ps_lattice_t *dag;
+    latnode_t *node;
+    lattice_t *dag;
     int32 i, n;
 
     fsgs = (fsg_search_t *)search;
@@ -1394,9 +1394,9 @@ fsg_search_lattice(ps_search_t *search)
         return search->dag;
 
     /* Nope, create a new one. */
-    ps_lattice_free(search->dag);
+    lattice_free(search->dag);
     search->dag = NULL;
-    dag = ps_lattice_init_search(search, fsgs->frame);
+    dag = lattice_init_search(search, fsgs->frame);
     fsg = fsgs->fsg;
 
     /*
@@ -1449,7 +1449,7 @@ fsg_search_lattice(ps_search_t *search)
     for (i = 0; i < n; ++i) {
         fsg_hist_entry_t *fh = fsg_history_entry_get(fsgs->history, i);
         fsg_arciter_t *itor;
-        ps_latnode_t *src, *dest;
+        latnode_t *src, *dest;
         int32 ascr;
         int sf;
 
@@ -1481,7 +1481,7 @@ fsg_search_lattice(ps_search_t *search)
                  * matching node in the lattice and link to it.
                  */
                 if ((dest = find_node(dag, fsg, sf, link->wid, fsg_link_to_state(link))) != NULL)
-            	    ps_lattice_link(dag, src, dest, ascr, fh->frame);
+            	    lattice_link(dag, src, dest, ascr, fh->frame);
             }
             else {
                 /*
@@ -1499,7 +1499,7 @@ fsg_search_lattice(ps_search_t *search)
                         continue;
                     
                     if ((dest = find_node(dag, fsg, sf, link->wid, fsg_link_to_state(link))) != NULL) {
-                        ps_lattice_link(dag, src, dest, ascr, fh->frame);
+                        lattice_link(dag, src, dest, ascr, fh->frame);
                     }
                 }
             }
@@ -1540,20 +1540,20 @@ fsg_search_lattice(ps_search_t *search)
      */
     mark_reachable(dag, dag->end);
 
-    ps_lattice_delete_unreachable(dag);
+    lattice_delete_unreachable(dag);
     {
         int32 silpen, fillpen;
 
         silpen = (int32)(logmath_log(fsg->lmath,
-                                     config_float(ps_search_config(fsgs), "silprob"))
+                                     config_float(search_module_config(fsgs), "silprob"))
                          * fsg->lw)
             >> SENSCR_SHIFT;
         fillpen = (int32)(logmath_log(fsg->lmath,
-                                      config_float(ps_search_config(fsgs), "fillprob"))
+                                      config_float(search_module_config(fsgs), "fillprob"))
                           * fsg->lw)
             >> SENSCR_SHIFT;
 	
-	ps_lattice_penalize_fillers(dag, silpen, fillpen);
+	lattice_penalize_fillers(dag, silpen, fillpen);
     }
     search->dag = dag;
 
@@ -1561,7 +1561,7 @@ fsg_search_lattice(ps_search_t *search)
 
 
 error_out:
-    ps_lattice_free(dag);
+    lattice_free(dag);
     return NULL;
 
 }

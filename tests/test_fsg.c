@@ -15,11 +15,11 @@
 int
 main(int argc, char *argv[])
 {
-    ps_decoder_t *ps;
+    decoder_t *ps;
     config_t *config;
-    ps_lattice_t *dag;
+    lattice_t *dag;
     const char *hyp;
-    ps_seg_t *seg;
+    seg_iter_t *seg;
     int32 score, prob;
     FILE *rawfh;
     int16 buf[2048];
@@ -68,8 +68,8 @@ main(int argc, char *argv[])
     /* Now get the DAG and play with it. */
     dag = ps_get_lattice(ps);
     printf("BESTPATH: %s\n",
-           ps_lattice_hyp(dag, ps_lattice_bestpath(dag, NULL, 15.0)));
-    ps_lattice_posterior(dag, NULL, 15.0);
+           lattice_hyp(dag, lattice_bestpath(dag, NULL, 15.0)));
+    lattice_posterior(dag, NULL, 15.0);
     ps_free(ps);
     config_free(config);
 

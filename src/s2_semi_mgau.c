@@ -54,7 +54,7 @@
 #include <soundswallower/tied_mgau_common.h>
 #include <soundswallower/export.h>
 
-static ps_mgaufuncs_t s2_semi_mgau_funcs = {
+static mgaufuncs_t s2_semi_mgau_funcs = {
     "s2_semi",
     s2_semi_mgau_frame_eval,      /* frame_eval */
     s2_semi_mgau_mllr_transform,  /* transform */
@@ -834,7 +834,7 @@ get_scores_4b_feat_all(s2_semi_mgau_t * s, int i, int topn, int16 *senone_scores
  * Compute senone scores for the active senones.
  */
 int32
-s2_semi_mgau_frame_eval(ps_mgau_t *ps,
+s2_semi_mgau_frame_eval(mgau_t *ps,
                         int16 *senone_scores,
                         uint8 *senone_active,
                         int32 n_senone_active,
@@ -913,12 +913,12 @@ split_topn(char const *str, uint8 *out, int nfeat)
 }
 
 
-EXPORT ps_mgau_t *
+EXPORT mgau_t *
 s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                          s3file_t *mixw, s3file_t *sendump)
 {
     s2_semi_mgau_t *s;
-    ps_mgau_t *ps;
+    mgau_t *ps;
     int i;
     int n_feat;
 
@@ -1008,7 +1008,7 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         }
     }
 
-    ps = (ps_mgau_t *)s;
+    ps = (mgau_t *)s;
     ps->vt = &s2_semi_mgau_funcs;
     return ps;
 error_out:
@@ -1017,7 +1017,7 @@ error_out:
 }
 
 /* FIXME: This is identical to ptm_mgau_init */
-ps_mgau_t *
+mgau_t *
 s2_semi_mgau_init(acmod_t *acmod)
 {
     s3file_t *means = NULL;
@@ -1025,7 +1025,7 @@ s2_semi_mgau_init(acmod_t *acmod)
     s3file_t *mixw = NULL;
     s3file_t *sendump = NULL;
     const char *path;
-    ps_mgau_t *ps = NULL;
+    mgau_t *ps = NULL;
 
     path = config_str(acmod->config, "_mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
@@ -1066,15 +1066,15 @@ error_out:
 }
 
 int
-s2_semi_mgau_mllr_transform(ps_mgau_t *ps,
-                            ps_mllr_t *mllr)
+s2_semi_mgau_mllr_transform(mgau_t *ps,
+                            mllr_t *mllr)
 {
     s2_semi_mgau_t *s = (s2_semi_mgau_t *)ps;
     return gauden_mllr_transform(s->g, mllr, s->config);
 }
 
 void
-s2_semi_mgau_free(ps_mgau_t *ps)
+s2_semi_mgau_free(mgau_t *ps)
 {
     s2_semi_mgau_t *s = (s2_semi_mgau_t *)ps;
 

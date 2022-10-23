@@ -72,21 +72,21 @@
 #include <soundswallower/ms_mgau.h>
 #include <soundswallower/export.h>
 
-static ps_mgaufuncs_t ms_mgau_funcs = {
+static mgaufuncs_t ms_mgau_funcs = {
     "ms",
     ms_cont_mgau_frame_eval, /* frame_eval */
     ms_mgau_mllr_transform,  /* transform */
     ms_mgau_free             /* free */
 };
 
-EXPORT ps_mgau_t *
+EXPORT mgau_t *
 ms_mgau_init_s3file(acmod_t *acmod,
                     s3file_t *means, s3file_t *vars, s3file_t *mixw,
                     s3file_t *senmgau)
 {
     /* Codebooks */
     ms_mgau_model_t *msg;
-    ps_mgau_t *mg;
+    mgau_t *mg;
     gauden_t *g;
     senone_t *s;
     config_t *config = acmod->config;
@@ -155,7 +155,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
                       sizeof(gauden_dist_t));
     msg->mgau_active = ckd_calloc(g->n_mgau, sizeof(int8));
 
-    mg = (ps_mgau_t *)msg;
+    mg = (mgau_t *)msg;
     mg->vt = &ms_mgau_funcs;
     return mg;
 error_out:
@@ -163,12 +163,12 @@ error_out:
     return NULL;    
 }
 
-ps_mgau_t *
+mgau_t *
 ms_mgau_init(acmod_t *acmod)
 {
     /* Codebooks */
     ms_mgau_model_t *msg;
-    ps_mgau_t *mg;
+    mgau_t *mg;
     gauden_t *g;
     senone_t *s;
     config_t *config;
@@ -241,7 +241,7 @@ ms_mgau_init(acmod_t *acmod)
                       sizeof(gauden_dist_t));
     msg->mgau_active = ckd_calloc(g->n_mgau, sizeof(int8));
 
-    mg = (ps_mgau_t *)msg;
+    mg = (mgau_t *)msg;
     mg->vt = &ms_mgau_funcs;
     return mg;
 error_out:
@@ -250,7 +250,7 @@ error_out:
 }
 
 void
-ms_mgau_free(ps_mgau_t * mg)
+ms_mgau_free(mgau_t * mg)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)mg;
     if (msg == NULL)
@@ -269,15 +269,15 @@ ms_mgau_free(ps_mgau_t * mg)
 }
 
 int
-ms_mgau_mllr_transform(ps_mgau_t *s,
-		       ps_mllr_t *mllr)
+ms_mgau_mllr_transform(mgau_t *s,
+		       mllr_t *mllr)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)s;
     return gauden_mllr_transform(msg->g, mllr, msg->config);
 }
 
 int32
-ms_cont_mgau_frame_eval(ps_mgau_t * mg,
+ms_cont_mgau_frame_eval(mgau_t * mg,
 			int16 *senscr,
 			uint8 *senone_active,
 			int32 n_senone_active,

@@ -56,10 +56,10 @@
 #include <soundswallower/fsg_search.h>
 
 static void
-ps_free_searches(ps_decoder_t *ps)
+ps_free_searches(decoder_t *ps)
 {
     if (ps->search) {
-        ps_search_free(ps->search);
+        search_module_free(ps->search);
         ps->search = NULL;
     }
 }
@@ -82,7 +82,7 @@ set_loglevel(config_t *config)
 static void
 log_callback(void *user_data, err_lvl_t lvl, const char *msg)
 {
-    ps_decoder_t *ps = (ps_decoder_t *)user_data;
+    decoder_t *ps = (decoder_t *)user_data;
     (void) lvl;
     assert(ps->logfh != NULL);
     fwrite(msg, 1, strlen(msg), ps->logfh);
@@ -91,7 +91,7 @@ log_callback(void *user_data, err_lvl_t lvl, const char *msg)
 #endif
 
 int
-ps_set_logfile(ps_decoder_t *ps, const char *logfn)
+ps_set_logfile(decoder_t *ps, const char *logfn)
 {
 #ifdef __EMSCRIPTEN__
     (void)ps;
@@ -120,7 +120,7 @@ ps_set_logfile(ps_decoder_t *ps, const char *logfn)
 }
 
 static void
-set_logfile(ps_decoder_t *ps, config_t *config)
+set_logfile(decoder_t *ps, config_t *config)
 {
 #ifdef __EMSCRIPTEN__
     (void)ps;
@@ -134,7 +134,7 @@ set_logfile(ps_decoder_t *ps, config_t *config)
 }
 
 EXPORT int
-ps_init_config(ps_decoder_t *ps, config_t *config)
+ps_init_config(decoder_t *ps, config_t *config)
 {
     /* Set up logging. We do this immediately because we want to dump
        the information to the configured log, not to the stderr. */
@@ -167,7 +167,7 @@ ps_init_config(ps_decoder_t *ps, config_t *config)
 }
 
 EXPORT int
-ps_init_cleanup(ps_decoder_t *ps)
+ps_init_cleanup(decoder_t *ps)
 {
     /* Free old searches (do this before other reinit) */
     ps_free_searches(ps);
@@ -176,7 +176,7 @@ ps_init_cleanup(ps_decoder_t *ps)
 }
 
 EXPORT fe_t *
-ps_init_fe(ps_decoder_t *ps)
+ps_init_fe(decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
@@ -186,7 +186,7 @@ ps_init_fe(ps_decoder_t *ps)
 }
 
 feat_t *
-ps_init_feat(ps_decoder_t *ps)
+ps_init_feat(decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
@@ -196,7 +196,7 @@ ps_init_feat(ps_decoder_t *ps)
 }
 
 EXPORT feat_t *
-ps_init_feat_s3file(ps_decoder_t *ps, s3file_t *lda)
+ps_init_feat_s3file(decoder_t *ps, s3file_t *lda)
 {
     if (ps->config == NULL)
         return NULL;
@@ -206,7 +206,7 @@ ps_init_feat_s3file(ps_decoder_t *ps, s3file_t *lda)
 }
 
 EXPORT acmod_t *
-ps_init_acmod_pre(ps_decoder_t *ps)
+ps_init_acmod_pre(decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
@@ -222,7 +222,7 @@ ps_init_acmod_pre(ps_decoder_t *ps)
 }
 
 EXPORT int
-ps_init_acmod_post(ps_decoder_t *ps)
+ps_init_acmod_post(decoder_t *ps)
 {
     if (ps->acmod == NULL)
         return -1;
@@ -232,7 +232,7 @@ ps_init_acmod_post(ps_decoder_t *ps)
 }
 
 acmod_t *
-ps_init_acmod(ps_decoder_t *ps)
+ps_init_acmod(decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
@@ -248,7 +248,7 @@ ps_init_acmod(ps_decoder_t *ps)
 }
 
 dict_t *
-ps_init_dict(ps_decoder_t *ps)
+ps_init_dict(decoder_t *ps)
 {
     if (ps->config == NULL)
         return NULL;
@@ -268,7 +268,7 @@ ps_init_dict(ps_decoder_t *ps)
 }
 
 EXPORT dict_t *
-ps_init_dict_s3file(ps_decoder_t *ps, s3file_t *dict, s3file_t *fdict)
+ps_init_dict_s3file(decoder_t *ps, s3file_t *dict, s3file_t *fdict)
 {
     if (ps->config == NULL)
         return NULL;
@@ -288,7 +288,7 @@ ps_init_dict_s3file(ps_decoder_t *ps, s3file_t *dict, s3file_t *fdict)
 }
 
 int
-ps_init_grammar(ps_decoder_t *ps)
+ps_init_grammar(decoder_t *ps)
 {
     const char *path;
     float32 lw;
@@ -313,7 +313,7 @@ ps_init_grammar(ps_decoder_t *ps)
 }
 
 EXPORT int
-ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
+ps_init_grammar_s3file(decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
 {
     float32 lw;
 
@@ -342,7 +342,7 @@ ps_init_grammar_s3file(ps_decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file
 }
 
 EXPORT fe_t *
-ps_reinit_fe(ps_decoder_t *ps, config_t *config)
+ps_reinit_fe(decoder_t *ps, config_t *config)
 {
     fe_t *new_fe;
     
@@ -366,7 +366,7 @@ ps_reinit_fe(ps_decoder_t *ps, config_t *config)
 }
 
 int
-ps_reinit(ps_decoder_t *ps, config_t *config)
+ps_reinit(decoder_t *ps, config_t *config)
 {
     if (ps_init_config(ps, config) < 0)
         return -1;
@@ -386,10 +386,10 @@ ps_reinit(ps_decoder_t *ps, config_t *config)
     return 0;
 }
 
-EXPORT ps_decoder_t *
+EXPORT decoder_t *
 ps_init(config_t *config)
 {
-    ps_decoder_t *ps;
+    decoder_t *ps;
     
     ps = ckd_calloc(1, sizeof(*ps));
     ps->refcount = 1;
@@ -406,15 +406,15 @@ ps_init(config_t *config)
     return ps;
 }
 
-EXPORT ps_decoder_t *
-ps_retain(ps_decoder_t *ps)
+EXPORT decoder_t *
+ps_retain(decoder_t *ps)
 {
     ++ps->refcount;
     return ps;
 }
 
 EXPORT int
-ps_free(ps_decoder_t *ps)
+ps_free(decoder_t *ps)
 {
     if (ps == NULL)
         return 0;
@@ -439,38 +439,38 @@ ps_free(ps_decoder_t *ps)
 }
 
 EXPORT config_t *
-ps_get_config(ps_decoder_t *ps)
+ps_get_config(decoder_t *ps)
 {
     return ps->config;
 }
 
 EXPORT logmath_t *
-ps_get_logmath(ps_decoder_t *ps)
+ps_get_logmath(decoder_t *ps)
 {
     return ps->lmath;
 }
 
-ps_mllr_t *
-ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr)
+mllr_t *
+ps_update_mllr(decoder_t *ps, mllr_t *mllr)
 {
     return acmod_update_mllr(ps->acmod, mllr);
 }
 
 EXPORT int
-ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
+ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg)
 {
-    ps_search_t *search;
+    search_module_t *search;
     search = fsg_search_init(name, fsg, ps->config, ps->acmod, ps->dict, ps->d2p);
     if (search == NULL)
         return -1;
     if (ps->search)
-        ps_search_free(ps->search);
+        search_module_free(ps->search);
     ps->search = search;
     return 0;
 }
 
 int 
-ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
+ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path)
 {
   fsg_model_t *fsg;
   jsgf_rule_t *rule;
@@ -509,7 +509,7 @@ ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
 }
 
 EXPORT int 
-ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
+ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)
 {
   fsg_model_t *fsg;
   jsgf_rule_t *rule;
@@ -548,7 +548,7 @@ ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
 }
 
 EXPORT int
-ps_add_word(ps_decoder_t *ps,
+ps_add_word(decoder_t *ps,
             char const *word,
             char const *phones,
             int update)
@@ -607,7 +607,7 @@ ps_add_word(ps_decoder_t *ps,
     if (ps->search && update) {
         /* Note, this is not an error if there is no ps->search, we
          * will have updated the dictionary anyway. */
-        ps_search_reinit(ps->search, ps->dict, ps->d2p);
+        search_module_reinit(ps->search, ps->dict, ps->d2p);
     }
 
     /* Rebuild the widmap and search tree if requested. */
@@ -615,7 +615,7 @@ ps_add_word(ps_decoder_t *ps,
 }
 
 EXPORT char *
-ps_lookup_word(ps_decoder_t *ps, const char *word)
+ps_lookup_word(decoder_t *ps, const char *word)
 {
     s3wid_t wid;
     int phlen, j;
@@ -638,7 +638,7 @@ ps_lookup_word(ps_decoder_t *ps, const char *word)
 }
 
 EXPORT int
-ps_start_utt(ps_decoder_t *ps)
+ps_start_utt(decoder_t *ps)
 {
     int rv;
     char uttid[16];
@@ -661,7 +661,7 @@ ps_start_utt(ps_decoder_t *ps)
     ++ps->uttno;
 
     /* Remove any residual word lattice and hypothesis. */
-    ps_lattice_free(ps->search->dag);
+    lattice_free(ps->search->dag);
     ps->search->dag = NULL;
     ps->search->last_link = NULL;
     ps->search->post = 0;
@@ -671,11 +671,11 @@ ps_start_utt(ps_decoder_t *ps)
     if ((rv = acmod_start_utt(ps->acmod)) < 0)
         return rv;
 
-    return ps_search_start(ps->search);
+    return search_module_start(ps->search);
 }
 
 static int
-ps_search_forward(ps_decoder_t *ps)
+search_module_forward(decoder_t *ps)
 {
     int nfr;
 
@@ -687,7 +687,7 @@ ps_search_forward(ps_decoder_t *ps)
     nfr = 0;
     while (ps->acmod->n_feat_frame > 0) {
         int k;
-        if ((k = ps_search_step(ps->search,
+        if ((k = search_module_step(ps->search,
                                 ps->acmod->output_frame)) < 0)
             return k;
         acmod_advance(ps->acmod);
@@ -698,7 +698,7 @@ ps_search_forward(ps_decoder_t *ps)
 }
 
 EXPORT int
-ps_process_float32(ps_decoder_t *ps,
+ps_process_float32(decoder_t *ps,
                    float32 const *data,
                    size_t n_samples,
                    int no_search,
@@ -725,7 +725,7 @@ ps_process_float32(ps_decoder_t *ps,
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = ps_search_forward(ps)) < 0)
+        if ((nfr = search_module_forward(ps)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -734,7 +734,7 @@ ps_process_float32(ps_decoder_t *ps,
 }
 
 int
-ps_process_raw(ps_decoder_t *ps,
+ps_process_raw(decoder_t *ps,
                int16 const *data,
                size_t n_samples,
                int no_search,
@@ -761,7 +761,7 @@ ps_process_raw(ps_decoder_t *ps,
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = ps_search_forward(ps)) < 0)
+        if ((nfr = search_module_forward(ps)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -770,7 +770,7 @@ ps_process_raw(ps_decoder_t *ps,
 }
 
 int
-ps_process_cep(ps_decoder_t *ps,
+ps_process_cep(decoder_t *ps,
                mfcc_t **data,
                int32 n_frames,
                int no_search,
@@ -792,7 +792,7 @@ ps_process_cep(ps_decoder_t *ps,
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = ps_search_forward(ps)) < 0)
+        if ((nfr = search_module_forward(ps)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -801,7 +801,7 @@ ps_process_cep(ps_decoder_t *ps,
 }
 
 EXPORT int
-ps_end_utt(ps_decoder_t *ps)
+ps_end_utt(decoder_t *ps)
 {
     int rv = 0;
 
@@ -817,12 +817,12 @@ ps_end_utt(ps_decoder_t *ps)
     acmod_end_utt(ps->acmod);
 
     /* Search any remaining frames. */
-    if ((rv = ps_search_forward(ps)) < 0) {
+    if ((rv = search_module_forward(ps)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
     } 
     /* Finish main search. */
-    if ((rv = ps_search_finish(ps->search)) < 0) {
+    if ((rv = search_module_finish(ps->search)) < 0) {
         ptmr_stop(&ps->perf);
         return rv;
     }
@@ -830,7 +830,7 @@ ps_end_utt(ps_decoder_t *ps)
     /* Log a backtrace if requested. */
     if (config_bool(ps->config, "backtrace")) {
         const char* hyp;
-        ps_seg_t *seg;
+        seg_iter_t *seg;
         int32 score;
 
         hyp = ps_get_hyp(ps, &score);
@@ -858,7 +858,7 @@ ps_end_utt(ps_decoder_t *ps)
 }
 
 EXPORT char const *
-ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score)
+ps_get_hyp(decoder_t *ps, int32 *out_best_score)
 {
     char const *hyp;
 
@@ -868,13 +868,13 @@ ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score)
         return NULL;
     }
     ptmr_start(&ps->perf);
-    hyp = ps_search_hyp(ps->search, out_best_score);
+    hyp = search_module_hyp(ps->search, out_best_score);
     ptmr_stop(&ps->perf);
     return hyp;
 }
 
 EXPORT int32
-ps_get_prob(ps_decoder_t *ps)
+ps_get_prob(decoder_t *ps)
 {
     int32 prob;
 
@@ -884,15 +884,15 @@ ps_get_prob(ps_decoder_t *ps)
         return -1;
     }
     ptmr_start(&ps->perf);
-    prob = ps_search_prob(ps->search);
+    prob = search_module_prob(ps->search);
     ptmr_stop(&ps->perf);
     return prob;
 }
 
-EXPORT ps_seg_t *
-ps_seg_iter(ps_decoder_t *ps)
+EXPORT seg_iter_t *
+ps_seg_iter(decoder_t *ps)
 {
-    ps_seg_t *itor;
+    seg_iter_t *itor;
 
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -900,32 +900,32 @@ ps_seg_iter(ps_decoder_t *ps)
         return NULL;
     }
     ptmr_start(&ps->perf);
-    itor = ps_search_seg_iter(ps->search);
+    itor = search_module_seg_iter(ps->search);
     ptmr_stop(&ps->perf);
     return itor;
 }
 
-EXPORT ps_seg_t *
-ps_seg_next(ps_seg_t *seg)
+EXPORT seg_iter_t *
+ps_seg_next(seg_iter_t *seg)
 {
-    return ps_search_seg_next(seg);
+    return search_module_seg_next(seg);
 }
 
 EXPORT char const *
-ps_seg_word(ps_seg_t *seg)
+ps_seg_word(seg_iter_t *seg)
 {
     return seg->word;
 }
 
 EXPORT void
-ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
+ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
 {
     if (out_sf) *out_sf = seg->sf;
     if (out_ef) *out_ef = seg->ef;
 }
 
 EXPORT int32
-ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr)
+ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
 {
     if (out_ascr) *out_ascr = seg->ascr;
     if (out_lscr) *out_lscr = seg->lscr;
@@ -933,27 +933,27 @@ ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr)
 }
 
 EXPORT void
-ps_seg_free(ps_seg_t *seg)
+ps_seg_free(seg_iter_t *seg)
 {
-    ps_search_seg_free(seg);
+    search_module_seg_free(seg);
 }
 
-ps_lattice_t *
-ps_get_lattice(ps_decoder_t *ps)
+lattice_t *
+ps_get_lattice(decoder_t *ps)
 {
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return NULL;
     }
-    return ps_search_lattice(ps->search);
+    return search_module_lattice(ps->search);
 }
 
-ps_nbest_t *
-ps_nbest(ps_decoder_t *ps)
+hyp_iter_t *
+ps_nbest(decoder_t *ps)
 {
-    ps_lattice_t *dag;
-    ps_astar_t *nbest;
+    lattice_t *dag;
+    astar_search_t *nbest;
     void *lmset;
 
     if (ps->search == NULL) {
@@ -965,24 +965,24 @@ ps_nbest(ps_decoder_t *ps)
         return NULL;
 
     lmset = NULL;
-    nbest = ps_astar_start(dag, lmset, 0, -1, -1, -1);
+    nbest = astar_search_start(dag, lmset, 0, -1, -1, -1);
     nbest = ps_nbest_next(nbest);
 
-    return (ps_nbest_t *)nbest;
+    return (hyp_iter_t *)nbest;
 }
 
 void
-ps_nbest_free(ps_nbest_t *nbest)
+ps_nbest_free(hyp_iter_t *nbest)
 {
-    ps_astar_finish(nbest);
+    astar_finish(nbest);
 }
 
-ps_nbest_t *
-ps_nbest_next(ps_nbest_t *nbest)
+hyp_iter_t *
+ps_nbest_next(hyp_iter_t *nbest)
 {
-    ps_latpath_t *next;
+    latpath_t *next;
 
-    next = ps_astar_next(nbest);
+    next = astar_next(nbest);
     if (next == NULL) {
         ps_nbest_free(nbest);
         return NULL;
@@ -991,33 +991,33 @@ ps_nbest_next(ps_nbest_t *nbest)
 }
 
 char const *
-ps_nbest_hyp(ps_nbest_t *nbest, int32 *out_score)
+ps_nbest_hyp(hyp_iter_t *nbest, int32 *out_score)
 {
     assert(nbest != NULL);
 
     if (nbest->top == NULL)
         return NULL;
     if (out_score) *out_score = nbest->top->score;
-    return ps_astar_hyp(nbest, nbest->top);
+    return astar_hyp(nbest, nbest->top);
 }
 
-ps_seg_t *
-ps_nbest_seg(ps_nbest_t *nbest)
+seg_iter_t *
+ps_nbest_seg(hyp_iter_t *nbest)
 {
     if (nbest->top == NULL)
         return NULL;
 
-    return ps_astar_seg_iter(nbest, nbest->top);
+    return astar_search_seg_iter(nbest, nbest->top);
 }
 
 int
-ps_get_n_frames(ps_decoder_t *ps)
+ps_get_n_frames(decoder_t *ps)
 {
     return ps->acmod->output_frame + 1;
 }
 
 void
-ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
+ps_get_utt_time(decoder_t *ps, double *out_nspeech,
                 double *out_ncpu, double *out_nwall)
 {
     int32 frate;
@@ -1029,7 +1029,7 @@ ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
 }
 
 void
-ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
+ps_get_all_time(decoder_t *ps, double *out_nspeech,
                 double *out_ncpu, double *out_nwall)
 {
     int32 frate;
@@ -1041,7 +1041,7 @@ ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
 }
 
 void
-ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
+search_module_init(search_module_t *search, searchfuncs_t *vt,
 	       const char *type,
 	       const char *name,
                config_t *config, acmod_t *acmod, dict_t *dict,
@@ -1072,7 +1072,7 @@ ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
 }
 
 void
-ps_search_base_free(ps_search_t *search)
+search_module_base_free(search_module_t *search)
 {
     /* FIXME: We will have refcounting on acmod, config, etc, at which
      * point we will free them here too. */
@@ -1081,11 +1081,11 @@ ps_search_base_free(ps_search_t *search)
     dict_free(search->dict);
     dict2pid_free(search->d2p);
     ckd_free(search->hyp_str);
-    ps_lattice_free(search->dag);
+    lattice_free(search->dag);
 }
 
 void
-ps_search_base_reinit(ps_search_t *search, dict_t *dict,
+search_module_base_reinit(search_module_t *search, dict_t *dict,
                       dict2pid_t *d2p)
 {
     dict_free(search->dict);

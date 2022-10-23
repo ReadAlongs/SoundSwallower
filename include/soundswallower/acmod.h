@@ -84,33 +84,33 @@ typedef enum acmod_state_e {
 /**
  * Acoustic model parameter structure. 
  */
-typedef struct ps_mgau_s ps_mgau_t;
+typedef struct mgau_s mgau_t;
 
-typedef struct ps_mgaufuncs_s {
+typedef struct mgaufuncs_s {
     char const *name;
 
-    int (*frame_eval)(ps_mgau_t *mgau,
+    int (*frame_eval)(mgau_t *mgau,
                       int16 *senscr,
                       uint8 *senone_active,
                       int32 n_senone_active,
                       mfcc_t ** feat,
                       int32 frame,
                       int32 compallsen);
-    int (*transform)(ps_mgau_t *mgau,
-                     ps_mllr_t *mllr);
-    void (*free)(ps_mgau_t *mgau);
-} ps_mgaufuncs_t;    
+    int (*transform)(mgau_t *mgau,
+                     mllr_t *mllr);
+    void (*free)(mgau_t *mgau);
+} mgaufuncs_t;    
 
-struct ps_mgau_s {
-    ps_mgaufuncs_t *vt;  /**< vtable of mgau functions. */
+struct mgau_s {
+    mgaufuncs_t *vt;  /**< vtable of mgau functions. */
     int frame_idx;       /**< frame counter. */
 };
 
-#define ps_mgau_base(mg) ((ps_mgau_t *)(mg))
+#define ps_mgau_base(mg) ((mgau_t *)(mg))
 #define ps_mgau_frame_eval(mg,senscr,senone_active,n_senone_active,feat,frame,compallsen) \
     (*ps_mgau_base(mg)->vt->frame_eval)                                 \
     (mg, senscr, senone_active, n_senone_active, feat, frame, compallsen)
-#define ps_mgau_transform(mg, mllr)                                  \
+#define mgau_transform(mg, mllr)                                  \
     (*ps_mgau_base(mg)->vt->transform)(mg, mllr)
 #define ps_mgau_free(mg)                                  \
     (*ps_mgau_base(mg)->vt->free)(mg)
@@ -149,8 +149,8 @@ struct acmod_s {
     /* Model parameters: */
     bin_mdef_t *mdef;          /**< Model definition. */
     tmat_t *tmat;              /**< Transition matrices. */
-    ps_mgau_t *mgau;           /**< Model parameters. */
-    ps_mllr_t *mllr;           /**< Speaker transformation. */
+    mgau_t *mgau;           /**< Model parameters. */
+    mllr_t *mllr;           /**< Speaker transformation. */
 
     /* Senone scoring: */
     int16 *senone_scores;      /**< GMM scores for current frame. */
@@ -243,7 +243,7 @@ int acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb);
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */
-ps_mllr_t *acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr);
+mllr_t *acmod_update_mllr(acmod_t *acmod, mllr_t *mllr);
 
 /**
  * Finalize an acoustic model.

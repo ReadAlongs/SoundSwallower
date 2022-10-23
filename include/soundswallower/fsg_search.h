@@ -59,7 +59,7 @@ extern "C" {
  * Segmentation "iterator" for FSG history.
  */
 typedef struct fsg_seg_s {
-    ps_seg_t base;  /**< Base structure. */
+    seg_iter_t base;  /**< Base structure. */
     fsg_hist_entry_t **hist;   /**< Sequence of history entries. */
     int16 n_hist;  /**< Number of history entries. */
     int16 cur;      /**< Current position in hist. */
@@ -69,7 +69,7 @@ typedef struct fsg_seg_s {
  * Implementation of FSG search (and "FSG set") structure.
  */
 typedef struct fsg_search_s {
-    ps_search_t base;
+    search_module_t base;
 
     hmm_context_t *hmmctx; /**< HMM context. */
 
@@ -116,7 +116,7 @@ typedef struct fsg_search_s {
 /**
  * Create, initialize and return a search module.
  */
-ps_search_t *fsg_search_init(const char *name,
+search_module_t *fsg_search_init(const char *name,
 			     fsg_model_t *fsg,
                              config_t *config,
                              acmod_t *acmod,
@@ -126,33 +126,33 @@ ps_search_t *fsg_search_init(const char *name,
 /**
  * Deallocate search structure.
  */
-void fsg_search_free(ps_search_t *search);
+void fsg_search_free(search_module_t *search);
 
 /**
  * Update FSG search module for new or updated FSGs.
  */
-int fsg_search_reinit(ps_search_t *fsgs, dict_t *dict, dict2pid_t *d2p);
+int fsg_search_reinit(search_module_t *fsgs, dict_t *dict, dict2pid_t *d2p);
 
 /**
  * Prepare the FSG search structure for beginning decoding of the next
  * utterance.
  */
-int fsg_search_start(ps_search_t *search);
+int fsg_search_start(search_module_t *search);
 
 /**
  * Step one frame forward through the Viterbi search.
  */
-int fsg_search_step(ps_search_t *search, int frame_idx);
+int fsg_search_step(search_module_t *search, int frame_idx);
 
 /**
  * Windup and clean the FSG search structure after utterance.
  */
-int fsg_search_finish(ps_search_t *search);
+int fsg_search_finish(search_module_t *search);
 
 /**
  * Get hypothesis string from the FSG search.
  */
-char const *fsg_search_hyp(ps_search_t *search, int32 *out_score);
+char const *fsg_search_hyp(search_module_t *search, int32 *out_score);
 
 #ifdef __cplusplus
 } /* extern "C" */

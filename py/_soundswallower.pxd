@@ -135,30 +135,30 @@ cdef extern from "soundswallower/jsgf.h":
 
 
 cdef extern from "soundswallower/decoder.h":
-    ctypedef struct ps_decoder_t:
+    ctypedef struct decoder_t:
         pass
-    ctypedef struct ps_seg_t:
+    ctypedef struct seg_iter_t:
         pass
     config_param_t *ps_args()
-    ps_decoder_t *ps_init(config_t *config)
-    int ps_free(ps_decoder_t *ps)
-    int ps_reinit(ps_decoder_t *ps, config_t *config)
-    fe_t *ps_reinit_fe(ps_decoder_t *ps, config_t *config)
-    logmath_t *ps_get_logmath(ps_decoder_t *ps)
-    int ps_start_utt(ps_decoder_t *ps)
-    int ps_process_raw(ps_decoder_t *ps,
+    decoder_t *ps_init(config_t *config)
+    int ps_free(decoder_t *ps)
+    int ps_reinit(decoder_t *ps, config_t *config)
+    fe_t *ps_reinit_fe(decoder_t *ps, config_t *config)
+    logmath_t *ps_get_logmath(decoder_t *ps)
+    int ps_start_utt(decoder_t *ps)
+    int ps_process_raw(decoder_t *ps,
                        const short *data, size_t n_samples,
                        int no_search, int full_utt)
-    int ps_end_utt(ps_decoder_t *ps)
-    const char *ps_get_hyp(ps_decoder_t *ps, int *out_best_score)
-    int ps_get_prob(ps_decoder_t *ps)
-    ps_seg_t *ps_seg_iter(ps_decoder_t *ps)
-    ps_seg_t *ps_seg_next(ps_seg_t *seg)
-    const char *ps_seg_word(ps_seg_t *seg)
-    void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
-    int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr)
-    void ps_seg_free(ps_seg_t *seg)
-    int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
-    int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
-    int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
-    int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
+    int ps_end_utt(decoder_t *ps)
+    const char *ps_get_hyp(decoder_t *ps, int *out_best_score)
+    int ps_get_prob(decoder_t *ps)
+    seg_iter_t *ps_seg_iter(decoder_t *ps)
+    seg_iter_t *ps_seg_next(seg_iter_t *seg)
+    const char *ps_seg_word(seg_iter_t *seg)
+    void ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
+    int ps_seg_prob(seg_iter_t *seg, int *out_ascr, int *out_lscr)
+    void ps_seg_free(seg_iter_t *seg)
+    int ps_add_word(decoder_t *ps, char *word, char *phones, int update)
+    int ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg)
+    int ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path)
+    int ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)

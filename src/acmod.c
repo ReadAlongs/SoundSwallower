@@ -121,7 +121,7 @@ acmod_load_am(acmod_t *acmod)
 
     /* If there is an MLLR transform, apply it. */
     if ((mllrfn = config_str(acmod->config, "mllr"))) {
-        ps_mllr_t *mllr = ps_mllr_read(mllrfn);
+        mllr_t *mllr = mllr_read(mllrfn);
         if (mllr == NULL)
             return -1;
         acmod_update_mllr(acmod, mllr);
@@ -261,19 +261,19 @@ acmod_free(acmod_t *acmod)
     tmat_free(acmod->tmat);
     if (acmod->mgau) /* FIXME: Should make this transparent */
         ps_mgau_free(acmod->mgau);
-    ps_mllr_free(acmod->mllr);
+    mllr_free(acmod->mllr);
     logmath_free(acmod->lmath);
 
     ckd_free(acmod);
 }
 
-ps_mllr_t *
-acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr)
+mllr_t *
+acmod_update_mllr(acmod_t *acmod, mllr_t *mllr)
 {
     if (acmod->mllr)
-        ps_mllr_free(acmod->mllr);
-    acmod->mllr = ps_mllr_retain(mllr);
-    ps_mgau_transform(acmod->mgau, mllr);
+        mllr_free(acmod->mllr);
+    acmod->mllr = mllr_retain(mllr);
+    mgau_transform(acmod->mgau, mllr);
 
     return mllr;
 }

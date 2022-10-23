@@ -39,21 +39,21 @@ hash_iter_key(hash_iter_t *itor)
 }
 
 EMSCRIPTEN_KEEPALIVE void
-set_mdef(ps_decoder_t *ps, bin_mdef_t *mdef)
+set_mdef(decoder_t *ps, bin_mdef_t *mdef)
 {
     acmod_t *acmod = ps->acmod;
     acmod->mdef = mdef;
 }
 
 EMSCRIPTEN_KEEPALIVE void
-set_tmat(ps_decoder_t *ps, tmat_t *tmat)
+set_tmat(decoder_t *ps, tmat_t *tmat)
 {
     acmod_t *acmod = ps->acmod;
     acmod->tmat = tmat;
 }
 
 EMSCRIPTEN_KEEPALIVE int
-load_gmm(ps_decoder_t *ps, s3file_t *means, s3file_t *vars, s3file_t *mixw, s3file_t *sendump)
+load_gmm(decoder_t *ps, s3file_t *means, s3file_t *vars, s3file_t *mixw, s3file_t *sendump)
 {
     acmod_t *acmod = ps->acmod;
 

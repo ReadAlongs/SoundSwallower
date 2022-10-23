@@ -63,18 +63,18 @@ extern "C" {
 /**
  * Speech recognizer object.
  */
-typedef struct ps_decoder_s ps_decoder_t;
+typedef struct decoder_s decoder_t;
 
 
 /**
  * N-best hypothesis iterator object.
  */
-typedef struct ps_astar_s ps_nbest_t;
+typedef struct astar_search_s hyp_iter_t;
 
 /**
  * Segmentation iterator object.
  */
-typedef struct ps_seg_s ps_seg_t;
+typedef struct seg_iter_s seg_iter_t;
 
 /**
  * Initialize the decoder from a configuration object.
@@ -88,7 +88,7 @@ typedef struct ps_seg_s ps_seg_t;
  * decoder will be allocated but not initialized.  You can
  * proceed to initialize it with ps_reinit().
  */
-ps_decoder_t *ps_init(config_t *config);
+decoder_t *ps_init(config_t *config);
 
 /**
  * Reinitialize the decoder with updated configuration.
@@ -106,7 +106,7 @@ ps_decoder_t *ps_init(config_t *config);
  *               with any changes applied.
  * @return 0 for success, <0 for failure.
  */
-int ps_reinit(ps_decoder_t *ps, config_t *config);
+int ps_reinit(decoder_t *ps, config_t *config);
 
 /**
  * Reinitialize only the feature extractor with updated configuration.
@@ -127,7 +127,7 @@ int ps_reinit(ps_decoder_t *ps, config_t *config);
  *         pointer, so you should not attempt to free it manually.
  *         Use fe_retain() if you wish to reuse it elsewhere.
  */
-fe_t * ps_reinit_fe(ps_decoder_t *ps, config_t *config);
+fe_t * ps_reinit_fe(decoder_t *ps, config_t *config);
 
 /**
  * Returns the argument definitions used in ps_init().
@@ -147,7 +147,7 @@ config_param_t const *ps_args(void);
  *
  * @return pointer to retained decoder.
  */
-ps_decoder_t *ps_retain(ps_decoder_t *ps);
+decoder_t *ps_retain(decoder_t *ps);
 
 /**
  * Finalize the decoder.
@@ -157,7 +157,7 @@ ps_decoder_t *ps_retain(ps_decoder_t *ps);
  * @param ps Decoder to be freed.
  * @return New reference count (0 if freed).
  */
-int ps_free(ps_decoder_t *ps);
+int ps_free(decoder_t *ps);
 
 /**
  * Get the configuration object for this decoder.
@@ -167,7 +167,7 @@ int ps_free(ps_decoder_t *ps);
  *         manually.  Use cmd_ln_retain() if you wish to reuse it
  *         elsewhere.
  */
-config_t *ps_get_config(ps_decoder_t *ps);
+config_t *ps_get_config(decoder_t *ps);
 
 /**
  * Get the log-math computation object for this decoder.
@@ -177,7 +177,7 @@ config_t *ps_get_config(ps_decoder_t *ps);
  *         manually.  Use logmath_retain() if you wish to reuse it
  *         elsewhere.
  */
-logmath_t *ps_get_logmath(ps_decoder_t *ps);
+logmath_t *ps_get_logmath(decoder_t *ps);
 
 /**
  * Get the feature extraction object for this decoder.
@@ -187,7 +187,7 @@ logmath_t *ps_get_logmath(ps_decoder_t *ps);
  *         free it manually.  Use fe_retain() if you wish to reuse it
  *         elsewhere.
  */
-fe_t *ps_get_fe(ps_decoder_t *ps);
+fe_t *ps_get_fe(decoder_t *ps);
 
 /**
  * Get the dynamic feature computation object for this decoder.
@@ -197,7 +197,7 @@ fe_t *ps_get_fe(ps_decoder_t *ps);
  *         free it manually.  Use feat_retain() if you wish to reuse
  *         it elsewhere.
  */
-feat_t *ps_get_feat(ps_decoder_t *ps);
+feat_t *ps_get_feat(decoder_t *ps);
 
 /**
  * Load new finite state grammar.
@@ -205,17 +205,17 @@ feat_t *ps_get_feat(ps_decoder_t *ps);
  * @note The decoder retains ownership of the pointer
  * <code>fsg</code>, so you should free it when no longer used.
  */
-int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg);
+int ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg);
 
 /**
  * Load new finite state grammar from JSGF file.
  */
-int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path);
+int ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path);
 
 /**
  * Load new finite state grammar parsing JSGF from string.
  */
-int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string);
+int ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string);
 
 /**
  * Adapt current acoustic model using a linear transform.
@@ -226,7 +226,7 @@ int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_stri
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */
-ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
+mllr_t *ps_update_mllr(decoder_t *ps, mllr_t *mllr);
 
 /**
  * Add a word to the pronunciation dictionary.
@@ -241,7 +241,7 @@ ps_mllr_t *ps_update_mllr(ps_decoder_t *ps, ps_mllr_t *mllr);
  * @return The internal ID (>= 0) of the newly added word, or <0 on
  *         failure.
  */
-int ps_add_word(ps_decoder_t *ps,
+int ps_add_word(decoder_t *ps,
                 char const *word,
                 char const *phones,
                 int update);
@@ -257,7 +257,7 @@ int ps_add_word(ps_decoder_t *ps,
  *         or NULL if word is not present in the dictionary. The string is
  *         allocated and must be freed by the user.
  */
-char *ps_lookup_word(ps_decoder_t *ps, 
+char *ps_lookup_word(decoder_t *ps, 
 	             const char *word);
 
 /**
@@ -270,7 +270,7 @@ char *ps_lookup_word(ps_decoder_t *ps,
  * @param ps Decoder to be started.
  * @return 0 for success, <0 on error.
  */
-int ps_start_utt(ps_decoder_t *ps);
+int ps_start_utt(decoder_t *ps);
 
 /**
  * Decode raw audio data.
@@ -285,7 +285,7 @@ int ps_start_utt(ps_decoder_t *ps);
  *                 produce more accurate results.
  * @return Number of frames of data searched, or <0 for error.
  */
-int ps_process_raw(ps_decoder_t *ps,
+int ps_process_raw(decoder_t *ps,
                    int16 const *data,
                    size_t n_samples,
                    int no_search,
@@ -304,7 +304,7 @@ int ps_process_raw(ps_decoder_t *ps,
  *                 produce more accurate results.
  * @return Number of frames of data searched, or <0 for error.
  */
-int ps_process_cep(ps_decoder_t *ps,
+int ps_process_cep(decoder_t *ps,
                    mfcc_t **data,
                    int n_frames,
                    int no_search,
@@ -323,7 +323,7 @@ int ps_process_cep(ps_decoder_t *ps,
  * @return Number of frames of speech data which have been recognized
  * so far.
  */
-int ps_get_n_frames(ps_decoder_t *ps);
+int ps_get_n_frames(decoder_t *ps);
 
 /**
  * End utterance processing.
@@ -331,7 +331,7 @@ int ps_get_n_frames(ps_decoder_t *ps);
  * @param ps Decoder.
  * @return 0 for success, <0 on error
  */
-int ps_end_utt(ps_decoder_t *ps);
+int ps_end_utt(decoder_t *ps);
 
 /**
  * Get hypothesis string and path score.
@@ -342,7 +342,7 @@ int ps_end_utt(ps_decoder_t *ps);
  *         decoding.  NULL if no hypothesis is available.  This string is owned
  *         by the decoder, so you should copy it if you need to hold onto it.
  */
-char const *ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score);
+char const *ps_get_hyp(decoder_t *ps, int32 *out_best_score);
 
 /**
  * Get posterior probability.
@@ -357,7 +357,7 @@ char const *ps_get_hyp(ps_decoder_t *ps, int32 *out_best_score);
  * @param ps Decoder.
  * @return Posterior probability of the best hypothesis.
  */
-int32 ps_get_prob(ps_decoder_t *ps);
+int32 ps_get_prob(decoder_t *ps);
 
 /**
  * Get word lattice.
@@ -370,9 +370,9 @@ int32 ps_get_prob(ps_decoder_t *ps);
  *         if no hypotheses are available.  This pointer is owned by
  *         the decoder and you should not attempt to free it manually.
  *         It is only valid until the next utterance, unless you use
- *         ps_lattice_retain() to retain it.
+ *         lattice_retain() to retain it.
  */
-ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
+lattice_t *ps_get_lattice(decoder_t *ps);
 
 /**
  * Get an iterator over the word segmentation for the best hypothesis.
@@ -381,7 +381,7 @@ ps_lattice_t *ps_get_lattice(ps_decoder_t *ps);
  * @return Iterator over the best hypothesis at this point in
  *         decoding.  NULL if no hypothesis is available.
  */
-ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
+seg_iter_t *ps_seg_iter(decoder_t *ps);
 
 /**
  * Get the next segment in a word segmentation.
@@ -390,7 +390,7 @@ ps_seg_t *ps_seg_iter(ps_decoder_t *ps);
  * @return Updated iterator with the next segment.  NULL at end of
  *         utterance (the iterator will be freed in this case).
  */
-ps_seg_t *ps_seg_next(ps_seg_t *seg);
+seg_iter_t *ps_seg_next(seg_iter_t *seg);
 
 /**
  * Get word string from a segmentation iterator.
@@ -399,7 +399,7 @@ ps_seg_t *ps_seg_next(ps_seg_t *seg);
  * @return Read-only string giving string name of this segment.  This
  * is only valid until the next call to ps_seg_next().
  */
-char const *ps_seg_word(ps_seg_t *seg);
+char const *ps_seg_word(seg_iter_t *seg);
 
 /**
  * Get inclusive start and end frames from a segmentation iterator.
@@ -412,7 +412,7 @@ char const *ps_seg_word(ps_seg_t *seg);
  * @param out_sf Output: First frame index in segment.
  * @param out_ef Output: Last frame index in segment.
  */
-void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef);
+void ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef);
 
 /**
  * Get language, acoustic, and posterior probabilities from a
@@ -432,12 +432,12 @@ void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef);
  *         to linear floating-point, use logmath_exp(ps_get_logmath(),
  *         pprob).
  */
-int32 ps_seg_prob(ps_seg_t *seg, int32 *out_ascr, int32 *out_lscr);
+int32 ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr);
 
 /**
  * Finish iterating over a word segmentation early, freeing resources.
  */
-void ps_seg_free(ps_seg_t *seg);
+void ps_seg_free(seg_iter_t *seg);
 
 /**
  * Get an iterator over the best hypotheses. The function may also
@@ -447,7 +447,7 @@ void ps_seg_free(ps_seg_t *seg);
  * @param ps Decoder.
  * @return Iterator over N-best hypotheses or NULL if no hypothesis is available
  */
-ps_nbest_t *ps_nbest(ps_decoder_t *ps);
+hyp_iter_t *ps_nbest(decoder_t *ps);
 
 /**
  * Move an N-best list iterator forward.
@@ -456,7 +456,7 @@ ps_nbest_t *ps_nbest(ps_decoder_t *ps);
  * @return Updated N-best iterator, or NULL if no more hypotheses are
  *         available (iterator is freed ni this case).
  */
-ps_nbest_t *ps_nbest_next(ps_nbest_t *nbest);
+hyp_iter_t *ps_nbest_next(hyp_iter_t *nbest);
 
 /**
  * Get the hypothesis string from an N-best list iterator.
@@ -465,7 +465,7 @@ ps_nbest_t *ps_nbest_next(ps_nbest_t *nbest);
  * @param out_score Output: Path score for this hypothesis.
  * @return String containing next best hypothesis.
  */
-char const *ps_nbest_hyp(ps_nbest_t *nbest, int32 *out_score);
+char const *ps_nbest_hyp(hyp_iter_t *nbest, int32 *out_score);
 
 /**
  * Get the word segmentation from an N-best list iterator.
@@ -473,14 +473,14 @@ char const *ps_nbest_hyp(ps_nbest_t *nbest, int32 *out_score);
  * @param nbest N-best iterator.
  * @return Iterator over the next best hypothesis.
  */
-ps_seg_t *ps_nbest_seg(ps_nbest_t *nbest);
+seg_iter_t *ps_nbest_seg(hyp_iter_t *nbest);
 
 /**
  * Finish N-best search early, releasing resources.
  *
  * @param nbest N-best iterator.
  */
-void ps_nbest_free(ps_nbest_t *nbest);
+void ps_nbest_free(hyp_iter_t *nbest);
 
 /**
  * Get performance information for the current utterance.
@@ -490,7 +490,7 @@ void ps_nbest_free(ps_nbest_t *nbest);
  * @param out_ncpu    Output: Number of seconds of CPU time used.
  * @param out_nwall   Output: Number of seconds of wall time used.
  */
-void ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
+void ps_get_utt_time(decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
 
 /**
@@ -501,7 +501,7 @@ void ps_get_utt_time(ps_decoder_t *ps, double *out_nspeech,
  * @param out_ncpu    Output: Number of seconds of CPU time used.
  * @param out_nwall   Output: Number of seconds of wall time used.
  */
-void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
+void ps_get_all_time(decoder_t *ps, double *out_nspeech,
                      double *out_ncpu, double *out_nwall);
 
 /**
@@ -511,12 +511,12 @@ void ps_get_all_time(ps_decoder_t *ps, double *out_nspeech,
  * @param logfn Filename to log to, or NULL to log to standard output.
  * @return 0 for success or -1 for failure.
  */
-int ps_set_logfile(ps_decoder_t *ps, const char *logfn);
+int ps_set_logfile(decoder_t *ps, const char *logfn);
 
 /**
  * Search algorithm structure.
  */
-typedef struct ps_search_s ps_search_t;
+typedef struct search_module_s search_module_t;
 
 
 /* Search names*/
@@ -531,24 +531,24 @@ typedef struct ps_search_s ps_search_t;
 /**
  * V-table for search algorithm.
  */
-typedef struct ps_searchfuncs_s {
-    int (*start)(ps_search_t *search);
-    int (*step)(ps_search_t *search, int frame_idx);
-    int (*finish)(ps_search_t *search);
-    int (*reinit)(ps_search_t *search, dict_t *dict, dict2pid_t *d2p);
-    void (*free)(ps_search_t *search);
+typedef struct searchfuncs_s {
+    int (*start)(search_module_t *search);
+    int (*step)(search_module_t *search, int frame_idx);
+    int (*finish)(search_module_t *search);
+    int (*reinit)(search_module_t *search, dict_t *dict, dict2pid_t *d2p);
+    void (*free)(search_module_t *search);
 
-    ps_lattice_t *(*lattice)(ps_search_t *search);
-    char const *(*hyp)(ps_search_t *search, int32 *out_score);
-    int32 (*prob)(ps_search_t *search);
-    ps_seg_t *(*seg_iter)(ps_search_t *search);
-} ps_searchfuncs_t;
+    lattice_t *(*lattice)(search_module_t *search);
+    char const *(*hyp)(search_module_t *search, int32 *out_score);
+    int32 (*prob)(search_module_t *search);
+    seg_iter_t *(*seg_iter)(search_module_t *search);
+} searchfuncs_t;
 
 /**
  * Base structure for search module.
  */
-struct ps_search_s {
-    ps_searchfuncs_t *vt;  /**< V-table of search methods. */
+struct search_module_s {
+    searchfuncs_t *vt;  /**< V-table of search methods. */
     
     char *type;
     char *name;
@@ -558,8 +558,8 @@ struct ps_search_s {
     dict_t *dict;        /**< Pronunciation dictionary. */
     dict2pid_t *d2p;       /**< Dictionary to senone mappings. */
     char *hyp_str;         /**< Current hypothesis string. */
-    ps_lattice_t *dag;	   /**< Current hypothesis word graph. */
-    ps_latlink_t *last_link; /**< Final link in best path. */
+    lattice_t *dag;	   /**< Current hypothesis word graph. */
+    latlink_t *last_link; /**< Final link in best path. */
     int32 post;            /**< Utterance posterior probability. */
     int32 n_words;         /**< Number of words known to search (may
                               be less than in the dictionary) */
@@ -570,37 +570,37 @@ struct ps_search_s {
     int32 finish_wid;      /**< Finish word ID. */
 };
 
-#define ps_search_base(s) ((ps_search_t *)s)
-#define ps_search_config(s) ps_search_base(s)->config
-#define ps_search_acmod(s) ps_search_base(s)->acmod
-#define ps_search_dict(s) ps_search_base(s)->dict
-#define ps_search_dict2pid(s) ps_search_base(s)->d2p
-#define ps_search_dag(s) ps_search_base(s)->dag
-#define ps_search_last_link(s) ps_search_base(s)->last_link
-#define ps_search_post(s) ps_search_base(s)->post
-#define ps_search_n_words(s) ps_search_base(s)->n_words
+#define search_module_base(s) ((search_module_t *)s)
+#define search_module_config(s) search_module_base(s)->config
+#define search_module_acmod(s) search_module_base(s)->acmod
+#define search_module_dict(s) search_module_base(s)->dict
+#define search_module_dict2pid(s) search_module_base(s)->d2p
+#define search_module_dag(s) search_module_base(s)->dag
+#define search_module_last_link(s) search_module_base(s)->last_link
+#define search_module_post(s) search_module_base(s)->post
+#define search_module_n_words(s) search_module_base(s)->n_words
 
-#define ps_search_type(s) ps_search_base(s)->type
-#define ps_search_name(s) ps_search_base(s)->name
-#define ps_search_start(s) (*(ps_search_base(s)->vt->start))(s)
-#define ps_search_step(s,i) (*(ps_search_base(s)->vt->step))(s,i)
-#define ps_search_finish(s) (*(ps_search_base(s)->vt->finish))(s)
-#define ps_search_reinit(s,d,d2p) (*(ps_search_base(s)->vt->reinit))(s,d,d2p)
-#define ps_search_free(s) (*(ps_search_base(s)->vt->free))(s)
-#define ps_search_lattice(s) (*(ps_search_base(s)->vt->lattice))(s)
-#define ps_search_hyp(s,sc) (*(ps_search_base(s)->vt->hyp))(s,sc)
-#define ps_search_prob(s) (*(ps_search_base(s)->vt->prob))(s)
-#define ps_search_seg_iter(s) (*(ps_search_base(s)->vt->seg_iter))(s)
+#define search_module_type(s) search_module_base(s)->type
+#define search_module_name(s) search_module_base(s)->name
+#define search_module_start(s) (*(search_module_base(s)->vt->start))(s)
+#define search_module_step(s,i) (*(search_module_base(s)->vt->step))(s,i)
+#define search_module_finish(s) (*(search_module_base(s)->vt->finish))(s)
+#define search_module_reinit(s,d,d2p) (*(search_module_base(s)->vt->reinit))(s,d,d2p)
+#define search_module_free(s) (*(search_module_base(s)->vt->free))(s)
+#define search_module_lattice(s) (*(search_module_base(s)->vt->lattice))(s)
+#define search_module_hyp(s,sc) (*(search_module_base(s)->vt->hyp))(s,sc)
+#define search_module_prob(s) (*(search_module_base(s)->vt->prob))(s)
+#define search_module_seg_iter(s) (*(search_module_base(s)->vt->seg_iter))(s)
 
 /* For convenience... */
-#define ps_search_silence_wid(s) ps_search_base(s)->silence_wid
-#define ps_search_start_wid(s) ps_search_base(s)->start_wid
-#define ps_search_finish_wid(s) ps_search_base(s)->finish_wid
+#define search_module_silence_wid(s) search_module_base(s)->silence_wid
+#define search_module_start_wid(s) search_module_base(s)->start_wid
+#define search_module_finish_wid(s) search_module_base(s)->finish_wid
 
 /**
  * Initialize base structure.
  */
-void ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
+void search_module_init(search_module_t *search, searchfuncs_t *vt,
 		    const char *type, const char *name,
                     config_t *config, acmod_t *acmod, dict_t *dict,
                     dict2pid_t *d2p);
@@ -609,25 +609,25 @@ void ps_search_init(ps_search_t *search, ps_searchfuncs_t *vt,
 /**
  * Free search
  */
-void ps_search_base_free(ps_search_t *search);
+void search_module_base_free(search_module_t *search);
 
 /**
  * Re-initialize base structure with new dictionary.
  */
-void ps_search_base_reinit(ps_search_t *search, dict_t *dict,
+void search_module_base_reinit(search_module_t *search, dict_t *dict,
                            dict2pid_t *d2p);
 
 typedef struct ps_segfuncs_s {
-    ps_seg_t *(*seg_next)(ps_seg_t *seg);
-    void (*seg_free)(ps_seg_t *seg);
+    seg_iter_t *(*seg_next)(seg_iter_t *seg);
+    void (*seg_free)(seg_iter_t *seg);
 } ps_segfuncs_t;
 
 /**
  * Base structure for hypothesis segmentation iterator.
  */
-struct ps_seg_s {
+struct seg_iter_s {
     ps_segfuncs_t *vt;     /**< V-table of seg methods */
-    ps_search_t *search;   /**< Search object from whence this came */
+    search_module_t *search;   /**< Search object from whence this came */
     char const *word;      /**< Word string (pointer into dictionary hash) */
     frame_idx_t sf;        /**< Start frame. */
     frame_idx_t ef;        /**< End frame. */
@@ -636,13 +636,13 @@ struct ps_seg_s {
     int32 prob;            /**< Log posterior probability. */
 };
 
-#define ps_search_seg_next(seg) (*(seg->vt->seg_next))(seg)
-#define ps_search_seg_free(s) (*(seg->vt->seg_free))(seg)
+#define search_module_seg_next(seg) (*(seg->vt->seg_next))(seg)
+#define search_module_seg_free(s) (*(seg->vt->seg_free))(seg)
 
 /**
  * Decoder object.
  */
-struct ps_decoder_s {
+struct decoder_s {
     /* Model parameters and such. */
     config_t *config;  /**< Configuration. */
     int refcount;      /**< Reference count. */
@@ -654,7 +654,7 @@ struct ps_decoder_s {
     dict_t *dict;      /**< Pronunciation dictionary. */
     dict2pid_t *d2p;   /**< Dictionary to senone mapping. */
     logmath_t *lmath;  /**< Log math computation. */
-    ps_search_t *search;     /**< Main search object. */
+    search_module_t *search;     /**< Main search object. */
 
     /* Utterance-processing related stuff. */
     uint32 uttno;       /**< Utterance counter. */
@@ -671,4 +671,4 @@ struct ps_decoder_s {
 } /* extern "C" */
 #endif
 
-#endif /* __POCKETSPHINX_H__ */
+#endif /* __DECODER_H__ */

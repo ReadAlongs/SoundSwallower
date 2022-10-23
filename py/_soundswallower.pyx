@@ -281,7 +281,7 @@ cdef class Segment:
     cdef public double prob
     cdef public double lscore
 
-    cdef set_seg(self, ps_seg_t *seg, logmath_t *lmath):
+    cdef set_seg(self, seg_iter_t *seg, logmath_t *lmath):
         cdef int ascr, lscr
         cdef int sf, ef
 
@@ -352,7 +352,7 @@ cdef class Decoder:
                     silence these messages)
 
     """
-    cdef ps_decoder_t *ps
+    cdef decoder_t *ps
     cdef public Config config
 
     def __cinit__(self, *args, **kwargs):
@@ -513,7 +513,7 @@ cdef class Decoder:
             Iterable[Segment]: Generator over word segmentations.
 
         """
-        cdef ps_seg_t *itor
+        cdef seg_iter_t *itor
         cdef logmath_t *lmath
         itor = ps_seg_iter(self.ps)
         if itor == NULL:

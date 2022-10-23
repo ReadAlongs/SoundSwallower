@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 	acmod_t *acmod;
 	fe_t *fe;
 	feat_t *fcb;
-	ps_mgau_t *ps;
+	mgau_t *ps;
 	ptm_mgau_t *s;
 	int i, lastcb;
 
