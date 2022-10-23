@@ -129,8 +129,6 @@ typedef struct config_val_s {
 typedef struct config_s {
     int refcount;
     hash_table_t *ht;
-    char **f_argv;
-    uint32 f_argc;
     config_param_t const *defn;
     char *json;
 } config_t;

@@ -336,15 +336,6 @@ config_free(config_t *config)
         config->ht = NULL;
     }
 
-    if (config->f_argv) {
-        int32 i;
-        for (i = 0; i < (int32)config->f_argc; ++i) {
-            ckd_free(config->f_argv[i]);
-        }
-        ckd_free(config->f_argv);
-        config->f_argv = NULL;
-        config->f_argc = 0;
-    }
     if (config->json)
         ckd_free(config->json);
     ckd_free(config);
