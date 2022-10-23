@@ -48,6 +48,7 @@ s2_semi_mgau.h
 s3file.h
 s3types.h
 strfuncs.h
+state_align_search.h
 tied_mgau_common.h
 tmat.h
 vector.h

@@ -67,6 +67,7 @@ ptm_mgau.c
 s2_semi_mgau.c
 s3file.c
 strfuncs.c
+state_align_search.c
 tmat.c
 vector.c
 yin.c
