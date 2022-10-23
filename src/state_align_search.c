@@ -442,7 +442,8 @@ state_align_search_init(const char *name,
         ckd_free(sas);
         return NULL;
     }
-    sas->al = alignment_retain(al);
+    /* NOTE: Consuming semantics. */
+    sas->al = al;
 
     /* Generate HMM vector from phone level of alignment. */
     sas->n_phones = alignment_n_phones(al);

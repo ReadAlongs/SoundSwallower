@@ -179,7 +179,8 @@ fsg_search_init(const char *name,
     fsg_search_t *fsgs = ckd_calloc(1, sizeof(*fsgs));
     search_module_init(search_module_base(fsgs), &fsg_funcs, PS_SEARCH_TYPE_FSG, name, config, acmod, dict, d2p);
 
-    fsgs->fsg = fsg_model_retain(fsg);
+    /* Note: Consuming semantics. */
+    fsgs->fsg = fsg;
     /* Initialize HMM context. */
     fsgs->hmmctx = hmm_context_init(bin_mdef_n_emit_state(acmod->mdef),
                                     acmod->tmat->tp, NULL, acmod->mdef->sseq);
@@ -276,6 +277,7 @@ fsg_search_free(search_module_t *search)
         fsg_history_free(fsgs->history);
     }
     hmm_context_free(fsgs->hmmctx);
+    /* NOTE: Consuming semantics. */
     fsg_model_free(fsgs->fsg);
     ckd_free(fsgs);
 }
