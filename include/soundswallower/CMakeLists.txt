@@ -31,7 +31,6 @@ fsg_search.h
 genrand.h
 glist.h
 hash_table.h
-heap.h
 hmm.h
 jsgf.h
 lattice.h
