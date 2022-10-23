@@ -87,12 +87,6 @@ static const config_param_t ps_args_def[] = {
     CONFIG_EMPTY_OPTION
 };
 
-config_param_t const *
-ps_args(void)
-{
-    return ps_args_def;
-}
-
 /*
  * Find max length of name and default fields in the given defn array.
  * Return #items in defn array.
@@ -219,27 +213,23 @@ arg_log_r(config_t *cmdln, const config_param_t * defn, int32 doc, int32 lineno)
 }
 
 void
-config_log_help(config_t *cmdln, config_param_t const* defn)
+config_log_help(config_t *cmdln)
 {
-    if (defn == NULL)
-        return;
     E_INFO("Arguments list definition:\n");
     if (cmdln == NULL) {
-        cmdln = config_init(defn);
-        arg_log_r(cmdln, defn, TRUE, FALSE);
+        cmdln = config_init(NULL);
+        arg_log_r(cmdln, cmdln->defn, TRUE, FALSE);
         config_free(cmdln);
     }
     else
-        arg_log_r(cmdln, defn, TRUE, FALSE);
+        arg_log_r(cmdln, cmdln->defn, TRUE, FALSE);
 }
 
 void
-config_log_values(config_t *cmdln, config_param_t const* defn)
+config_log_values(config_t *cmdln)
 {
-    if (defn == NULL)
-        return;
     E_INFO("Current configuration:\n");
-    arg_log_r(cmdln, defn, FALSE, FALSE);
+    arg_log_r(cmdln, cmdln->defn, FALSE, FALSE);
 }
 
 config_val_t *
