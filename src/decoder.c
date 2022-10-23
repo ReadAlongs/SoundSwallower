@@ -53,13 +53,14 @@
 #include <soundswallower/config_defs.h>
 #include <soundswallower/decoder.h>
 #include <soundswallower/fsg_search.h>
+#include <soundswallower/search_module.h>
 
 static void
-ps_free_searches(decoder_t *ps)
+decoder_free_searches(decoder_t *d)
 {
-    if (ps->search) {
-        search_module_free(ps->search);
-        ps->search = NULL;
+    if (d->search) {
+        search_module_free(d->search);
+        d->search = NULL;
     }
 }
 
@@ -81,21 +82,21 @@ set_loglevel(config_t *config)
 static void
 log_callback(void *user_data, err_lvl_t lvl, const char *msg)
 {
-    decoder_t *ps = (decoder_t *)user_data;
+    decoder_t *d = (decoder_t *)user_data;
     (void) lvl;
-    assert(ps->logfh != NULL);
-    fwrite(msg, 1, strlen(msg), ps->logfh);
-    fflush(ps->logfh);
+    assert(d->logfh != NULL);
+    fwrite(msg, 1, strlen(msg), d->logfh);
+    fflush(d->logfh);
 }
 #endif
 
 int
-ps_set_logfile(decoder_t *ps, const char *logfn)
+decoder_set_logfile(decoder_t *d, const char *logfn)
 {
 #ifdef __EMSCRIPTEN__
-    (void)ps;
+    (void)d;
     (void)logfn;
-    E_WARN("ps_set_logfile() does nothing in JavaScript");
+    E_WARN("decoder_set_logfile() does nothing in JavaScript");
 #else
     FILE *new_logfh;
     if (logfn == NULL)
@@ -107,450 +108,450 @@ ps_set_logfile(decoder_t *ps, const char *logfn)
             return -1;
         }
     }
-    if (ps->logfh)
-        fclose(ps->logfh);
-    ps->logfh = new_logfh;
+    if (d->logfh)
+        fclose(d->logfh);
+    d->logfh = new_logfh;
     if (new_logfh == NULL)
         err_set_callback(err_stderr_cb, NULL);
     else
-        err_set_callback(log_callback, ps);
+        err_set_callback(log_callback, d);
 #endif
     return 0;
 }
 
 static void
-set_logfile(decoder_t *ps, config_t *config)
+set_logfile(decoder_t *d, config_t *config)
 {
 #ifdef __EMSCRIPTEN__
-    (void)ps;
+    (void)d;
     (void)config;
 #else
     const char *logfn;
     logfn = config_str(config, "logfn");
     if (logfn)
-        ps_set_logfile(ps, logfn);
+        decoder_set_logfile(d, logfn);
 #endif
 }
 
 int
-ps_init_config(decoder_t *ps, config_t *config)
+decoder_init_config(decoder_t *d, config_t *config)
 {
     /* Set up logging. We do this immediately because we want to dump
        the information to the configured log, not to the stderr. */
-    if (config && config != ps->config) {
+    if (config && config != d->config) {
         if (set_loglevel(config) < 0)
             return -1;
-        set_logfile(ps, config);
-        config_free(ps->config);
-        ps->config = config_retain(config);
+        set_logfile(d, config);
+        config_free(d->config);
+        /* Note! Consuming semantics. */
+        d->config = config;
     }
     
     /* Print out the config for logging. */
-    config_log_values(ps->config, ps_args());
+    config_log_values(d->config);
     
     /* Logmath computation (used in acmod and search) */
-    if (ps->lmath == NULL
-        || (logmath_get_base(ps->lmath) !=
-            (float64)config_float(ps->config, "logbase"))) {
-        if (ps->lmath)
-            logmath_free(ps->lmath);
-        ps->lmath = logmath_init
-            ((float64)config_float(ps->config, "logbase"), 0, TRUE);
+    if (d->lmath == NULL
+        || (logmath_get_base(d->lmath) !=
+            (float64)config_float(d->config, "logbase"))) {
+        if (d->lmath)
+            logmath_free(d->lmath);
+        d->lmath = logmath_init
+            ((float64)config_float(d->config, "logbase"), 0, TRUE);
     }
 
     /* Initialize performance timer. */
-    ps->perf.name = "decode";
-    ptmr_init(&ps->perf);
+    d->perf.name = "decode";
+    ptmr_init(&d->perf);
 
     return 0;
 }
 
 int
-ps_init_cleanup(decoder_t *ps)
+decoder_init_cleanup(decoder_t *d)
 {
     /* Free old searches (do this before other reinit) */
-    ps_free_searches(ps);
+    decoder_free_searches(d);
 
     return 0;
 }
 
 fe_t *
-ps_init_fe(decoder_t *ps)
+decoder_init_fe(decoder_t *d)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    fe_free(ps->fe);
-    ps->fe = fe_init(ps->config);
-    return ps->fe;
+    fe_free(d->fe);
+    d->fe = fe_init(d->config);
+    return d->fe;
 }
 
 feat_t *
-ps_init_feat(decoder_t *ps)
+decoder_init_feat(decoder_t *d)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    feat_free(ps->fcb);
-    ps->fcb = feat_init(ps->config);
-    return ps->fcb;
+    feat_free(d->fcb);
+    d->fcb = feat_init(d->config);
+    return d->fcb;
 }
 
 feat_t *
-ps_init_feat_s3file(decoder_t *ps, s3file_t *lda)
+decoder_init_feat_s3file(decoder_t *d, s3file_t *lda)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    feat_free(ps->fcb);
-    ps->fcb = feat_init_s3file(ps->config, lda);
-    return ps->fcb;
+    feat_free(d->fcb);
+    d->fcb = feat_init_s3file(d->config, lda);
+    return d->fcb;
 }
 
 acmod_t *
-ps_init_acmod_pre(decoder_t *ps)
+decoder_init_acmod_pre(decoder_t *d)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    if (ps->lmath == NULL)
+    if (d->lmath == NULL)
         return NULL;
-    if (ps->fe == NULL)
+    if (d->fe == NULL)
         return NULL;
-    if (ps->fcb == NULL)
+    if (d->fcb == NULL)
         return NULL;
-    acmod_free(ps->acmod);
-    ps->acmod = acmod_create(ps->config, ps->lmath, ps->fe, ps->fcb);
-    return ps->acmod;
+    acmod_free(d->acmod);
+    d->acmod = acmod_create(d->config, d->lmath, d->fe, d->fcb);
+    return d->acmod;
 }
 
 int
-ps_init_acmod_post(decoder_t *ps)
+decoder_init_acmod_post(decoder_t *d)
 {
-    if (ps->acmod == NULL)
+    if (d->acmod == NULL)
         return -1;
-    if (acmod_init_senscr(ps->acmod) < 0)
+    if (acmod_init_senscr(d->acmod) < 0)
         return -1;
     return 0;
 }
 
 acmod_t *
-ps_init_acmod(decoder_t *ps)
+decoder_init_acmod(decoder_t *d)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    if (ps->lmath == NULL)
+    if (d->lmath == NULL)
         return NULL;
-    if (ps->fe == NULL)
+    if (d->fe == NULL)
         return NULL;
-    if (ps->fcb == NULL)
+    if (d->fcb == NULL)
         return NULL;
-    acmod_free(ps->acmod);
-    ps->acmod = acmod_init(ps->config, ps->lmath, ps->fe, ps->fcb);
-    return ps->acmod;
+    acmod_free(d->acmod);
+    d->acmod = acmod_init(d->config, d->lmath, d->fe, d->fcb);
+    return d->acmod;
 }
 
 dict_t *
-ps_init_dict(decoder_t *ps)
+decoder_init_dict(decoder_t *d)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    if (ps->acmod == NULL)
+    if (d->acmod == NULL)
         return NULL;
     /* Free old dictionary */
-    dict_free(ps->dict);
+    dict_free(d->dict);
     /* Free d2p */
-    dict2pid_free(ps->d2p);
+    dict2pid_free(d->d2p);
     /* Dictionary and triphone mappings (depends on acmod). */
     /* FIXME: pass config, change arguments, implement LTS, etc. */
-    if ((ps->dict = dict_init(ps->config, ps->acmod->mdef)) == NULL)
+    if ((d->dict = dict_init(d->config, d->acmod->mdef)) == NULL)
         return NULL;
-    if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
+    if ((d->d2p = dict2pid_build(d->acmod->mdef, d->dict)) == NULL)
         return NULL;
-    return ps->dict;
+    return d->dict;
 }
 
 dict_t *
-ps_init_dict_s3file(decoder_t *ps, s3file_t *dict, s3file_t *fdict)
+decoder_init_dict_s3file(decoder_t *d, s3file_t *dict, s3file_t *fdict)
 {
-    if (ps->config == NULL)
+    if (d->config == NULL)
         return NULL;
-    if (ps->acmod == NULL)
+    if (d->acmod == NULL)
         return NULL;
     /* Free old dictionary */
-    dict_free(ps->dict);
+    dict_free(d->dict);
     /* Free d2p */
-    dict2pid_free(ps->d2p);
+    dict2pid_free(d->d2p);
     /* Dictionary and triphone mappings (depends on acmod). */
     /* FIXME: pass config, change arguments, implement LTS, etc. */
-    if ((ps->dict = dict_init_s3file(ps->config, ps->acmod->mdef, dict, fdict)) == NULL)
+    if ((d->dict = dict_init_s3file(d->config, d->acmod->mdef, dict, fdict)) == NULL)
         return NULL;
-    if ((ps->d2p = dict2pid_build(ps->acmod->mdef, ps->dict)) == NULL)
+    if ((d->d2p = dict2pid_build(d->acmod->mdef, d->dict)) == NULL)
         return NULL;
-    return ps->dict;
+    return d->dict;
 }
 
 int
-ps_init_grammar(decoder_t *ps)
+decoder_init_grammar(decoder_t *d)
 {
     const char *path;
     float32 lw;
 
-    lw = config_float(ps->config, "lw");
+    lw = config_float(d->config, "lw");
 
-    if ((path = config_str(ps->config, "jsgf"))) {
-        if (ps_set_jsgf_file(ps, PS_DEFAULT_SEARCH, path) != 0)
+    if ((path = config_str(d->config, "jsgf"))) {
+        if (decoder_set_jsgf_file(d, path) != 0)
             return -1;
     }
-    else if ((path = config_str(ps->config, "fsg"))) {
-        fsg_model_t *fsg = fsg_model_readfile(path, ps->lmath, lw);
+    else if ((path = config_str(d->config, "fsg"))) {
+        fsg_model_t *fsg = fsg_model_readfile(path, d->lmath, lw);
         if (!fsg)
             return -1;
-        if (ps_set_fsg(ps, PS_DEFAULT_SEARCH, fsg) != 0) {
+        if (decoder_set_fsg(d, fsg) != 0) {
             fsg_model_free(fsg);
             return -1;
         }
-        fsg_model_free(fsg);
     }
     return  0;
 }
 
 int
-ps_init_grammar_s3file(decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
+decoder_init_grammar_s3file(decoder_t *d, s3file_t *fsg_file, s3file_t *jsgf_file)
 {
     float32 lw;
 
-    lw = config_float(ps->config, "lw");
+    lw = config_float(d->config, "lw");
 
     /* JSGF takes precedence */
     if (jsgf_file) {
         /* FIXME: This depends on jsgf->buf having 0 at the end, which
            it will when created by JavaScript, but that is not
            guaranteed when memory-mapped. */
-        if (ps_set_jsgf_string(ps, PS_DEFAULT_SEARCH, jsgf_file->ptr) != 0)
+        if (decoder_set_jsgf_string(d, jsgf_file->ptr) != 0)
             return -1;
     }
     if (fsg_file) {
-        fsg_model_t *fsg = fsg_model_read_s3file(fsg_file, ps->lmath, lw);
+        fsg_model_t *fsg = fsg_model_read_s3file(fsg_file, d->lmath, lw);
         if (!fsg)
             return -1;
-        if (ps_set_fsg(ps, PS_DEFAULT_SEARCH, fsg) != 0) {
+        if (decoder_set_fsg(d, fsg) != 0) {
             fsg_model_free(fsg);
             return -1;
         }
-        fsg_model_free(fsg);
     }
     
     return  0;
 }
 
 fe_t *
-ps_reinit_fe(decoder_t *ps, config_t *config)
+decoder_reinit_fe(decoder_t *d, config_t *config)
 {
     fe_t *new_fe;
     
-    if (config && config != ps->config) {
-        config_free(ps->config);
-        ps->config = config_retain(config);
+    if (config && config != d->config) {
+        config_free(d->config);
+        /* NOTE! Consuming semantics */
+        d->config = config;
     }
-    if ((new_fe = fe_init(ps->config)) == NULL)
+    if ((new_fe = fe_init(d->config)) == NULL)
         return NULL;
-    if (acmod_fe_mismatch(ps->acmod, new_fe)) {
+    if (acmod_fe_mismatch(d->acmod, new_fe)) {
         fe_free(new_fe);
         return NULL;
     }
-    fe_free(ps->fe);
-    ps->fe = new_fe;
+    fe_free(d->fe);
+    d->fe = new_fe;
     /* FIXME: should be in an acmod_set_fe function */
-    fe_free(ps->acmod->fe);
-    ps->acmod->fe = fe_retain(ps->fe);
+    fe_free(d->acmod->fe);
+    d->acmod->fe = fe_retain(d->fe);
 
-    return ps->fe;
+    return d->fe;
 }
 
 int
-ps_reinit(decoder_t *ps, config_t *config)
+decoder_reinit(decoder_t *d, config_t *config)
 {
-    if (ps_init_config(ps, config) < 0)
+    if (decoder_init_config(d, config) < 0)
         return -1;
-    if (ps_init_cleanup(ps) < 0)
+    if (decoder_init_cleanup(d) < 0)
         return -1;
-    if (ps_init_fe(ps) == NULL)
+    if (decoder_init_fe(d) == NULL)
         return -1;
-    if (ps_init_feat(ps) == NULL)
+    if (decoder_init_feat(d) == NULL)
         return -1;
-    if (ps_init_acmod(ps) == NULL)
+    if (decoder_init_acmod(d) == NULL)
         return -1;
-    if (ps_init_dict(ps) == NULL)
+    if (decoder_init_dict(d) == NULL)
         return -1;
-    if (ps_init_grammar(ps) < 0)
+    if (decoder_init_grammar(d) < 0)
         return -1;
     
     return 0;
 }
 
 decoder_t *
-ps_init(config_t *config)
+decoder_init(config_t *config)
 {
-    decoder_t *ps;
+    decoder_t *d;
     
-    ps = ckd_calloc(1, sizeof(*ps));
-    ps->refcount = 1;
+    d = ckd_calloc(1, sizeof(*d));
+    d->refcount = 1;
     if (config) {
 #ifdef __EMSCRIPTEN__
-        E_WARN("ps_init(config) does nothing in JavaScript\n");
+        E_WARN("decoder_init(config) does nothing in JavaScript\n");
 #else
-        if (ps_reinit(ps, config) < 0) {
-            ps_free(ps);
+        if (decoder_reinit(d, config) < 0) {
+            decoder_free(d);
             return NULL;
         }
 #endif
     }
-    return ps;
+    return d;
 }
 
 decoder_t *
-ps_retain(decoder_t *ps)
+decoder_retain(decoder_t *d)
 {
-    ++ps->refcount;
-    return ps;
+    if (d == NULL)
+        return NULL;
+    ++d->refcount;
+    return d;
 }
 
 int
-ps_free(decoder_t *ps)
+decoder_free(decoder_t *d)
 {
-    if (ps == NULL)
+    if (d == NULL)
         return 0;
-    if (--ps->refcount > 0)
-        return ps->refcount;
-    ps_free_searches(ps);
-    dict_free(ps->dict);
-    dict2pid_free(ps->d2p);
-    feat_free(ps->fcb);
-    fe_free(ps->fe);
-    acmod_free(ps->acmod);
-    logmath_free(ps->lmath);
-    config_free(ps->config);
+    if (--d->refcount > 0)
+        return d->refcount;
+    decoder_free_searches(d);
+    dict_free(d->dict);
+    dict2pid_free(d->d2p);
+    feat_free(d->fcb);
+    fe_free(d->fe);
+    acmod_free(d->acmod);
+    logmath_free(d->lmath);
+    config_free(d->config);
 #ifndef __EMSCRIPTEN__
-    if (ps->logfh) {
-        fclose(ps->logfh);
+    if (d->logfh) {
+        fclose(d->logfh);
         err_set_callback(err_stderr_cb, NULL);
     }
 #endif
-    ckd_free(ps);
+    ckd_free(d);
     return 0;
 }
 
 config_t *
-ps_get_config(decoder_t *ps)
+decoder_config(decoder_t *d)
 {
-    return ps->config;
+    return d->config;
 }
 
 logmath_t *
-ps_get_logmath(decoder_t *ps)
+decoder_logmath(decoder_t *d)
 {
-    return ps->lmath;
+    return d->lmath;
 }
 
 mllr_t *
-ps_update_mllr(decoder_t *ps, mllr_t *mllr)
+decoder_apply_mllr(decoder_t *d, mllr_t *mllr)
 {
-    return acmod_update_mllr(ps->acmod, mllr);
+    return acmod_update_mllr(d->acmod, mllr);
 }
 
 int
-ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg)
+decoder_set_fsg(decoder_t *d, fsg_model_t *fsg)
 {
     search_module_t *search;
-    search = fsg_search_init(name, fsg, ps->config, ps->acmod, ps->dict, ps->d2p);
+    search = fsg_search_init(fsg->name, fsg, d->config, d->acmod, d->dict, d->d2p);
     if (search == NULL)
         return -1;
-    if (ps->search)
-        search_module_free(ps->search);
-    ps->search = search;
+    if (d->search)
+        search_module_free(d->search);
+    d->search = search;
     return 0;
 }
 
 int 
-ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path)
+decoder_set_jsgf_file(decoder_t *d, const char *path)
 {
-  fsg_model_t *fsg;
-  jsgf_rule_t *rule;
-  char const *toprule;
-  jsgf_t *jsgf = jsgf_parse_file(path, NULL);
-  float lw;
-  int result;
+    fsg_model_t *fsg;
+    jsgf_rule_t *rule;
+    char const *toprule;
+    jsgf_t *jsgf = jsgf_parse_file(path, NULL);
+    float lw;
+    int result;
 
-  if (!jsgf)
-      return -1;
+    if (!jsgf)
+        return -1;
 
-  rule = NULL;
-  /* Take the -toprule if specified. */
-  if ((toprule = config_str(ps->config, "toprule"))) {
-      rule = jsgf_get_rule(jsgf, toprule);
-      if (rule == NULL) {
-          E_ERROR("Start rule %s not found\n", toprule);
-          jsgf_grammar_free(jsgf);
-          return -1;
-      }
-  } else {
-      rule = jsgf_get_public_rule(jsgf);
-      if (rule == NULL) {
-          E_ERROR("No public rules found in %s\n", path);
-          jsgf_grammar_free(jsgf);
-          return -1;
-      }
-  }
+    rule = NULL;
+    /* Take the -toprule if specified. */
+    if ((toprule = config_str(d->config, "toprule"))) {
+        rule = jsgf_get_rule(jsgf, toprule);
+        if (rule == NULL) {
+            E_ERROR("Start rule %s not found\n", toprule);
+            jsgf_grammar_free(jsgf);
+            return -1;
+        }
+    } else {
+        rule = jsgf_get_public_rule(jsgf);
+        if (rule == NULL) {
+            E_ERROR("No public rules found in %s\n", path);
+            jsgf_grammar_free(jsgf);
+            return -1;
+        }
+    }
 
-  lw = config_float(ps->config, "lw");
-  fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
-  result = ps_set_fsg(ps, name, fsg);
-  fsg_model_free(fsg);
-  jsgf_grammar_free(jsgf);
-  return result;
+    lw = config_float(d->config, "lw");
+    fsg = jsgf_build_fsg(jsgf, rule, d->lmath, lw);
+    result = decoder_set_fsg(d, fsg);
+    jsgf_grammar_free(jsgf);
+    return result;
 }
 
 int 
-ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)
+decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 {
-  fsg_model_t *fsg;
-  jsgf_rule_t *rule;
-  char const *toprule;
-  jsgf_t *jsgf = jsgf_parse_string(jsgf_string, NULL);
-  float lw;
-  int result;
+    fsg_model_t *fsg;
+    jsgf_rule_t *rule;
+    char const *toprule;
+    jsgf_t *jsgf = jsgf_parse_string(jsgf_string, NULL);
+    float lw;
+    int result;
 
-  if (!jsgf)
-      return -1;
+    if (!jsgf)
+        return -1;
 
-  rule = NULL;
-  /* Take the -toprule if specified. */
-  if ((toprule = config_str(ps->config, "toprule"))) {
-      rule = jsgf_get_rule(jsgf, toprule);
-      if (rule == NULL) {
-          E_ERROR("Start rule %s not found\n", toprule);
-          jsgf_grammar_free(jsgf);
-          return -1;
-      }
-  } else {
-      rule = jsgf_get_public_rule(jsgf);
-      if (rule == NULL) {
-          E_ERROR("No public rules found in input string\n");
-          jsgf_grammar_free(jsgf);
-          return -1;
-      }
-  }
+    rule = NULL;
+    /* Take the -toprule if specified. */
+    if ((toprule = config_str(d->config, "toprule"))) {
+        rule = jsgf_get_rule(jsgf, toprule);
+        if (rule == NULL) {
+            E_ERROR("Start rule %s not found\n", toprule);
+            jsgf_grammar_free(jsgf);
+            return -1;
+        }
+    } else {
+        rule = jsgf_get_public_rule(jsgf);
+        if (rule == NULL) {
+            E_ERROR("No public rules found in input string\n");
+            jsgf_grammar_free(jsgf);
+            return -1;
+        }
+    }
 
-  lw = config_float(ps->config, "lw");
-  fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, lw);
-  result = ps_set_fsg(ps, name, fsg);
-  fsg_model_free(fsg);
-  jsgf_grammar_free(jsgf);
-  return result;
+    lw = config_float(d->config, "lw");
+    fsg = jsgf_build_fsg(jsgf, rule, d->lmath, lw);
+    result = decoder_set_fsg(d, fsg);
+    jsgf_grammar_free(jsgf);
+    return result;
 }
 
 int
-ps_add_word(decoder_t *ps,
-            char const *word,
-            char const *phones,
-            int update)
+decoder_add_word(decoder_t *d,
+                 char const *word,
+                 char const *phones,
+                 int update)
 {
     int32 wid;
     s3cipid_t *pron;
@@ -577,7 +578,7 @@ ps_add_word(decoder_t *ps,
             ++ptr;
         final = (*ptr == '\0');
         *ptr = '\0';
-        pron[np] = bin_mdef_ciphone_id(ps->acmod->mdef, phone);
+        pron[np] = bin_mdef_ciphone_id(d->acmod->mdef, phone);
         if (pron[np] == -1) {
             E_ERROR("Unknown phone %s in phone string %s\n",
                     phone, phones);
@@ -593,20 +594,20 @@ ps_add_word(decoder_t *ps,
     ckd_free(phonestr);
 
     /* Add it to the dictionary. */
-    if ((wid = dict_add_word(ps->dict, word, pron, np)) == -1) {
+    if ((wid = dict_add_word(d->dict, word, pron, np)) == -1) {
         ckd_free(pron);
         return -1;
     }
     ckd_free(pron);
 
     /* Now we also have to add it to dict2pid. */
-    dict2pid_add_word(ps->d2p, wid);
+    dict2pid_add_word(d->d2p, wid);
 
     /* Reconfigure the search object, if any. */
-    if (ps->search && update) {
-        /* Note, this is not an error if there is no ps->search, we
+    if (d->search && update) {
+        /* Note, this is not an error if there is no d->search, we
          * will have updated the dictionary anyway. */
-        search_module_reinit(ps->search, ps->dict, ps->d2p);
+        search_module_reinit(d->search, d->dict, d->d2p);
     }
 
     /* Rebuild the widmap and search tree if requested. */
@@ -614,12 +615,12 @@ ps_add_word(decoder_t *ps,
 }
 
 char *
-ps_lookup_word(decoder_t *ps, const char *word)
+decoder_lookup_word(decoder_t *d, const char *word)
 {
     s3wid_t wid;
     int phlen, j;
     char *phones;
-    dict_t *dict = ps->dict;
+    dict_t *dict = d->dict;
     
     wid = dict_wordid(dict, word);
     if (wid == BAD_S3WID)
@@ -637,94 +638,94 @@ ps_lookup_word(decoder_t *ps, const char *word)
 }
 
 int
-ps_start_utt(decoder_t *ps)
+decoder_start_utt(decoder_t *d)
 {
     int rv;
     char uttid[16];
     
-    if (ps->acmod->state == ACMOD_STARTED || ps->acmod->state == ACMOD_PROCESSING) {
+    if (d->acmod->state == ACMOD_STARTED || d->acmod->state == ACMOD_PROCESSING) {
 	E_ERROR("Utterance already started\n");
 	return -1;
     }
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return -1;
     }
 
-    ptmr_reset(&ps->perf);
-    ptmr_start(&ps->perf);
+    ptmr_reset(&d->perf);
+    ptmr_start(&d->perf);
 
-    sprintf(uttid, "%09u", ps->uttno);
-    ++ps->uttno;
+    sprintf(uttid, "%09u", d->uttno);
+    ++d->uttno;
 
     /* Remove any residual word lattice and hypothesis. */
-    lattice_free(ps->search->dag);
-    ps->search->dag = NULL;
-    ps->search->last_link = NULL;
-    ps->search->post = 0;
-    ckd_free(ps->search->hyp_str);
-    ps->search->hyp_str = NULL;
+    lattice_free(d->search->dag);
+    d->search->dag = NULL;
+    d->search->last_link = NULL;
+    d->search->post = 0;
+    ckd_free(d->search->hyp_str);
+    d->search->hyp_str = NULL;
 
-    if ((rv = acmod_start_utt(ps->acmod)) < 0)
+    if ((rv = acmod_start_utt(d->acmod)) < 0)
         return rv;
 
-    return search_module_start(ps->search);
+    return search_module_start(d->search);
 }
 
 static int
-search_module_forward(decoder_t *ps)
+search_module_forward(decoder_t *d)
 {
     int nfr;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return -1;
     }
     nfr = 0;
-    while (ps->acmod->n_feat_frame > 0) {
+    while (d->acmod->n_feat_frame > 0) {
         int k;
-        if ((k = search_module_step(ps->search,
-                                ps->acmod->output_frame)) < 0)
+        if ((k = search_module_step(d->search,
+                                    d->acmod->output_frame)) < 0)
             return k;
-        acmod_advance(ps->acmod);
-        ++ps->n_frame;
+        acmod_advance(d->acmod);
+        ++d->n_frame;
         ++nfr;
     }
     return nfr;
 }
 
 int
-ps_process_float32(decoder_t *ps,
-                   float32 const *data,
-                   size_t n_samples,
-                   int no_search,
-                   int full_utt)
+decoder_process_float32(decoder_t *d,
+                        float32 const *data,
+                        size_t n_samples,
+                        int no_search,
+                        int full_utt)
 {
     int n_searchfr = 0;
 
-    if (ps->acmod->state == ACMOD_IDLE) {
+    if (d->acmod->state == ACMOD_IDLE) {
 	E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
 	return 0;
     }
 
     if (no_search)
-        acmod_set_grow(ps->acmod, TRUE);
+        acmod_set_grow(d->acmod, TRUE);
 
     while (n_samples) {
         int nfr;
 
         /* Process some data into features. */
-        if ((nfr = acmod_process_float32(ps->acmod, &data,
+        if ((nfr = acmod_process_float32(d->acmod, &data,
                                          &n_samples, full_utt)) < 0)
             return nfr;
 
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = search_module_forward(ps)) < 0)
+        if ((nfr = search_module_forward(d)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -733,34 +734,34 @@ ps_process_float32(decoder_t *ps,
 }
 
 int
-ps_process_raw(decoder_t *ps,
-               int16 const *data,
-               size_t n_samples,
-               int no_search,
-               int full_utt)
+decoder_process_raw(decoder_t *d,
+                    int16 const *data,
+                    size_t n_samples,
+                    int no_search,
+                    int full_utt)
 {
     int n_searchfr = 0;
 
-    if (ps->acmod->state == ACMOD_IDLE) {
+    if (d->acmod->state == ACMOD_IDLE) {
 	E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
 	return 0;
     }
 
     if (no_search)
-        acmod_set_grow(ps->acmod, TRUE);
+        acmod_set_grow(d->acmod, TRUE);
 
     while (n_samples) {
         int nfr;
 
         /* Process some data into features. */
-        if ((nfr = acmod_process_raw(ps->acmod, &data,
+        if ((nfr = acmod_process_raw(d->acmod, &data,
                                      &n_samples, full_utt)) < 0)
             return nfr;
 
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = search_module_forward(ps)) < 0)
+        if ((nfr = search_module_forward(d)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -769,29 +770,29 @@ ps_process_raw(decoder_t *ps,
 }
 
 int
-ps_process_cep(decoder_t *ps,
-               mfcc_t **data,
-               int32 n_frames,
-               int no_search,
-               int full_utt)
+decoder_process_cep(decoder_t *d,
+                    mfcc_t **data,
+                    int32 n_frames,
+                    int no_search,
+                    int full_utt)
 {
     int n_searchfr = 0;
 
     if (no_search)
-        acmod_set_grow(ps->acmod, TRUE);
+        acmod_set_grow(d->acmod, TRUE);
 
     while (n_frames) {
         int nfr;
 
         /* Process some data into features. */
-        if ((nfr = acmod_process_cep(ps->acmod, &data,
+        if ((nfr = acmod_process_cep(d->acmod, &data,
                                      &n_frames, full_utt)) < 0)
             return nfr;
 
         /* Score and search as much data as possible */
         if (no_search)
             continue;
-        if ((nfr = search_module_forward(ps)) < 0)
+        if ((nfr = search_module_forward(d)) < 0)
             return nfr;
         n_searchfr += nfr;
     }
@@ -800,56 +801,56 @@ ps_process_cep(decoder_t *ps,
 }
 
 int
-ps_end_utt(decoder_t *ps)
+decoder_end_utt(decoder_t *d)
 {
     int rv = 0;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return -1;
     }
-    if (ps->acmod->state == ACMOD_ENDED || ps->acmod->state == ACMOD_IDLE) {
+    if (d->acmod->state == ACMOD_ENDED || d->acmod->state == ACMOD_IDLE) {
 	E_ERROR("Utterance is not started\n");
 	return -1;
     }
-    acmod_end_utt(ps->acmod);
+    acmod_end_utt(d->acmod);
 
     /* Search any remaining frames. */
-    if ((rv = search_module_forward(ps)) < 0) {
-        ptmr_stop(&ps->perf);
+    if ((rv = search_module_forward(d)) < 0) {
+        ptmr_stop(&d->perf);
         return rv;
     } 
     /* Finish main search. */
-    if ((rv = search_module_finish(ps->search)) < 0) {
-        ptmr_stop(&ps->perf);
+    if ((rv = search_module_finish(d->search)) < 0) {
+        ptmr_stop(&d->perf);
         return rv;
     }
-    ptmr_stop(&ps->perf);
+    ptmr_stop(&d->perf);
     /* Log a backtrace if requested. */
-    if (config_bool(ps->config, "backtrace")) {
+    if (config_bool(d->config, "backtrace")) {
         const char* hyp;
         seg_iter_t *seg;
         int32 score;
 
-        hyp = ps_get_hyp(ps, &score);
+        hyp = decoder_hyp(d, &score);
         
         if (hyp != NULL) {
     	    E_INFO("%s (%d)\n", hyp, score);
     	    E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s\n",
-                    "word", "start", "end", "pprob", "ascr", "lscr");
-    	    for (seg = ps_seg_iter(ps); seg;
-        	 seg = ps_seg_next(seg)) {
+                        "word", "start", "end", "pprob", "ascr", "lscr");
+    	    for (seg = decoder_seg_iter(d); seg;
+        	 seg = seg_iter_next(seg)) {
     	        char const *word;
         	int sf, ef;
         	int32 post, lscr, ascr;
 
-        	word = ps_seg_word(seg);
-        	ps_seg_frames(seg, &sf, &ef);
-        	post = ps_seg_prob(seg, &ascr, &lscr);
+        	word = seg_iter_word(seg);
+        	seg_iter_frames(seg, &sf, &ef);
+        	post = seg_iter_prob(seg, &ascr, &lscr);
         	E_INFO_NOFN("%-20s %-5d %-5d %-1.3f %-10d %-10d\n",
-                    	    word, sf, ef, logmath_exp(ps_get_logmath(ps), post),
-                    	ascr, lscr);
+                    	    word, sf, ef, logmath_exp(decoder_logmath(d), post),
+                            ascr, lscr);
     	    }
         }
     }
@@ -857,74 +858,74 @@ ps_end_utt(decoder_t *ps)
 }
 
 char const *
-ps_get_hyp(decoder_t *ps, int32 *out_best_score)
+decoder_hyp(decoder_t *d, int32 *out_best_score)
 {
     char const *hyp;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return NULL;
     }
-    ptmr_start(&ps->perf);
-    hyp = search_module_hyp(ps->search, out_best_score);
-    ptmr_stop(&ps->perf);
+    ptmr_start(&d->perf);
+    hyp = search_module_hyp(d->search, out_best_score);
+    ptmr_stop(&d->perf);
     return hyp;
 }
 
 int32
-ps_get_prob(decoder_t *ps)
+decoder_prob(decoder_t *d)
 {
     int32 prob;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return -1;
     }
-    ptmr_start(&ps->perf);
-    prob = search_module_prob(ps->search);
-    ptmr_stop(&ps->perf);
+    ptmr_start(&d->perf);
+    prob = search_module_prob(d->search);
+    ptmr_stop(&d->perf);
     return prob;
 }
 
 seg_iter_t *
-ps_seg_iter(decoder_t *ps)
+decoder_seg_iter(decoder_t *d)
 {
     seg_iter_t *itor;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return NULL;
     }
-    ptmr_start(&ps->perf);
-    itor = search_module_seg_iter(ps->search);
-    ptmr_stop(&ps->perf);
+    ptmr_start(&d->perf);
+    itor = search_module_seg_iter(d->search);
+    ptmr_stop(&d->perf);
     return itor;
 }
 
 seg_iter_t *
-ps_seg_next(seg_iter_t *seg)
+seg_iter_next(seg_iter_t *seg)
 {
     return search_module_seg_next(seg);
 }
 
 char const *
-ps_seg_word(seg_iter_t *seg)
+seg_iter_word(seg_iter_t *seg)
 {
     return seg->word;
 }
 
 void
-ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
+seg_iter_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
 {
     if (out_sf) *out_sf = seg->sf;
     if (out_ef) *out_ef = seg->ef;
 }
 
 int32
-ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
+seg_iter_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
 {
     if (out_ascr) *out_ascr = seg->ascr;
     if (out_lscr) *out_lscr = seg->lscr;
@@ -932,63 +933,63 @@ ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
 }
 
 void
-ps_seg_free(seg_iter_t *seg)
+seg_iter_free(seg_iter_t *seg)
 {
     search_module_seg_free(seg);
 }
 
 lattice_t *
-ps_get_lattice(decoder_t *ps)
+decoder_lattice(decoder_t *d)
 {
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return NULL;
     }
-    return search_module_lattice(ps->search);
+    return search_module_lattice(d->search);
 }
 
 hyp_iter_t *
-ps_nbest(decoder_t *ps)
+decoder_nbest(decoder_t *d)
 {
     lattice_t *dag;
     astar_search_t *nbest;
 
-    if (ps->search == NULL) {
+    if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
                 "specify a language model or grammar?\n");
         return NULL;
     }
-    if ((dag = ps_get_lattice(ps)) == NULL)
+    if ((dag = decoder_lattice(d)) == NULL)
         return NULL;
 
     nbest = astar_search_start(dag, 0, -1, -1, -1);
-    nbest = ps_nbest_next(nbest);
+    nbest = hyp_iter_next(nbest);
 
     return (hyp_iter_t *)nbest;
 }
 
 void
-ps_nbest_free(hyp_iter_t *nbest)
+hyp_iter_free(hyp_iter_t *nbest)
 {
     astar_finish(nbest);
 }
 
 hyp_iter_t *
-ps_nbest_next(hyp_iter_t *nbest)
+hyp_iter_next(hyp_iter_t *nbest)
 {
     latpath_t *next;
 
     next = astar_next(nbest);
     if (next == NULL) {
-        ps_nbest_free(nbest);
+        hyp_iter_free(nbest);
         return NULL;
     }
     return nbest;
 }
 
 char const *
-ps_nbest_hyp(hyp_iter_t *nbest, int32 *out_score)
+hyp_iter_hyp(hyp_iter_t *nbest, int32 *out_score)
 {
     assert(nbest != NULL);
 
@@ -999,7 +1000,7 @@ ps_nbest_hyp(hyp_iter_t *nbest, int32 *out_score)
 }
 
 seg_iter_t *
-ps_nbest_seg(hyp_iter_t *nbest)
+hyp_iter_seg(hyp_iter_t *nbest)
 {
     if (nbest->top == NULL)
         return NULL;
@@ -1008,54 +1009,57 @@ ps_nbest_seg(hyp_iter_t *nbest)
 }
 
 int
-ps_get_n_frames(decoder_t *ps)
+decoder_n_frames(decoder_t *d)
 {
-    return ps->acmod->output_frame + 1;
+    return d->acmod->output_frame + 1;
 }
 
 void
-ps_get_utt_time(decoder_t *ps, double *out_nspeech,
-                double *out_ncpu, double *out_nwall)
+decoder_utt_time(decoder_t *d, double *out_nspeech,
+                 double *out_ncpu, double *out_nwall)
 {
     int32 frate;
 
-    frate = config_int(ps->config, "frate");
-    *out_nspeech = (double)ps->acmod->output_frame / frate;
-    *out_ncpu = ps->perf.t_cpu;
-    *out_nwall = ps->perf.t_elapsed;
+    frate = config_int(d->config, "frate");
+    *out_nspeech = (double)d->acmod->output_frame / frate;
+    *out_ncpu = d->perf.t_cpu;
+    *out_nwall = d->perf.t_elapsed;
 }
 
 void
-ps_get_all_time(decoder_t *ps, double *out_nspeech,
-                double *out_ncpu, double *out_nwall)
+decoder_all_time(decoder_t *d, double *out_nspeech,
+                 double *out_ncpu, double *out_nwall)
 {
     int32 frate;
 
-    frate = config_int(ps->config, "frate");
-    *out_nspeech = (double)ps->n_frame / frate;
-    *out_ncpu = ps->perf.t_tot_cpu;
-    *out_nwall = ps->perf.t_tot_elapsed;
+    frate = config_int(d->config, "frate");
+    *out_nspeech = (double)d->n_frame / frate;
+    *out_ncpu = d->perf.t_tot_cpu;
+    *out_nwall = d->perf.t_tot_elapsed;
 }
 
 void
 search_module_init(search_module_t *search, searchfuncs_t *vt,
-	       const char *type,
-	       const char *name,
-               config_t *config, acmod_t *acmod, dict_t *dict,
-               dict2pid_t *d2p)
+                   const char *type,
+                   const char *name,
+                   config_t *config, acmod_t *acmod, dict_t *dict,
+                   dict2pid_t *d2p)
 {
     search->vt = vt;
     search->name = ckd_salloc(name);
     search->type = ckd_salloc(type);
 
+    /* Search modules are (hopefully) invisible to the user and won't
+     * live longer than the decoder, so no need to retain anything
+     * here. */
     search->config = config;
     search->acmod = acmod;
     if (d2p)
-        search->d2p = dict2pid_retain(d2p);
+        search->d2p = d2p;
     else
         search->d2p = NULL;
     if (dict) {
-        search->dict = dict_retain(dict);
+        search->dict = dict;
         search->start_wid = dict_startwid(dict);
         search->finish_wid = dict_finishwid(dict);
         search->silence_wid = dict_silwid(dict);
@@ -1071,25 +1075,18 @@ search_module_init(search_module_t *search, searchfuncs_t *vt,
 void
 search_module_base_free(search_module_t *search)
 {
-    /* FIXME: We will have refcounting on acmod, config, etc, at which
-     * point we will free them here too. */
     ckd_free(search->name);
     ckd_free(search->type);
-    dict_free(search->dict);
-    dict2pid_free(search->d2p);
     ckd_free(search->hyp_str);
     lattice_free(search->dag);
 }
 
 void
 search_module_base_reinit(search_module_t *search, dict_t *dict,
-                      dict2pid_t *d2p)
+                          dict2pid_t *d2p)
 {
-    dict_free(search->dict);
-    dict2pid_free(search->d2p);
-    /* FIXME: _retain() should just return NULL if passed NULL. */
     if (dict) {
-        search->dict = dict_retain(dict);
+        search->dict = dict;
         search->start_wid = dict_startwid(dict);
         search->finish_wid = dict_finishwid(dict);
         search->silence_wid = dict_silwid(dict);
@@ -1101,7 +1098,7 @@ search_module_base_reinit(search_module_t *search, dict_t *dict,
         search->n_words = 0;
     }
     if (d2p)
-        search->d2p = dict2pid_retain(d2p);
+        search->d2p = d2p;
     else
         search->d2p = NULL;
 }
@@ -1114,14 +1111,14 @@ format_hyp(char *outptr, int len, decoder_t *decoder, double start, double durat
     double prob;
     const char *hyp;
 
-    lmath = ps_get_logmath(decoder);
-    prob = logmath_exp(lmath, ps_get_prob(decoder));
+    lmath = decoder_logmath(decoder);
+    prob = logmath_exp(lmath, decoder_prob(decoder));
     if (duration == 0.0) {
         start = 0.0;
-        duration = (double)ps_get_n_frames(decoder)
-            / config_int(ps_get_config(decoder), "frate");
+        duration = (double)decoder_n_frames(decoder)
+            / config_int(decoder_config(decoder), "frate");
     }
-    hyp = ps_get_hyp(decoder, NULL);
+    hyp = decoder_hyp(decoder, NULL);
     if (hyp == NULL)
         hyp = "";
     return snprintf(outptr, len, HYP_FORMAT, start, duration, prob, hyp);
@@ -1136,13 +1133,13 @@ format_seg(char *outptr, int len, seg_iter_t *seg,
     int sf, ef;
     const char *word;
 
-    ps_seg_frames(seg, &sf, &ef);
+    seg_iter_frames(seg, &sf, &ef);
     st = utt_start + (double)sf / frate;
     dur = (double)(ef + 1 - sf) / frate;
-    word = ps_seg_word(seg);
+    word = seg_iter_word(seg);
     if (word == NULL)
         word = "";
-    prob = logmath_exp(lmath, ps_seg_prob(seg, NULL, NULL));
+    prob = logmath_exp(lmath, seg_iter_prob(seg, NULL, NULL));
     len = snprintf(outptr, len, HYP_FORMAT, st, dur, prob, word);
     if (outptr) {
         outptr += len;
@@ -1285,8 +1282,8 @@ output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double dura
 
     maxlen = format_hyp(NULL, 0, decoder, start, duration);
     maxlen += 6; /* "w":,[ */
-    lmath = ps_get_logmath(decoder);
-    frate = config_int(ps_get_config(decoder), "frate");
+    lmath = decoder_logmath(decoder);
+    frate = config_int(decoder_config(decoder), "frate");
     if (alignment) {
         alignment_iter_t *itor = alignment_words(alignment);
         if (itor == NULL)
@@ -1298,10 +1295,10 @@ output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double dura
         }
     }
     else {
-        seg_iter_t *itor = ps_seg_iter(decoder);
+        seg_iter_t *itor = decoder_seg_iter(decoder);
         if (itor == NULL)
             maxlen++; /* ] at end */
-        for (; itor; itor = ps_seg_next(itor)) {
+        for (; itor; itor = seg_iter_next(itor)) {
             maxlen += format_seg(NULL, 0, itor, start, frate, lmath);
             maxlen++; /* , or ] at end */
         }
@@ -1334,12 +1331,12 @@ output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double dura
         }
     }
     else {
-        seg_iter_t *itor = ps_seg_iter(decoder);
+        seg_iter_t *itor = decoder_seg_iter(decoder);
         if (itor == NULL) {
             *ptr++ = ']'; /* Gets overwritten below... */
             maxlen--;
         }
-        for (; itor; itor = ps_seg_next(itor)) {
+        for (; itor; itor = seg_iter_next(itor)) {
             assert(maxlen > 0);
             len = format_seg(ptr, maxlen, itor, start, frate, lmath);
             ptr += len;
