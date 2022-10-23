@@ -107,3 +107,35 @@ string_trim(char *string, enum string_edge_e which)
     }
     return string;
 }
+
+
+int32
+nextword(char *line, const char *delim, char **word, char *delimfound)
+{
+    const char *d;
+    char *w;
+
+    /* Skip past any preceding delimiters */
+    for (w = line; *w; w++) {
+        for (d = delim; *d && (*d != *w); d++);
+        if (!*d)
+            break;
+    }
+    if (!*w)
+        return -1;
+
+    *word = w;                  /* Beginning of word */
+
+    /* Skip until first delimiter char */
+    for (w++; *w; w++) {
+        for (d = delim; *d && (*d != *w); d++);
+        if (*d)
+            break;
+    }
+
+    /* Replace delimiter with NULL char, but return the original first */
+    *delimfound = *w;
+    *w = '\0';
+
+    return (w - *word);
+}

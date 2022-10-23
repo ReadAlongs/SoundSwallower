@@ -83,6 +83,12 @@ enum string_edge_e {
  */
 char *string_trim(char *string, enum string_edge_e which);
 
+/**
+ * Crappy string-splitting function.
+ */
+int32 nextword(char *line, const char *delim, char **word, char *delimfound);
+
+
 #ifdef __cplusplus
 }
 #endif

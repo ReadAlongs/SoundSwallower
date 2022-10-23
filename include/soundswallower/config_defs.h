@@ -44,6 +44,13 @@
 #include <soundswallower/feat.h>
 #include <soundswallower/fe.h>
 
+/**
+ * Helper macro to stringify enums and other non-string values for
+ * default arguments.
+ **/
+#define ARG_STRINGIFY(s) ARG_STRINGIFY1(s)
+#define ARG_STRINGIFY1(s) #s
+
 /** Minimal set of command-line options for PocketSphinx. */
 #define CONFIG_OPTIONS \
     FE_OPTIONS,                                \

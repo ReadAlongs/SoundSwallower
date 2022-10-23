@@ -81,14 +81,34 @@ extern "C" {
 #endif
 
 /**
+ * @enum config_type_e
+ * @brief Types of configuration parameters.
+ */
+typedef enum config_type_e  {
+    ARG_REQUIRED =  (1<<0), /*<< Bit indicating required argument. */
+    ARG_INTEGER = (1<<1),   /*<< Integer up to 64 bits. */
+    ARG_FLOATING  = (1<<2), /*<< Double-precision floating point. */
+    ARG_STRING = (1<<3),    /*<< String. */
+    ARG_BOOLEAN = (1<<4),   /*<< Boolean (true/false). */
+    REQARG_INTEGER = (ARG_INTEGER | ARG_REQUIRED),
+    REQARG_FLOATING = (ARG_FLOATING | ARG_REQUIRED),
+    REQARG_STRING = (ARG_STRING | ARG_REQUIRED),
+    REQARG_BOOLEAN = (ARG_BOOLEAN | ARG_REQUIRED)
+} config_type_t;
+/**
+ * @typedef config_type_t
+ * @brief Types of configuration parameters.
+ */
+
+/**
  * @struct config_param_t
  * Argument definition structure.
  */
 typedef struct config_param_s {
-	char const *name;   /**< Name of the command line switch */
-	int type;           /**< Type of the argument in question */
-	char const *deflt;  /**< Default value (as a character string), or NULL if none */
-	char const *doc;    /**< Documentation/description string */
+    char const *name;   /**< Name of the command line switch */
+    int type;           /**< Type of the argument in question */
+    char const *deflt;  /**< Default value (as a character string), or NULL if none */
+    char const *doc;    /**< Documentation/description string */
 } config_param_t;
 
 /**
@@ -101,57 +121,6 @@ typedef struct config_val_s {
     char *name;
 } config_val_t;
 
-/**
- * @name Values for config_param_t::type
- */
-/* @{ */
-/**
- * Bit indicating a required argument.
- */
-#define ARG_REQUIRED (1<<0)
-/**
- * Integer argument (optional).
- */
-#define ARG_INTEGER  (1<<1)
-/**
- * Floating point argument (optional).
- */
-#define ARG_FLOATING (1<<2)
-/**
- * String argument (optional).
- */
-#define ARG_STRING   (1<<3)
-/**
- * Boolean (true/false) argument (optional).
- */
-#define ARG_BOOLEAN  (1<<4)
-
-/**
- * Required integer argument.
- */
-#define REQARG_INTEGER (ARG_INTEGER | ARG_REQUIRED)
-/**
- * Required floating point argument.
- */
-#define REQARG_FLOATING (ARG_FLOATING | ARG_REQUIRED)
-/**
- * Required string argument.
- */
-#define REQARG_STRING (ARG_STRING | ARG_REQUIRED)
-/**
- * Required boolean argument.
- */
-#define REQARG_BOOLEAN (ARG_BOOLEAN | ARG_REQUIRED)
-
-/* @} */
-
-
-/**
- * Helper macro to stringify enums and other non-string values for
- * default arguments.
- **/
-#define ARG_STRINGIFY(s) ARG_STRINGIFY1(s)
-#define ARG_STRINGIFY1(s) #s
 
 /**
  * @struct config_t
@@ -163,213 +132,241 @@ typedef struct config_s {
     char **f_argv;
     uint32 f_argc;
     config_param_t const *defn;
+    char *json;
 } config_t;
 
 /**
- * Create a config_t from NULL-terminated list of arguments.
+ * Create a configuration with default values.
  *
- * This function creates a config_t from a NULL-terminated list of
- * argument strings.  For example, to create the equivalent of passing
- * "-hmm foodir -dsratio 2 -lm bar.lm" on the command-line:
- *
- *  config = cmd_ln_init(NULL, defs, TRUE, "-hmm", "foodir", "-dsratio", "2",
- *                       "-lm", "bar.lm", NULL);
- *
- * Note that for simplicity, <strong>all</strong> arguments are passed
- * as strings, regardless of the actual underlying type.
- *
- * @param inout_cmdln Previous command-line to update, or NULL to create a new one.
- * @param defn Array of argument name definitions, or NULL to allow any arguments.
- * @param strict Whether to fail on duplicate or unknown arguments.
- * @return A config_t* containing the results of command line parsing, or NULL on failure.
+ * @memberof config_t
+ * @param defn Array of config_param_t defining and describing parameters,
+ * terminated by an config_param_t with `name == NULL`.  You should usually
+ * just pass NULL here, which will result in the standard set of
+ * parameters being used.
+ * @return Newly created configuration or NULL on failure (should not
+ * happen, but check it anyway).
  */
-config_t *cmd_ln_init(config_t *inout_cmdln, config_param_t const *defn, int32 strict, ...);
+config_t *config_init(const config_param_t *defn);
 
 /**
- * Retain ownership of a command-line argument set.
- *
- * @return pointer to retained command-line argument set.
+ * Retain a pointer to a configuration object.
+ * @memberof config_t
  */
-config_t *cmd_ln_retain(config_t *cmdln);
+config_t *config_retain(config_t *config);
 
 /**
- * Release a command-line argument set and all associated strings.
- *
- * @return new reference count (0 if freed completely)
+ * Release a configuration object.
+ * @memberof config_t
  */
-int config_free(config_t *cmdln);
+int config_free(config_t *config);
 
 /**
- * Parse a list of strings into argumetns.
+ * Validate configuration.
  *
- * Parse the given list of arguments (name-value pairs) according to
- * the given definitions.  Argument values can be retrieved in future
- * using cmd_ln_access().  argv[0] is assumed to be the program name
- * and skipped.  Any unknown argument name causes a fatal error.  The
- * routine also prints the prevailing argument values (to stderr)
- * after parsing.
+ * Currently this just checks that you haven't specified multiple
+ * types of grammars or language models at the same time.
  *
- * @note It is currently assumed that the strings in argv are
- *       allocated statically, or at least that they will be valid as
- *       long as the config_t returned from this function.
- *       Unpredictable behaviour will result if they are freed or
- *       otherwise become invalidated.
- *
- * @return A config_t containing the results of command line parsing,
- *         or NULL on failure.
- **/
-config_t *config_parse(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
-                                                     or NULL to create a new one. */
-                         config_param_t const *defn,	/**< In: Array of argument name definitions */
-                         int32 argc,		/**< In: Number of actual arguments */
-                         char *argv[],		/**< In: Actual arguments */
-                         int32 strict           /**< In: Fail on duplicate or unknown
-                                                   arguments, or no arguments? */
-    );
-
-#ifndef __EMSCRIPTEN__
-/**
- * Parse an arguments file by deliminating on " \r\t\n" and putting each tokens
- * into an argv[] for cmd_ln_parse().
- *
- * @return A config_t containing the results of command line parsing, or NULL on failure.
+ * @memberof config_t
+ * @return 0 for success, <0 for failure.
  */
-config_t *cmd_ln_parse_file_r(config_t *inout_cmdln, /**< In/Out: Previous command-line to update,
-                                                     or NULL to create a new one. */
-                              config_param_t const *defn,   /**< In: Array of argument name definitions*/
-                              char const *filename,/**< In: A file that contains all
-                                                     the arguments */ 
-                              int32 strict         /**< In: Fail on duplicate or unknown
-                                                     arguments, or no arguments? */
-    );
-#endif /* not __EMSCRIPTEN__ */
+int config_validate(config_t *config);
 
 /**
- * Access the value and metadata for a configuration parameter.
+ * Create or update a configuration by parsing slightly extended JSON.
  *
- * This structure is owned by the config_t, assume that you must copy
- * anything inside it, including strings, if you wish to retain it,
- * and should never free it manually.
+ * This function parses a JSON object in non-strict mode to produce a
+ * config_t.  Configuration parameters are given *without* a
+ * leading dash, and do not need to be quoted, nor does the object
+ * need to be enclosed in curly braces, nor are commas necessary
+ * between key/value pairs.  Basically, it's degenerate YAML.  So, for
+ * example, this is accepted:
  *
- * @param cmdln Command-line object.
- * @param name the command-line flag to retrieve.
- * @return the value and metadata associated with <tt>name</tt>, or
- *         NULL if <tt>name</tt> does not exist.  You must use
- *         config_exists() to distinguish between cases where a
- *         value is legitimately NULL and where the corresponding flag
- *         is unknown.
+ *     hmm: fr-fr
+ *     samprate: 8000
+ *     keyphrase: "hello world"
+ *
+ * Of course, valid JSON is also accepted, but who wants to use that.
+ *
+ * Well, mostly.  Unicode escape sequences (e.g. `"\u0020"`) are *not*
+ * supported at the moment, so please don't use them.
+ *
+ * @memberof config_t
+ * @arg config Previously existing config_t to update, or NULL to
+ * create a new one.
+ * @arg json JSON serialized object as null-terminated UTF-8,
+ * containing configuration parameters.
+ * @return Newly created configuration or NULL on failure (such as
+ * invalid or missing parameters).
  */
-config_val_t *config_access(config_t *cmdln, char const *name);
+config_t *config_parse_json(config_t *config, const char *json);
+
+/**
+ * Construct JSON from a configuration object.
+ *
+ * Unlike config_parse_json(), this actually produces valid JSON ;-)
+ *
+ * @memberof config_t
+ * @arg config Configuration object
+ * @return Newly created null-terminated JSON string.  The config_t
+ * retains ownership of this pointer, which is only valid until the
+ * next call to config_serialize_json().  You must copy it if you
+ * wish to retain it.
+ */
+const char *config_serialize_json(config_t *config);
 
 /**
  * Access the type of a configuration parameter.
  *
- * This function is provided as a convenience for dynamically typed
- * language bindings.
- *
- * @param cmdln Command-line object.
- * @param name the command-line flag to retrieve.
+ * @memberof config_t
+ * @param config Configuration object.
+ * @param name Name of the parameter to retrieve.
  * @return the type of the parameter (as a combination of the ARG_*
  *         bits), or 0 if no such parameter exists.
  */
-int config_type(config_t *cmdln, char const *name);
+config_type_t config_typeof(config_t *config, char const *name);
 
 /**
- * Retrieve a string from a command-line object.
+ * Access the value of a configuration parameter.
  *
- * The command-line object retains ownership of this string, so you
- * should not attempt to free it manually.
+ * To actually do something with the value, you will need to know its
+ * type, which can be obtained with config_typeof().  This function
+ * is thus mainly useful for dynamic language bindings, and you should
+ * use config_int(), config_float(), or config_str() instead.
  *
- * @param cmdln Command-line object.
- * @param name the command-line flag to retrieve.
- * @return the string value associated with <tt>name</tt>, or NULL if
- *         <tt>name</tt> does not exist.  You must use
- *         config_exists() to distinguish between cases where a
- *         value is legitimately NULL and where the corresponding flag
- *         is unknown.
+ * @memberof config_t
+ * @param config Configuration object.
+ * @param name Name of the parameter to retrieve.
+ * @return Pointer to the parameter's value, or NULL if the parameter
+ * does not exist.  Note that a string parameter can also have NULL as
+ * a value, in which case the `ptr` field in the return value is NULL.
+ * This pointer (and any pointers inside it) is owned by the config_t.
  */
-char const *config_str(config_t *cmdln, char const *name);
+const anytype_t *config_get(config_t *config, const char *name);
 
 /**
- * Retrieve an integer from a command-line object.
+ * Set or unset the value of a configuration parameter.
  *
- * @param cmdln Command-line object.
- * @param name the command-line flag to retrieve.
- * @return the integer value associated with <tt>name</tt>, or 0 if
- *         <tt>name</tt> does not exist.  You must use
- *         config_exists() to distinguish between cases where a
- *         value is legitimately zero and where the corresponding flag
- *         is unknown.
- */
-long config_int(config_t *cmdln, char const *name);
-
-/**
- * Retrieve a floating-point number from a command-line object.
+ * This will coerce the value to the proper type, so you can, for
+ * example, pass it a string with ARG_STRING as the type when adding
+ * options from the command-line.  Note that the return pointer will
+ * *not* be the same as the one passed in the value.
  *
- * @param cmdln Command-line object.
- * @param name the command-line flag to retrieve.
- * @return the float value associated with <tt>name</tt>, or 0.0 if
- *         <tt>name</tt> does not exist.  You must use
- *         config_exists() to distinguish between cases where a
- *         value is legitimately zero and where the corresponding flag
- *         is unknown.
+ * @memberof config_t
+ * @param config Configuration object.
+ * @param name Name of the parameter to set.  Must exist.
+ * @param val Pointer to the value (strings will be copied) inside an
+ * anytype_t union.  On 64-bit little-endian platforms, you *can* cast
+ * a pointer to int, long, double, or char* here, but that doesn't
+ * necessarily mean that you *should*.  As a convenience, you can pass
+ * NULL here to reset a parameter to its default value.
+ * @param t Type of the value in `val`, will be coerced to the type of
+ * the actual parameter if necessary.
+ * @return Pointer to the parameter's value, or NULL on failure
+ * (unknown parameter, usually).  This pointer (and any pointers
+ * inside it) is owned by the config_t.
  */
-double config_float(config_t *cmdln, char const *name);
+const anytype_t *config_set(config_t *config, const char *name,
+                            const anytype_t *val, config_type_t t);
 
 /**
- * Retrieve a boolean value from a command-line object.
- */
-#define config_bool(c,n) (config_int(c,n) != 0)
-
-/**
- * Set a string in a command-line object.
+ * Get an integer-valued parameter.
  *
- * @param cmdln Command-line object.
- * @param name The command-line flag to set.
- * @param str String value to set.  The command-line object does not
- *            retain ownership of this pointer.
- */
-void config_set_str(config_t *cmdln, char const *name, char const *str);
-
-/**
- * Set an integer in a command-line object.
+ * If the parameter does not have an integer or boolean type, this
+ * will print an error and return 0.  So don't do that.
  *
- * @param cmdln Command-line object.
- * @param name The command-line flag to set.
- * @param iv Integer value to set.
+ * @memberof config_t
  */
-void config_set_int(config_t *cmdln, char const *name, long iv);
+long config_int(config_t *config, const char *name);
 
 /**
- * Set a floating-point number in a command-line object.
+ * Get a boolean-valued parameter.
  *
- * @param cmdln Command-line object.
- * @param name The command-line flag to set.
- * @param fv Integer value to set.
- */
-void config_set_float(config_t *cmdln, char const *name, double fv);
-
-/**
- * Set a boolean value in a command-line object.
- */
-#define config_set_bool(c,n,b) (config_set_int(c,n,(b)!=0))
-
-/**
- * Re-entrant version of cmd_ln_exists().
+ * If the parameter does not have an integer or boolean type, this
+ * will print an error and return 0.  The return value is either 0 or
+ * 1 (if the parameter has an integer type, any non-zero value will
+ * return 1).
  *
- * @return True if the command line argument exists (i.e. it
- * was one of the arguments defined in the call to config_parse().
+ * @memberof config_t
  */
-int config_exists(config_t *cmdln, char const *name);
+int config_bool(config_t *config, const char *name);
 
 /**
- * Print a help message listing the valid argument names, and the associated
- * attributes as given in defn.
+ * Get a floating-point parameter.
+ *
+ * If the parameter does not have a floating-point type, this will
+ * print an error and return 0.
+ *
+ * @memberof config_t
+ */
+double config_float(config_t *config, const char *name);
+
+/**
+ * Get a string parameter.
+ *
+ * If the parameter does not have a string type, this will print an
+ * error and return NULL.  Notably, it will *NOT* format an integer or
+ * float for you, because that would involve allocating memory.  So
+ * don't do that.
+ *
+ * @memberof config_t
+ */
+const char *config_str(config_t *config, const char *name);
+
+/**
+ * Set an integer-valued parameter.
+ *
+ * If the parameter does not have an integer or boolean type, this
+ * will convert `val` appropriately.
+ *
+ * @memberof config_t
+ */
+const anytype_t *config_set_int(config_t *config, const char *name, long val);
+
+/**
+ * Set a boolean-valued parameter.
+ *
+ * If the parameter does not have an integer or boolean type, this
+ * will convert `val` appropriately.
+ *
+ * @memberof config_t
+ */
+const anytype_t *config_set_bool(config_t *config, const char *name, int val);
+
+/**
+ * Set a floating-point parameter.
+ *
+ * If the parameter does not have a floating-point type, this will
+ * convert `val` appropriately.
+ *
+ * @memberof config_t
+ */
+const anytype_t *config_set_float(config_t *config,
+                                  const char *name, double val);
+
+/**
+ * Set a string-valued parameter.
+ *
+ * If the parameter does not have a string type, this will convert
+ * `val` appropriately.  For boolean parameters, any string matching
+ * `/^[yt1]/` will be true, while any string matching `/^[nf0]/` will
+ * be false.  NULL is also false.
+ *
+ * This function is used for configuration from JSON, you may want to
+ * use it for your own configuration files too.
+ *
+ * @memberof config_t
+ */
+const anytype_t *config_set_str(config_t *config,
+                                const char *name, const char *val);
+
+/**
+ * Print a help message listing the valid argument names, and the
+ * associated attributes as given in defn.
  *
  * @param cmdln command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_help_r(config_t *cmdln, const config_param_t *defn);
+void config_log_help(config_t *cmdln, const config_param_t *defn);
 
 /**
  * Print current configuration values and defaults.
@@ -377,8 +374,12 @@ void cmd_ln_log_help_r(config_t *cmdln, const config_param_t *defn);
  * @param cmdln  command-line object
  * @param defn array of argument name definitions.
  */
-void cmd_ln_log_values_r(config_t *cmdln, const config_param_t *defn);
+void config_log_values(config_t *cmdln, const config_param_t *defn);
 
+
+config_val_t *config_access(config_t *cmdln, const char *name);
+anytype_t *anytype_from_str(anytype_t *val, int t, const char *str);
+config_val_t *config_val_init(int t, const char *name, const char *str);
 
 #ifdef __cplusplus
 }

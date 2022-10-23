@@ -58,7 +58,7 @@ fe_parse_general_params(config_t *config, fe_t * fe)
 {
     int j, frate, window_samples;
 
-    fe->config = cmd_ln_retain(config);
+    fe->config = config_retain(config);
     fe->sampling_rate = config_float(config, "samprate");
     frate = config_int(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {

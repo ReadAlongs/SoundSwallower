@@ -5,7 +5,7 @@ set(SOURCES
   blkarray_list.c
   case.c
   ckd_alloc.c
-  cmd_ln.c
+  config.c
   cmn.c
   cmn_live.c
   dict2pid.c

@@ -56,11 +56,6 @@
 #include <soundswallower/fsg_search.h>
 
 
-static const config_param_t ps_args_def[] = {
-    CONFIG_OPTIONS,
-    CONFIG_EMPTY_OPTION
-};
-
 #ifndef __EMSCRIPTEN__
 /* I'm not sure what the portable way to do this is. */
 static int
@@ -496,12 +491,6 @@ ps_init(config_t *config)
 #endif
     }
     return ps;
-}
-
-EXPORT config_param_t const *
-ps_args(void)
-{
-    return ps_args_def;
 }
 
 EXPORT ps_decoder_t *
