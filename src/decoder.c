@@ -734,11 +734,11 @@ decoder_process_float32(decoder_t *d,
 }
 
 int
-decoder_process_raw(decoder_t *d,
-                    int16 const *data,
-                    size_t n_samples,
-                    int no_search,
-                    int full_utt)
+decoder_process_int16(decoder_t *d,
+                      int16 const *data,
+                      size_t n_samples,
+                      int no_search,
+                      int full_utt)
 {
     int n_searchfr = 0;
 

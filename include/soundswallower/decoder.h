@@ -265,7 +265,7 @@ char *decoder_lookup_word(decoder_t *d,
 int decoder_start_utt(decoder_t *d);
 
 /**
- * Decode raw audio data.
+ * Decode integer audio data.
  *
  * @param ps Decoder.
  * @param no_search If non-zero, perform feature extraction but don't
@@ -277,11 +277,31 @@ int decoder_start_utt(decoder_t *d);
  *                 produce more accurate results.
  * @return Number of frames of data searched, or <0 for error.
  */
-int decoder_process_raw(decoder_t *d,
-                   int16 const *data,
-                   size_t n_samples,
-                   int no_search,
-                   int full_utt);
+int decoder_process_int16(decoder_t *d,
+                          int16 const *data,
+                          size_t n_samples,
+                          int no_search,
+                          int full_utt);
+
+/**
+ * Decode floating-point audio data.
+ *
+ * @param ps Decoder.
+ * @param no_search If non-zero, perform feature extraction but don't
+ *                  do any recognition yet.  This may be necessary if
+ *                  your processor has trouble doing recognition in
+ *                  real-time.
+ * @param full_utt If non-zero, this block of data is a full utterance
+ *                 worth of data.  This may allow the recognizer to
+ *                 produce more accurate results.
+ * @return Number of frames of data searched, or <0 for error.
+ */
+int
+decoder_process_float32(decoder_t *d,
+                        float32 const *data,
+                        size_t n_samples,
+                        int no_search,
+                        int full_utt);
 
 /**
  * Decode acoustic feature data.
