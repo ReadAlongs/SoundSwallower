@@ -53,7 +53,6 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/tied_mgau_common.h>
 #include <soundswallower/ptm_mgau.h>
-#include <soundswallower/export.h>
 
 static mgaufuncs_t ptm_mgau_funcs = {
     "ptm",
@@ -721,7 +720,7 @@ ptm_mgau_reset_fast_hist(mgau_t *ps)
     }
 }
 
-EXPORT mgau_t *
+mgau_t *
 ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                      s3file_t *mixw, s3file_t *sendump)
 {

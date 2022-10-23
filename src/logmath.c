@@ -39,7 +39,6 @@
 #include <string.h>
 #include <assert.h>
 
-#include <soundswallower/export.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
@@ -58,7 +57,7 @@ struct logmath_s {
     int32 zero;
 };
 
-EXPORT logmath_t *
+logmath_t *
 logmath_init(float64 base, int shift, int use_table)
 {
     logmath_t *lmath;
@@ -160,14 +159,14 @@ logmath_init(float64 base, int shift, int use_table)
     return lmath;
 }
 
-EXPORT logmath_t *
+logmath_t *
 logmath_retain(logmath_t *lmath)
 {
     ++lmath->refcount;
     return lmath;
 }
 
-EXPORT int
+int
 logmath_free(logmath_t *lmath)
 {
     if (lmath == NULL)
@@ -272,7 +271,7 @@ logmath_add_exact(logmath_t *lmath, int logb_p, int logb_q)
                        + logmath_exp(lmath, logb_q));
 }
 
-EXPORT int
+int
 logmath_log(logmath_t *lmath, float64 p)
 {
     if (p <= 0) {
@@ -281,7 +280,7 @@ logmath_log(logmath_t *lmath, float64 p)
     return (int)(log(p) * lmath->inv_log_of_base) >> lmath->t.shift;
 }
 
-EXPORT float64
+float64
 logmath_exp(logmath_t *lmath, int logb_p)
 {
     return pow(lmath->base, (float64)(logb_p << lmath->t.shift));

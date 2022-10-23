@@ -44,7 +44,6 @@
 #include <unistd.h>
 #endif
 
-#include <soundswallower/export.h>
 #include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/filename.h>
@@ -133,7 +132,7 @@ set_logfile(decoder_t *ps, config_t *config)
 #endif
 }
 
-EXPORT int
+int
 ps_init_config(decoder_t *ps, config_t *config)
 {
     /* Set up logging. We do this immediately because we want to dump
@@ -166,7 +165,7 @@ ps_init_config(decoder_t *ps, config_t *config)
     return 0;
 }
 
-EXPORT int
+int
 ps_init_cleanup(decoder_t *ps)
 {
     /* Free old searches (do this before other reinit) */
@@ -175,7 +174,7 @@ ps_init_cleanup(decoder_t *ps)
     return 0;
 }
 
-EXPORT fe_t *
+fe_t *
 ps_init_fe(decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -195,7 +194,7 @@ ps_init_feat(decoder_t *ps)
     return ps->fcb;
 }
 
-EXPORT feat_t *
+feat_t *
 ps_init_feat_s3file(decoder_t *ps, s3file_t *lda)
 {
     if (ps->config == NULL)
@@ -205,7 +204,7 @@ ps_init_feat_s3file(decoder_t *ps, s3file_t *lda)
     return ps->fcb;
 }
 
-EXPORT acmod_t *
+acmod_t *
 ps_init_acmod_pre(decoder_t *ps)
 {
     if (ps->config == NULL)
@@ -221,7 +220,7 @@ ps_init_acmod_pre(decoder_t *ps)
     return ps->acmod;
 }
 
-EXPORT int
+int
 ps_init_acmod_post(decoder_t *ps)
 {
     if (ps->acmod == NULL)
@@ -267,7 +266,7 @@ ps_init_dict(decoder_t *ps)
     return ps->dict;
 }
 
-EXPORT dict_t *
+dict_t *
 ps_init_dict_s3file(decoder_t *ps, s3file_t *dict, s3file_t *fdict)
 {
     if (ps->config == NULL)
@@ -312,7 +311,7 @@ ps_init_grammar(decoder_t *ps)
     return  0;
 }
 
-EXPORT int
+int
 ps_init_grammar_s3file(decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
 {
     float32 lw;
@@ -341,7 +340,7 @@ ps_init_grammar_s3file(decoder_t *ps, s3file_t *fsg_file, s3file_t *jsgf_file)
     return  0;
 }
 
-EXPORT fe_t *
+fe_t *
 ps_reinit_fe(decoder_t *ps, config_t *config)
 {
     fe_t *new_fe;
@@ -386,7 +385,7 @@ ps_reinit(decoder_t *ps, config_t *config)
     return 0;
 }
 
-EXPORT decoder_t *
+decoder_t *
 ps_init(config_t *config)
 {
     decoder_t *ps;
@@ -406,14 +405,14 @@ ps_init(config_t *config)
     return ps;
 }
 
-EXPORT decoder_t *
+decoder_t *
 ps_retain(decoder_t *ps)
 {
     ++ps->refcount;
     return ps;
 }
 
-EXPORT int
+int
 ps_free(decoder_t *ps)
 {
     if (ps == NULL)
@@ -438,13 +437,13 @@ ps_free(decoder_t *ps)
     return 0;
 }
 
-EXPORT config_t *
+config_t *
 ps_get_config(decoder_t *ps)
 {
     return ps->config;
 }
 
-EXPORT logmath_t *
+logmath_t *
 ps_get_logmath(decoder_t *ps)
 {
     return ps->lmath;
@@ -456,7 +455,7 @@ ps_update_mllr(decoder_t *ps, mllr_t *mllr)
     return acmod_update_mllr(ps->acmod, mllr);
 }
 
-EXPORT int
+int
 ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg)
 {
     search_module_t *search;
@@ -508,7 +507,7 @@ ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path)
   return result;
 }
 
-EXPORT int 
+int 
 ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)
 {
   fsg_model_t *fsg;
@@ -547,7 +546,7 @@ ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)
   return result;
 }
 
-EXPORT int
+int
 ps_add_word(decoder_t *ps,
             char const *word,
             char const *phones,
@@ -614,7 +613,7 @@ ps_add_word(decoder_t *ps,
     return wid;
 }
 
-EXPORT char *
+char *
 ps_lookup_word(decoder_t *ps, const char *word)
 {
     s3wid_t wid;
@@ -637,7 +636,7 @@ ps_lookup_word(decoder_t *ps, const char *word)
     return phones;
 }
 
-EXPORT int
+int
 ps_start_utt(decoder_t *ps)
 {
     int rv;
@@ -697,7 +696,7 @@ search_module_forward(decoder_t *ps)
     return nfr;
 }
 
-EXPORT int
+int
 ps_process_float32(decoder_t *ps,
                    float32 const *data,
                    size_t n_samples,
@@ -800,7 +799,7 @@ ps_process_cep(decoder_t *ps,
     return n_searchfr;
 }
 
-EXPORT int
+int
 ps_end_utt(decoder_t *ps)
 {
     int rv = 0;
@@ -857,7 +856,7 @@ ps_end_utt(decoder_t *ps)
     return rv;
 }
 
-EXPORT char const *
+char const *
 ps_get_hyp(decoder_t *ps, int32 *out_best_score)
 {
     char const *hyp;
@@ -873,7 +872,7 @@ ps_get_hyp(decoder_t *ps, int32 *out_best_score)
     return hyp;
 }
 
-EXPORT int32
+int32
 ps_get_prob(decoder_t *ps)
 {
     int32 prob;
@@ -889,7 +888,7 @@ ps_get_prob(decoder_t *ps)
     return prob;
 }
 
-EXPORT seg_iter_t *
+seg_iter_t *
 ps_seg_iter(decoder_t *ps)
 {
     seg_iter_t *itor;
@@ -905,26 +904,26 @@ ps_seg_iter(decoder_t *ps)
     return itor;
 }
 
-EXPORT seg_iter_t *
+seg_iter_t *
 ps_seg_next(seg_iter_t *seg)
 {
     return search_module_seg_next(seg);
 }
 
-EXPORT char const *
+char const *
 ps_seg_word(seg_iter_t *seg)
 {
     return seg->word;
 }
 
-EXPORT void
+void
 ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
 {
     if (out_sf) *out_sf = seg->sf;
     if (out_ef) *out_ef = seg->ef;
 }
 
-EXPORT int32
+int32
 ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
 {
     if (out_ascr) *out_ascr = seg->ascr;
@@ -932,7 +931,7 @@ ps_seg_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
     return seg->prob;
 }
 
-EXPORT void
+void
 ps_seg_free(seg_iter_t *seg)
 {
     search_module_seg_free(seg);

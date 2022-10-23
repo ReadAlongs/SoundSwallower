@@ -73,7 +73,6 @@
 #include <unistd.h>
 #endif
 
-#include <soundswallower/export.h>
 #include <soundswallower/configuration.h>
 #include <soundswallower/config_defs.h>
 #include <soundswallower/err.h>

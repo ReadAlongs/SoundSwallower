@@ -58,7 +58,6 @@
 #include <soundswallower/err.h>
 #include <soundswallower/mdef.h>
 #include <soundswallower/bin_mdef.h>
-#include <soundswallower/export.h>
 
 static cd_tree_t *
 build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
@@ -331,7 +330,7 @@ bin_mdef_read(config_t *config, const char *filename)
     return m;
 }
 
-EXPORT bin_mdef_t *
+bin_mdef_t *
 bin_mdef_read_s3file(s3file_t *s, int cionly)
 {
     size_t tree_start;

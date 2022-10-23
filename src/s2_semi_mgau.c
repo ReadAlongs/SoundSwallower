@@ -52,7 +52,6 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/tied_mgau_common.h>
-#include <soundswallower/export.h>
 
 static mgaufuncs_t s2_semi_mgau_funcs = {
     "s2_semi",
@@ -913,7 +912,7 @@ split_topn(char const *str, uint8 *out, int nfeat)
 }
 
 
-EXPORT mgau_t *
+mgau_t *
 s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                          s3file_t *mixw, s3file_t *sendump)
 {

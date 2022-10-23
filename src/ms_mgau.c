@@ -70,7 +70,6 @@
 
 /* Local headers. */
 #include <soundswallower/ms_mgau.h>
-#include <soundswallower/export.h>
 
 static mgaufuncs_t ms_mgau_funcs = {
     "ms",
@@ -79,7 +78,7 @@ static mgaufuncs_t ms_mgau_funcs = {
     ms_mgau_free             /* free */
 };
 
-EXPORT mgau_t *
+mgau_t *
 ms_mgau_init_s3file(acmod_t *acmod,
                     s3file_t *means, s3file_t *vars, s3file_t *mixw,
                     s3file_t *senmgau)

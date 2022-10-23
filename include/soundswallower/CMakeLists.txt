@@ -14,7 +14,6 @@ decoder.h
 dict2pid.h
 dict.h
 err.h
-export.h
 feat.h
 fe.h
 fe_noise.h
