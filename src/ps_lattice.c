@@ -755,8 +755,7 @@ lattice_reverse_next(lattice_t *dag, latnode_t *start)
  * like there is for state-level?  Or, is it just lattice density?)
  */
 latlink_t *
-lattice_bestpath(lattice_t *dag, void *lmset,
-                    float32 ascale)
+lattice_bestpath(lattice_t *dag, float32 ascale)
 {
     search_module_t *search;
     latnode_t *node;
@@ -902,36 +901,10 @@ lattice_bestpath(lattice_t *dag, void *lmset,
 static int32
 lattice_joint(lattice_t *dag, latlink_t *link, float32 ascale)
 {
-    void *lmset;
     int32 jprob;
-
-    /* Sort of a hack... */
-    lmset = NULL;
 
     jprob = (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
     while (link) {
-        if (lmset) {
-            int32 from_wid, to_wid;
-            int16 from_is_fil, to_is_fil;
-
-            from_wid = link->from->basewid;
-            to_wid = link->to->basewid;
-            from_is_fil = dict_filler_word(dag->dict, from_wid) && link->from != dag->start;
-            to_is_fil = dict_filler_word(dag->dict, to_wid) && link->to != dag->end;
-
-            /* Find word predecessor if from-word is filler */
-            if (!to_is_fil && from_is_fil) {
-                latlink_t *prev_link = link;
-                while (prev_link->best_prev != NULL) {
-                    prev_link = prev_link->best_prev;
-                    from_wid = prev_link->from->basewid;
-                    if (!dict_filler_word(dag->dict, from_wid) || prev_link->from == dag->start) {
-                        from_is_fil = FALSE;
-                        break;
-                    }
-                }
-            }
-        }
         /* If there is no language model, we assume that the language
            model probability (such as it is) has been included in the
            link score. */
@@ -944,8 +917,7 @@ lattice_joint(lattice_t *dag, latlink_t *link, float32 ascale)
 }
 
 int32
-lattice_posterior(lattice_t *dag, void *lmset,
-                     float32 ascale)
+lattice_posterior(lattice_t *dag, float32 ascale)
 {
     logmath_t *lmath;
     latnode_t *node;
@@ -1198,7 +1170,6 @@ path_extend(astar_search_t *nbest, latpath_t * path)
 
 astar_search_t *
 astar_search_start(lattice_t *dag,
-               void *lmset,
                int sf, int ef,
                int w1, int w2)
 {
@@ -1207,7 +1178,6 @@ astar_search_start(lattice_t *dag,
 
     nbest = ckd_calloc(1, sizeof(*nbest));
     nbest->dag = dag;
-    nbest->lmset = lmset;
     nbest->sf = sf;
     if (ef < 0)
         nbest->ef = dag->n_frames + 1;

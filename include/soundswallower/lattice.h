@@ -344,8 +344,7 @@ latlink_t *lattice_reverse_next(lattice_t *dag, latnode_t *start);
  *
  * @return Final link in best path, NULL on error.
  */
-latlink_t *lattice_bestpath(lattice_t *dag, void *lmset,
-                                  float32 ascale);
+latlink_t *lattice_bestpath(lattice_t *dag, float32 ascale);
 
 /**
  * Calculate link posterior probabilities on a word graph.
@@ -354,8 +353,7 @@ latlink_t *lattice_bestpath(lattice_t *dag, void *lmset,
  *
  * @return Posterior probability of the utterance as a whole.
  */
-int32 lattice_posterior(lattice_t *dag, void *lmset,
-                           float32 ascale);
+int32 lattice_posterior(lattice_t *dag, float32 ascale);
 
 /**
  * Prune all links (and associated nodes) below a certain posterior probability.
@@ -488,7 +486,6 @@ typedef struct latpath_s {
  */
 typedef struct astar_search_s {
     lattice_t *dag;
-    void *lmset;
 
     frame_idx_t sf;
     frame_idx_t ef;
@@ -565,9 +562,8 @@ seg_iter_t *lattice_seg_iter(lattice_t *dag, latlink_t *link);
  * @return 0 for success, <0 on error.
  */
 astar_search_t *astar_search_start(lattice_t *dag,
-                           void *lmset,
-                           int sf, int ef,
-                           int w1, int w2);
+                                   int sf, int ef,
+                                   int w1, int w2);
 
 /**
  * Find next best hypothesis of A* on a word graph.

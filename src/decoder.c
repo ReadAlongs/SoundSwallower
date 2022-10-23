@@ -954,7 +954,6 @@ ps_nbest(decoder_t *ps)
 {
     lattice_t *dag;
     astar_search_t *nbest;
-    void *lmset;
 
     if (ps->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -964,8 +963,7 @@ ps_nbest(decoder_t *ps)
     if ((dag = ps_get_lattice(ps)) == NULL)
         return NULL;
 
-    lmset = NULL;
-    nbest = astar_search_start(dag, lmset, 0, -1, -1, -1);
+    nbest = astar_search_start(dag, 0, -1, -1, -1);
     nbest = ps_nbest_next(nbest);
 
     return (hyp_iter_t *)nbest;

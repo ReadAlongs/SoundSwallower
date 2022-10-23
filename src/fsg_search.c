@@ -960,14 +960,13 @@ fsg_search_bestpath(search_module_t *search, int32 *out_score, int backward)
 
     (void)backward;
     if (search->last_link == NULL) {
-        search->last_link = lattice_bestpath(search->dag, NULL,
-                                                fsgs->ascale);
+        search->last_link = lattice_bestpath(search->dag, fsgs->ascale);
         if (search->last_link == NULL)
             return NULL;
         /* Also calculate betas so we can fill in the posterior
          * probability field in the segmentation. */
         if (search->post == 0)
-            search->post = lattice_posterior(search->dag, NULL, fsgs->ascale);
+            search->post = lattice_posterior(search->dag, fsgs->ascale);
     }
     if (out_score)
         *out_score = search->last_link->path_scr + search->dag->final_node_ascr;
