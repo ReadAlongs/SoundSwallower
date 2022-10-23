@@ -54,13 +54,10 @@
 #include <string.h>
 #include <assert.h>
 
+#include <soundswallower/fsg_search.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/strfuncs.h>
-#include <soundswallower/configuration.h>
-#include <soundswallower/fsg_search.h>
-#include <soundswallower/fsg_history.h>
-#include <soundswallower/fsg_lextree.h>
 
 /* Turn this on for detailed debugging dump */
 #define __FSG_DBG__		0

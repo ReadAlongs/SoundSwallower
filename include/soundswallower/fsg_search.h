@@ -47,6 +47,7 @@
 #include <soundswallower/hmm.h>
 #include <soundswallower/fsg_history.h>
 #include <soundswallower/fsg_lextree.h>
+#include <soundswallower/search_module.h>
 
 #ifdef __cplusplus
 extern "C" {

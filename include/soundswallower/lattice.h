@@ -43,6 +43,7 @@
 #define __PS_LATTICE_H__
 
 #include <soundswallower/prim_type.h>
+#include <soundswallower/search_module.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,8 +52,6 @@ extern "C" {
 }
 #endif
 
-typedef struct search_module_s search_module_t;
-typedef struct seg_iter_s seg_iter_t;
 
 /**
  * Word graph structure used in bestpath/nbest search.

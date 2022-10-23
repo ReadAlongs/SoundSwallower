@@ -45,6 +45,8 @@
 #include <soundswallower/decoder.h>
 #include <soundswallower/alignment.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/search_module.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {

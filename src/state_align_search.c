@@ -42,7 +42,6 @@
 #include <limits.h>
 
 #include <soundswallower/state_align_search.h>
-#include <soundswallower/prim_type.h>
 
 static int
 state_align_search_start(search_module_t *search)
