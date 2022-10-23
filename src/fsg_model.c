@@ -726,6 +726,8 @@ fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
 fsg_model_t *
 fsg_model_retain(fsg_model_t * fsg)
 {
+    if (fsg == NULL)
+        return NULL;
     ++fsg->refcount;
     return fsg;
 }

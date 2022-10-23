@@ -272,6 +272,8 @@ bin_mdef_read_text(config_t *config, const char *filename)
 bin_mdef_t *
 bin_mdef_retain(bin_mdef_t *m)
 {
+    if (m == NULL)
+        return NULL;
     ++m->refcnt;
     return m;
 }

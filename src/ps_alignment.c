@@ -54,6 +54,8 @@ alignment_init(dict2pid_t *d2p)
 alignment_t *
 alignment_retain(alignment_t *al)
 {
+    if (al == NULL)
+        return NULL;
     ++al->refcount;
     return al;
 }

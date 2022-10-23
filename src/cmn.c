@@ -247,6 +247,8 @@ cmn_free(cmn_t * cmn)
 cmn_t *
 cmn_retain(cmn_t *cmn)
 {
+    if (cmn == NULL)
+        return NULL;
     ++cmn->refcount;
     return cmn;
 }

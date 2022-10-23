@@ -248,6 +248,8 @@ lattice_init_search(search_module_t *search, int n_frame)
 lattice_t *
 lattice_retain(lattice_t *dag)
 {
+    if (dag == NULL)
+        return NULL;
     ++dag->refcount;
     return dag;
 }

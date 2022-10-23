@@ -498,6 +498,8 @@ dict2pid_build(bin_mdef_t * mdef, dict_t * dict)
 dict2pid_t *
 dict2pid_retain(dict2pid_t *d2p)
 {
+    if (d2p == NULL)
+        return NULL;
     ++d2p->refcount;
     return d2p;
 }

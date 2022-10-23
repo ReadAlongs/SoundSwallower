@@ -635,6 +635,8 @@ jsgf_define_rule(jsgf_t * jsgf, char *name, jsgf_rhs_t * rhs,
 jsgf_rule_t *
 jsgf_rule_retain(jsgf_rule_t * rule)
 {
+    if (rule == NULL)
+        return NULL;
     ++rule->refcnt;
     return rule;
 }

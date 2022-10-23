@@ -96,6 +96,8 @@ error_out:
 endpointer_t *
 endpointer_retain(endpointer_t *ep)
 {
+    if (ep == NULL)
+        return NULL;
     ++ep->refcount;
     return ep;
 }

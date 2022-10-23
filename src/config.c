@@ -310,6 +310,8 @@ config_init(const config_param_t *defn)
 config_t *
 config_retain(config_t *config)
 {
+    if (config == NULL)
+        return NULL;
     ++config->refcount;
     return config;
 }

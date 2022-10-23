@@ -1140,6 +1140,8 @@ feat_update_stats(feat_t *fcb)
 feat_t *
 feat_retain(feat_t *f)
 {
+    if (f == NULL)
+        return NULL;
     ++f->refcount;
     return f;
 }

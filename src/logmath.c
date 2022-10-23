@@ -162,6 +162,8 @@ logmath_init(float64 base, int shift, int use_table)
 logmath_t *
 logmath_retain(logmath_t *lmath)
 {
+    if (lmath == NULL)
+        return NULL;
     ++lmath->refcount;
     return lmath;
 }

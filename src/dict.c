@@ -433,6 +433,8 @@ dict_word2basestr(char *word)
 dict_t *
 dict_retain(dict_t *d)
 {
+    if (d == NULL)
+        return NULL;
     ++d->refcnt;
     return d;
 }

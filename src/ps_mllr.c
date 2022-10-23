@@ -133,6 +133,8 @@ error_out:
 mllr_t *
 mllr_retain(mllr_t *mllr)
 {
+    if (mllr == NULL)
+        return NULL;
     ++mllr->refcnt;
     return mllr;
 }

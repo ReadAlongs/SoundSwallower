@@ -694,6 +694,8 @@ fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes)
 fe_t *
 fe_retain(fe_t *fe)
 {
+    if (fe == NULL)
+        return NULL;
     ++fe->refcount;
     return fe;
 }

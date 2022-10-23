@@ -67,6 +67,8 @@ error_out:
 vad_t *
 vad_retain(vad_t *vad)
 {
+    if (vad == NULL)
+        return NULL;
     ++vad->refcount;
     return vad;
 }
