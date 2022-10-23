@@ -363,17 +363,15 @@ const anytype_t *config_set_str(config_t *config,
  * associated attributes as given in defn.
  *
  * @param cmdln command-line object
- * @param defn array of argument name definitions.
  */
-void config_log_help(config_t *cmdln, const config_param_t *defn);
+void config_log_help(config_t *cmdln);
 
 /**
  * Print current configuration values and defaults.
  *
  * @param cmdln  command-line object
- * @param defn array of argument name definitions.
  */
-void config_log_values(config_t *cmdln, const config_param_t *defn);
+void config_log_values(config_t *cmdln);
 
 
 config_val_t *config_access(config_t *cmdln, const char *name);
