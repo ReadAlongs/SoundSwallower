@@ -55,90 +55,6 @@
 #include <soundswallower/decoder.h>
 #include <soundswallower/fsg_search.h>
 
-
-#ifndef __EMSCRIPTEN__
-/* I'm not sure what the portable way to do this is. */
-static int
-file_exists(const char *path)
-{
-    FILE *tmp;
-
-    tmp = fopen(path, "rb");
-    if (tmp) fclose(tmp);
-    return (tmp != NULL);
-}
-
-static int
-ps_expand_file_config(ps_decoder_t *ps, const char *arg, const char *extra_arg,
-	              const char *hmmdir, const char *file)
-{
-    const char *val;
-    if ((val = config_str(ps->config, arg)) != NULL) {
-        E_INFO("Overriding %s from command line %s: %s\n",
-               extra_arg, arg, val);
-	cmd_ln_set_str_extra_r(ps->config, extra_arg, val);
-        return TRUE;
-    } else if (hmmdir == NULL) {
-        cmd_ln_set_str_extra_r(ps->config, extra_arg, NULL);
-        return FALSE;
-    } else {
-        char *tmp = string_join(hmmdir, "/", file, NULL);
-        if (file_exists(tmp)) {
-            E_INFO("Setting %s from %s: %s\n",
-                   extra_arg, hmmdir, file);
-	    cmd_ln_set_str_extra_r(ps->config, extra_arg, tmp);
-            ckd_free(tmp);
-            return TRUE;
-        }
-	else {
-	    cmd_ln_set_str_extra_r(ps->config, extra_arg, NULL);
-            ckd_free(tmp);
-            return FALSE;
-        }
-    }
-}
-#endif
-
-static void
-ps_expand_model_config(ps_decoder_t *ps)
-{
-    /* All done externally in JavaScript */
-#ifdef __EMSCRIPTEN__
-    (void)ps;
-#else
-    char const *hmmdir, *featparams;
-    /* Feature and front-end parameters that may be in feat.params */
-    static const config_param_t feat_defn[] = {
-        FE_OPTIONS,
-        FEAT_OPTIONS,
-        CONFIG_EMPTY_OPTION
-    };
-
-    /* Get acoustic model filenames and add them to the command-line */
-    hmmdir = config_str(ps->config, "hmm");
-    if (!ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.bin"))
-        if (!ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef"))
-            ps_expand_file_config(ps, "-mdef", "_mdef", hmmdir, "mdef.txt");
-    ps_expand_file_config(ps, "-mean", "_mean", hmmdir, "means");
-    ps_expand_file_config(ps, "-var", "_var", hmmdir, "variances");
-    ps_expand_file_config(ps, "-tmat", "_tmat", hmmdir, "transition_matrices");
-    ps_expand_file_config(ps, "-sendump", "_sendump", hmmdir, "sendump");
-    ps_expand_file_config(ps, "-mixw", "_mixw", hmmdir, "mixture_weights");
-    ps_expand_file_config(ps, "-fdict", "_fdict", hmmdir, "noisedict");
-    ps_expand_file_config(ps, "-lda", "_lda", hmmdir, "feature_transform");
-    ps_expand_file_config(ps, "-senmgau", "_senmgau", hmmdir, "senmgau");
-    ps_expand_file_config(ps, "-dict", "_dict", hmmdir, "dict.txt");
-    /* Look for feat.params in acoustic model dir. */
-    ps_expand_file_config(ps, "-featparams", "_featparams", hmmdir, "feat.params");
-    if ((featparams = config_str(ps->config, "_featparams"))) {
-        if (NULL !=
-            cmd_ln_parse_file_r(ps->config, feat_defn, featparams, FALSE))
-            E_INFO("Parsed model-specific feature parameters from %s\n",
-                    featparams);
-    }
-#endif /* not __EMSCRIPTEN__ */
-}
-
 static void
 ps_free_searches(ps_decoder_t *ps)
 {
@@ -227,14 +143,11 @@ ps_init_config(ps_decoder_t *ps, config_t *config)
             return -1;
         set_logfile(ps, config);
         config_free(ps->config);
-        ps->config = cmd_ln_retain(config);
+        ps->config = config_retain(config);
     }
     
-    /* Fill in some default arguments. */
-    ps_expand_model_config(ps);
-
     /* Print out the config for logging. */
-    cmd_ln_log_values_r(ps->config, ps_args());
+    config_log_values(ps->config, ps_args());
     
     /* Logmath computation (used in acmod and search) */
     if (ps->lmath == NULL
@@ -435,7 +348,7 @@ ps_reinit_fe(ps_decoder_t *ps, config_t *config)
     
     if (config && config != ps->config) {
         config_free(ps->config);
-        ps->config = cmd_ln_retain(config);
+        ps->config = config_retain(config);
     }
     if ((new_fe = fe_init(ps->config)) == NULL)
         return NULL;
