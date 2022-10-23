@@ -35,7 +35,7 @@
  *
  */
 /*
- * cmd_ln.c -- Command line argument parsing.
+ * config.c -- Command line argument parsing.
  *
  * **********************************************
  * CMU ARPA Speech Project

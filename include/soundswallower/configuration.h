@@ -224,6 +224,7 @@ const char *config_serialize_json(config_t *config);
  *         bits), or 0 if no such parameter exists.
  */
 config_type_t config_typeof(config_t *config, char const *name);
+#define config_exists(config, name) (config_typeof(config, name) != 0)
 
 /**
  * Access the value of a configuration parameter.
