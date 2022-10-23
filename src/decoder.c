@@ -1105,3 +1105,280 @@ search_module_base_reinit(search_module_t *search, dict_t *dict,
     else
         search->d2p = NULL;
 }
+
+#define HYP_FORMAT "{\"b\":%.3f,\"d\":%.3f,\"p\":%.3f,\"t\":\"%s\""
+int
+format_hyp(char *outptr, int len, decoder_t *decoder, double start, double duration)
+{
+    logmath_t *lmath;
+    double prob;
+    const char *hyp;
+
+    lmath = ps_get_logmath(decoder);
+    prob = logmath_exp(lmath, ps_get_prob(decoder));
+    if (duration == 0.0) {
+        start = 0.0;
+        duration = (double)ps_get_n_frames(decoder)
+            / config_int(ps_get_config(decoder), "frate");
+    }
+    hyp = ps_get_hyp(decoder, NULL);
+    if (hyp == NULL)
+        hyp = "";
+    return snprintf(outptr, len, HYP_FORMAT, start, duration, prob, hyp);
+}
+
+int
+format_seg(char *outptr, int len, seg_iter_t *seg,
+           double utt_start, int frate,
+           logmath_t *lmath)
+{
+    double prob, st, dur;
+    int sf, ef;
+    const char *word;
+
+    ps_seg_frames(seg, &sf, &ef);
+    st = utt_start + (double)sf / frate;
+    dur = (double)(ef + 1 - sf) / frate;
+    word = ps_seg_word(seg);
+    if (word == NULL)
+        word = "";
+    prob = logmath_exp(lmath, ps_seg_prob(seg, NULL, NULL));
+    len = snprintf(outptr, len, HYP_FORMAT, st, dur, prob, word);
+    if (outptr) {
+        outptr += len;
+        *outptr++ = '}';
+        *outptr = '\0';
+    }
+    len++;
+    return len;
+}
+
+int
+format_align_iter(char *outptr, int maxlen,
+                  alignment_iter_t *itor, double utt_start, int frate, logmath_t *lmath)
+{
+    int start, duration, score;
+    double prob, st, dur;
+    const char *word;
+
+    score = alignment_iter_seg(itor, &start, &duration);
+    st = utt_start + (double)start / frate;
+    dur = (double)duration / frate;
+    prob = logmath_exp(lmath, score);
+    word = alignment_iter_name(itor);
+    if (word == NULL)
+        word = "";
+
+    return snprintf(outptr, maxlen, HYP_FORMAT, st, dur, prob, word);
+}
+
+int
+format_seg_align(char *outptr, int maxlen,
+                 alignment_iter_t *itor,
+                 double utt_start, int frate,
+                 logmath_t *lmath, int state_align)
+{
+    alignment_iter_t *pitor;
+    int len = 0, hyplen;
+
+    hyplen = format_align_iter(outptr, maxlen,
+                               itor, utt_start, frate, lmath);
+    len += hyplen;
+    if (outptr)
+        outptr += hyplen;
+    if (maxlen)
+        maxlen -= hyplen;
+
+    len += 6; /* "w":,[ */
+    if (outptr) {
+        memcpy(outptr, ",\"w\":[", 6);
+        outptr += 6;
+    }
+    if (maxlen)
+        maxlen -= 6;
+    
+    pitor = alignment_iter_children(itor);
+    while (pitor != NULL) {
+        hyplen = format_align_iter(outptr, maxlen,
+                                   pitor, utt_start, frate, lmath);
+        len += hyplen;
+        if (outptr)
+            outptr += hyplen;
+        if (maxlen)
+            maxlen -= hyplen;
+
+        /* FIXME: refactor with recursion, someday */
+        if (state_align) {
+            alignment_iter_t *sitor = alignment_iter_children(pitor);
+            len += 6; /* "w":,[ */
+            if (outptr) {
+                memcpy(outptr, ",\"w\":[", 6);
+                outptr += 6;
+            }
+            if (maxlen)
+                maxlen -= 6;
+            while (sitor != NULL) {
+                hyplen = format_align_iter(outptr, maxlen,
+                                           sitor, utt_start, frate, lmath);
+                len += hyplen;
+                if (outptr)
+                    outptr += hyplen;
+                if (maxlen)
+                    maxlen -= hyplen;
+
+                len++; /* } */
+                if (outptr)
+                    *outptr++ = '}';
+                if (maxlen)
+                    maxlen--;
+                sitor = alignment_iter_next(sitor);
+                if (sitor != NULL) {
+                    len++;
+                    if (outptr)
+                        *outptr++ = ',';
+                    if (maxlen)
+                        maxlen--;
+                }
+            }
+            len++;
+            if (outptr)
+                *outptr++ = ']';
+            if (maxlen)
+                maxlen--;
+        }
+
+        len++; /* } */
+        if (outptr)
+            *outptr++ = '}';
+        if (maxlen)
+            maxlen--;
+        pitor = alignment_iter_next(pitor);
+        if (pitor != NULL) {
+            len++;
+            if (outptr)
+                *outptr++ = ',';
+            if (maxlen)
+                maxlen--;
+        }
+    }
+
+    len += 2;
+    if (outptr) {
+        *outptr++ = ']';
+        *outptr++ = '}';
+        *outptr = '\0';
+    }
+    if (maxlen)
+        maxlen--;
+    
+    return len;
+}
+
+void
+output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double duration)
+{
+    logmath_t *lmath;
+    char *hyp_json, *ptr;
+    int frate;
+    int maxlen, len;
+    int state_align = config_bool(decoder->config, "state_align");
+
+    maxlen = format_hyp(NULL, 0, decoder, start, duration);
+    maxlen += 6; /* "w":,[ */
+    lmath = ps_get_logmath(decoder);
+    frate = config_int(ps_get_config(decoder), "frate");
+    if (alignment) {
+        alignment_iter_t *itor = alignment_words(alignment);
+        if (itor == NULL)
+            maxlen++; /* ] at end */
+        for (; itor; itor = alignment_iter_next(itor)) {
+            maxlen += format_seg_align(NULL, 0, itor, start, frate,
+                                       lmath, state_align);
+            maxlen++; /* , or ] at end */
+        }
+    }
+    else {
+        seg_iter_t *itor = ps_seg_iter(decoder);
+        if (itor == NULL)
+            maxlen++; /* ] at end */
+        for (; itor; itor = ps_seg_next(itor)) {
+            maxlen += format_seg(NULL, 0, itor, start, frate, lmath);
+            maxlen++; /* , or ] at end */
+        }
+    }
+    maxlen++; /* final } */
+    maxlen++; /* trailing \0 */
+
+    ptr = hyp_json = ckd_calloc(maxlen, 1);
+    len = maxlen;
+    len = format_hyp(hyp_json, len, decoder, start, duration);
+    ptr += len;
+    maxlen -= len;
+
+    assert(maxlen > 6);
+    memcpy(ptr, ",\"w\":[", 6);
+    ptr += 6;
+    maxlen -= 6;
+
+    if (alignment) {
+        alignment_iter_t *itor;
+        for (itor = alignment_words(alignment); itor;
+             itor = alignment_iter_next(itor)) {
+            assert(maxlen > 0);
+            len = format_seg_align(ptr, maxlen, itor, start, frate, lmath,
+                                   state_align);
+            ptr += len;
+            maxlen -= len;
+            *ptr++ = ',';
+            maxlen--;
+        }
+    }
+    else {
+        seg_iter_t *itor = ps_seg_iter(decoder);
+        if (itor == NULL) {
+            *ptr++ = ']'; /* Gets overwritten below... */
+            maxlen--;
+        }
+        for (; itor; itor = ps_seg_next(itor)) {
+            assert(maxlen > 0);
+            len = format_seg(ptr, maxlen, itor, start, frate, lmath);
+            ptr += len;
+            maxlen -= len;
+            *ptr++ = ',';
+            maxlen--;
+        }
+    }
+    --ptr;
+    *ptr++ = ']';
+    assert(maxlen == 2);
+    *ptr++ = '}';
+    --maxlen;
+    *ptr = '\0';
+    puts(hyp_json);
+    ckd_free(hyp_json);
+}
+
+static int sample_rates[] = {
+    8000,
+    11025,
+    16000,
+    22050,
+    32000,
+    44100,
+    48000
+};
+static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+
+int
+minimum_samprate(config_t *config)
+{
+    double upperf = config_float(config, "upperf");
+    int nyquist = (int)(upperf * 2);
+    int i;
+    for (i = 0; i < n_sample_rates; ++i)
+        if (sample_rates[i] >= nyquist)
+            break;
+    if (i == n_sample_rates)
+        E_FATAL("Unable to find sampling rate for -upperf %f\n", upperf);
+    return sample_rates[i];
+}
