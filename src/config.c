@@ -279,24 +279,6 @@ config_val_free(config_val_t *val)
     ckd_free(val);
 }
 
-
-void
-cmd_ln_set_str_extra_r(config_t *cmdln, char const *name, char const *str)
-{
-    config_val_t *val;
-    if (hash_table_lookup(cmdln->ht, name, (void **)&val) < 0) {
-	val = config_val_init(ARG_STRING, name, str);
-	hash_table_enter(cmdln->ht, val->name, (void *)val);
-    } else {
-        if (!(val->type & ARG_STRING)) {
-            E_ERROR("Argument %s does not have string type\n", name);
-            return;
-        }
-        ckd_free(val->val.ptr);
-        val->val.ptr = ckd_salloc(str);
-    }
-}
-
 config_t *
 config_init(const config_param_t *defn)
 {
