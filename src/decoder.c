@@ -1447,28 +1447,3 @@ output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double dura
     puts(hyp_json);
     ckd_free(hyp_json);
 }
-
-static int sample_rates[] = {
-    8000,
-    11025,
-    16000,
-    22050,
-    32000,
-    44100,
-    48000
-};
-static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
-
-int
-minimum_samprate(config_t *config)
-{
-    double upperf = config_float(config, "upperf");
-    int nyquist = (int)(upperf * 2);
-    int i;
-    for (i = 0; i < n_sample_rates; ++i)
-        if (sample_rates[i] >= nyquist)
-            break;
-    if (i == n_sample_rates)
-        E_FATAL("Unable to find sampling rate for -upperf %f\n", upperf);
-    return sample_rates[i];
-}

@@ -53,13 +53,47 @@ static const config_param_t fe_args[] = {
     { NULL, 0, NULL, NULL }
 };
 
+static int sample_rates[] = {
+    8000,
+    11025,
+    16000,
+    22050,
+    32000,
+    44100,
+    48000
+};
+static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+
+static int
+minimum_samprate(config_t *config)
+{
+    double upperf = config_float(config, "upperf");
+    int nyquist = (int)(upperf * 2);
+    int i;
+    for (i = 0; i < n_sample_rates; ++i)
+        if (sample_rates[i] >= nyquist)
+            break;
+    if (i == n_sample_rates) {
+        E_ERROR("Unable to find sampling rate for -upperf %f\n", upperf);
+        return 16000;
+    }
+    return sample_rates[i];
+}
+
 int
 fe_parse_general_params(config_t *config, fe_t * fe)
 {
     int j, frate, window_samples;
 
     fe->config = config_retain(config);
-    fe->sampling_rate = config_float(config, "samprate");
+    fe->sampling_rate = config_int(config, "samprate");
+    /* Set sampling rate automatically from upperf if 0 */
+    if (fe->sampling_rate == 0) {
+        fe->sampling_rate = minimum_samprate(config);
+        E_INFO("Sampling rate automatically set to %d\n",
+               fe->sampling_rate);
+    }
+    
     frate = config_int(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {
         E_ERROR
