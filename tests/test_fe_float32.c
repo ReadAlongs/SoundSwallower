@@ -8,6 +8,7 @@
 
 #include <soundswallower/err.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/byteorder.h>
 
@@ -307,7 +308,7 @@ int
 main(int argc, char *argv[])
 {
     static const config_param_t fe_args[] = {
-        waveform_to_cepstral_command_line_macro(),
+        FE_OPTIONS,
         { NULL, 0, NULL, NULL }
     };
     FILE *raw;
@@ -319,8 +320,9 @@ main(int argc, char *argv[])
     mfcc_t **cepbuf, **cepbuf1;
     size_t i;
 
+    (void)argc; (void)argv;
     err_set_loglevel_str("INFO");
-    TEST_ASSERT(config = config_parse(NULL, fe_args, argc, argv, FALSE));
+    TEST_ASSERT(config = config_init(fe_args));
     /* Even though we make our own float32 data, we will ensure it's
        little-endian to be consistent. */
     config_set_str(config, "input_endian", "little");
