@@ -1026,19 +1026,19 @@ s2_semi_mgau_init(acmod_t *acmod)
     const char *path;
     mgau_t *ps = NULL;
 
-    path = config_str(acmod->config, "_mean");
+    path = config_str(acmod->config, "mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((means = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", path);
         goto error_out;
     }
-    path = config_str(acmod->config, "_var");
+    path = config_str(acmod->config, "var");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((vars = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", path);
         goto error_out;
     }
-    if ((path = config_str(acmod->config, "_sendump"))) {
+    if ((path = config_str(acmod->config, "sendump"))) {
         E_INFO("Loading senones from dump file %s\n", path);
         if ((sendump = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
@@ -1046,7 +1046,7 @@ s2_semi_mgau_init(acmod_t *acmod)
         }
     }
     else {
-        path = config_str(acmod->config, "_mixw");
+        path = config_str(acmod->config, "mixw");
         E_INFO("Reading senone mixture weights: %s\n", path);
         if ((mixw = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",

@@ -149,13 +149,13 @@ dict_init(config_t *config, bin_mdef_t * mdef)
 
     if (config) {
         const char *path;
-        if ((path = config_str(config, "_dict")) != NULL) {
+        if ((path = config_str(config, "dict")) != NULL) {
             if ((dict = s3file_map_file(path)) == NULL) {
                 E_ERROR_SYSTEM("Failed to read dictionary from %s", path);
                 goto error_out;
             }
         }
-        if ((path = config_str(config, "_fdict")) != NULL) {
+        if ((path = config_str(config, "fdict")) != NULL) {
             if ((fdict = s3file_map_file(path)) == NULL) {
                 E_ERROR_SYSTEM("Failed to read filler dictionary from %s", path);
                 goto error_out;

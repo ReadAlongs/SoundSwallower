@@ -182,8 +182,8 @@ ms_mgau_init(acmod_t *acmod)
     msg->g = NULL;
     msg->s = NULL;
     
-    if ((g = msg->g = gauden_init(config_str(config, "_mean"),
-                             config_str(config, "_var"),
+    if ((g = msg->g = gauden_init(config_str(config, "mean"),
+                             config_str(config, "var"),
                              config_float(config, "varfloor"),
                              lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
@@ -205,8 +205,8 @@ ms_mgau_init(acmod_t *acmod)
     }
 
     s = msg->s = senone_init(msg->g,
-                             config_str(config, "_mixw"),
-                             config_str(config, "_senmgau"),
+                             config_str(config, "mixw"),
+                             config_str(config, "senmgau"),
                              config_float(config, "mixwfloor"),
                              lmath, mdef);
 

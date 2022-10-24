@@ -718,7 +718,7 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 feat_t *
 feat_init(config_t *config)
 {
-    const char *ldapath = config_str(config, "_lda");
+    const char *ldapath = config_str(config, "lda");
     s3file_t *lda = NULL;
     feat_t *feat;
 

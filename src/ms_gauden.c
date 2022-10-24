@@ -484,7 +484,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
     g->featlen = NULL;
 
     /* Reload means and variances (un-precomputed). */
-    meanfile = config_str(config, "_mean");
+    meanfile = config_str(config, "mean");
     if ((s = s3file_map_file(meanfile)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
         return -1;
@@ -492,7 +492,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
     g->mean = (mfcc_t ****)gauden_param_read(s, &g->n_mgau, &g->n_feat, &g->n_density,
                       &g->featlen);
     s3file_free(s);
-    varfile = config_str(config, "_var");
+    varfile = config_str(config, "var");
     if ((s = s3file_map_file(varfile)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", varfile);
         return -1;

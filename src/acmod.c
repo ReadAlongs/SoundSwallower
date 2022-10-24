@@ -66,7 +66,7 @@ acmod_load_am(acmod_t *acmod)
     char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
     /* Read model definition. */
-    if ((mdeffn = config_str(acmod->config, "_mdef")) == NULL) {
+    if ((mdeffn = config_str(acmod->config, "mdef")) == NULL) {
         if ((hmmdir = config_str(acmod->config, "hmm")) == NULL)
             E_ERROR("Acoustic model definition is not specified either "
                     "with -mdef option or with -hmm\n");
@@ -83,7 +83,7 @@ acmod_load_am(acmod_t *acmod)
     }
 
     /* Read transition matrices. */
-    if ((tmatfn = config_str(acmod->config, "_tmat")) == NULL) {
+    if ((tmatfn = config_str(acmod->config, "tmat")) == NULL) {
         E_ERROR("No tmat file specified\n");
         return -1;
     }
@@ -91,14 +91,14 @@ acmod_load_am(acmod_t *acmod)
                             config_float(acmod->config, "tmatfloor"));
 
     /* Read the acoustic models. */
-    if ((config_str(acmod->config, "_mean") == NULL)
-        || (config_str(acmod->config, "_var") == NULL)
-        || (config_str(acmod->config, "_tmat") == NULL)) {
+    if ((config_str(acmod->config, "mean") == NULL)
+        || (config_str(acmod->config, "var") == NULL)
+        || (config_str(acmod->config, "tmat") == NULL)) {
         E_ERROR("No mean/var/tmat files specified\n");
         return -1;
     }
 
-    if (config_str(acmod->config, "_senmgau")) {
+    if (config_str(acmod->config, "senmgau")) {
         E_INFO("Using general multi-stream GMM computation\n");
         acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
