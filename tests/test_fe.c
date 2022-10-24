@@ -7,6 +7,7 @@
 
 #include <soundswallower/err.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 
 #include "test_macros.h"
@@ -254,7 +255,7 @@ int
 main(int argc, char *argv[])
 {
     static const config_param_t fe_args[] = {
-        waveform_to_cepstral_command_line_macro(),
+        FE_OPTIONS,
         { NULL, 0, NULL, NULL }
     };
     FILE *raw;
@@ -264,8 +265,9 @@ main(int argc, char *argv[])
     int32 frame_shift, frame_size;
     mfcc_t **cepbuf, **cepbuf1;
 
+    (void)argc; (void)argv;
     err_set_loglevel_str("INFO");
-    TEST_ASSERT(config = config_parse(NULL, fe_args, argc, argv, FALSE));
+    TEST_ASSERT(config = config_init(fe_args));
     /* Kind of important ;-) */
     config_set_str(config, "input_endian", "little");
     TEST_ASSERT(fe = fe_init(config));
