@@ -429,7 +429,7 @@ unescape(char *out, const char *in, size_t len)
 
 config_t *
 config_parse_json(config_t *config,
-                     const char *json)
+                  const char *json)
 {
     jsmn_parser parser;
     jsmntok_t *tokens = NULL;
