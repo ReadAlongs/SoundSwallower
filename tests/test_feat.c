@@ -50,11 +50,11 @@ main(int argc, char *argv[])
 
 	(void)argc; (void)argv;
 	/* Test "raw" features without concatenation */
-	config = cmd_ln_init(NULL, ps_args(), TRUE,
-			     "-feat", "13",
-			     "-cmn", "none",
-			     "-varnorm", "no",
-			     "-ceplen", "13", NULL);
+	config = config_init(NULL);
+        config_set_str(config, "feat", "13");
+        config_set_str(config, "cmn", "none");
+        config_set_str(config, "varnorm", "no");
+        config_set_str(config, "ceplen", "13");
 	fcb = feat_init(config);
 
 	in_feats = (mfcc_t **)ckd_alloc_2d_ptr(6, 13, data, sizeof(mfcc_t));
