@@ -53,7 +53,7 @@ main(int argc, char *argv[])
         "hmm: \"" MODELDIR "/en-us\","
         "compallsen: true, cmn: live, tmatfloor: 0.0001,"
         "mixwfloor: 0.001, varfloor: 0.0001,"
-        "mmap: false, topn: 4, ds: 1, samprate: 0");
+        "topn: 4, ds: 1, samprate: 0");
     TEST_ASSERT(config);
     config_expand(config);
 

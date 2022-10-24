@@ -19,11 +19,10 @@ main(int argc, char *argv[])
 	config_t *config;
 
 	(void)argc; (void)argv;
-	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us/dict.txt",
-						   "_fdict", MODELDIR "/en-us/noisedict",
-						   NULL));
-	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef.bin"));
+	TEST_ASSERT(config = config_init(NULL));
+        config_set_str(config, "dict", MODELDIR "/en-us/dict.txt");
+        config_set_str(config, "fdict", MODELDIR "/en-us/noisedict");
+	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
 	TEST_ASSERT(d2p = dict2pid_build(mdef, dict));
 
