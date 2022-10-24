@@ -55,6 +55,99 @@
 #include <soundswallower/fsg_search.h>
 #include <soundswallower/search_module.h>
 
+/* Do this unconditionally if we have no filesystem */
+/* FIXME: Actually just the web environment */
+#ifdef __EMSCRIPTEN__
+static void
+expand_file_config(config_t *config, const char *arg,
+                   const char *hmmdir, const char *file)
+{
+    const char *val;
+    if ((val = config_str(config, arg)) == NULL) {
+        char *tmp = string_join(hmmdir, "/", file, NULL);
+        config_set_str(config, arg, tmp);
+        ckd_free(tmp);
+    }
+}
+#else
+static int
+file_exists(const char *path)
+{
+    FILE *tmp;
+
+    tmp = fopen(path, "rb");
+    if (tmp) fclose(tmp);
+    return (tmp != NULL);
+}
+
+static void
+expand_file_config(config_t *config, const char *arg,
+                   const char *hmmdir, const char *file)
+{
+    const char *val;
+    if ((val = config_str(config, arg)) == NULL) {
+        char *tmp = string_join(hmmdir, "/", file, NULL);
+        if (file_exists(tmp))
+	    config_set_str(config, arg, tmp);
+	else
+	    config_set_str(config, arg, NULL);
+        ckd_free(tmp);
+    }
+}
+#endif /* __EMSCRIPTEN__ */
+
+void
+config_expand(config_t *config)
+{
+    char const *hmmdir, *featparams;
+
+    /* Get acoustic model filenames and add them to the command-line */
+    hmmdir = config_str(config, "hmm");
+    if (hmmdir) {
+        expand_file_config(config, "mdef", hmmdir, "mdef");
+        expand_file_config(config, "mean", hmmdir, "means");
+        expand_file_config(config, "var", hmmdir, "variances");
+        expand_file_config(config, "tmat", hmmdir, "transition_matrices");
+        expand_file_config(config, "mixw", hmmdir, "mixture_weights");
+        expand_file_config(config, "sendump", hmmdir, "sendump");
+        expand_file_config(config, "fdict", hmmdir, "noisedict");
+        expand_file_config(config, "lda", hmmdir, "feature_transform");
+        expand_file_config(config, "featparams", hmmdir, "feat_params.json");
+        expand_file_config(config, "senmgau", hmmdir, "senmgau");
+    }
+
+    /* And again ... without stdio, can't do this. */
+#ifndef __EMSCRIPTEN__
+    /* Look for feat_params.json in acoustic model dir. */
+    if ((featparams = config_str(config, "featparams")) != NULL) {
+        FILE *json = fopen(featparams, "rt");
+        char *jsontxt;
+        size_t len;
+
+        if (json == NULL)
+            return;
+        fseek(json, 0, SEEK_END);
+        len = ftell(json);
+        if (fseek(json, 0, SEEK_SET) < 0) {
+            E_ERROR_SYSTEM("Failed to rewind %s", featparams);
+            return;
+        }
+        jsontxt = malloc(len + 1);
+        jsontxt[len] = '\0';
+        if (fread(jsontxt, 1, len, json) != len) {
+            E_ERROR_SYSTEM("Failed to read %s", featparams);
+            ckd_free(jsontxt);
+            return;
+        }
+        if (config_parse_json(config, jsontxt))
+            E_INFO("Parsed model-specific feature parameters from %s\n",
+                   featparams);
+        ckd_free(jsontxt);
+        fclose(json);
+    }
+#endif
+}
+
 static void
 decoder_free_searches(decoder_t *d)
 {

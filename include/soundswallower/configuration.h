@@ -170,6 +170,14 @@ int config_free(config_t *config);
 int config_validate(config_t *config);
 
 /**
+ * Expand model parameters in configuration.
+ *
+ * If "hmm" is set, this will provide default values for the various model files.
+ * @memberof config_t
+ */
+void config_expand(config_t *config);
+
+/**
  * Create or update a configuration by parsing slightly extended JSON.
  *
  * This function parses a JSON object in non-strict mode to produce a
