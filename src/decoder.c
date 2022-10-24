@@ -239,7 +239,9 @@ decoder_init_config(decoder_t *d, config_t *config)
         /* Note! Consuming semantics. */
         d->config = config;
     }
-    
+
+    /* Expand model parameters. */
+    config_expand(config);
     /* Print out the config for logging. */
     config_log_values(d->config);
     
