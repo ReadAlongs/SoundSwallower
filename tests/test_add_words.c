@@ -52,6 +52,7 @@ main(int argc, char *argv[])
     hyp = decoder_hyp(ps, &score);
     prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go _forward two meters", hyp));
     decoder_free(ps);
 

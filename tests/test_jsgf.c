@@ -53,6 +53,7 @@ main(int argc, char *argv[])
     hyp = decoder_hyp(ps, &score);
     prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     decoder_free(ps);
     fclose(rawfh);
@@ -75,6 +76,7 @@ main(int argc, char *argv[])
     hyp = decoder_hyp(ps, &score);
     prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     decoder_free(ps);
     fclose(rawfh);
@@ -97,6 +99,7 @@ main(int argc, char *argv[])
     hyp = decoder_hyp(ps, &score);
     prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     decoder_free(ps);
     fclose(rawfh);

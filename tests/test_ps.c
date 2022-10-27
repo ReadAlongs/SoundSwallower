@@ -28,6 +28,7 @@ decoder_test(config_t *config, char const *sname, char const *expected)
     hyp = decoder_get_hyp(ps, &score);
     prob = decoder_get_prob(ps);
     printf("%s: %s (%d, %d)\n", sname, hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp(hyp, expected));
     TEST_ASSERT(prob <= 0);
     decoder_get_utt_time(ps, &n_speech, &n_cpu, &n_wall);
@@ -52,6 +53,7 @@ decoder_test(config_t *config, char const *sname, char const *expected)
     hyp = decoder_get_hyp(ps, &score);
     prob = decoder_get_prob(ps);
     printf("%s: %s (%d, %d)\n", sname, hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp(hyp, expected));
     decoder_get_utt_time(ps, &n_speech, &n_cpu, &n_wall);
     printf("%.2f seconds speech, %.2f seconds CPU, %.2f seconds wall\n",
@@ -83,6 +85,7 @@ decoder_test(config_t *config, char const *sname, char const *expected)
     hyp = decoder_get_hyp(ps, &score);
     prob = decoder_get_prob(ps);
     printf("%s: %s (%d, %d)\n", sname, hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp(hyp, expected));
     TEST_ASSERT(prob <= 0);
     for (seg = decoder_seg_iter(ps); seg;

@@ -31,6 +31,8 @@ main(int argc, char *argv[])
     config_set_str(config, "fsg", TESTDATADIR "/goforward.fsg");
     config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
     config_set_str(config, "input_endian", "little");
+    config_set_str(config, "loglevel", "INFO");
+    config_set_str(config, "bestpath", "no");
     config_set_str(config, "samprate", "16000");
     TEST_ASSERT(ps = decoder_init(config));
 
@@ -45,6 +47,7 @@ main(int argc, char *argv[])
     hyp = decoder_hyp(ps, &score);
     prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
 
 
