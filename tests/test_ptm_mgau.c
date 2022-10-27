@@ -97,10 +97,23 @@ main(int argc, char *argv[])
 
 	(void)argc; (void)argv;
 	lmath = logmath_init(1.0001, 0, 0);
+        err_set_loglevel(ERR_INFO);
 	config = config_init(NULL);
         config_set_str(config, "compallsen", "yes");
         config_set_str(config, "input_endian", "little");
-        config_expand(config);
+        config_set_str(config, "lowerf", "130");
+        config_set_str(config, "upperf", "3700");
+        config_set_str(config, "nfilt", "20");
+        config_set_str(config, "transform", "dct");
+        config_set_str(config, "lifter", "22");
+        config_set_str(config, "feat", "1s_c_d_dd");
+        config_set_str(config, "remove_noise", "yes");
+        config_set_str(config, "svspec", "0-12/13-25/26-38");
+        config_set_str(config, "mdef", MODELDIR "/en-us/mdef");
+        config_set_str(config, "mean", MODELDIR "/en-us/means");
+        config_set_str(config, "var", MODELDIR "/en-us/variances");
+        config_set_str(config, "tmat", MODELDIR "/en-us/transition_matrices");
+        config_set_str(config, "sendump", MODELDIR "/en-us/sendump");
 	
 	TEST_ASSERT(config);
 	fe = fe_init(config);
@@ -109,30 +122,21 @@ main(int argc, char *argv[])
 	TEST_ASSERT((ps = acmod->mgau));
 	TEST_EQUAL(0, strcmp(ps->vt->name, "ptm"));
 	s = (ptm_mgau_t *)ps;
-	E_DEBUG("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
+	E_INFO("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
                 s->g->n_mgau, s->n_sen, s->n_fast_hist);
-        E_DEBUG("Senone to codebook mappings:\n");
+        E_INFO("Senone to codebook mappings:\n");
         lastcb = s->sen2cb[0];
-        E_DEBUG("\t%d: 0", lastcb);
+        E_INFO("\t%d: 0", lastcb);
         for (i = 0; i < s->n_sen; ++i) {
             if (s->sen2cb[i] != lastcb) {
                 lastcb = s->sen2cb[i];
-                E_DEBUG("-%d\n", i-1);
-                E_DEBUG("\t%d: %d", lastcb, i);
+                E_INFOCONT("-%d\n", i-1);
+                E_INFO("\t%d: %d", lastcb, i);
             }
         }
         E_INFOCONT("-%d\n", i-1);
         run_acmod_test(acmod);
 
-#if 0
-/* Replace it with ms_mgau. */
-        ptm_mgau_free(ps);
-        config_set_str(config,
-                       "-mixw",
-                       MODELDIR "/en-us/mixture_weights");
-	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
-	run_acmod_test(acmod);
-#endif
 	acmod_free(acmod);
 	fe_free(fe);
 	feat_free(fcb);
