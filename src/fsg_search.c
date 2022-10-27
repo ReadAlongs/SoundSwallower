@@ -357,7 +357,9 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
 #if __FSG_DBG__
         E_INFO("pnode(%08x) active @frm %5d\n", (int32) pnode,
                fsgs->frame);
+#if __FSG_DBG_CHAN__
         hmm_dump(hmm, stdout);
+#endif
 #endif
         score = hmm_vit_eval(hmm);
 #if __FSG_DBG_CHAN__
