@@ -126,7 +126,7 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
             obs += 4;
             mean += 4;
         }
-        if (d < (mfcc_t)MAX_NEG_INT32)  /* Redundant if FIXED_POINT */
+        if (d < (mfcc_t)MAX_NEG_INT32)
             insertion_sort_topn(topn, i, MAX_NEG_INT32);
         else
             insertion_sort_topn(topn, i, (int32)d);
@@ -216,7 +216,7 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         }
         if (i < s->max_topn)
             continue;       /* already there.  Don't insert */
-        if (d < (mfcc_t)MAX_NEG_INT32)  /* Redundant if FIXED_POINT */
+        if (d < (mfcc_t)MAX_NEG_INT32)
             insertion_sort_cb(&cur, worst, best, cw, MAX_NEG_INT32);
         else
             insertion_sort_cb(&cur, worst, best, cw, (int32)d);
@@ -277,6 +277,7 @@ ptm_mgau_codebook_norm(ptm_mgau_t *s, mfcc_t **z, int frame)
             if (norm < s->f->topn[i][j][0].score >> SENSCR_SHIFT)
                 norm = s->f->topn[i][j][0].score >> SENSCR_SHIFT;
         }
+        assert(norm != WORST_SCORE);
         for (i = 0; i < s->g->n_mgau; ++i) {
             int32 k;
             if (bitvec_is_clear(s->f->mgau_active, i))
@@ -328,7 +329,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
                      uint8 *senone_active, int32 n_senone_active,
                      int compall)
 {
-    int i, lastsen, bestscore;
+    int32 i, lastsen, bestscore;
 
     memset(senone_scores, 0, s->n_sen * sizeof(*senone_scores));
     /* FIXME: This is the non-cache-efficient way to do this.  We want
@@ -338,7 +339,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
      * codewords. */
     if (compall)
         n_senone_active = s->n_sen;
-    bestscore = 0x7fffffff;
+    bestscore = MAX_INT32;
     for (lastsen = i = 0; i < n_senone_active; ++i) {
         int sen, f, cb;
         int ascore;
