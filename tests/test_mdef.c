@@ -170,7 +170,7 @@ main(int argc, char *argv[])
 
     E_INFO("Testing binary mdef read\n");
     config_set_bool(config, "cionly", FALSE);
-    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.bin");
+    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef");
     TEST_ASSERT(mdef != NULL);
     test_ci_mdef(mdef);
     test_cd_mdef(mdef);
@@ -178,7 +178,7 @@ main(int argc, char *argv[])
 
     E_INFO("Testing binary mdef -cionly read\n");
     config_set_bool(config, "cionly", TRUE);
-    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.bin");
+    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef");
     TEST_ASSERT(mdef != NULL);
     test_ci_mdef(mdef);
     test_cionly_mdef(mdef);
