@@ -5,11 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-
-
-
-
-
 #include "test_macros.h"
 
 int
@@ -27,13 +22,26 @@ main(int argc, char *argv[])
 
     (void)argc; (void)argv;
     TEST_ASSERT(config = config_init(NULL));
-    config_set_str(config, "hmm", MODELDIR "/en-us");
     config_set_str(config, "fsg", TESTDATADIR "/goforward.fsg");
     config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
-    config_set_str(config, "input_endian", "little");
     config_set_str(config, "loglevel", "INFO");
     config_set_str(config, "bestpath", "no");
     config_set_str(config, "samprate", "16000");
+    config_set_str(config, "compallsen", "yes");
+    config_set_str(config, "input_endian", "little");
+    config_set_str(config, "lowerf", "130");
+    config_set_str(config, "upperf", "3700");
+    config_set_str(config, "nfilt", "20");
+    config_set_str(config, "transform", "dct");
+    config_set_str(config, "lifter", "22");
+    config_set_str(config, "feat", "1s_c_d_dd");
+    config_set_str(config, "remove_noise", "yes");
+    config_set_str(config, "svspec", "0-12/13-25/26-38");
+    config_set_str(config, "mdef", MODELDIR "/en-us/mdef");
+    config_set_str(config, "mean", MODELDIR "/en-us/means");
+    config_set_str(config, "var", MODELDIR "/en-us/variances");
+    config_set_str(config, "tmat", MODELDIR "/en-us/transition_matrices");
+    config_set_str(config, "sendump", MODELDIR "/en-us/sendump");
     TEST_ASSERT(ps = decoder_init(config));
 
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
