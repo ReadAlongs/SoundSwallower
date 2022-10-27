@@ -17,7 +17,6 @@ set(TESTS
   test_filename
   test_fsg
   test_hash_iter
-  test_heap
   test_jsgf
   test_listelem_alloc
   test_log_shifted

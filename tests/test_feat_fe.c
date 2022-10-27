@@ -6,6 +6,7 @@
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 
 #include "test_macros.h"
@@ -16,9 +17,9 @@ int
 main(int argc, char *argv[])
 {
 	static const config_param_t fe_args[] = {
-		waveform_to_cepstral_command_line_macro(),
-		cepstral_to_feature_command_line_macro(),
-		{ NULL, 0, NULL, NULL }
+            FE_OPTIONS,
+            FEAT_OPTIONS,
+            { NULL, 0, NULL, NULL }
 	};
 	FILE *raw;
 	config_t *config;
@@ -30,12 +31,13 @@ main(int argc, char *argv[])
 	size_t nsamp;
 	int32 total_frames, ncep, nfr, i;
 
+        (void)argc; (void)argv;
 	if ((raw = fopen(TESTDATADIR "/goforward.raw", "rb")) == NULL) {
 		perror(TESTDATADIR "/goforward.raw");
 		return 1;
 	}
 
-	config = config_parse(NULL, fe_args, argc, argv, FALSE);
+	config = config_init(fe_args);
 	fe = fe_init(config);
 	fcb = feat_init(config);
 

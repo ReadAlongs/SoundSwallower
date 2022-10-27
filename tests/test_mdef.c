@@ -151,7 +151,7 @@ main(int argc, char *argv[])
     
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
-    config = cmd_ln_init(NULL, ps_args(), TRUE, NULL);
+    config = config_init(NULL);
 
     E_INFO("Testing text mdef read\n");
     mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.txt");

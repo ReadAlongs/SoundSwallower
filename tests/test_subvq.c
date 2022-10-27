@@ -65,11 +65,11 @@ main(int argc, char *argv[])
 	}
 
 	/* Create a 1s_c_d_dd feature stream and split it into subvectors. */
-	config = cmd_ln_init(NULL, ps_args(), TRUE,
-			     "-feat", "1s_c_d_dd",
-			     "-cmn", "none",
-			     "-varnorm", "no",
-			     "-ceplen", "13", NULL);
+	config = config_init(NULL);
+        config_set_str(config, "feat", "1s_c_d_dd");
+        config_set_str(config, "cmn", "none");
+        config_set_str(config, "varnorm", "no");
+        config_set_str(config, "ceplen", "13");
 	fcb = feat_init(config);
 	TEST_ASSERT(fcb);
 	feat_set_subvecs(fcb, subvecs);
