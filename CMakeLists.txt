@@ -57,7 +57,7 @@ elseif(SKBUILD)
   add_subdirectory(py)
 else()
   # C shared library build
-  option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+  option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
   # Build the core library source (needs to go after BUILD_SHARED_LIBS
   # option because CMake is magically stupid)
   add_subdirectory(src)
