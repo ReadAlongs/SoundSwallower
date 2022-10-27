@@ -1,17 +1,18 @@
 Roadmap:
 
 - 0.4.0: Merge PocketSphinx 5.0.0 and update API
-  - Config updates, but smaller (no s3kr3t command-line, etc)
-  - CMN interface
-  - Overflow fixes
-  - VAD/Endpointer
   - Two-pass alignment (but easier)
-  - JSGF correctness
-  - JSON decoding/alignment output
-  - Eliminate "pocketsphinx" API
-    - `ps_decoder_t` => `decoder_t`
-    - likewise for config, lattice, endpointer, vad
-  - Rusty move semantics
+  - TESTING
+    - find solution for tests with output on Windows
+  - Update Python and JavaScript + docs
+  - Config updates, but smaller (no s3kr3t command-line, etc) - DONE
+  - CMN interface - DONE (need testing)
+  - Overflow fixes - DONE (need testing)
+  - VAD/Endpointer - DONE (need testing)
+  - JSGF correctness - DONE (need testing - fsg_accept in test lib)
+  - JSON decoding/alignment output - DONE (need testing)
+  - Eliminate "pocketsphinx" API - DONE
+  - Rusty move semantics - DONE (need testing)
     - passing config, fsg, etc to decoder consumes it
 
 - 1.0.0: Finalize API
