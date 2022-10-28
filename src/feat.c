@@ -896,8 +896,13 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         ckd_free(wd);
     }
 
-    if (cmn != CMN_NONE)
+    if (cmn != CMN_NONE) {
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
+        if (config_str(config, "cmninit")) {
+            E_INFO("Setting initial CMN to %s\n", config_str(config, "cmninit"));
+            cmn_set_repr(fcb->cmn_struct, config_str(config, "cmninit"));
+        }
+    }
     fcb->cmn = cmn;
     fcb->varnorm = varnorm;
     /*
