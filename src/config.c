@@ -335,13 +335,8 @@ config_free(config_t *config)
 }
 
 static const char *searches[] = {
-    "lm",
     "jsgf",
     "fsg",
-    "keyphrase",
-    "kws",
-    "allphone",
-    "lmctl"
 };
 static const int nsearches = sizeof(searches)/sizeof(searches[0]);
     
