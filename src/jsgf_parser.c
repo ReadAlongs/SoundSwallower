@@ -67,16 +67,16 @@
 
 
 /* First part of user prologue.  */
-#line 37 "jsgf_parser.y"
+#line 38 "jsgf_parser.y"
 
 #define YYERROR_VERBOSE
 
 #include <stdio.h>
 #include <string.h>
 
+#include <soundswallower/err.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/err.h>
 #include <soundswallower/jsgf.h>
 
 #include "jsgf_parser.h"
@@ -90,7 +90,7 @@
 void yyerror(yyscan_t lex, jsgf_t *jsgf, const char *s);
 
 
-#line 93 "jsgf_parser.c"
+#line 94 "jsgf_parser.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -540,10 +540,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    81,    81,    82,    83,    86,    89,    90,    91,    92,
-      96,    99,   100,   103,   106,   107,   110,   111,   114,   115,
-     120,   122,   126,   127,   131,   132,   135,   138,   141,   142,
-     143,   144,   145,   146
+       0,    83,    83,    84,    85,    88,    91,    92,    93,    94,
+      98,   101,   102,   105,   108,   109,   112,   113,   116,   117,
+     122,   124,   128,   129,   133,   134,   137,   140,   143,   144,
+     145,   146,   147,   148
 };
 #endif
 
@@ -1148,145 +1148,145 @@ yyreduce:
   switch (yyn)
     {
   case 5: /* header: jsgf_header grammar_header  */
-#line 86 "jsgf_parser.y"
+#line 88 "jsgf_parser.y"
                                    { jsgf->name = (yyvsp[0].name); }
-#line 1153 "jsgf_parser.c"
+#line 1154 "jsgf_parser.c"
     break;
 
   case 7: /* jsgf_header: HEADER TOKEN ';'  */
-#line 90 "jsgf_parser.y"
+#line 92 "jsgf_parser.y"
                            { jsgf->version = (yyvsp[-1].name); }
-#line 1159 "jsgf_parser.c"
+#line 1160 "jsgf_parser.c"
     break;
 
   case 8: /* jsgf_header: HEADER TOKEN TOKEN ';'  */
-#line 91 "jsgf_parser.y"
+#line 93 "jsgf_parser.y"
                                  { jsgf->version = (yyvsp[-2].name); jsgf->charset = (yyvsp[-1].name); }
-#line 1165 "jsgf_parser.c"
+#line 1166 "jsgf_parser.c"
     break;
 
   case 9: /* jsgf_header: HEADER TOKEN TOKEN TOKEN ';'  */
-#line 92 "jsgf_parser.y"
+#line 94 "jsgf_parser.y"
                                        { jsgf->version = (yyvsp[-3].name); jsgf->charset = (yyvsp[-2].name);
 					 jsgf->locale = (yyvsp[-1].name); }
-#line 1172 "jsgf_parser.c"
+#line 1173 "jsgf_parser.c"
     break;
 
   case 10: /* grammar_header: GRAMMAR TOKEN ';'  */
-#line 96 "jsgf_parser.y"
+#line 98 "jsgf_parser.y"
                                   { (yyval.name) = (yyvsp[-1].name); }
-#line 1178 "jsgf_parser.c"
+#line 1179 "jsgf_parser.c"
     break;
 
   case 13: /* import_statement: IMPORT RULENAME ';'  */
-#line 103 "jsgf_parser.y"
+#line 105 "jsgf_parser.y"
                                       { jsgf_import_rule(jsgf, (yyvsp[-1].name)); ckd_free((yyvsp[-1].name)); }
-#line 1184 "jsgf_parser.c"
+#line 1185 "jsgf_parser.c"
     break;
 
   case 16: /* rule: RULENAME '=' alternate_list ';'  */
-#line 110 "jsgf_parser.y"
+#line 112 "jsgf_parser.y"
                                       { jsgf_define_rule(jsgf, (yyvsp[-3].name), (yyvsp[-1].rhs), 0); ckd_free((yyvsp[-3].name)); }
-#line 1190 "jsgf_parser.c"
+#line 1191 "jsgf_parser.c"
     break;
 
   case 17: /* rule: PUBLIC RULENAME '=' alternate_list ';'  */
-#line 111 "jsgf_parser.y"
+#line 113 "jsgf_parser.y"
                                           { jsgf_define_rule(jsgf, (yyvsp[-3].name), (yyvsp[-1].rhs), 1); ckd_free((yyvsp[-3].name)); }
-#line 1196 "jsgf_parser.c"
+#line 1197 "jsgf_parser.c"
     break;
 
   case 18: /* alternate_list: rule_expansion  */
-#line 114 "jsgf_parser.y"
+#line 116 "jsgf_parser.y"
                                { (yyval.rhs) = (yyvsp[0].rhs); (yyval.rhs)->atoms = glist_reverse((yyval.rhs)->atoms); }
-#line 1202 "jsgf_parser.c"
+#line 1203 "jsgf_parser.c"
     break;
 
   case 19: /* alternate_list: alternate_list '|' rule_expansion  */
-#line 115 "jsgf_parser.y"
+#line 117 "jsgf_parser.y"
                                             { (yyval.rhs) = (yyvsp[0].rhs);
                                               (yyval.rhs)->atoms = glist_reverse((yyval.rhs)->atoms);
                                               (yyval.rhs)->alt = (yyvsp[-2].rhs); }
-#line 1210 "jsgf_parser.c"
+#line 1211 "jsgf_parser.c"
     break;
 
   case 20: /* rule_expansion: tagged_rule_item  */
-#line 120 "jsgf_parser.y"
+#line 122 "jsgf_parser.y"
                                  { (yyval.rhs) = ckd_calloc(1, sizeof(*(yyval.rhs)));
 				   (yyval.rhs)->atoms = glist_add_ptr((yyval.rhs)->atoms, (yyvsp[0].atom)); }
-#line 1217 "jsgf_parser.c"
+#line 1218 "jsgf_parser.c"
     break;
 
   case 21: /* rule_expansion: rule_expansion tagged_rule_item  */
-#line 122 "jsgf_parser.y"
+#line 124 "jsgf_parser.y"
                                           { (yyval.rhs) = (yyvsp[-1].rhs);
 					    (yyval.rhs)->atoms = glist_add_ptr((yyval.rhs)->atoms, (yyvsp[0].atom)); }
-#line 1224 "jsgf_parser.c"
+#line 1225 "jsgf_parser.c"
     break;
 
   case 23: /* tagged_rule_item: tagged_rule_item TAG  */
-#line 127 "jsgf_parser.y"
+#line 129 "jsgf_parser.y"
                                { (yyval.atom) = (yyvsp[-1].atom);
 				 (yyval.atom)->tags = glist_add_ptr((yyval.atom)->tags, (yyvsp[0].name)); }
-#line 1231 "jsgf_parser.c"
+#line 1232 "jsgf_parser.c"
     break;
 
   case 25: /* rule_item: WEIGHT rule_atom  */
-#line 132 "jsgf_parser.y"
+#line 134 "jsgf_parser.y"
                            { (yyval.atom) = (yyvsp[0].atom); (yyval.atom)->weight = (yyvsp[-1].weight); }
-#line 1237 "jsgf_parser.c"
+#line 1238 "jsgf_parser.c"
     break;
 
   case 26: /* rule_group: '(' alternate_list ')'  */
-#line 135 "jsgf_parser.y"
+#line 137 "jsgf_parser.y"
                                    { (yyval.rule) = jsgf_define_rule(jsgf, NULL, (yyvsp[-1].rhs), 0); }
-#line 1243 "jsgf_parser.c"
+#line 1244 "jsgf_parser.c"
     break;
 
   case 27: /* rule_optional: '[' alternate_list ']'  */
-#line 138 "jsgf_parser.y"
+#line 140 "jsgf_parser.y"
                                       { (yyval.rule) = jsgf_optional_new(jsgf, (yyvsp[-1].rhs)); }
-#line 1249 "jsgf_parser.c"
+#line 1250 "jsgf_parser.c"
     break;
 
   case 28: /* rule_atom: TOKEN  */
-#line 141 "jsgf_parser.y"
+#line 143 "jsgf_parser.y"
                  { (yyval.atom) = jsgf_atom_new((yyvsp[0].name), 1.0); ckd_free((yyvsp[0].name)); }
-#line 1255 "jsgf_parser.c"
+#line 1256 "jsgf_parser.c"
     break;
 
   case 29: /* rule_atom: RULENAME  */
-#line 142 "jsgf_parser.y"
+#line 144 "jsgf_parser.y"
                    { (yyval.atom) = jsgf_atom_new((yyvsp[0].name), 1.0); ckd_free((yyvsp[0].name)); }
-#line 1261 "jsgf_parser.c"
+#line 1262 "jsgf_parser.c"
     break;
 
   case 30: /* rule_atom: rule_group  */
-#line 143 "jsgf_parser.y"
+#line 145 "jsgf_parser.y"
                      { (yyval.atom) = jsgf_atom_new((yyvsp[0].rule)->name, 1.0); }
-#line 1267 "jsgf_parser.c"
+#line 1268 "jsgf_parser.c"
     break;
 
   case 31: /* rule_atom: rule_optional  */
-#line 144 "jsgf_parser.y"
+#line 146 "jsgf_parser.y"
                         { (yyval.atom) = jsgf_atom_new((yyvsp[0].rule)->name, 1.0); }
-#line 1273 "jsgf_parser.c"
+#line 1274 "jsgf_parser.c"
     break;
 
   case 32: /* rule_atom: rule_atom '*'  */
-#line 145 "jsgf_parser.y"
+#line 147 "jsgf_parser.y"
                         { (yyval.atom) = jsgf_kleene_new(jsgf, (yyvsp[-1].atom), 0); }
-#line 1279 "jsgf_parser.c"
+#line 1280 "jsgf_parser.c"
     break;
 
   case 33: /* rule_atom: rule_atom '+'  */
-#line 146 "jsgf_parser.y"
+#line 148 "jsgf_parser.y"
                         { (yyval.atom) = jsgf_kleene_new(jsgf, (yyvsp[-1].atom), 1); }
-#line 1285 "jsgf_parser.c"
+#line 1286 "jsgf_parser.c"
     break;
 
 
-#line 1289 "jsgf_parser.c"
+#line 1290 "jsgf_parser.c"
 
       default: break;
     }
@@ -1479,7 +1479,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 149 "jsgf_parser.y"
+#line 151 "jsgf_parser.y"
 
 
 void

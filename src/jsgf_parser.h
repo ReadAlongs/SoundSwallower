@@ -70,7 +70,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 64 "jsgf_parser.y"
+#line 66 "jsgf_parser.y"
 
        char *name;
        float weight;
