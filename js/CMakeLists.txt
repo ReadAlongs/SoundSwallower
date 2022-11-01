@@ -10,15 +10,16 @@ set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
 target_compile_options(soundswallower PRIVATE -Oz)
 target_compile_options(ssjs PRIVATE -Oz)
-# Sigh, CMake does Bad Things to dollar signs in target_link_options,
-# and Emscripten now requires them in order to get default library
-# functions, so... do this, even though it isn't Correct Modern CMake
+# Cannot, will not set lists of functions directly on the command line
 #
 # https://github.com/emscripten-core/emscripten/pull/17403
 # https://stackoverflow.com/questions/68775616/how-not-to-have-dollar-sign-in-target-link-options-mangled
 # https://discourse.cmake.org/t/how-not-to-have-dollar-sign-in-target-link-options-mangled/3939/3
-set(CMAKE_EXE_LINKER_FLAGS
-  "-Oz -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=[\"$allocateUTF8OnStack\",\"$ccall\"] -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432")
+target_link_options(ssjs PRIVATE
+  -Oz
+  -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
+  -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt
+  -sFILESYSTEM=0 -sMODULARIZE=1 -sALLOW_MEMORY_GROWTH=1 -sINITIAL_MEMORY=33554432)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
