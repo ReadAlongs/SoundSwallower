@@ -114,6 +114,8 @@ config_expand(config_t *config)
         expand_file_config(config, "lda", hmmdir, "feature_transform");
         expand_file_config(config, "featparams", hmmdir, "feat_params.json");
         expand_file_config(config, "senmgau", hmmdir, "senmgau");
+        expand_file_config(config, "dict", hmmdir, "dict.txt");
+        expand_file_config(config, "fdict", hmmdir, "noisedict.txt");
     }
 
     /* And again ... without stdio, can't do this. */
