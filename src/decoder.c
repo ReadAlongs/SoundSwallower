@@ -231,19 +231,18 @@ set_logfile(decoder_t *d, config_t *config)
 int
 decoder_init_config(decoder_t *d, config_t *config)
 {
-    /* Set up logging. We do this immediately because we want to dump
-       the information to the configured log, not to the stderr. */
+    /* Return immediately on invalid loglevel */
+    if (set_loglevel(config ? config : d->config) < 0)
+        return -1;
+    /* Switch the config if it is new and different */
     if (config && config != d->config) {
-        if (set_loglevel(config) < 0)
-            return -1;
-        set_logfile(d, config);
         config_free(d->config);
         /* Note! Consuming semantics. */
         d->config = config;
+        set_logfile(d, d->config);
     }
-
     /* Expand model parameters. */
-    config_expand(config);
+    config_expand(d->config);
     /* Print out the config for logging. */
     config_log_values(d->config);
     
