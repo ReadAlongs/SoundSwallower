@@ -14,6 +14,7 @@
 #include <soundswallower/ptm_mgau.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/ms_mgau.h>
+#include <soundswallower/decoder.h>
 
 EMSCRIPTEN_KEEPALIVE void
 fsg_set_states(fsg_model_t *fsg, int start_state, int final_state)

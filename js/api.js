@@ -1,6 +1,4 @@
 // SoundSwallower JavaScript API code.
-// our classes use delete() following embind usage:
-// https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#memory-management
 
 const ARG_INTEGER = (1 << 1);
 const ARG_FLOATING = (1 << 2);
@@ -42,7 +40,7 @@ class Config {
      * @param {number} [dict.samprate=44100] - Sampling rate of input.
      */
     constructor(dict) {
-	this.cmd_ln = Module._config_parse(0, Module._ps_args(), 0, 0, 0);
+	this.cmd_ln = Module._config_init(0)
 	if (typeof(dict) === 'undefined') {
 	    if (Module.defaultModel !== null)
 		dict = { hmm: Module.get_model_path(Module.defaultModel) };
@@ -56,14 +54,6 @@ class Config {
 	for (const key in dict) {
 	    this.set(key, dict[key]);
 	}
-    }
-    /**
-     * Free Emscripten memory associated with this Config.
-     */
-    delete() {
-	if (this.cmd_ln)
-	    Module._config_free(this.cmd_ln);
-	this.cmd_ln = 0;
     }
     normalize_key(key) {
 	if (key.length > 0) {
@@ -110,7 +100,7 @@ class Config {
     set(key, val) {
 	const nkey = this.normalize_key(key);
 	const ckey = allocateUTF8OnStack(nkey);
-	const type = Module._config_type_r(this.cmd_ln, ckey);
+	const type = Module._config_typeof(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
@@ -137,7 +127,7 @@ class Config {
      */
     get(key) {
 	const ckey = allocateUTF8OnStack(this.normalize_key(key));
-	const type = Module._config_type_r(this.cmd_ln, ckey);
+	const type = Module._config_typeof(this.cmd_ln, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
@@ -178,7 +168,7 @@ class Config {
      */
     has(key) {
 	const ckey = allocateUTF8OnStack(key);
-	return Module._config_exists(this.cmd_ln, ckey);
+	return Module._config_typeof(this.cmd_ln, ckey) != 0;
     }
     *[Symbol.iterator]() {
 	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
@@ -214,7 +204,7 @@ class Decoder {
 	else
 	    this.config = new Module.Config(...arguments);
 	this.initialized = false;
-	this.ps = Module._ps_init(0);
+	this.ps = Module._decoder_init(0);
 	if (this.ps == 0)
 	    throw new Error("Failed to construct Decoder");
     }
@@ -228,8 +218,6 @@ class Decoder {
 	if (this.ps == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
 	if (config !== undefined) {
-	    if (this.config)
-		this.config.delete();
 	    if (typeof(config) == 'object' && 'cmd_ln' in config)
 		this.config = config;
 	    else
@@ -251,10 +239,10 @@ class Decoder {
      */
     async init_config() {
 	await this.init_featparams()
-	let rv = Module._ps_init_config(this.ps, this.config.cmd_ln);
+	let rv = Module._decoder_init_config(this.ps, this.config.cmd_ln);
 	if (rv < 0)
 	    throw new Error("Failed to initialize basic configuration");
-	rv = Module._ps_init_cleanup(this.ps);
+	rv = Module._decoder_init_cleanup(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to clean up decoder internals");
     }
@@ -263,10 +251,11 @@ class Decoder {
      * Read feature parameters from acoustic model.
      */
     async init_featparams() {
-	const featparams = this.config.model_file_path("featparams", "feat.params");
-	for await (const pair of read_featparams(featparams)) {
-	    if (this.config.has(pair[0])) /* Sometimes it doesn't */
-		this.config.set(pair[0], pair[1]);
+	const featparams = this.config.model_file_path("featparams", "feat_params.json");
+        const fpdata = await load_json(featparams);
+	for (const key in fpdata) {
+	    if (this.config.has(key)) /* Sometimes it doesn't */
+		this.config.set(key, fpdata[key]);
 	}
     }
     
@@ -274,7 +263,7 @@ class Decoder {
      * Create front-end from configuration.
      */
     async init_fe() {
-	const rv = Module._ps_init_fe(this.ps);
+	const rv = Module._decoder_init_fe(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize frontend");
     }
@@ -287,10 +276,10 @@ class Decoder {
 	try {
 	    const lda_path = this.config.model_file_path("lda", "feature_transform");
 	    const lda = await load_to_s3file(lda_path);
-	    rv = Module._ps_init_feat_s3file(this.ps, lda);
+	    rv = Module._decoder_init_feat_s3file(this.ps, lda);
 	}
 	catch (e) {
-	    rv = Module._ps_init_feat_s3file(this.ps, 0);
+	    rv = Module._decoder_init_feat_s3file(this.ps, 0);
 	}
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
@@ -300,7 +289,7 @@ class Decoder {
      * Create acoustic model from configuration.
      */
     async init_acmod() {
-	const rv = Module._ps_init_acmod_pre(this.ps);
+	const rv = Module._decoder_init_acmod_pre(this.ps);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
     }
@@ -317,7 +306,7 @@ class Decoder {
 	const sendump = this.config.model_file_path("sendump", "sendump");
 	const mixw = this.config.model_file_path("mixw", "mixture_weights");
 	await this.load_gmm(means, variances, sendump, mixw);
-	const rv = Module._ps_init_acmod_post(this.ps);
+	const rv = Module._decoder_init_acmod_post(this.ps);
 	if (rv < 0)
 	    throw new Error("Failed to initialize acoustic scoring");
     }
@@ -354,7 +343,7 @@ class Decoder {
      */
     async load_tmat(tmat_path) {
 	const s3f = await load_to_s3file(tmat_path);
-	const logmath = Module._ps_get_logmath(this.ps);
+	const logmath = Module._decoder_logmath(this.ps);
 	const tpfloor = this.config.get("tmatfloor");
 	const tmat = Module._tmat_init_s3file(s3f, logmath, tpfloor);
 	Module._s3file_free(s3f);
@@ -391,13 +380,13 @@ class Decoder {
 	const dict = await load_to_s3file(dict_path);
 	let fdict;
 	try {
-	    const fdict_path = this.config.model_file_path("fdict", "noisedict");
+	    const fdict_path = this.config.model_file_path("fdict", "noisedict.txt");
 	    fdict = await load_to_s3file(fdict_path);
 	}
 	catch (e) {
 	    fdict = 0;
 	}
-	const rv = Module._ps_init_dict_s3file(this.ps, dict, fdict);
+	const rv = Module._decoder_init_dict_s3file(this.ps, dict, fdict);
 	if (rv == 0)
 	    throw new Error("Failed to initialize dictionaries");
     }
@@ -414,7 +403,7 @@ class Decoder {
 	if (fsg_path != null)
 	    fsg = await load_to_s3file(fsg_path)
 	if (fsg || jsgf) {
-	    const rv = Module._ps_init_grammar_s3file(this.ps, fsg, jsgf);
+	    const rv = Module._decoder_init_grammar_s3file(this.ps, fsg, jsgf);
 	    if (rv < 0)
 		throw new Error("Failed to initialize grammar");
 	}
@@ -435,18 +424,7 @@ class Decoder {
      */
     async reinitialize_audio() {
 	this.assert_initialized();
-	Module._ps_reinit_fe(this.ps, 0);
-    }
-
-    /**
-     * Release the Emscripten memory associated with a Decoder.
-     */
-    delete() {
-	if (this.config)
-	    this.config.delete();
-	if (this.ps)
-	    Module._ps_free(this.ps);
-	this.ps = 0;
+	Module._decoder_reinit_fe(this.ps, 0);
     }
 
     /**
@@ -455,7 +433,7 @@ class Decoder {
      */
     async start() {
 	this.assert_initialized();
-	if (Module._ps_start_utt(this.ps) < 0) {
+	if (Module._decoder_start_utt(this.ps) < 0) {
 	    throw new Error("Failed to start utterance processing");
 	}
     }
@@ -466,7 +444,7 @@ class Decoder {
      */
     async stop() {
 	this.assert_initialized();
-	if (Module._ps_end_utt(this.ps) < 0) {
+	if (Module._decoder_end_utt(this.ps) < 0) {
 	    throw new Error("Failed to stop utterance processing");
 	}
     }
@@ -486,8 +464,8 @@ class Decoder {
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
-	const rv = Module._ps_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
-					    no_search, full_utt);
+	const rv = Module._decoder_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
+					           no_search, full_utt);
 	Module._free(pcm_addr);
 	if (rv < 0) {
 	    throw new Error("Utterance processing failed");
@@ -501,7 +479,7 @@ class Decoder {
      */
     get_hyp() {
 	this.assert_initialized();
-	return UTF8ToString(Module._ps_get_hyp(this.ps, 0));
+	return UTF8ToString(Module._decoder_hyp(this.ps, 0));
     }
 
     /**
@@ -511,22 +489,22 @@ class Decoder {
      */
     get_hypseg() {
 	this.assert_initialized();
-	let itor = Module._ps_seg_iter(this.ps);
-	const config = Module._ps_get_config(this.ps);
+	let itor = Module._decoder_seg_iter(this.ps);
+	const config = Module._decoder_config(this.ps);
 	const frate = Module._config_int(config, allocateUTF8OnStack("frate"));
 	const seg = [];
 	while (itor != 0) {
 	    const frames = stackAlloc(8);
-	    Module._ps_seg_frames(itor, frames, frames + 4);
+	    Module._seg_iter_frames(itor, frames, frames + 4);
 	    const start_frame = getValue(frames, 'i32');
 	    const end_frame = getValue(frames + 4, 'i32');
 	    const seg_item = {
-		word: ccall('ps_seg_word', 'string', ['number'], [itor]),
+		word: UTF8ToString(Module._seg_iter_word(itor)),
 		start: start_frame / frate,
 		end: end_frame / frate
 	    };
 	    seg.push(seg_item);
-	    itor = Module._ps_seg_next(itor);
+	    itor = Module._seg_iter_next(itor);
 	}
 	return seg;
     }
@@ -540,7 +518,7 @@ class Decoder {
     lookup_word(word) {
 	this.assert_initialized();
 	const cword = allocateUTF8OnStack(word);
-	const cpron = Module._ps_lookup_word(this.ps, cword);
+	const cpron = Module._decoder_lookup_word(this.ps, cword);
 	if (cpron == 0)
 	    return null;
 	return UTF8ToString(cpron);
@@ -558,7 +536,7 @@ class Decoder {
 	this.assert_initialized();
 	const cword = allocateUTF8OnStack(word);
 	const cpron = allocateUTF8OnStack(pron);
-	const wid = Module._ps_add_word(this.ps, cword, cpron, update);
+	const wid = Module._decoder_add_word(this.ps, cword, cpron, update);
 	if (wid < 0)
 	    throw new Error("Failed to add word "+word+" with pronunciation "+
 			    pron+" to the dictionary.");
@@ -573,14 +551,12 @@ class Decoder {
      * @param {Array<Object>} transitions - Array of transitions, each
      * of which is an Object with the keys `from`, `to`, `word`, and
      * `prob`.  The word must exist in the dictionary.
-     * @returns {Object} Newly created grammar - you *must* free this
-     * by calling its delete() method once it is no longer needed,
-     * such as after passing to set_fsg().
+     * @returns {Object} Newly created grammar.
      */
     create_fsg(name, start_state, final_state, transitions) {
 	this.assert_initialized();
-	const logmath = Module._ps_get_logmath(this.ps);
-	const config = Module._ps_get_config(this.ps);
+	const logmath = Module._decoder_logmath(this.ps);
+	const config = Module._decoder_config(this.ps);
 	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	let n_state = 0;
 	for (const t of transitions) {
@@ -588,8 +564,8 @@ class Decoder {
 	}
 	n_state++;
 	const fsg = ccall('fsg_model_init',
-			'number', ['string', 'number', 'number', 'number'],
-			[name, logmath, lw, n_state]);
+			  'number', ['string', 'number', 'number', 'number'],
+			  [name, logmath, lw, n_state]);
 	Module._fsg_set_states(fsg, start_state, final_state);
 	for (const t of transitions) {
 	    let logprob = 0;
@@ -598,8 +574,8 @@ class Decoder {
 	    }
 	    if ('word' in t) {
 		const wid = ccall('fsg_model_word_add', 'number',
-				['number', 'string'],
-				[fsg, t.word]);
+				  ['number', 'string'],
+				  [fsg, t.word]);
 		if (wid == -1) {
 		    Module._fsg_model_free(fsg);
 		    return 0;
@@ -612,10 +588,6 @@ class Decoder {
 	}
 	return {
 	    fsg: fsg,
-	    delete() {
-		Module._fsg_model_free(this.fsg);
-		this.fsg = 0;
-	    }
 	};
     }
 
@@ -624,14 +596,12 @@ class Decoder {
      * @param {string} jsgf_string - String containing JSGF grammar.
      * @param {string} [toprule] - Name of starting rule for grammar,
      * if not specified, the first public rule will be used.
-     * @returns {Object} Newly created grammar - you *must* free this
-     * by calling its delete() method once it is no longer needed,
-     * such as after passing to set_fsg().
+     * @returns {Object} Newly created grammar.
      */
     parse_jsgf(jsgf_string, toprule=null) {
 	this.assert_initialized();
-	const logmath = Module._ps_get_logmath(this.ps);
-	const config = Module._ps_get_config(this.ps);
+	const logmath = Module._decoder_logmath(this.ps);
+	const config = Module._decoder_config(this.ps);
 	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	const cjsgf = allocateUTF8OnStack(jsgf_string);
 	const jsgf = Module._jsgf_parse_string(cjsgf, 0);
@@ -652,65 +622,41 @@ class Decoder {
 	const fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
 	Module._jsgf_grammar_free(jsgf);
 	return {
-	    fsg: fsg,
-	    delete() {
-		Module._fsg_model_free(this.fsg);
-		this.fsg = 0;
-	    }
+	    fsg: fsg
 	};
     }
 
     /**
      * Set the grammar for recognition, asynchronously.
      * @param {Object} fsg - Grammar produced by parse_jsgf() or
-     * create_fsg().  You must call its delete() method after
-     * passing it here if you do not intend to reuse it.
+     * create_fsg().
      * @returns {Promise} Promise fulfilled once grammar is updated.
      */
     async set_fsg(fsg) {
 	this.assert_initialized();
-	if (Module._ps_set_fsg(this.ps, "_default", fsg.fsg) != 0) {
+	if (Module._decoder_set_fsg(this.ps, fsg.fsg) != 0) {
 	    throw new Error("Failed to set FSG in decoder");
 	}
     }
 };
 
 /**
- * Generate [key,value] pairs from feat.params file/URL.
+ * Async read some JSON (maybe there is a built-in that does this?)
  */
-async function* read_featparams(featparams) {
-    let fpdata;
+async function load_json(path) {
     if (ENVIRONMENT_IS_WEB) {
-	const response = await fetch(featparams);
+	const response = await fetch(path);
 	if (response.ok)
-	    fpdata = await response.text();
+	    return response.json();
 	else
-	    throw new Error("Failed to fetch " + featparams + " :"
+	    throw new Error("Failed to fetch " + path + " :"
 			    + response.statusText);
     }
     else {
 	const fs = require("fs/promises");
-	fpdata = await fs.readFile(featparams, {encoding: "utf8"});
+	const data = await fs.readFile(path, {encoding: "utf8"});
+        return JSON.parse(data);
     }
-    const line_re = /^.*$/mg;
-    const arg_re = /"([^"]*)"|'([^'])'|(\S+)/g;
-    let key = null;
-    for (const m of fpdata.matchAll(line_re)) {
-	const line = m[0].trim()
-	for (const arg of line.matchAll(arg_re)) {
-	    const token = arg[1] ?? arg[2] ?? arg[3];
-	    if (token == '#')
-		break;
-	    if (key !== null) {
-		yield [key, token];
-		key = null;
-	    }
-	    else
-		key = token;
-	}
-    }
-    if (key !== null)
-	throw new Error("Odd number of arguments in "+featparams);
 }
 
 /**

@@ -10,106 +10,6 @@
 	    assert.ok(ssjs);
 	});
     });
-    describe("Test get/set API", () => {
-	it("Should return en-us.dict after setting", () => {
-	    let conf = new ssjs.Config();
-	    conf.set("-dict", "en-us.dict");
-	    assert.equal("en-us.dict", conf.get("-dict"));
-	});
-	it("Should contain -dict after setting", () => {
-	    let conf = new ssjs.Config();
-	    conf.set("-dict", "en-us.dict");
-	    assert.ok(conf.has('-dict'));
-	});
-	it("Should contain default -hmm", () => {
-	    let conf = new ssjs.Config();
-	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'),
-			 ssjs.get_model_path(ssjs.defaultModel));
-	});
-	it("Should contain default -hmm when initialized", () => {
-	    let conf = new ssjs.Config({dict: "en-us.dict"});
-	    assert.ok(conf.has('-hmm'));
-	    assert.equal(conf.get('-hmm'),
-			 ssjs.get_model_path(ssjs.defaultModel));
-	});
-	it("Unset string key should have null value", () => {
-	    let conf = new ssjs.Config();
-	    assert.equal(null, conf.get('-dict'));
-	});
-	it("Should not contain -foobiebletch", () => {
-	    let conf = new ssjs.Config();
-	    conf.set("-hmm", "en-us");
-	    assert.ok(!conf.has('-foobiebletch'));
-	});
-	it("Should normalize keys without dash", () => {
-	    let conf = new ssjs.Config();
-	    conf.set("hmm", "en-us");
-	    assert.equal("en-us", conf.get("-hmm"));
-	    assert.equal("en-us", conf.get("hmm"));
-	});
-	it("Should find mdef.bin in model path, or not", () => {
-	    let conf = new ssjs.Config();
-	    conf.set("hmm", ssjs.get_model_path("en-us"));
-	    assert.equal(ssjs.get_model_path("en-us/mdef.bin"),
-			 conf.model_file_path("-mdef", "mdef.bin"));
-	    conf.set("mdef", "foo.bin");
-	    assert.equal("foo.bin", conf.model_file_path("-mdef", "mdef.bin"));
-	});
-    });
-    describe("Test iteration on Config", () => {
-	it("Should iterate over known keys, which are all defined", () => {
-	    let conf = new ssjs.Config();
-	    let count = 0;
-	    for (const key of conf) {
-		let val = conf.get(key);
-		// It could be 0 or null, but it should be defined
-		assert.notStrictEqual(val, undefined);
-		count++;
-	    }
-	    assert.ok(count > 0);
-	});
-    });
-    function assert_feat_params(key, value) {
-	switch (key) {
-	case "-lowerf":
-	    assert.equal(value, "130");
-	    break;
-	case "-upperf":
-	    assert.equal(value, "3700");
-	    break;
-	case "-nfilt":
-	    assert.equal(value, "20");
-	    break;
-	case "-transform":
-	    assert.equal(value, "dct");
-	    break;
-	case "-lifter":
-	    assert.equal(value, "22");
-	    break;
-	case "-feat":
-	    assert.equal(value, "1s_c_d_dd");
-	    break;
-	case "-svspec":
-	    assert.equal(value, "0-12/13-25/26-38");
-	    break;
-	case "-agc":
-	    assert.equal(value, "none");
-	    break;
-	case "-cmn":
-	    assert.equal(value, "current");
-	    break;
-	case "-varnorm":
-	    assert.equal(value, "no");
-	    break;
-	case "-cmninit":
-	    assert.equal(value, "40,3,-1");
-	    break;
-	case "-model":
-	    assert.equal(value, "ptm");
-	    break;
-	}
-    }
     describe("Test acoustic model loading", () => {
 	it('Should load acoustic model', async () => {
 	    let decoder = new ssjs.Decoder();
@@ -118,7 +18,17 @@
 	    await decoder.init_feat();
 	    await decoder.init_acmod();
 	    await decoder.load_acmod_files();
+            assert.ok(decoder);
 	});
+    });
+    describe("Test decoder initialization", () => {
+	it("Should initialize the decoder", async () => {
+	    let decoder = new ssjs.Decoder({
+		fsg: "testdata/goforward.fsg",
+		samprate: 16000,
+	    });
+            assert.ok(decoder);
+        });
     });
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
@@ -141,7 +51,6 @@
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters"]);
-	    decoder.delete();
 	});
 	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
@@ -172,13 +81,11 @@
 		{from: 3, to: 4, prob: 1.0, word: "_meters"}
 	    ]);
 	    await decoder.set_fsg(fsg);
-	    fsg.delete(); // has been retained by decoder
 	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
-	    decoder.delete();
 	});
     });
     describe("Test loading model for other language", () => {
@@ -205,13 +112,11 @@
 		{from: 3, to: 4, prob: 0.9, word: "mètres"}
 	    ]);
 	    await decoder.set_fsg(fsg);
-	    fsg.delete(); // has been retained by decoder
 	    let pcm = await fs.readFile("testdata/goforward_fr-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("avance de dix mètres", decoder.get_hyp());
-	    decoder.delete();
 	});
     });
     describe("Test JSGF", () => {
@@ -226,7 +131,6 @@
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
-	    decoder.delete();
 	});
     });
     describe("Test JSGF string", () => {
@@ -246,13 +150,11 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 <topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
 	    await decoder.set_fsg(fsg);
-	    fsg.delete();
 	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
-	    decoder.delete();
 	});
     });
     describe("Test reinitialize_audio", () => {
@@ -278,7 +180,6 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters"]);
-	    decoder.delete();
 	});
     });
     describe("Test dictionary lookup", () => {

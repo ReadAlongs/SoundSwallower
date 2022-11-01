@@ -48,7 +48,6 @@ import * as assert from "assert";
 	{from: 3, to: 4, prob: 1.0, word: "_meters"}
     ]);
     await decoder.set_fsg(fsg);
-    fsg.delete(); // has been retained by decoder
     pcm = await fs.readFile("testdata/goforward-float32.raw");
     await decoder.start();
     await decoder.process(pcm, false, true);
@@ -71,7 +70,6 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 <topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
     await decoder.set_fsg(fsg);
-    fsg.delete();
     pcm = await fs.readFile("testdata/pizza-float32.raw");
     await decoder.start();
     await decoder.process(pcm, false, true);
@@ -79,5 +77,4 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
     hyp = decoder.get_hyp();
     console.log(`recognized: ${hyp}`);
     assert.equal("yo gimme four large all dressed pizzas", hyp);
-    decoder.delete();
 })();
