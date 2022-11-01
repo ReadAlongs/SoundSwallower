@@ -23,7 +23,7 @@ To use a custom dictionary::
 
 """
 
-from soundswallower import Decoder, get_model_path
+from soundswallower import Decoder, Config, get_model_path
 import logging
 import argparse
 import json
@@ -64,7 +64,7 @@ def make_argparse():
 
 def print_config_help():
     """Describe the decoder configuration parameters."""
-    config = Decoder.default_config()
+    config = Config()
     print("Configuration parameters:")
     for defn in config.describe():
         print("\t%s (%s%s%s):\n\t\t%s"
@@ -78,7 +78,7 @@ def print_config_help():
 def make_decoder_config(args):
     """Make a decoder configuration from command-line arguments, possibly
     including a JSON configuration file."""
-    config = Decoder.default_config()
+    config = Config()
     if args.config is not None:
         with open(args.config) as fh:
             json_config = json.load(fh)

@@ -288,7 +288,7 @@ int decoder_add_word(decoder_t *d,
  *         allocated and must be freed by the user.
  */
 char *decoder_lookup_word(decoder_t *d, 
-	             const char *word);
+                          const char *word);
 
 /**
  * Start utterance processing.
@@ -444,7 +444,7 @@ seg_iter_t *seg_iter_next(seg_iter_t *seg);
  *
  * @param seg Segment iterator.
  * @return Read-only string giving string name of this segment.  This
- * is only valid until the next call to ps_seg_next().
+ * is only valid until the next call to seg_iter_next().
  */
 char const *seg_iter_word(seg_iter_t *seg);
 

@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from soundswallower import Decoder, get_model_path
+from soundswallower import Decoder, Config, get_model_path
 
 
 DATADIR = os.path.join(os.path.dirname(__file__),
@@ -33,15 +33,16 @@ class TestDecoder(unittest.TestCase):
 
     def test_from_scratch(self):
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          beam=0., wbeam=0., pbeam=0.)
+                          beam=0., wbeam=0., pbeam=0., loglevel="INFO")
         words = [("go", "G OW"),
                  ("forward", "F AO R W ER D"),
                  ("ten", "T EH N"),
                  ("meters", "M IY T ER Z")]
         for word, pron in words:
-            decoder.add_word(word.encode("UTF-8"), pron.encode("UTF-8"),
-                             # FIXME: should update them all at once
-                             update=True)
+            try:
+                decoder.add_word(word, pron, update=True)
+            except KeyError:
+                pass
         fsg = decoder.create_fsg("align",
                                  start_state=0, final_state=len(words),
                                  transitions=[(idx, idx + 1, 1.0, w[0])
@@ -61,7 +62,7 @@ class TestDecoder(unittest.TestCase):
         # And verify that this fails :)
         with self.assertRaises(AssertionError):
             self._run_decode(decoder)
-        
+
     def test_reinit_fe(self):
         # Initialize with wrong sampling rate
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
@@ -75,18 +76,18 @@ class TestDecoder(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_turtle(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-fsg'] = os.path.join(DATADIR, 'goforward.fsg')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config = Config()
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
         decoder = Decoder(config)
         self._run_decode(decoder)
 
     def test_live(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-fsg'] = os.path.join(DATADIR, 'goforward.fsg')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config = Config()
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
         decoder = Decoder(config)
         self._run_decode(decoder)
 

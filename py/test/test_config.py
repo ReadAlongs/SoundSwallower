@@ -35,45 +35,6 @@ import os
 from soundswallower import Config, Decoder, get_model_path
 
 
-class TestConfig(unittest.TestCase):
-
-    def test_config_get_float(self):
-        config = Config()
-        self.assertEqual(config.get_float('-samprate'), 16000.0)
-
-    def test_config_set_float(self):
-        config = Config()
-        config.set_float('-samprate', 8000.0)
-        self.assertEqual(config.get_float('-samprate'), 8000.0)
-
-    def test_config_get_int(self):
-        config = Config()
-        self.assertEqual(config.get_int('-nfft'), 0)
-
-    def test_config_set_int(self):
-        config = Config()
-        config.set_int('-nfft', 256)
-        self.assertEqual(config.get_int('-nfft'), 256)
-
-    def test_config_get_string(self):
-        config = Config()
-        self.assertEqual(config.get_string('-fsg'), None)
-
-    def test_config_set_string(self):
-        config = Config()
-        config.set_string('-fsg', 'foo.fsg')
-        self.assertEqual(config.get_string('-fsg'), 'foo.fsg')
-
-    def test_config_get_boolean(self):
-        config = Config()
-        self.assertEqual(config.get_boolean('-backtrace'), False)
-
-    def test_config_set_boolean(self):
-        config = Config()
-        config.set_boolean('-backtrace', True)
-        self.assertEqual(config.get_boolean('-backtrace'), True)
-
-
 class TestConfigHash(unittest.TestCase):
     def test_config__getitem(self):
         config = Config()
@@ -89,7 +50,6 @@ class TestConfigHash(unittest.TestCase):
                         backtrace=False,
                         feat="1s_c_d_dd")
         self.assertEqual(config['samprate'], 11025.)
-        self.assertEqual(config.get_float('-samprate'), 11025.)
         self.assertEqual(config['nfft'], 0)
         self.assertEqual(config['fsg'], None)
         self.assertEqual(config['backtrace'], False)
@@ -116,7 +76,7 @@ class TestConfigIter(unittest.TestCase):
         for key, value in config.items():
             self.assertTrue(key in config)
             self.assertEqual(config[key], value)
-        config = Decoder.default_config()
+        config = Config()
         self.assertEqual(default_len, len(config))
         config['hmm'] = os.path.join(get_model_path(), 'en-us')
         config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
@@ -133,9 +93,6 @@ class TestConfigIter(unittest.TestCase):
         # But mdef, etc, should be filled in
         default_mdef = config["mdef"]
         self.assertIsNotNone(default_mdef)
-        # And we should get them for dash and underscore versions too
-        self.assertEqual(default_mdef, config["-mdef"])
-        self.assertEqual(default_mdef, config["_mdef"])
         self.assertEqual(default_len, len(config))
         for key in config:
             self.assertTrue(key in config)

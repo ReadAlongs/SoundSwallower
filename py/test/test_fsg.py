@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from soundswallower import Decoder, get_model_path
+from soundswallower import Decoder, Config, get_model_path
 
 
 DATADIR = os.path.join(os.path.dirname(__file__),
@@ -40,9 +40,9 @@ class TestDecodeFSG(unittest.TestCase):
             self.assertEqual(words, "go forward ten meters".split())
 
     def test_fsg_loading(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config = Config()
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
         decoder = Decoder(config)
         # Read a file that isn't a FSG
         with self.assertRaises(RuntimeError):
@@ -53,9 +53,9 @@ class TestDecodeFSG(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_fsg_creation(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config = Config()
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
         decoder = Decoder(config)
         num_transitions = [(4, 5, 0.1, num)
                            for num
@@ -75,9 +75,9 @@ class TestDecodeFSG(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_jsgf_loading(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config = Config()
+        config['hmm'] = os.path.join(get_model_path(), 'en-us')
+        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
         decoder = Decoder(config)
         # Read a file that isn't a JSGF
         with self.assertRaises(RuntimeError):

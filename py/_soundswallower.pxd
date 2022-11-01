@@ -1,4 +1,4 @@
-# cython: embedsignature=True
+# cython: embedsignature=True, language_level=3
 # Copyright (c) 2008-2020 Carnegie Mellon University. All rights
 # reserved.
 #
@@ -66,7 +66,7 @@ cdef extern from "soundswallower/configuration.h":
     ctypedef struct config_t:
         hash_table_t *ht
         const config_param_t *defn
-    cdef enum:
+    cdef enum config_type_t:
         ARG_REQUIRED,
         ARG_INTEGER,
         ARG_FLOATING,
@@ -78,21 +78,29 @@ cdef extern from "soundswallower/configuration.h":
         REQARG_BOOLEAN
     ctypedef struct config_val_t:
         int type
+    ctypedef union anytype_t:
+        long i
+        float fl
+        void *ptr
         
-    config_t *config_parse(config_t *inout_cmdln, config_param_t *defn,
-                             int argc, char **argv, int strict)
+    config_t *config_init(const config_param_t *defn)
+    config_t *config_retain(config_t *config)
     int config_free(config_t *cmdln)
+    int config_validate(config_t *config)
+    void config_expand(config_t *config)
+    config_t *config_parse_json(config_t *config, const char *json)
+    const char *config_serialize_json(config_t *config)
+    config_type_t config_typeof(config_t *config, const char *name)
+    int config_exists(config_t *config, const char *name)
+    const anytype_t *config_get(config_t *config, const char *name)
 
     double config_float(config_t *cmdln, const char *name)
-    int config_type_r(config_t *cmdln, const char *name)
     long config_int(config_t *cmdln, const char *name)
     const char *config_str(config_t *cmdln, const char *name)
     void config_set_str(config_t *cmdln, const char *name, const char *str)
-    void config_set_int(config_t *cmdln, const char *name, long iv)
-    void config_set_float(config_t *cmdln, const char *name, double fv)
-    config_val_t *config_access(config_t *cmdln, const char *name)
-
-    int config_exists(config_t *cmdln, const char *name)
+    void config_set_int(config_t *cmdln, const char *name, long val)
+    void config_set_bool(config_t *cmdln, const char *name, long val)
+    void config_set_float(config_t *cmdln, const char *name, double val)
 
 
 cdef extern from "soundswallower/fsg_model.h":
@@ -105,6 +113,7 @@ cdef extern from "soundswallower/fsg_model.h":
     fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath,
                                     float lw)
     const char *fsg_model_name(fsg_model_t *fsg)
+    fsg_model_t *fsg_model_retain(fsg_model_t *fsg)
     int fsg_model_free(fsg_model_t *fsg)
 
     int fsg_model_word_add(fsg_model_t *fsg, const char *word)
@@ -139,26 +148,29 @@ cdef extern from "soundswallower/decoder.h":
         pass
     ctypedef struct seg_iter_t:
         pass
-    config_param_t *ps_args()
-    decoder_t *ps_init(config_t *config)
-    int ps_free(decoder_t *ps)
-    int ps_reinit(decoder_t *ps, config_t *config)
-    fe_t *ps_reinit_fe(decoder_t *ps, config_t *config)
-    logmath_t *ps_get_logmath(decoder_t *ps)
-    int ps_start_utt(decoder_t *ps)
-    int ps_process_raw(decoder_t *ps,
-                       const short *data, size_t n_samples,
-                       int no_search, int full_utt)
-    int ps_end_utt(decoder_t *ps)
-    const char *ps_get_hyp(decoder_t *ps, int *out_best_score)
-    int ps_get_prob(decoder_t *ps)
-    seg_iter_t *ps_seg_iter(decoder_t *ps)
-    seg_iter_t *ps_seg_next(seg_iter_t *seg)
-    const char *ps_seg_word(seg_iter_t *seg)
-    void ps_seg_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
-    int ps_seg_prob(seg_iter_t *seg, int *out_ascr, int *out_lscr)
-    void ps_seg_free(seg_iter_t *seg)
-    int ps_add_word(decoder_t *ps, char *word, char *phones, int update)
-    int ps_set_fsg(decoder_t *ps, const char *name, fsg_model_t *fsg)
-    int ps_set_jsgf_file(decoder_t *ps, const char *name, const char *path)
-    int ps_set_jsgf_string(decoder_t *ps, const char *name, const char *jsgf_string)
+    config_param_t *decoder_args()
+    decoder_t *decoder_init(config_t *config)
+    int decoder_free(decoder_t *ps)
+    int decoder_reinit(decoder_t *ps, config_t *config)
+    fe_t *decoder_reinit_fe(decoder_t *ps, config_t *config)
+    logmath_t *decoder_logmath(decoder_t *ps)
+    int decoder_start_utt(decoder_t *ps)
+    int decoder_process_int16(decoder_t *ps,
+                              const short *data, size_t n_samples,
+                              int no_search, int full_utt)
+    int decoder_end_utt(decoder_t *ps)
+    const char *decoder_hyp(decoder_t *ps, int *out_best_score)
+    int decoder_prob(decoder_t *ps)
+    seg_iter_t *decoder_seg_iter(decoder_t *ps)
+    seg_iter_t *seg_iter_next(seg_iter_t *seg)
+    const char *seg_iter_word(seg_iter_t *seg)
+    void seg_iter_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
+    int seg_iter_prob(seg_iter_t *seg, int *out_ascr, int *out_lscr)
+    void seg_iter_free(seg_iter_t *seg)
+    int decoder_add_word(decoder_t *ps, char *word, char *phones, int update)
+    char *decoder_lookup_word(decoder_t *d, const char *word)
+    int decoder_set_fsg(decoder_t *ps, fsg_model_t *fsg)
+    int decoder_set_jsgf_file(decoder_t *ps, const char *path)
+    int decoder_set_jsgf_string(decoder_t *ps, const char *jsgf_string)
+    const char *decoder_get_cmn(decoder_t *ps, int update)
+    int decoder_set_cmn(decoder_t *ps, const char *cmn)
