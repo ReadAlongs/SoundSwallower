@@ -23,7 +23,7 @@ main(int argc, char *argv[])
 	(void)argc; (void)argv;
 	TEST_ASSERT(config = config_init(NULL));
         config_set_str(config, "dict", MODELDIR "/en-us/dict.txt");
-        config_set_str(config, "fdict", MODELDIR "/en-us/noisedict");
+        config_set_str(config, "fdict", MODELDIR "/en-us/noisedict.txt");
 	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
 	/* Test dictionary in standard fashion. */
