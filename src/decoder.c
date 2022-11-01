@@ -110,7 +110,6 @@ config_expand(config_t *config)
         expand_file_config(config, "tmat", hmmdir, "transition_matrices");
         expand_file_config(config, "mixw", hmmdir, "mixture_weights");
         expand_file_config(config, "sendump", hmmdir, "sendump");
-        expand_file_config(config, "fdict", hmmdir, "noisedict");
         expand_file_config(config, "lda", hmmdir, "feature_transform");
         expand_file_config(config, "featparams", hmmdir, "feat_params.json");
         expand_file_config(config, "senmgau", hmmdir, "senmgau");
@@ -119,7 +118,9 @@ config_expand(config_t *config)
     }
 
     /* And again ... without stdio, can't do this. */
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+    (void)featparams;
+#else
     /* Look for feat_params.json in acoustic model dir. */
     if ((featparams = config_str(config, "featparams")) != NULL) {
         FILE *json = fopen(featparams, "rt");
