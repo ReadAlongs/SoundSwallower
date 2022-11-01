@@ -73,11 +73,10 @@ Compiling to JavaScript/WebAssembly
 To build the JavaScript library, use CMake with
 [Emscripten](https://emscripten.org/):
 
-    cd js
-    emcmake cmake ..
-    emmake make
+    emcmake cmake -S . -B jsbuild
+    cmake --build jsbuild
 
-This will create `js/soundswallower.js` and `js/soundswallower.wasm`
+This will create `soundswallower.js` and `soundswallower.wasm`
 in the `jsbuild` directory, which you can then include in your
 projects.  Demo applications can be seen at
 https://github.com/dhdaines/alignment-demo and

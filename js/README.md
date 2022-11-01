@@ -25,11 +25,12 @@ SoundSwallower can be installed in your NPM project:
 You can also build and install it from source, provided you have
 Emscripten and CMake installed:
 
-    # From soundswallower/js
-    npm run build:dev
+    # From top-level soundswallower directory
+    emcmake cmake -S . -B jsbuild
+    cmake --build jsbuild
     # From your project's directory
     cd /path/to/my/project
-    npm link /path/to/soundswallower/js
+    npm link /path/to/soundswallower/jsbuild
 
 For use in Node.js, no other particular action is required on your
 part.

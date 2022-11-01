@@ -30,9 +30,29 @@ target_include_directories(
   ssjs PRIVATE ${PROJECT_SOURCE_DIR}/include
   ssjs PRIVATE ${CMAKE_BINARY_DIR} # for config.h
   )
-# Copy model into this directory
+# Copy model into build directory
 add_custom_command(OUTPUT model
   COMMAND ${CMAKE_COMMAND} -E copy_directory
   ${CMAKE_SOURCE_DIR}/model
   ${CMAKE_BINARY_DIR}/model)
 add_custom_target(copy-models ALL DEPENDS model)
+# Copy test data into build directory
+add_custom_command(OUTPUT testdata
+  COMMAND ${CMAKE_COMMAND} -E copy_directory
+  ${CMAKE_SOURCE_DIR}/tests/data
+  ${CMAKE_BINARY_DIR}/testdata)
+add_custom_target(copy-test ALL DEPENDS testdata)
+# Copy test and package files into build directory
+set(JSFILES
+  .npmignore
+  package.json
+  README.md
+  server.py
+  test_node.js
+  test_typescript.ts
+  test_web.html
+  tsconfig.json
+  )
+list(TRANSFORM JSFILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
+add_custom_target(copy-js ALL
+  COMMAND ${CMAKE_COMMAND} -E copy ${JSFILES} ${CMAKE_BINARY_DIR})
