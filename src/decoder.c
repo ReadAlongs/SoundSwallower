@@ -482,6 +482,20 @@ decoder_reinit(decoder_t *d, config_t *config)
     return 0;
 }
 
+const char *
+decoder_get_cmn(decoder_t *ps, int update)
+{
+    if (update)
+        cmn_live_update(ps->acmod->fcb->cmn_struct);
+    return cmn_repr(ps->acmod->fcb->cmn_struct);
+}
+
+int
+decoder_set_cmn(decoder_t *ps, const char *cmn)
+{
+    return cmn_set_repr(ps->acmod->fcb->cmn_struct, cmn);
+}
+
 decoder_t *
 decoder_init(config_t *config)
 {

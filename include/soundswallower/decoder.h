@@ -190,6 +190,44 @@ fe_t *decoder_fe(decoder_t *d);
 feat_t *decoder_feat(decoder_t *d);
 
 /**
+ * Get the current cepstral mean as a string.
+ *
+ * This is the string representation of the current cepstral mean,
+ * which represents the acoustic channel conditions in live
+ * recognition.  This can be used to initialize the decoder with the
+ * `cmninit` option, e.g.:
+ *
+ *     config = config_parse_json(NULL, "cmninit: 42,-1,0");
+ *
+ * @memberof decoder_t
+ * @param ps Decoder
+ * @param update Update the cepstral mean using data processed so far.
+ * @return String representation of cepstral mean, as
+ *         `config_get_int(config, "ceplen")` comma-separated
+ *         numbers.  This pointer is owned by the decoder and only
+ *         valid until the next call to decoder_get_cmn(), decoder_set_cmn() or
+ *         decoder_end_utt().
+ */
+const char *decoder_get_cmn(decoder_t *ps, int update);
+
+/**
+ * Set the current cepstral mean from a string.
+ *
+ * This does the same thing as setting `cmninit` with
+ * config_set_string() and running `decoder_reinit_feat()` but is more
+ * efficient, and can also be done in the middle of an utterance if
+ * you like.
+ *
+ * @memberof decoder_t
+ * @param ps Decoder
+ * @param cmn String representation of cepstral mean, as up to
+ *            `config_get_int(config, "ceplen")` -separated numbers
+ *            (any missing values will be zero-filled).  @return 0 for
+ *            success of -1 for invalid input.
+ */
+int decoder_set_cmn(decoder_t *ps, const char *cmn);
+
+/**
  * Load new finite state grammar.
  *
  * @note The decoder consumes the pointer <code>fsg</code>, so you
