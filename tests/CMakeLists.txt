@@ -11,6 +11,7 @@ set(TESTS
   test_ckd_alloc_catch
   test_dict2pid
   test_dict
+  test_endpointer
   test_err
   test_feat_fe
   test_feat_live
