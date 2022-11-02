@@ -97,6 +97,9 @@ cdef extern from "soundswallower/configuration.h":
     double config_float(config_t *cmdln, const char *name)
     long config_int(config_t *cmdln, const char *name)
     const char *config_str(config_t *cmdln, const char *name)
+    const anytype_t *config_unset(config_t *config, const char *name)
+    const anytype_t *config_set(config_t *config, const char *name,
+                                const anytype_t *val, config_type_t t)
     void config_set_str(config_t *cmdln, const char *name, const char *str)
     void config_set_int(config_t *cmdln, const char *name, long val)
     void config_set_bool(config_t *cmdln, const char *name, long val)

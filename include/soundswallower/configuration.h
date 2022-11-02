@@ -251,6 +251,21 @@ config_type_t config_typeof(config_t *config, char const *name);
 const anytype_t *config_get(config_t *config, const char *name);
 
 /**
+ * Unset the value of a configuration parameter.
+ *
+ * For string parameters this sets the value to NULL.  For others,
+ * since this is not possible, it restores the global default.
+ *
+ * @memberof config_t
+ * @param config Configuration object.
+ * @param name Name of the parameter to unset.  Must exist.
+ * @return Pointer to the parameter's value, or NULL on failure
+ * (unknown parameter, usually).  This pointer (and any pointers
+ * inside it) is owned by the config_t.
+ */
+const anytype_t *config_unset(config_t *config, const char *name);
+
+/**
  * Set or unset the value of a configuration parameter.
  *
  * This will coerce the value to the proper type, so you can, for
@@ -264,8 +279,8 @@ const anytype_t *config_get(config_t *config, const char *name);
  * @param val Pointer to the value (strings will be copied) inside an
  * anytype_t union.  On 64-bit little-endian platforms, you *can* cast
  * a pointer to int, long, double, or char* here, but that doesn't
- * necessarily mean that you *should*.  As a convenience, you can pass
- * NULL here to reset a parameter to its default value.
+ * necessarily mean that you *should*.  Passing NULL here does the
+ * same thing as config_unset().
  * @param t Type of the value in `val`, will be coerced to the type of
  * the actual parameter if necessary.
  * @return Pointer to the parameter's value, or NULL on failure

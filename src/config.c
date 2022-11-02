@@ -815,7 +815,7 @@ config_str(config_t *config, char const *name)
     return (char const *)val->val.ptr;
 }
 
-static const anytype_t *
+const anytype_t *
 config_unset(config_t *config, char const *name)
 {
     config_val_t *cval = config_access(config, name);
