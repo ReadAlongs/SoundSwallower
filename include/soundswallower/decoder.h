@@ -76,15 +76,30 @@ typedef struct astar_search_s hyp_iter_t;
 typedef struct seg_iter_s seg_iter_t;
 
 /**
+ * Create and configure the decoder without initializing it.
+ *
+ * The decoder will be allocated and configured but not initialized.
+ * You can proceed to initialize it with decoder_reinit().  Note that
+ * in particular, model parameters will be created, including the
+ * default dictionary.  This gives you the chance to remove them
+ * (using config_unset()) if you disagree.
+ *
+ * @note The decoder consumes the pointer <code>config</code>.  If you
+ * wish to reuse it, you must call config_retain() on it.
+ *
+ * @param config a command-line structure, as created by
+ * config_init().  
+ */
+decoder_t * decoder_create(config_t *config);
+
+/**
  * Initialize the decoder from a configuration object.
  *
  * @note The decoder consumes the pointer <code>config</code>.  If you
  * wish to reuse it, you must call config_retain() on it.
  *
  * @param config a command-line structure, as created by
- * config_init().  If NULL, the
- * decoder will be allocated but not initialized.  You can
- * proceed to initialize it with decoder_reinit().
+ * config_init().
  */
 decoder_t *decoder_init(config_t *config);
 
