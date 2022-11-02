@@ -23,7 +23,9 @@ set(TESTS
   test_mdef
   test_ptm_mgau
   test_s3file
-  test_subvq)
+  test_subvq
+  test_vad)
+
 foreach(TEST_EXECUTABLE ${TESTS})
   add_executable(${TEST_EXECUTABLE} EXCLUDE_FROM_ALL ${TEST_EXECUTABLE}.c)
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)

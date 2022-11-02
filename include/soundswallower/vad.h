@@ -37,6 +37,7 @@
 
 
 #include <soundswallower/prim_type.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
