@@ -881,37 +881,6 @@ decoder_process_int16(decoder_t *d,
 }
 
 int
-decoder_process_cep(decoder_t *d,
-                    mfcc_t **data,
-                    int32 n_frames,
-                    int no_search,
-                    int full_utt)
-{
-    int n_searchfr = 0;
-
-    if (no_search)
-        acmod_set_grow(d->acmod, TRUE);
-
-    while (n_frames) {
-        int nfr;
-
-        /* Process some data into features. */
-        if ((nfr = acmod_process_cep(d->acmod, &data,
-                                     &n_frames, full_utt)) < 0)
-            return nfr;
-
-        /* Score and search as much data as possible */
-        if (no_search)
-            continue;
-        if ((nfr = search_module_forward(d)) < 0)
-            return nfr;
-        n_searchfr += nfr;
-    }
-
-    return n_searchfr;
-}
-
-int
 decoder_end_utt(decoder_t *d)
 {
     int rv = 0;

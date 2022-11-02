@@ -722,37 +722,6 @@ acmod_process_cep(acmod_t *acmod,
 }
 
 int
-acmod_process_feat(acmod_t *acmod,
-		   mfcc_t **feat)
-{
-    int i, inptr;
-
-    if (acmod->n_feat_frame == acmod->n_feat_alloc) {
-        if (acmod->grow_feat)
-            acmod_grow_feat_buf(acmod, acmod->n_feat_alloc * 2);
-        else
-            return 0;
-    }
-
-    if (acmod->grow_feat) {
-        /* Grow to avoid wraparound if grow_feat == TRUE. */
-        inptr = acmod->feat_outidx + acmod->n_feat_frame;
-        while (inptr + 1 >= acmod->n_feat_alloc)
-            acmod_grow_feat_buf(acmod, acmod->n_feat_alloc * 2);
-    }
-    else {
-        inptr = (acmod->feat_outidx + acmod->n_feat_frame) % acmod->n_feat_alloc;
-    }
-    for (i = 0; i < feat_dimension1(acmod->fcb); ++i)
-        memcpy(acmod->feat_buf[inptr][i],
-               feat[i], feat_dimension2(acmod->fcb, i) * sizeof(**feat));
-    ++acmod->n_feat_frame;
-    assert(acmod->n_feat_frame <= acmod->n_feat_alloc);
-
-    return 1;
-}
-
-int
 acmod_rewind(acmod_t *acmod)
 {
     /* If the feature buffer is circular, this is not possible. */
