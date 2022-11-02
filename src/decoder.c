@@ -465,8 +465,9 @@ decoder_reinit_fe(decoder_t *d, config_t *config)
 int
 decoder_reinit(decoder_t *d, config_t *config)
 {
-    if (decoder_init_config(d, config) < 0)
-        return -1;
+    if (config)
+        if (decoder_init_config(d, config) < 0)
+            return -1;
     if (decoder_init_cleanup(d) < 0)
         return -1;
     if (decoder_init_fe(d) == NULL)
@@ -498,21 +499,30 @@ decoder_set_cmn(decoder_t *ps, const char *cmn)
 }
 
 decoder_t *
-decoder_init(config_t *config)
+decoder_create(config_t *config)
 {
     decoder_t *d;
     
     d = ckd_calloc(1, sizeof(*d));
     d->refcount = 1;
     if (config) {
-#ifdef __EMSCRIPTEN__
-        E_WARN("decoder_init(config) does nothing in JavaScript\n");
-#else
-        if (decoder_reinit(d, config) < 0) {
+        if (decoder_init_config(d, config) < 0) {
             decoder_free(d);
             return NULL;
         }
-#endif
+    }
+    return d;
+}
+
+decoder_t *
+decoder_init(config_t *config)
+{
+    decoder_t *d = decoder_create(config);
+    if (d == NULL)
+        return NULL;
+    if (decoder_reinit(d, NULL) < 0) {
+        decoder_free(d);
+        return NULL;
     }
     return d;
 }
