@@ -2,7 +2,7 @@
 
 import os
 import unittest
-from soundswallower import Decoder, Config, get_model_path
+from soundswallower import Decoder, get_model_path
 
 
 DATADIR = os.path.join(os.path.dirname(__file__),
@@ -16,19 +16,14 @@ class TestDecoder(unittest.TestCase):
             decoder.start_utt()
             decoder.process_raw(buf, full_utt=True)
             decoder.end_utt()
-            self._check_hyp(decoder.hyp().hypstr, decoder.seg())
+            self._check_hyp(decoder.hyp().text, decoder.seg())
 
     def _check_hyp(self, hyp, hypseg):
         self.assertEqual(hyp, "go forward ten meters")
         words = []
-        try:
-            for seg in hypseg:
-                if seg.word not in ("<sil>", "(NULL)"):
-                    words.append(seg.word)
-        except AttributeError:
-            for word, start, end in hypseg:
-                if word not in ("<sil>", "(NULL)"):
-                    words.append(word)
+        for seg in hypseg:
+            if seg.text not in ("<sil>", "(NULL)"):
+                words.append(seg.text)
         self.assertEqual(words, "go forward ten meters".split())
 
     def test_from_scratch(self):

@@ -19,11 +19,9 @@ import wave
 import collections
 import os
 
-from ._soundswallower import Config
-from ._soundswallower import Decoder
-from ._soundswallower import FsgModel
-from ._soundswallower import Segment
-from ._soundswallower import Hypothesis
+from ._soundswallower import Config  # noqa: F401
+from ._soundswallower import Decoder  # noqa: F401
+from ._soundswallower import FsgModel  # noqa: F401
 
 
 def get_model_path(subpath=None):
@@ -68,8 +66,22 @@ def get_audio_data(input_file):
 
 Arg = collections.namedtuple("Arg", ["name", "default", "doc", "type", "required"])
 Arg.__doc__ = "Description of a configuration parameter."
-Arg.name.__doc__ = "Parameter name (without leading dash)."
+Arg.name.__doc__ = "Parameter name."
 Arg.default.__doc__ = "Default value of parameter."
 Arg.doc.__doc__ = "Description of parameter."
 Arg.type.__doc__ = "Type (as a Python type object) of parameter value."
 Arg.required.__doc__ = "Is this parameter required?"
+
+Seg = collections.namedtuple("Seg", ["text", "start", "duration", "ascore", "lscore"])
+Seg.__doc__ = "Segment in a word segmentation."
+Seg.text.__doc__ = "Word text."
+Seg.start.__doc__ = "Start time in the audio stream in seconds."
+Seg.duration.__doc__ = "Duration in seconds."
+Seg.ascore.__doc__ = "Acoustic match score."
+Seg.lscore.__doc__ = "Language (grammar) match score."
+
+Hyp = collections.namedtuple("Hyp", ["text", "score", "prob"])
+Hyp.__doc__ = "Recognition hypothesis."
+Hyp.text.__doc__ = "Recognized text."
+Hyp.score.__doc__ = "Best path score."
+Hyp.prob.__doc__ = "Posterior probability of hypothesis (often 1.0, sorry)."

@@ -164,9 +164,9 @@ def main(argv=None):
     results = []
     for input_file in args.inputs:
         _, file_align = decoder.decode_file(input_file)
-        results.append([{"id": word,
-                         "start": start,
-                         "end": end} for word, start, end in file_align])
+        results.append([{"id": seg.text,
+                         "start": seg.start,
+                         "end": seg.start + seg.duration} for seg in file_align])
     if args.output is not None:
         with open(args.output, 'w') as outfh:
             json.dump(results, outfh)
