@@ -22,6 +22,22 @@
             decoder.delete();
         });
     });
+    describe("Test configuration as JSON", () => {
+        it("Should contain default configuration", () => {
+	    let decoder = new ssjs.Decoder({
+		fsg: "testdata/goforward.fsg",
+		samprate: 16000,
+	    });
+            assert.ok(decoder);
+            let json = decoder.get_config_json();
+            let config = JSON.parse(json);
+            assert.ok(config);
+            assert.equal(config.hmm,
+                         ssjs.get_model_path(ssjs.defaultModel));
+            assert.equal(config.loglevel, "WARN");
+            assert.equal(config.fsg, "testdata/goforward.fsg");
+        });
+    });
     describe("Test acoustic model loading", () => {
 	it('Should load acoustic model', async () => {
 	    let decoder = new ssjs.Decoder();
@@ -75,6 +91,7 @@
     describe("Test dictionary and FSG", () => {
 	it('Should recognize "_go _forward _ten _meters"', async () => {
 	    let decoder = new ssjs.Decoder({samprate: 16000});
+            decoder.unset_config("dict");
 	    await decoder.initialize();
 	    await decoder.add_word("_go", "G OW", false);
 	    await decoder.add_word("_forward", "F AO R W ER D", false);
@@ -91,6 +108,32 @@
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
+            decoder.delete();
+	});
+    });
+    describe("Test reinitialization", () => {
+	it('Should recognize "go forward ten meters"', async () => {
+	    let decoder = new ssjs.Decoder({samprate: 16000});
+	    await decoder.initialize();
+	    await decoder.add_word("_go", "G OW", false);
+	    await decoder.add_word("_forward", "F AO R W ER D", false);
+	    await decoder.add_word("_ten", "T EH N", false);
+	    await decoder.add_word("_meters", "M IY T ER Z", true);
+	    await decoder.set_fsg("goforward", 0, 4, [
+		{from: 0, to: 1, prob: 1.0, word: "_go"},
+		{from: 1, to: 2, prob: 1.0, word: "_forward"},
+		{from: 2, to: 3, prob: 1.0, word: "_ten"},
+		{from: 3, to: 4, prob: 1.0, word: "_meters"}
+	    ]);
+            decoder.set_config("dict",
+                               ssjs.get_model_path(ssjs.defaultModel) + "/dict.txt");
+	    decoder.set_config("fsg", "testdata/goforward.fsg");
+	    await decoder.initialize();
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
+	    await decoder.start();
+	    await decoder.process(pcm, false, true);
+	    await decoder.stop();
+	    assert.equal("go forward ten meters", decoder.get_hyp());
             decoder.delete();
 	});
     });

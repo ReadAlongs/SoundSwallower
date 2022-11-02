@@ -1,6 +1,8 @@
-_config_init
+_config_parse_json
+_config_serialize_json
 _config_free
 _config_typeof
+_config_set
 _config_set_str
 _config_set_float
 _config_set_int

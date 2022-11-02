@@ -35,15 +35,15 @@ class Decoder {
      */
     constructor(config) {
 	this.initialized = false;
-        const cconfig = Module._config_init(0);
+        if (typeof(config) === "undefined")
+            config = {};
+	if (Module.defaultModel !== null && config.hmm === undefined)
+            config.hmm = Module.get_model_path(Module.defaultModel);
+	const cjson = allocateUTF8OnStack(JSON.stringify(config));
+        const cconfig = Module._config_parse_json(0, cjson);
 	this.cdecoder = Module._decoder_create(cconfig);
 	if (this.cdecoder == 0)
 	    throw new Error("Failed to construct Decoder");
-	if (Module.defaultModel !== null
-            && this.get_config("hmm") === null)
-            this.set_config("hmm", Module.get_model_path(Module.defaultModel));
-	for (const key in config)
-	    this.set_config(key, config[key]);
     }
     /**
      * Free resources used by the decoder.
@@ -52,6 +52,14 @@ class Decoder {
         if (this.cdecoder != 0)
             Module._decoder_free(this.cdecoder);
         this.cdecoder = 0;
+    }
+    /**
+     * Get configuration as JSON.
+     */
+    get_config_json() {
+        const cconfig = Module._decoder_config(this.cdecoder);
+        const cjson = Module._config_serialize_json(cconfig);
+        return UTF8ToString(cjson);
     }
     /**
      * Set a configuration parameter.
@@ -80,6 +88,20 @@ class Decoder {
 	    return false;
 	}
 	return true;
+    }
+    /**
+     * Reset a configuration parameter to its default value.
+     * @param {string} key - Parameter name.
+     * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
+     */
+    unset_config(key) {
+	const ckey = allocateUTF8OnStack(key);
+        const cconfig = Module._decoder_config(this.cdecoder);
+	const type = Module._config_typeof(cconfig, ckey);
+	if (type == 0) {
+	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
+	}
+        Module._config_set(cconfig, ckey, 0, type);
     }
     /**
      * Get a configuration parameter's value.
@@ -114,18 +136,6 @@ class Decoder {
 	}
     }
     /**
-     * Get a model parameter with backoff to path inside current model.
-     */
-    model_file_path(key, modelfile) {
-	const val = this.get_config(key);
-	if (val != null)
-	    return val;
-	const hmmpath = this.get_config("hmm");
-	if (hmmpath == null)
-	    throw new Error("Could not get "+key+" from config or model directory");
-	return hmmpath + "/" + modelfile;
-    }
-    /**
      * Test if a key is a known parameter.
      * @param {string} key - Key whose existence to check.
      */
@@ -135,7 +145,7 @@ class Decoder {
 	return Module._config_typeof(cconfig, ckey) != 0;
     }
     /**
-     * Initialize the decoder asynchronously.
+     * Initialize or reinitialize the decoder asynchronously.
      * @returns {Promise} Promise resolved once decoder is ready.
      */
     async initialize() {
@@ -157,8 +167,7 @@ class Decoder {
      * Read feature parameters from acoustic model.
      */
     async init_featparams() {
-	const featparams = this.model_file_path("featparams", "feat_params.json");
-        const fpdata = await load_json(featparams);
+        const fpdata = await load_json(this.get_config("featparams"));
 	for (const key in fpdata) {
 	    if (this.has_config(key)) /* Sometimes it doesn't */
 		this.set_config(key, fpdata[key]);
@@ -189,8 +198,7 @@ class Decoder {
     async init_feat() {
 	let rv;
 	try {
-	    const lda_path = this.model_file_path("lda", "feature_transform");
-	    const lda = await load_to_s3file(lda_path);
+	    const lda = await load_to_s3file(this.get_config("lda"));
 	    rv = Module._decoder_init_feat_s3file(this.cdecoder, lda);
 	}
 	catch (e) {
@@ -214,12 +222,11 @@ class Decoder {
      */
     async load_acmod_files() {
 	await this.load_mdef();
-	const tmat = this.model_file_path("tmat", "transition_matrices");
-	await this.load_tmat(tmat);
-	const means = this.model_file_path("mean", "means");
-	const variances = this.model_file_path("var", "variances");
-	const sendump = this.model_file_path("sendump", "sendump");
-	const mixw = this.model_file_path("mixw", "mixture_weights");
+	await this.load_tmat(this.get_config("tmat"));
+	const means = this.get_config("mean");
+	const variances = this.get_config("var");
+	const sendump = this.get_config("sendump");
+	const mixw = this.get_config("mixw");
 	await this.load_gmm(means, variances, sendump, mixw);
 	const rv = Module._decoder_init_acmod_post(this.cdecoder);
 	if (rv < 0)
@@ -230,9 +237,7 @@ class Decoder {
      * Load binary model definition file
      */
     async load_mdef() {
-	var mdef_path, s3f;
-	mdef_path = this.model_file_path("mdef", "mdef");
-	s3f = await load_to_s3file(mdef_path);
+	const s3f = await load_to_s3file(this.get_config("mdef"));
         const mdef = Module._bin_mdef_read_s3file(s3f, this.get_config("cionly"));
 	Module._s3file_free(s3f);
 	if (mdef == 0)
@@ -278,12 +283,16 @@ class Decoder {
      * Load dictionary from configuration.
      */
     async init_dict() {
-	const dict_path = this.model_file_path("dict", "dict.txt");
-	const dict = await load_to_s3file(dict_path);
+        let dict;
+        try {
+	    dict = await load_to_s3file(this.get_config("dict"));
+	}
+	catch (e) {
+	    dict = 0;
+	}
 	let fdict;
 	try {
-	    const fdict_path = this.model_file_path("fdict", "noisedict.txt");
-	    fdict = await load_to_s3file(fdict_path);
+	    fdict = await load_to_s3file(this.get_config("fdict"));
 	}
 	catch (e) {
 	    fdict = 0;
