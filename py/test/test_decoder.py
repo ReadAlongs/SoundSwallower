@@ -19,30 +19,29 @@ class TestDecoder(unittest.TestCase):
             self._check_hyp(decoder.hyp().hypstr, decoder.seg())
 
     def _check_hyp(self, hyp, hypseg):
-            self.assertEqual(hyp, "go forward ten meters")
-            words = []
-            try:
-                for seg in hypseg:
-                    if seg.word not in ("<sil>", "(NULL)"):
-                        words.append(seg.word)
-            except AttributeError:
-                for word, start, end in hypseg:
-                    if word not in ("<sil>", "(NULL)"):
-                        words.append(word)
-            self.assertEqual(words, "go forward ten meters".split())
+        self.assertEqual(hyp, "go forward ten meters")
+        words = []
+        try:
+            for seg in hypseg:
+                if seg.word not in ("<sil>", "(NULL)"):
+                    words.append(seg.word)
+        except AttributeError:
+            for word, start, end in hypseg:
+                if word not in ("<sil>", "(NULL)"):
+                    words.append(word)
+        self.assertEqual(words, "go forward ten meters".split())
 
     def test_from_scratch(self):
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          beam=0., wbeam=0., pbeam=0., loglevel="INFO")
+        decoder = Decoder.create(hmm=os.path.join(get_model_path(), 'en-us'),
+                                 beam=0., wbeam=0., pbeam=0., loglevel="INFO")
+        del decoder.config["dict"]
+        decoder.initialize()
         words = [("go", "G OW"),
                  ("forward", "F AO R W ER D"),
                  ("ten", "T EH N"),
                  ("meters", "M IY T ER Z")]
         for word, pron in words:
-            try:
-                decoder.add_word(word, pron, update=True)
-            except KeyError:
-                pass
+            decoder.add_word(word, pron, update=True)
         fsg = decoder.create_fsg("align",
                                  start_state=0, final_state=len(words),
                                  transitions=[(idx, idx + 1, 1.0, w[0])
@@ -58,14 +57,14 @@ class TestDecoder(unittest.TestCase):
         self._run_decode(decoder)
         # Reinitialize with a bogus FSG that recognizes the wrong word
         decoder.config["fsg"] = os.path.join(DATADIR, 'goforward2.fsg')
-        decoder.reinit()
+        decoder.initialize()
         # And verify that this fails :)
         with self.assertRaises(AssertionError):
             self._run_decode(decoder)
 
     def test_reinit_fe(self):
         # Initialize with wrong sampling rate
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+        decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
                           dict=os.path.join(DATADIR, 'turtle.dic'),
                           samprate=11025)
         # Verify that reinit_fe does not break current grammar
@@ -76,19 +75,9 @@ class TestDecoder(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_turtle(self):
-        config = Config()
-        config['hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
-        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
-        decoder = Decoder(config)
-        self._run_decode(decoder)
-
-    def test_live(self):
-        config = Config()
-        config['hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
-        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
-        decoder = Decoder(config)
+        decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
+                          fsg=os.path.join(DATADIR, 'goforward.fsg'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
         self._run_decode(decoder)
 
     def test_loglevel(self):
@@ -99,7 +88,7 @@ class TestDecoder(unittest.TestCase):
 
     def test_decode_file(self):
         """Test decode_file on a variety of data."""
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+        decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
                           dict=os.path.join(DATADIR, 'turtle.dic'))
         # Verify that decode_file does not break current grammar
         fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.fsg'))
@@ -116,7 +105,7 @@ class TestDecoder(unittest.TestCase):
     def test_decode_fail(self):
         """Test failure to initialize (should not segfault!)"""
         with self.assertRaises(RuntimeError):
-            _ = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+            _ = Decoder(hmm=os.path.join(get_model_path('en-us')),
                         fsg=os.path.join(DATADIR, 'goforward.fsg'),
                         dict=os.path.join(DATADIR, 'turtle.dic'),
                         samprate=4000)

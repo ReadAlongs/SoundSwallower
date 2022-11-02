@@ -66,7 +66,7 @@ cdef extern from "soundswallower/configuration.h":
     ctypedef struct config_t:
         hash_table_t *ht
         const config_param_t *defn
-    cdef enum config_type_t:
+    cdef enum config_type_e:
         ARG_REQUIRED,
         ARG_INTEGER,
         ARG_FLOATING,
@@ -76,6 +76,7 @@ cdef extern from "soundswallower/configuration.h":
         REQARG_FLOATING,
         REQARG_STRING,
         REQARG_BOOLEAN
+    ctypedef config_type_e config_type_t
     ctypedef struct config_val_t:
         int type
     ctypedef union anytype_t:
@@ -152,10 +153,12 @@ cdef extern from "soundswallower/decoder.h":
     ctypedef struct seg_iter_t:
         pass
     config_param_t *decoder_args()
+    decoder_t *decoder_create(config_t *config)
     decoder_t *decoder_init(config_t *config)
     int decoder_free(decoder_t *ps)
     int decoder_reinit(decoder_t *ps, config_t *config)
     fe_t *decoder_reinit_fe(decoder_t *ps, config_t *config)
+    config_t *decoder_config(decoder_t *ps)
     logmath_t *decoder_logmath(decoder_t *ps)
     int decoder_start_utt(decoder_t *ps)
     int decoder_process_int16(decoder_t *ps,

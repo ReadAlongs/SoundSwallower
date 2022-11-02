@@ -118,7 +118,7 @@ cdef class Config:
     def __getitem__(self, key):
         cdef const char *cval
         cdef const anytype_t *at;
-        cdef int t
+        cdef config_type_t t
 
         ckey = self._normalize_key(key)
         at = config_get(self.config, ckey)
@@ -141,7 +141,7 @@ cdef class Config:
             raise ValueError("Unable to handle parameter type %d" % t)
 
     def __setitem__(self, key, val):
-        cdef int t
+        cdef config_type_t t
         ckey = self._normalize_key(key)
         t = config_typeof(self.config, ckey)
         if t == 0:
@@ -159,6 +159,14 @@ cdef class Config:
             config_set_bool(self.config, ckey, bool(val))
         else:
             raise ValueError("Unable to handle parameter type %d" % t)
+
+    def __delitem__(self, key):
+        cdef config_type_t t
+        ckey = self._normalize_key(key)
+        t = config_typeof(self.config, ckey)
+        if t == 0:
+            raise KeyError("Unknown key %s" % key)
+        config_set(self.config, ckey, NULL, t)
 
     def __iter__(self):
         cdef hash_table_t *ht = self.config.ht
@@ -296,10 +304,6 @@ cdef class Decoder:
     See :doc:`config_params` for a description of keyword arguments.
 
     Args:
-        config(Config): Optional configuration object.  You can also
-                        use keyword arguments, the most important of
-                        which are noted below.  See :doc:`config_params`
-                        for more information.
         hmm(str): Path to directory containing acoustic model files.
         dict(str): Path to pronunciation dictionary.
         jsgf(str): Path to JSGF grammar file.
@@ -309,27 +313,73 @@ cdef class Decoder:
         samprate(float): Sampling rate for raw audio data.
         logfn(str): File to write log messages to (set to `os.devnull` to
                     silence these messages)
-
+    Raises:
+        ValueError: on invalid configuration options.
+        RuntimeError: on failure to create decoder.
     """
     cdef decoder_t *_ps
-    cdef public Config config
 
     def __init__(self, *args, **kwargs):
+        cdef Config config
         if len(args) == 1 and isinstance(args[0], Config):
-            self.config = args[0]
+            config = args[0]
         else:
-            self.config = Config(*args, **kwargs)
-        if self.config is None:
-            raise RuntimeError, "Failed to parse argument list"
-        self._ps = decoder_init(config_retain(self.config.config))
+            config = Config(*args, **kwargs)
+        if config is None:
+            raise ValueError, "Invalid configuration"
+        # Python owns it but so does the decoder now
+        self._ps = decoder_init(config_retain(config.config))
         if self._ps == NULL:
-            raise RuntimeError, "Failed to initialize SoundSwallower"
+            raise RuntimeError("Failed to initialize decoder")
 
+    @staticmethod
+    def create(*args, **kwargs):
+        """Create and configure, but do not initialize, the decoder.
+
+        This method exists if you wish to override or unset some of the
+        parameters which are filled in automatically when the model is
+        loaded, in particular ``dict``, if you wish to create a dictionary
+        programmatically rather than loading from a file.  For example:
+
+            d = Decoder.create()
+            del d.config["dict"]
+            d.initialize()
+            d.add_word("word", "W ER D", True) # Just one word! (or more)
+
+        See :doc:`config_params` for a description of keyword arguments.
+
+        Args:
+            hmm(str): Path to directory containing acoustic model files.
+            dict(str): Path to pronunciation dictionary.
+            jsgf(str): Path to JSGF grammar file.
+            fsg(str): Path to FSG grammar file (only one of ``jsgf`` or ``fsg`` should
+                      be specified).
+            toprule(str): Name of top-level rule in JSGF file to use as entry point.
+            samprate(float): Sampling rate for raw audio data.
+            logfn(str): File to write log messages to (set to `os.devnull` to
+                        silence these messages)
+        Raises:
+            ValueError: on invalid configuration options.
+        """
+        cdef Config config
+        cdef Decoder self
+        if len(args) == 1 and isinstance(args[0], Config):
+            config = args[0]
+        else:
+            config = Config(*args, **kwargs)
+        if config is None:
+            raise ValueError, "Invalid configuration"
+        self = Decoder.__new__(Decoder)
+        self._ps = decoder_create(config_retain(config.config))
+        if self._ps == NULL:
+            raise RuntimeError("Failed to create decoder")
+        return self
+            
     def __dealloc__(self):
         decoder_free(self._ps)
 
-    def reinit(self, Config config=None):
-        """Reinitialize the decoder.
+    def initialize(self, Config config=None):
+        """(Re-)initialize the decoder.
 
         Args:
             config(Config): Optional new configuration to apply, otherwise
@@ -341,13 +391,13 @@ cdef class Decoder:
         """
         cdef config_t *cconfig
         if config is None:
-            cconfig = self.config.config
+            cconfig = NULL
         else:
             self.config = config
             # Because decoder owns configs, but Python does too
             cconfig = config_retain(config.config)
         if decoder_reinit(self._ps, cconfig) != 0:
-            raise RuntimeError("Failed to reinitialize decoder configuration")
+            raise RuntimeError("Failed to initialize decoder")
 
     def reinit_fe(self, Config config=None):
         """Reinitialize only the feature extraction.
@@ -368,6 +418,29 @@ cdef class Decoder:
             cconfig = config_retain(config.config)
         if decoder_reinit_fe(self._ps, cconfig) == NULL:
             raise RuntimeError("Failed to reinitialize feature extraction")
+
+    @property
+    def config(self):
+        """Property containing configuration object.
+
+        You may use this to set or unset configuration options, but be
+        aware that you must call `initialize` to apply them, e.g.:
+
+            del decoder.config["dict"]
+            decoder.config["loglevel"] = "INFO"
+            decoder.config["bestpath"] = True
+            decoder.initialize()
+
+        Note that this will also remove any dictionary words or
+        grammars which you have loaded.  See `reinit_feat` for an
+        alternative if you do not wish to do this.
+
+        Returns:
+            Config: decoder configuration.
+        """
+        # Decoder owns the config, so we must retain it
+        cdef config_t *config = decoder_config(self._ps)
+        return Config.create_from_ptr(config_retain(config))
 
     def get_cmn(self, update=False):
         """Get current cepstral mean.
@@ -532,11 +605,11 @@ cdef class Decoder:
         Returns:
             FsgModel: Newly loaded finite-state grammar.
         """
-        cdef logmath_t *lmath
+        cdef config_t *cconfig = decoder_config(self._ps)
+        cdef logmath_t *lmath = decoder_logmath(self._ps)
         cdef float lw
 
-        lw = config_float(self.config.config, "lw")
-        lmath = decoder_logmath(self._ps)
+        lw = config_float(cconfig, "lw")
         fsg = FsgModel()
         # FIXME: not the proper way to encode filenames on Windows, I think
         fsg.fsg = fsg_model_readfile(filename.encode(), lmath, lw)
@@ -555,11 +628,11 @@ cdef class Decoder:
         Returns:
             FsgModel: Newly loaded finite-state grammar.
         """
-        cdef logmath_t *lmath
+        cdef config_t *cconfig = decoder_config(self._ps)
+        cdef logmath_t *lmath = decoder_logmath(self._ps)
         cdef float lw
 
-        lw = config_float(self.config.config, "lw")
-        lmath = decoder_logmath(self._ps)
+        lw = config_float(cconfig, "lw")
         fsg = FsgModel()
         fsg.fsg = jsgf_read_file(filename.encode(), lmath, lw)
         if fsg.fsg == NULL:
@@ -599,12 +672,12 @@ cdef class Decoder:
         Raises:
             ValueError: On invalid input.
         """
-        cdef logmath_t *lmath
+        cdef config_t *cconfig = decoder_config(self._ps)
+        cdef logmath_t *lmath = decoder_logmath(self._ps)
         cdef float lw
         cdef int wid
 
-        lw = config_float(self.config.config, "lw")
-        lmath = decoder_logmath(self._ps)
+        lw = config_float(cconfig, "lw")
         fsg = FsgModel()
         n_state = max(itertools.chain(*((t[0], t[1]) for t in transitions))) + 1
         fsg.fsg = fsg_model_init(name.encode("utf-8"), lmath, lw, n_state)
@@ -642,9 +715,10 @@ cdef class Decoder:
             ValueError: On failure to parse or find `toprule`.
             RuntimeError: If JSGF has no public rules.
         """
+        cdef config_t *cconfig = decoder_config(self._ps)
+        cdef logmath_t *lmath = decoder_logmath(self._ps)
         cdef jsgf_t *jsgf
         cdef jsgf_rule_t *rule
-        cdef logmath_t *lmath
         cdef float lw
 
         if not isinstance(jsgf_string, bytes):
@@ -662,8 +736,7 @@ cdef class Decoder:
             if rule == NULL:
                 jsgf_grammar_free(jsgf)
                 raise RuntimeError("No public rules found in JSGF")
-        lw = config_float(self.config.config, "lw")
-        lmath = decoder_logmath(self._ps)
+        lw = config_float(cconfig, "lw")
         fsg = FsgModel()
         fsg.fsg = jsgf_build_fsg(jsgf, rule, lmath, lw)
         jsgf_grammar_free(jsgf)
