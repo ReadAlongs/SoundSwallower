@@ -177,6 +177,23 @@ acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
     return FALSE;
 }
 
+static int
+acmod_alloc_buffers(acmod_t *acmod)
+{
+    /* The MFCC buffer needs to be at least as large as the dynamic
+     * feature window.  */
+    acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
+    acmod->mfc_buf = (mfcc_t **)
+        ckd_calloc_2d(acmod->n_mfc_alloc, acmod->fcb->cepsize,
+                      sizeof(**acmod->mfc_buf));
+
+    /* Feature buffer has to be at least as large as MFCC buffer. */
+    acmod->n_feat_alloc = acmod->n_mfc_alloc;
+    acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
+    acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
+    return 0;
+}
+
 acmod_t *
 acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
@@ -194,18 +211,8 @@ acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     if (acmod_feat_mismatch(acmod, fcb))
         goto error_out;
     acmod->fcb = feat_retain(fcb);
-
-    /* The MFCC buffer needs to be at least as large as the dynamic
-     * feature window.  */
-    acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
-    acmod->mfc_buf = (mfcc_t **)
-        ckd_calloc_2d(acmod->n_mfc_alloc, acmod->fcb->cepsize,
-                      sizeof(**acmod->mfc_buf));
-
-    /* Feature buffer has to be at least as large as MFCC buffer. */
-    acmod->n_feat_alloc = acmod->n_mfc_alloc;
-    acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
-    acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
+    if (acmod_alloc_buffers(acmod) < 0)
+        goto error_out;
     return acmod;
 
 error_out:
@@ -265,6 +272,34 @@ acmod_free(acmod_t *acmod)
     logmath_free(acmod->lmath);
 
     ckd_free(acmod);
+}
+
+int
+acmod_reinit_feat(acmod_t *acmod, fe_t *fe, feat_t *fcb)
+{
+    if (fe) {
+        if (acmod_fe_mismatch(acmod, fe))
+            return -1;
+        if (acmod->fe)
+            fe_free(acmod->fe);
+        acmod->fe = fe_retain(fe);
+    }
+    if (fcb) {
+        if (acmod_feat_mismatch(acmod, fcb))
+            return -1;
+        if (acmod->fcb)
+            feat_free(acmod->fcb);
+        acmod->fcb = feat_retain(fcb);
+    }
+
+    if (acmod->mfc_buf)
+        ckd_free_2d(acmod->mfc_buf);
+    if (acmod->feat_buf)
+        feat_array_free(acmod->feat_buf);
+    if (acmod->framepos)
+        ckd_free(acmod->framepos);
+
+    return acmod_alloc_buffers(acmod);
 }
 
 mllr_t *

@@ -346,8 +346,8 @@ cdef class Decoder:
         if decoder_reinit(self._ps, cconfig) != 0:
             raise RuntimeError("Failed to initialize decoder")
 
-    def reinit_fe(self, Config config=None):
-        """Reinitialize only the feature extraction.
+    def reinit_feat(self, Config config=None):
+        """Reinitialize only the feature computation.
 
         Args:
             config(Config): Optional new configuration to apply, otherwise
@@ -355,7 +355,7 @@ cdef class Decoder:
                             attribute will be reloaded.
         Raises:
             RuntimeError: On invalid configuration or other failure to
-                          initialize feature extraction.
+                          initialize feature computation.
         """
         cdef config_t *cconfig
         if config is None:
@@ -363,7 +363,7 @@ cdef class Decoder:
         else:
             self.config = config
             cconfig = config_retain(config.config)
-        if decoder_reinit_fe(self._ps, cconfig) == NULL:
+        if decoder_reinit_feat(self._ps, cconfig) < 0:
             raise RuntimeError("Failed to reinitialize feature extraction")
 
     @property
@@ -743,7 +743,7 @@ cdef class Decoder:
         if sample_rate != self.config["samprate"]:
             LOGGER.info("Setting sample rate to %d", sample_rate)
             self.config["samprate"] = sample_rate
-            self.reinit_fe()
+            self.reinit_feat()
 
         self.start_utt()
         self.process_raw(data, no_search=False, full_utt=True)

@@ -157,7 +157,7 @@ cdef extern from "soundswallower/decoder.h":
     decoder_t *decoder_init(config_t *config)
     int decoder_free(decoder_t *ps)
     int decoder_reinit(decoder_t *ps, config_t *config)
-    fe_t *decoder_reinit_fe(decoder_t *ps, config_t *config)
+    int decoder_reinit_feat(decoder_t *ps, config_t *config)
     config_t *decoder_config(decoder_t *ps)
     logmath_t *decoder_logmath(decoder_t *ps)
     int decoder_start_utt(decoder_t *ps)

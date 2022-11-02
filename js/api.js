@@ -335,7 +335,11 @@ class Decoder {
      */
     async reinitialize_audio() {
 	this.assert_initialized();
-	Module._decoder_reinit_fe(this.cdecoder, 0);
+        const fe = await this.init_fe();
+        const fcb = await this.init_feat();
+	if (Module._acmod_reinit_feat(this.cdecoder, fe, fcb) < 0) {
+	    throw new Error("Failed to reinitialize audio parameters");
+        }
     }
 
     /**

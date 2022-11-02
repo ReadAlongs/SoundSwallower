@@ -437,29 +437,19 @@ decoder_init_grammar_s3file(decoder_t *d, s3file_t *fsg_file, s3file_t *jsgf_fil
     return  0;
 }
 
-fe_t *
-decoder_reinit_fe(decoder_t *d, config_t *config)
+int
+decoder_reinit_feat(decoder_t *d, config_t *config)
 {
-    fe_t *new_fe;
-    
     if (config && config != d->config) {
         config_free(d->config);
         /* NOTE! Consuming semantics */
         d->config = config;
     }
-    if ((new_fe = fe_init(d->config)) == NULL)
-        return NULL;
-    if (acmod_fe_mismatch(d->acmod, new_fe)) {
-        fe_free(new_fe);
-        return NULL;
-    }
-    fe_free(d->fe);
-    d->fe = new_fe;
-    /* FIXME: should be in an acmod_set_fe function */
-    fe_free(d->acmod->fe);
-    d->acmod->fe = fe_retain(d->fe);
-
-    return d->fe;
+    if (decoder_init_fe(d) == NULL)
+        return -1;
+    if (decoder_init_feat(d) == NULL)
+        return -1;
+    return acmod_reinit_feat(d->acmod, d->fe, d->fcb);
 }
 
 int

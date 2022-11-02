@@ -206,6 +206,11 @@ acmod_t *acmod_init(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 acmod_t *acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
+ * Reinitialize acmod with new feature computation modules.
+ */
+int acmod_reinit_feat(acmod_t *acmod, fe_t *fe, feat_t *fcb);
+
+/**
  * Load acoustic model files.
  */
 int acmod_load_am(acmod_t *acmod);
