@@ -35,7 +35,8 @@
  *
  */
 /* YOU MUST USE FLEX 2.6.1 OR NEWER TO PROCESS THIS FILE!!! */
-/* Process with flex -o jsgf_scanner.h */
+/* Process this file with flex --nounistd -o jsgf_scanner.h */
+/* Note that --nounistd on the command-line totally removes <unistd.h> unlike %option nounistd */
 %{
 
 #include <soundswallower/jsgf.h>
@@ -43,7 +44,7 @@
 
 %}
 
-%option 8bit reentrant bison-bridge noyywrap yylineno never-interactive nounput nounistd
+%option 8bit reentrant bison-bridge noyywrap yylineno never-interactive nounput
 %option header-file="jsgf_scanner.h"
 %s COMMENT
 %s DECL
