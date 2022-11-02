@@ -211,7 +211,8 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	it('Should recognize "go forward ten meters"', async () => {
 	    let decoder = new ssjs.Decoder({
 		fsg: "testdata/goforward.fsg",
-		samprate: 11025
+		samprate: 11025,
+                loglevel: "INFO"
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("testdata/goforward-float32.raw");

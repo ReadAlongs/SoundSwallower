@@ -1462,6 +1462,6 @@ decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, do
     *ptr++ = '}';
     --maxlen;
     *ptr = '\0';
-    puts(hyp_json);
-    ckd_free(hyp_json);
+
+    return hyp_json;
 }

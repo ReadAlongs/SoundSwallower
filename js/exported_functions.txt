@@ -19,7 +19,6 @@ _decoder_init_acmod_pre
 _decoder_init_acmod_post
 _decoder_init_dict_s3file
 _decoder_init_grammar_s3file
-_decoder_reinit_fe
 _decoder_free
 _decoder_start_utt
 _decoder_end_utt
@@ -29,6 +28,7 @@ _decoder_config
 _decoder_process_float32
 _decoder_lookup_word
 _decoder_add_word
+_acmod_reinit_feat
 _seg_iter_word
 _seg_iter_frames
 _seg_iter_next

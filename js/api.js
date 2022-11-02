@@ -155,7 +155,7 @@ class Decoder {
 	await this.init_cleanup();
 	await this.init_fe();
 	await this.init_feat();
-	await this.init_acmod();
+	this.cacmod = await this.init_acmod();
 	await this.load_acmod_files();
 	await this.init_dict();
 	await this.init_grammar();
@@ -172,6 +172,7 @@ class Decoder {
 	    if (this.has_config(key)) /* Sometimes it doesn't */
 		this.set_config(key, fpdata[key]);
 	}
+        return fpdata;
     }
     
     /**
@@ -190,6 +191,7 @@ class Decoder {
 	const rv = Module._decoder_init_fe(this.cdecoder);
 	if (rv == 0)
 	    throw new Error("Failed to initialize frontend");
+        return rv;
     }
 
     /**
@@ -206,6 +208,7 @@ class Decoder {
 	}
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
+        return rv;
     }
 
     /**
@@ -215,6 +218,7 @@ class Decoder {
 	const rv = Module._decoder_init_acmod_pre(this.cdecoder);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
+        return rv;
     }
 
     /**
@@ -243,6 +247,7 @@ class Decoder {
 	if (mdef == 0)
 	    throw new Error("Failed to read mdef");
 	Module._set_mdef(this.cdecoder, mdef);
+        return mdef;
     }
 
     /**
@@ -257,6 +262,7 @@ class Decoder {
 	if (tmat == 0)
 	    throw new Error("Failed to read tmat");
 	Module._set_tmat(this.cdecoder, tmat);
+        return tmat;
     }
 
     /**
@@ -337,7 +343,7 @@ class Decoder {
 	this.assert_initialized();
         const fe = await this.init_fe();
         const fcb = await this.init_feat();
-	if (Module._acmod_reinit_feat(this.cdecoder, fe, fcb) < 0) {
+	if (Module._acmod_reinit_feat(this.cacmod, fe, fcb) < 0) {
 	    throw new Error("Failed to reinitialize audio parameters");
         }
     }

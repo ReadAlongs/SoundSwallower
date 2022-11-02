@@ -168,11 +168,17 @@ int
 acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
 {
     /* Feature type needs to be the same. */
-    if (0 != strcmp(config_str(acmod->config, "feat"), feat_name(fcb)))
+    if (0 != strcmp(config_str(acmod->config, "feat"), feat_name(fcb))) {
+        E_ERROR("Mismatch in feature type: %s != %s\n",
+                config_str(acmod->config, "feat"), feat_name(fcb));
         return TRUE;
+    }
     /* Input vector dimension needs to be the same. */
-    if (config_int(acmod->config, "ceplen") != feat_cepsize(fcb))
+    if (config_int(acmod->config, "ceplen") != feat_cepsize(fcb)) {
+        E_ERROR("Mismatch in input vector length: %d != %d\n",
+                config_int(acmod->config, "ceplen") != feat_cepsize(fcb));
         return TRUE;
+    }
     /* FIXME: Need to check LDA and stuff too. */
     return FALSE;
 }
@@ -280,16 +286,18 @@ acmod_reinit_feat(acmod_t *acmod, fe_t *fe, feat_t *fcb)
     if (fe) {
         if (acmod_fe_mismatch(acmod, fe))
             return -1;
-        if (acmod->fe)
+        if (acmod->fe != fe) {
             fe_free(acmod->fe);
-        acmod->fe = fe_retain(fe);
+            acmod->fe = fe_retain(fe);
+        }
     }
     if (fcb) {
         if (acmod_feat_mismatch(acmod, fcb))
             return -1;
-        if (acmod->fcb)
+        if (acmod->fcb != fcb) {
             feat_free(acmod->fcb);
-        acmod->fcb = feat_retain(fcb);
+            acmod->fcb = feat_retain(fcb);
+        }
     }
 
     if (acmod->mfc_buf)
