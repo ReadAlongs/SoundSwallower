@@ -122,12 +122,12 @@ decoder_t *decoder_init(config_t *config);
 int decoder_reinit(decoder_t *d, config_t *config);
 
 /**
- * Reinitialize only the feature extractor with updated configuration.
+ * Reinitialize only the feature computation with updated configuration.
  *
- * This function allows you to switch the feature extraction
- * parameters without otherwise affecting the decoder configuration.
- * For example, if you change the sample rate or the frame rate and do
- * not need to reconfigure the rest of the decoder.
+ * This function allows you to switch the feature extraction and
+ * computatoin parameters without otherwise affecting the decoder
+ * configuration.  For example, if you change the sample rate or the
+ * frame rate and do not need to reconfigure the rest of the decoder.
  *
  * @note The decoder consumes the pointer <code>config</code>.  If you
  * wish to reuse it, you must call config_retain() on it.
@@ -136,11 +136,9 @@ int decoder_reinit(decoder_t *d, config_t *config);
  * @param config An optional new configuration to use.  If this is
  *               NULL, the previous configuration will be reloaded,
  *               with any changes to feature extraction applied.
- * @return pointer to new feature extractor. The decoder owns this
- *         pointer, so you should not attempt to free it manually.
- *         Use fe_retain() if you wish to reuse it elsewhere.
+ * @return 0 for success or -1 for error.
  */
-fe_t * decoder_reinit_fe(decoder_t *d, config_t *config);
+int decoder_reinit_feat(decoder_t *d, config_t *config);
 
 /**
  * Retain a pointer to the decoder.
