@@ -274,7 +274,7 @@ senone_init_s3file(gauden_t *g,
 }
 
 senone_t *
-senone_init(gauden_t *g, char const *mixwfile, char const *sen2mgau_map_file,
+senone_init(gauden_t *g, const char *mixwfile, const char *sen2mgau_map_file,
 	    float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
 {
     s3file_t *senmgau = NULL;

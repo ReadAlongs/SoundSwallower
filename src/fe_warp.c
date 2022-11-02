@@ -131,7 +131,7 @@ fe_warp_set(melfb_t *mel, const char *id_name)
 }
 
 void
-fe_warp_set_parameters(melfb_t *mel, char const *param_str, float sampling_rate)
+fe_warp_set_parameters(melfb_t *mel, const char *param_str, float sampling_rate)
 {
     if (mel->warp_id <= FE_WARP_ID_MAX) {
         fe_warp_conf[mel->warp_id].set_parameters(param_str, sampling_rate);

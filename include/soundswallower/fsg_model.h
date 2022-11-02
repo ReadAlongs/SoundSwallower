@@ -158,7 +158,7 @@ typedef struct fsg_arciter_s {
 /**
  * Create a new FSG.
  */
-fsg_model_t *fsg_model_init(char const *name, logmath_t *lmath,
+fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
                             float32 lw, int32 n_state);
 
 /**
@@ -226,14 +226,14 @@ int fsg_model_free(fsg_model_t *fsg);
  *
  * @return Word ID for this new word.
  */
-int fsg_model_word_add(fsg_model_t *fsg, char const *word);
+int fsg_model_word_add(fsg_model_t *fsg, const char *word);
 
 /**
  * Look up a word in the FSG vocabulary.
  *
  * @return Word ID for this word
  */
-int fsg_model_word_id(fsg_model_t *fsg, char const *word);
+int fsg_model_word_id(fsg_model_t *fsg, const char *word);
 
 /**
  * Add the given transition to the FSG transition matrix.
@@ -316,14 +316,14 @@ fsg_link_t *fsg_model_null_trans(fsg_model_t *fsg, int32 i, int32 j);
  * @param state state to add a self-loop to, or -1 for all states.
  * @param silprob probability of silence transition.
  */
-int fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
+int fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
                           int state, float32 silprob);
 
 /**
  * Add alternate pronunciation transitions for a word in given FSG.
  */
-int fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
-                      char const *altword);
+int fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+                      const char *altword);
 
 /**
  * Write FSG to a file.
@@ -333,7 +333,7 @@ void fsg_model_write(fsg_model_t *fsg, FILE *fp);
 /**
  * Write FSG to a file.
  */
-void fsg_model_writefile(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile(fsg_model_t *fsg, const char *file);
 
 /**
  * Write FSG to a file in AT&T FSM format.
@@ -343,7 +343,7 @@ void fsg_model_write_fsm(fsg_model_t *fsg, FILE *fp);
 /**
  * Write FSG to a file in AT&T FSM format.
  */
-void fsg_model_writefile_fsm(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile_fsm(fsg_model_t *fsg, const char *file);
 
 /**
  * Write FSG symbol table to a file (for AT&T FSM)
@@ -353,7 +353,7 @@ void fsg_model_write_symtab(fsg_model_t *fsg, FILE *file);
 /**
  * Write FSG symbol table to a file (for AT&T FSM)
  */
-void fsg_model_writefile_symtab(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile_symtab(fsg_model_t *fsg, const char *file);
 
 #ifdef __cplusplus
 }

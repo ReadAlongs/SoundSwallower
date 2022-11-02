@@ -180,7 +180,7 @@ const char *cmn_update_repr(cmn_t *cmn);
 /**
  * Set the live mean from a string.
  */
-int cmn_set_repr(cmn_t *cmn, char const *repr);
+int cmn_set_repr(cmn_t *cmn, const char *repr);
 
 /**
  * Retain a CMN.

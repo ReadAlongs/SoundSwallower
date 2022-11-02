@@ -106,7 +106,7 @@ fsg_search_add_silences(fsg_search_t *fsgs, fsg_model_t *fsg)
     n_sil = 0;
     /* Add self-loops for all other fillers. */
     for (wid = dict_filler_start(dict); wid < dict_filler_end(dict); ++wid) {
-        char const *word = dict_wordstr(dict, wid);
+        const char *word = dict_wordstr(dict, wid);
         if (wid == dict_startwid(dict) || wid == dict_finishwid(dict))
             continue;
         fsg_model_add_silence(fsg, word, -1,
@@ -126,7 +126,7 @@ fsg_search_check_dict(fsg_search_t *fsgs, fsg_model_t *fsg)
 
     dict = search_module_dict(fsgs);
     for (i = 0; i < fsg_model_n_word(fsg); ++i) {
-        char const *word;
+        const char *word;
         int32 wid;
 
         word = fsg_model_word_str(fsg, i);
@@ -152,7 +152,7 @@ fsg_search_add_altpron(fsg_search_t *fsgs, fsg_model_t *fsg)
     n_alt = 0;
     n_word = fsg_model_n_word(fsg);
     for (i = 0; i < n_word; ++i) {
-        char const *word;
+        const char *word;
         int32 wid;
 
         word = fsg_model_word_str(fsg, i);
@@ -974,7 +974,7 @@ fsg_search_bestpath(search_module_t *search, int32 *out_score, int backward)
     return search->last_link;
 }
 
-char const *
+const char *
 fsg_search_hyp(search_module_t *search, int32 *out_score)
 {
     fsg_search_t *fsgs = (fsg_search_t *)search;
@@ -1012,7 +1012,7 @@ fsg_search_hyp(search_module_t *search, int32 *out_score)
     while (bp > 0) {
         fsg_hist_entry_t *hist_entry = fsg_history_entry_get(fsgs->history, bp);
         fsg_link_t *fl = fsg_hist_entry_fsglink(hist_entry);
-        char const *baseword;
+        const char *baseword;
         int32 wid;
 
         bp = fsg_hist_entry_pred(hist_entry);
@@ -1037,7 +1037,7 @@ fsg_search_hyp(search_module_t *search, int32 *out_score)
     while (bp > 0) {
         fsg_hist_entry_t *hist_entry = fsg_history_entry_get(fsgs->history, bp);
         fsg_link_t *fl = fsg_hist_entry_fsglink(hist_entry);
-        char const *baseword;
+        const char *baseword;
         int32 wid;
 
         bp = fsg_hist_entry_pred(hist_entry);

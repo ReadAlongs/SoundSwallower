@@ -92,7 +92,7 @@ jsgf_t *jsgf_parse_string(const char *string, jsgf_t *parent);
 /**
  * Get the grammar name from the file.
  */
-char const *jsgf_grammar_name(jsgf_t *jsgf);
+const char *jsgf_grammar_name(jsgf_t *jsgf);
 
 /**
  * Free a JSGF grammar.
@@ -137,7 +137,7 @@ jsgf_rule_t *jsgf_get_public_rule(jsgf_t *grammar);
 /**
  * Get the rule name from a rule.
  */
-char const *jsgf_rule_name(jsgf_rule_t *rule);
+const char *jsgf_rule_name(jsgf_rule_t *rule);
 
 /**
  * Test if a rule is public or not.

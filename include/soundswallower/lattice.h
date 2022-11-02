@@ -162,7 +162,7 @@ int latnode_times(latnode_t *node, int16 *out_fef, int16 *out_lef);
  * @param node Node inquired about.
  * @return Word string for this node (possibly a pronunciation variant).
  */
-char const *ps_latnode_word(lattice_t *dag, latnode_t *node);
+const char *ps_latnode_word(lattice_t *dag, latnode_t *node);
 
 /**
  * Get base word string for this node.
@@ -171,7 +171,7 @@ char const *ps_latnode_word(lattice_t *dag, latnode_t *node);
  * @param node Node inquired about.
  * @return Base word string for this node.
  */
-char const *ps_latnode_baseword(lattice_t *dag, latnode_t *node);
+const char *ps_latnode_baseword(lattice_t *dag, latnode_t *node);
 
 /**
  * Iterate over exits from this node.
@@ -250,7 +250,7 @@ latnode_t *ps_latlink_nodes(latlink_t *link, latnode_t **out_src);
  * @param link Link inquired about
  * @return Word string for this link (possibly a pronunciation variant).
  */
-char const *ps_latlink_word(lattice_t *dag, latlink_t *link);
+const char *ps_latlink_word(lattice_t *dag, latlink_t *link);
 
 /**
  * Get base word string from a lattice link.
@@ -259,7 +259,7 @@ char const *ps_latlink_word(lattice_t *dag, latlink_t *link);
  * @param link Link inquired about
  * @return Base word string for this link
  */
-char const *ps_latlink_baseword(lattice_t *dag, latlink_t *link);
+const char *ps_latlink_baseword(lattice_t *dag, latlink_t *link);
 
 /**
  * Get predecessor link in best path.
@@ -544,7 +544,7 @@ latlink_list_t *latlink_list_new(lattice_t *dag, latlink_t *link,
 /**
  * Get hypothesis string after bestpath search.
  */
-char const *lattice_hyp(lattice_t *dag, latlink_t *link);
+const char *lattice_hyp(lattice_t *dag, latlink_t *link);
 
 /**
  * Get hypothesis segmentation iterator after bestpath search.
@@ -579,7 +579,7 @@ void astar_finish(astar_search_t *nbest);
 /**
  * Get hypothesis string from A* search.
  */
-char const *astar_hyp(astar_search_t *nbest, latpath_t *path);
+const char *astar_hyp(astar_search_t *nbest, latpath_t *path);
 
 /**
  * Get hypothesis segmentation from A* search.

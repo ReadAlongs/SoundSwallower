@@ -310,13 +310,13 @@ latnode_times(latnode_t *node, int16 *out_fef, int16 *out_lef)
     return node->sf;
 }
 
-char const *
+const char *
 ps_latnode_word(lattice_t *dag, latnode_t *node)
 {
     return dict_wordstr(dag->dict, node->wid);
 }
 
-char const *
+const char *
 ps_latnode_baseword(lattice_t *dag, latnode_t *node)
 {
     return dict_wordstr(dag->dict, node->basewid);
@@ -391,7 +391,7 @@ ps_latlink_nodes(latlink_t *link, latnode_t **out_src)
     return link->to;
 }
 
-char const *
+const char *
 ps_latlink_word(lattice_t *dag, latlink_t *link)
 {
     if (link->from == NULL)
@@ -399,7 +399,7 @@ ps_latlink_word(lattice_t *dag, latlink_t *link)
     return dict_wordstr(dag->dict, link->from->wid);
 }
 
-char const *
+const char *
 ps_latlink_baseword(lattice_t *dag, latlink_t *link)
 {
     if (link->from == NULL)
@@ -421,7 +421,7 @@ ps_latlink_prob(lattice_t *dag, latlink_t *link, int32 *out_ascr)
     return post;
 }
 
-char const *
+const char *
 lattice_hyp(lattice_t *dag, latlink_t *link)
 {
     latlink_t *l;
@@ -1251,7 +1251,7 @@ astar_next(astar_search_t *nbest)
     return NULL;
 }
 
-char const *
+const char *
 astar_hyp(astar_search_t *nbest, latpath_t *path)
 {
     search_module_t *search;

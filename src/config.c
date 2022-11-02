@@ -745,7 +745,7 @@ config_serialize_json(config_t *config)
 }
 
 config_type_t
-config_typeof(config_t *config, char const *name)
+config_typeof(config_t *config, const char *name)
 {
     void *val;
     if (hash_table_lookup(config->ht, name, &val) < 0)
@@ -767,7 +767,7 @@ config_get(config_t *config, const char *name)
 }
 
 long
-config_int(config_t *config, char const *name)
+config_int(config_t *config, const char *name)
 {
     config_val_t *val;
     val = config_access(config, name);
@@ -781,14 +781,14 @@ config_int(config_t *config, char const *name)
 }
 
 int
-config_bool(config_t *config, char const *name)
+config_bool(config_t *config, const char *name)
 {
     long val = config_int(config, name);
     return val != 0;
 }
 
 double
-config_float(config_t *config, char const *name)
+config_float(config_t *config, const char *name)
 {
     config_val_t *val;
     val = config_access(config, name);
@@ -801,8 +801,8 @@ config_float(config_t *config, char const *name)
     return val->val.fl;
 }
 
-char const *
-config_str(config_t *config, char const *name)
+const char *
+config_str(config_t *config, const char *name)
 {
     config_val_t *val;
     val = config_access(config, name);
@@ -812,11 +812,11 @@ config_str(config_t *config, char const *name)
         E_ERROR("Argument %s does not have string type\n", name);
         return NULL;
     }
-    return (char const *)val->val.ptr;
+    return (const char *)val->val.ptr;
 }
 
 const anytype_t *
-config_unset(config_t *config, char const *name)
+config_unset(config_t *config, const char *name)
 {
     config_val_t *cval = config_access(config, name);
     const config_param_t *arg;
@@ -913,7 +913,7 @@ anytype_from_str(anytype_t *val, int t, const char *str)
 }
 
 const anytype_t *
-config_set_str(config_t *config, char const *name, char const *val)
+config_set_str(config_t *config, const char *name, const char *val)
 {
     config_val_t *cval = config_access(config, name);
     if (cval == NULL) {
@@ -966,7 +966,7 @@ anytype_from_int(anytype_t *val, int t, long i)
 }
 
 const anytype_t *
-config_set_int(config_t *config, char const *name, long val)
+config_set_int(config_t *config, const char *name, long val)
 {
     config_val_t *cval = config_access(config, name);
     if (cval == NULL) {
@@ -1019,7 +1019,7 @@ anytype_from_float(anytype_t *val, int t, double f)
 }
 
 const anytype_t *
-config_set_float(config_t *config, char const *name, double val)
+config_set_float(config_t *config, const char *name, double val)
 {
     config_val_t *cval = config_access(config, name);
     if (cval == NULL) {
@@ -1033,7 +1033,7 @@ config_set_float(config_t *config, char const *name, double val)
 }
 
 const anytype_t *
-config_set_bool(config_t *config, char const *name, int val)
+config_set_bool(config_t *config, const char *name, int val)
 {
     return config_set_int(config, name, val != 0);
 }

@@ -350,8 +350,8 @@ struct melfb_s {
     int16 *filt_width;
     /* Luxury mobile home. */
     int32 doublewide;
-    char const *warp_type;
-    char const *warp_params;
+    const char *warp_type;
+    const char *warp_params;
     uint32 warp_id;
     /* Precomputed normalization constants for unitary DCT-II/DCT-III */
     mfcc_t sqrt_inv_n, sqrt_inv_2n;

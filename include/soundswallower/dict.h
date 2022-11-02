@@ -135,7 +135,7 @@ int dict_real_word(dict_t *d,  /**< The dictionary structure */
  * Return value: Result word id if successful, BAD_S3WID otherwise
  */
 s3wid_t dict_add_word(dict_t *d,          /**< The dictionary structure. */
-                      char const *word,   /**< The word. */
+                      const char *word,   /**< The word. */
                       s3cipid_t const *p, /**< The pronunciation. */
                       int32 np            /**< Number of phones. */
     );

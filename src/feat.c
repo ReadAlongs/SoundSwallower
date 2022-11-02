@@ -180,9 +180,9 @@ feat_print_dbg(feat_t *fcb, mfcc_t ***feat, int32 nfr, const char *text)
 #endif
 
 int32 **
-parse_subvecs(char const *str)
+parse_subvecs(const char *str)
 {
-    char const *strp;
+    const char *strp;
     int32 n, n2, l;
     glist_t dimlist;            /* List of dimensions in one subvector */
     glist_t veclist;            /* List of dimlists (subvectors) */

@@ -307,7 +307,7 @@ gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixtur
 }
 
 gauden_t *
-gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath_t *lmath)
+gauden_init(const char *meanfile, const char *varfile, float32 varfloor, logmath_t *lmath)
 {
     s3file_t *means, *vars;
     gauden_t *g;

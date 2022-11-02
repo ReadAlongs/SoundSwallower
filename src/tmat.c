@@ -108,7 +108,7 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 
 
 tmat_t *
-tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor)
+tmat_init(const char *file_name, logmath_t *lmath, float64 tpfloor)
 {
     s3file_t *s;
     tmat_t *tmat;

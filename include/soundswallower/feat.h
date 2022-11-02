@@ -177,7 +177,7 @@ typedef struct feat_s {
  * NULL; and each subvec[0]..subvec[N-1] is -1 terminated vector of
  * feature dims.
  */
-int32 **parse_subvecs(char const *str);
+int32 **parse_subvecs(const char *str);
 
 /**
  * Free array of subvector specs.

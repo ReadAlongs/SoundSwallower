@@ -72,7 +72,7 @@ dict_ciphone_str(dict_t * d, s3wid_t wid, int32 pos)
 
 
 s3wid_t
-dict_add_word(dict_t * d, char const *word, s3cipid_t const * p, int32 np)
+dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
 {
     int32 len;
     dictword_t *wordp;

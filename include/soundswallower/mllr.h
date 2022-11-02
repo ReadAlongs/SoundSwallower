@@ -69,7 +69,7 @@ struct mllr_s {
 /**
  * Read a speaker-adaptive linear transform from a file.
  */
-mllr_t *mllr_read(char const *file);
+mllr_t *mllr_read(const char *file);
 
 /**
  * Retain a pointer to a linear transform.

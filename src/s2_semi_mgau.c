@@ -883,7 +883,7 @@ s2_semi_mgau_frame_eval(mgau_t *ps,
 
 
 static int
-split_topn(char const *str, uint8 *out, int nfeat)
+split_topn(const char *str, uint8 *out, int nfeat)
 {
     char *topn_list = ckd_salloc(str);
     char *c, *cc;

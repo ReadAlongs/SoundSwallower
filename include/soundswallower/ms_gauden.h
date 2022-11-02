@@ -99,8 +99,8 @@ typedef struct gauden_s {
  * Return value: ptr to the model created; NULL if error.
  * (See Sphinx3 model file-format documentation.)
  */
-gauden_t *gauden_init(char const *meanfile,/**< Input: File containing means of mixture gaussians */
-                      char const *varfile,/**< Input: File containing variances of mixture gaussians */
+gauden_t *gauden_init(const char *meanfile,/**< Input: File containing means of mixture gaussians */
+                      const char *varfile,/**< Input: File containing variances of mixture gaussians */
                       float32 varfloor,	/**< Input: Floor value to be applied to variances */
                       logmath_t *lmath
                       );

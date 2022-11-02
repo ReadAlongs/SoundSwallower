@@ -78,7 +78,7 @@ typedef struct searchfuncs_s {
     void (*free)(search_module_t *search);
 
     lattice_t *(*lattice)(search_module_t *search);
-    char const *(*hyp)(search_module_t *search, int32 *out_score);
+    const char *(*hyp)(search_module_t *search, int32 *out_score);
     int32 (*prob)(search_module_t *search);
     seg_iter_t *(*seg_iter)(search_module_t *search);
 } searchfuncs_t;
@@ -167,7 +167,7 @@ typedef struct ps_segfuncs_s {
 struct seg_iter_s {
     ps_segfuncs_t *vt;     /**< V-table of seg methods */
     search_module_t *search;   /**< Search object from whence this came */
-    char const *word;      /**< Word string (pointer into dictionary hash) */
+    const char *word;      /**< Word string (pointer into dictionary hash) */
     frame_idx_t sf;        /**< Start frame. */
     frame_idx_t ef;        /**< End frame. */
     int32 ascr;            /**< Acoustic score. */

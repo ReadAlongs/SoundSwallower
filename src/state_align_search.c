@@ -362,7 +362,7 @@ state_align_search_seg_iter(search_module_t * search)
     return (seg_iter_t *)seg;
 }
 
-static char const *
+static const char *
 state_align_search_hyp(search_module_t *search, int32 *out_score)
 {
     state_align_search_t *sas = (state_align_search_t *)search;

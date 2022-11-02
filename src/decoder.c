@@ -99,7 +99,7 @@ expand_file_config(config_t *config, const char *arg,
 void
 config_expand(config_t *config)
 {
-    char const *hmmdir, *featparams;
+    const char *hmmdir, *featparams;
 
     /* Get acoustic model filenames and add them to the command-line */
     hmmdir = config_str(config, "hmm");
@@ -597,7 +597,7 @@ decoder_set_jsgf_file(decoder_t *d, const char *path)
 {
     fsg_model_t *fsg;
     jsgf_rule_t *rule;
-    char const *toprule;
+    const char *toprule;
     jsgf_t *jsgf = jsgf_parse_file(path, NULL);
     float lw;
     int result;
@@ -635,7 +635,7 @@ decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 {
     fsg_model_t *fsg;
     jsgf_rule_t *rule;
-    char const *toprule;
+    const char *toprule;
     jsgf_t *jsgf = jsgf_parse_string(jsgf_string, NULL);
     float lw;
     int result;
@@ -670,8 +670,8 @@ decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 
 int
 decoder_add_word(decoder_t *d,
-                 char const *word,
-                 char const *phones,
+                 const char *word,
+                 const char *phones,
                  int update)
 {
     int32 wid;
@@ -962,7 +962,7 @@ decoder_end_utt(decoder_t *d)
                         "word", "start", "end", "pprob", "ascr", "lscr");
     	    for (seg = decoder_seg_iter(d); seg;
         	 seg = seg_iter_next(seg)) {
-    	        char const *word;
+    	        const char *word;
         	int sf, ef;
         	int32 post, lscr, ascr;
 
@@ -978,10 +978,10 @@ decoder_end_utt(decoder_t *d)
     return rv;
 }
 
-char const *
+const char *
 decoder_hyp(decoder_t *d, int32 *out_best_score)
 {
-    char const *hyp;
+    const char *hyp;
 
     if (d->search == NULL) {
         E_ERROR("No search module is selected, did you forget to "
@@ -1032,7 +1032,7 @@ seg_iter_next(seg_iter_t *seg)
     return search_module_seg_next(seg);
 }
 
-char const *
+const char *
 seg_iter_word(seg_iter_t *seg)
 {
     return seg->word;
@@ -1109,7 +1109,7 @@ hyp_iter_next(hyp_iter_t *nbest)
     return nbest;
 }
 
-char const *
+const char *
 hyp_iter_hyp(hyp_iter_t *nbest, int32 *out_score)
 {
     assert(nbest != NULL);

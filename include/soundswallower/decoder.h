@@ -287,8 +287,8 @@ mllr_t *decoder_apply_mllr(decoder_t *d, mllr_t *mllr);
  *         failure.
  */
 int decoder_add_word(decoder_t *d,
-                char const *word,
-                char const *phones,
+                const char *word,
+                const char *phones,
                 int update);
 
 /** 
@@ -407,7 +407,7 @@ int decoder_end_utt(decoder_t *d);
  *         decoding.  NULL if no hypothesis is available.  This string is owned
  *         by the decoder, so you should copy it if you need to hold onto it.
  */
-char const *decoder_hyp(decoder_t *d, int32 *out_best_score);
+const char *decoder_hyp(decoder_t *d, int32 *out_best_score);
 
 /**
  * Get posterior probability.
@@ -461,7 +461,7 @@ seg_iter_t *seg_iter_next(seg_iter_t *seg);
  * @return Read-only string giving string name of this segment.  This
  * is only valid until the next call to seg_iter_next().
  */
-char const *seg_iter_word(seg_iter_t *seg);
+const char *seg_iter_word(seg_iter_t *seg);
 
 /**
  * Get inclusive start and end frames from a segmentation iterator.
@@ -520,7 +520,7 @@ hyp_iter_t *hyp_iter_next(hyp_iter_t *nbest);
  * @param out_score Output: Path score for this hypothesis.
  * @return String containing next best hypothesis.
  */
-char const *hyp_iter_hyp(hyp_iter_t *nbest, int32 *out_score);
+const char *hyp_iter_hyp(hyp_iter_t *nbest, int32 *out_score);
 
 /**
  * Get the word segmentation from an N-best list iterator.

@@ -87,7 +87,7 @@ typedef enum acmod_state_e {
 typedef struct mgau_s mgau_t;
 
 typedef struct mgaufuncs_s {
-    char const *name;
+    const char *name;
 
     int (*frame_eval)(mgau_t *mgau,
                       int16 *senscr,

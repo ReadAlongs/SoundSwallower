@@ -105,10 +105,10 @@ typedef enum config_type_e  {
  * Argument definition structure.
  */
 typedef struct config_param_s {
-    char const *name;   /**< Name of the command line switch */
+    const char *name;   /**< Name of the command line switch */
     int type;           /**< Type of the argument in question */
-    char const *deflt;  /**< Default value (as a character string), or NULL if none */
-    char const *doc;    /**< Documentation/description string */
+    const char *deflt;  /**< Default value (as a character string), or NULL if none */
+    const char *doc;    /**< Documentation/description string */
 } config_param_t;
 
 /**
@@ -229,7 +229,7 @@ const char *config_serialize_json(config_t *config);
  * @return the type of the parameter (as a combination of the ARG_*
  *         bits), or 0 if no such parameter exists.
  */
-config_type_t config_typeof(config_t *config, char const *name);
+config_type_t config_typeof(config_t *config, const char *name);
 #define config_exists(config, name) (config_typeof(config, name) != 0)
 
 /**

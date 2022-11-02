@@ -91,7 +91,7 @@ fsg_model_trans_add(fsg_model_t * fsg,
     /* Add it to the list of transitions and update the hash table */
     gl = glist_add_ptr(gl, (void *) link);
     hash_table_replace_bkey(fsg->trans[from].trans,
-                            (char const *) &link->to_state,
+                            (const char *) &link->to_state,
                             sizeof(link->to_state), gl);
 }
 
@@ -135,7 +135,7 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
 
     link2 = (fsg_link_t *)
         hash_table_enter_bkey(fsg->trans[from].null_trans,
-                              (char const *) &link->to_state,
+                              (const char *) &link->to_state,
                               sizeof(link->to_state), link);
     assert(link == link2);
 
@@ -231,7 +231,7 @@ fsg_model_trans(fsg_model_t * fsg, int32 i, int32 j)
 
     if (fsg->trans[i].trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].trans, (char const *) &j,
+    if (hash_table_lookup_bkey(fsg->trans[i].trans, (const char *) &j,
                                sizeof(j), &val) < 0)
         return NULL;
     return (glist_t) val;
@@ -244,7 +244,7 @@ fsg_model_null_trans(fsg_model_t * fsg, int32 i, int32 j)
 
     if (fsg->trans[i].null_trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (char const *) &j,
+    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (const char *) &j,
                                sizeof(j), &val) < 0)
         return NULL;
     return (fsg_link_t *) val;
@@ -319,7 +319,7 @@ fsg_arciter_free(fsg_arciter_t * itor)
 }
 
 int
-fsg_model_word_id(fsg_model_t * fsg, char const *word)
+fsg_model_word_id(fsg_model_t * fsg, const char *word)
 {
     int wid;
 
@@ -335,7 +335,7 @@ fsg_model_word_id(fsg_model_t * fsg, char const *word)
 }
 
 int
-fsg_model_word_add(fsg_model_t * fsg, char const *word)
+fsg_model_word_add(fsg_model_t * fsg, const char *word)
 {
     int wid, old_size;
 
@@ -366,7 +366,7 @@ fsg_model_word_add(fsg_model_t * fsg, char const *word)
 }
 
 int
-fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
+fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
                       int state, float32 silprob)
 {
     int32 logsilp;
@@ -397,8 +397,8 @@ fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
 }
 
 int
-fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
-                  char const *altword)
+fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+                  const char *altword)
 {
     int i, basewid, altwid;
     int ntrans;
@@ -463,7 +463,7 @@ fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
 
 
 fsg_model_t *
-fsg_model_init(char const *name, logmath_t * lmath, float32 lw,
+fsg_model_init(const char *name, logmath_t * lmath, float32 lw,
                int32 n_state)
 {
     fsg_model_t *fsg;
@@ -674,7 +674,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     fsg->vocab = ckd_calloc(fsg->n_word_alloc, sizeof(*fsg->vocab));
     for (itor = hash_table_iter(vocab); itor;
          itor = hash_table_iter_next(itor)) {
-        char const *word = hash_entry_key(itor->ent);
+        const char *word = hash_entry_key(itor->ent);
         int32 wid = (int32) (size_t) hash_entry_val(itor->ent);
         fsg->vocab[wid] = (char *) word;
     }
@@ -810,7 +810,7 @@ fsg_model_write(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile(fsg_model_t * fsg, char const *file)
+fsg_model_writefile(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 
@@ -865,7 +865,7 @@ fsg_model_write_fsm(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile_fsm(fsg_model_t * fsg, char const *file)
+fsg_model_writefile_fsm(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 
@@ -896,7 +896,7 @@ fsg_model_write_symtab(fsg_model_t * fsg, FILE * file)
 }
 
 void
-fsg_model_writefile_symtab(fsg_model_t * fsg, char const *file)
+fsg_model_writefile_symtab(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 

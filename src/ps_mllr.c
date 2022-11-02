@@ -45,7 +45,7 @@
 #include <soundswallower/acmod.h>
 
 mllr_t *
-mllr_read(char const *regmatfile)
+mllr_read(const char *regmatfile)
 {
     mllr_t *mllr;
     FILE *fp;

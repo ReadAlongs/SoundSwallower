@@ -63,7 +63,7 @@ static int32 acmod_process_mfcbuf(acmod_t *acmod);
 int
 acmod_load_am(acmod_t *acmod)
 {
-    char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
+    const char *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
     /* Read model definition. */
     if ((mdeffn = config_str(acmod->config, "mdef")) == NULL) {

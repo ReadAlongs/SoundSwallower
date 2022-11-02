@@ -153,7 +153,7 @@ int fsg_search_finish(search_module_t *search);
 /**
  * Get hypothesis string from the FSG search.
  */
-char const *fsg_search_hyp(search_module_t *search, int32 *out_score);
+const char *fsg_search_hyp(search_module_t *search, int32 *out_score);
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -72,7 +72,7 @@ err_set_loglevel(err_lvl_t lvl)
 }
 
 const char *
-err_set_loglevel_str(char const *lvl)
+err_set_loglevel_str(const char *lvl)
 {
     const char *rv = err_level[min_loglevel];
     int i;

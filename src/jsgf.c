@@ -208,7 +208,7 @@ extract_grammar_name(char *rule_name)
     return grammar_name;
 }
 
-char const *
+const char *
 jsgf_grammar_name(jsgf_t * jsgf)
 {
     return jsgf->name;
@@ -413,7 +413,7 @@ jsgf_rule_iter(jsgf_t * grammar)
 }
 
 jsgf_rule_t *
-jsgf_get_rule(jsgf_t * grammar, char const *name)
+jsgf_get_rule(jsgf_t * grammar, const char *name)
 {
     void *val;
     char *fullname;
@@ -456,7 +456,7 @@ jsgf_get_public_rule(jsgf_t * grammar)
     return public_rule;
 }
 
-char const *
+const char *
 jsgf_rule_name(jsgf_rule_t * rule)
 {
     return rule->name;
