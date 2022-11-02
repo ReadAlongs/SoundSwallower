@@ -10,17 +10,6 @@
 	    assert.ok(ssjs);
 	});
     });
-    describe("Test acoustic model loading", () => {
-	it('Should load acoustic model', async () => {
-	    let decoder = new ssjs.Decoder();
-	    await decoder.init_config();
-	    await decoder.init_fe();
-	    await decoder.init_feat();
-	    await decoder.init_acmod();
-	    await decoder.load_acmod_files();
-            assert.ok(decoder);
-	});
-    });
     describe("Test decoder initialization", () => {
 	it("Should initialize the decoder", async () => {
 	    let decoder = new ssjs.Decoder({
@@ -28,7 +17,22 @@
 		samprate: 16000,
 	    });
             assert.ok(decoder);
+            assert.equal(decoder.get_config("hmm"),
+                         ssjs.get_model_path(ssjs.defaultModel));
+            decoder.delete();
         });
+    });
+    describe("Test acoustic model loading", () => {
+	it('Should load acoustic model', async () => {
+	    let decoder = new ssjs.Decoder();
+	    await decoder.init_featparams();
+	    await decoder.init_fe();
+	    await decoder.init_feat();
+	    await decoder.init_acmod();
+	    await decoder.load_acmod_files();
+            assert.ok(decoder);
+            decoder.delete();
+	});
     });
     describe("Test decoding", () => {
 	it('Should recognize "go forward ten meters"', async () => {
@@ -51,6 +55,7 @@
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters"]);
+            decoder.delete();
 	});
 	it('Should accept Float32Array as well as UInt8Array', async () => {
 	    let decoder = new ssjs.Decoder({
@@ -64,6 +69,7 @@
 	    await decoder.process(pcm32, false, true);
 	    await decoder.stop();
 	    assert.equal("go forward ten meters", decoder.get_hyp());
+            decoder.delete();
 	});
     });
     describe("Test dictionary and FSG", () => {
@@ -74,18 +80,18 @@
 	    await decoder.add_word("_forward", "F AO R W ER D", false);
 	    await decoder.add_word("_ten", "T EH N", false);
 	    await decoder.add_word("_meters", "M IY T ER Z", true);
-	    let fsg = decoder.create_fsg("goforward", 0, 4, [
+	    await decoder.set_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 1.0, word: "_go"},
 		{from: 1, to: 2, prob: 1.0, word: "_forward"},
 		{from: 2, to: 3, prob: 1.0, word: "_ten"},
 		{from: 3, to: 4, prob: 1.0, word: "_meters"}
 	    ]);
-	    await decoder.set_fsg(fsg);
 	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
+            decoder.delete();
 	});
     });
     describe("Test loading model for other language", () => {
@@ -93,7 +99,7 @@
 	    let decoder = new ssjs.Decoder({hmm: ssjs.get_model_path("fr-fr"),
 					    samprate: 16000});
 	    await decoder.initialize();
-	    let fsg = decoder.create_fsg("goforward", 0, 4, [
+	    await decoder.set_fsg("goforward", 0, 4, [
 		{from: 0, to: 1, prob: 0.5, word: "avance"},
 		{from: 0, to: 1, prob: 0.5, word: "recule"},
 		{from: 1, to: 2, prob: 0.1, word: "d'"},
@@ -111,12 +117,12 @@
 		{from: 3, to: 4, prob: 0.1, word: "mètre"},
 		{from: 3, to: 4, prob: 0.9, word: "mètres"}
 	    ]);
-	    await decoder.set_fsg(fsg);
 	    let pcm = await fs.readFile("testdata/goforward_fr-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("avance de dix mètres", decoder.get_hyp());
+            decoder.delete();
 	});
     });
     describe("Test JSGF", () => {
@@ -131,13 +137,14 @@
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
+            decoder.delete();
 	});
     });
     describe("Test JSGF string", () => {
 	it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
 	    let decoder = new ssjs.Decoder({samprate: 16000});
 	    await decoder.initialize();
-	    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
+	    await decoder.set_jsgf(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
        [(pizza | pizzas)] [<toppings>];
@@ -149,12 +156,12 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 <toppings> = [with] <topping> ([and] <topping>)*;
 <topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
-	    await decoder.set_fsg(fsg);
 	    let pcm = await fs.readFile("testdata/pizza-float32.raw");
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
 	    await decoder.stop();
 	    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
+            decoder.delete();
 	});
     });
     describe("Test reinitialize_audio", () => {
@@ -165,7 +172,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	    });
 	    await decoder.initialize();
 	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
-	    decoder.config.set("samprate", 16000);
+	    decoder.set_config("samprate", 16000);
 	    await decoder.reinitialize_audio();
 	    await decoder.start();
 	    await decoder.process(pcm, false, true);
@@ -180,6 +187,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	    assert.deepStrictEqual(hypseg_words,
 				   ["<sil>", "go", "forward",
 				    "(NULL)", "ten", "meters"]);
+            decoder.delete();
 	});
     });
     describe("Test dictionary lookup", () => {
@@ -188,6 +196,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 	    await decoder.initialize();
 	    const phones = decoder.lookup_word("one");
 	    assert.equal("W AH N", phones);
+            decoder.delete();
 	});
     });
 })();

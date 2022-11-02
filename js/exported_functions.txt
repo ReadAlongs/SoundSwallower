@@ -9,8 +9,7 @@ _config_float
 _config_int
 _hash_iter_key
 _hash_table_iter_next
-_decoder_init
-_decoder_init_config
+_decoder_create
 _decoder_init_cleanup
 _decoder_init_fe
 _decoder_init_feat_s3file

@@ -22,74 +22,36 @@ if (typeof(Module.modelBase) === 'undefined') {
 }
 
 /**
- * Configuration object for SoundSwallower recognizer.
- *
- * There is a fixed set of configuration values, which can be iterated
- * over using the iterator property.  Many have default values.
+ * Speech recognizer object.
  */
-class Config {
+class Decoder {
     /**
-     * Create a configuration object.
-     * @param {Object} [dict] - Initial configuration parameters and
-     * values.  Some of the more common are noted below, the full list
-     * can be found at
-     * https://soundswallower.readthedocs.io/en/latest/config_params.html
-     * @param {string} [dict.hmm=Module.get_model_path(Module.defaultModel)]
-     *                 - Directory or base URL of acoustic model.
-     * @param {string} [dict.loglevel="ERROR"] - Verbosity of logging.
-     * @param {number} [dict.samprate=44100] - Sampling rate of input.
+     * Create the decoder.
+     *
+     * You may optionally call this with an Object containing
+     * configuration keys and values.
+     *
+     * @param {Object} [config] - Configuration parameters.
      */
-    constructor(dict) {
-	this.cmd_ln = Module._config_init(0)
-	if (typeof(dict) === 'undefined') {
-	    if (Module.defaultModel !== null)
-		dict = { hmm: Module.get_model_path(Module.defaultModel) };
-	    else
-		return;
-	}
-	else if (Module.defaultModel !== null) {
-	    if (!("hmm" in dict))
-		dict.hmm = Module.get_model_path(Module.defaultModel);
-	}
-	for (const key in dict) {
-	    this.set(key, dict[key]);
-	}
+    constructor(config) {
+	this.initialized = false;
+        const cconfig = Module._config_init(0);
+	this.cdecoder = Module._decoder_create(cconfig);
+	if (this.cdecoder == 0)
+	    throw new Error("Failed to construct Decoder");
+	if (Module.defaultModel !== null
+            && this.get_config("hmm") === null)
+            this.set_config("hmm", Module.get_model_path(Module.defaultModel));
+	for (const key in config)
+	    this.set_config(key, config[key]);
     }
-    normalize_key(key) {
-	if (key.length > 0) {
-	    if (key[0] == '_') {
-		// Ask for underscore, get underscore
-		return key;
-	    }
-	    else if (key[0] == '-') {
-		// Ask for dash, get underscore or dash
-		const under_key = "_" + key.substr(1);
-		if (this.has(under_key))
-		    return under_key;
-		else
-		    return key;
-	    }
-	    else {
-		// No dash or underscore, try underscore then dash
-		const under_key = "_" + key;
-		if (this.has(under_key))
-		    return under_key;
-		const dash_key = "-" + key;
-		if (this.has(dash_key))
-		    return dash_key;
-		return key;
-	    }
-	}
-	else
-	    return "";
-    }
-    normalize_ckey(ckey) {
-	const key = UTF8ToString(ckey);
-	if (key.length == 0)
-	    return key;
-	else if (key[0] == '-' || key[0] == '_')
-	    return key.substr(1);
-	return key;
+    /**
+     * Free resources used by the decoder.
+     */
+    delete() {
+        if (this.cdecoder != 0)
+            Module._decoder_free(this.cdecoder);
+        this.cdecoder = 0;
     }
     /**
      * Set a configuration parameter.
@@ -97,22 +59,22 @@ class Config {
      * @param {number|string} val - Parameter value.
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
-    set(key, val) {
-	const nkey = this.normalize_key(key);
-	const ckey = allocateUTF8OnStack(nkey);
-	const type = Module._config_typeof(this.cmd_ln, ckey);
+    set_config(key, val) {
+	const ckey = allocateUTF8OnStack(key);
+        const cconfig = Module._decoder_config(this.cdecoder);
+	const type = Module._config_typeof(cconfig, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
 	    const cval = allocateUTF8OnStack(val);
-	    Module._config_set_str(this.cmd_ln, ckey, cval);
+	    Module._config_set_str(cconfig, ckey, cval);
 	}
 	else if (type & ARG_FLOATING) {
-	    Module._config_set_float(this.cmd_ln, ckey, val);
+	    Module._config_set_float(cconfig, ckey, val);
 	}
 	else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
-	    Module._config_set_int(this.cmd_ln, ckey, val);
+	    Module._config_set_int(cconfig, ckey, val);
 	}
 	else {
 	    return false;
@@ -125,26 +87,27 @@ class Config {
      * @returns {number|string} Parameter value.
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
-    get(key) {
-	const ckey = allocateUTF8OnStack(this.normalize_key(key));
-	const type = Module._config_typeof(this.cmd_ln, ckey);
+    get_config(key) {
+	const ckey = allocateUTF8OnStack(key);
+        const cconfig = Module._decoder_config(this.cdecoder);
+	const type = Module._config_typeof(cconfig, ckey);
 	if (type == 0) {
 	    throw new ReferenceError("Unknown cmd_ln parameter "+key);
 	}
 	if (type & ARG_STRING) {
-	    const val = Module._config_str(this.cmd_ln, ckey);
+	    const val = Module._config_str(cconfig, ckey);
 	    if (val == 0)
 		return null;
 	    return UTF8ToString(val);
 	}
 	else if (type & ARG_FLOATING) {
-	    return Module._config_float(this.cmd_ln, ckey);
+	    return Module._config_float(cconfig, ckey);
 	}
 	else if (type & ARG_INTEGER) {
-	    return Module._config_int(this.cmd_ln, ckey);
+	    return Module._config_int(cconfig, ckey);
 	}
 	else if (type & ARG_BOOLEAN) {
-	    return Boolean(Module._config_int(this.cmd_ln, ckey));
+	    return Boolean(Module._config_int(cconfig, ckey));
 	}
 	else {
 	    throw new TypeError("Unsupported type "+type+" for parameter"+key);
@@ -154,10 +117,10 @@ class Config {
      * Get a model parameter with backoff to path inside current model.
      */
     model_file_path(key, modelfile) {
-	const val = this.get(key);
+	const val = this.get_config(key);
 	if (val != null)
 	    return val;
-	const hmmpath = this.get("hmm");
+	const hmmpath = this.get_config("hmm");
 	if (hmmpath == null)
 	    throw new Error("Could not get "+key+" from config or model directory");
 	return hmmpath + "/" + modelfile;
@@ -166,64 +129,20 @@ class Config {
      * Test if a key is a known parameter.
      * @param {string} key - Key whose existence to check.
      */
-    has(key) {
+    has_config(key) {
 	const ckey = allocateUTF8OnStack(key);
-	return Module._config_typeof(this.cmd_ln, ckey) != 0;
-    }
-    *[Symbol.iterator]() {
-	let itor = Module._cmd_ln_hash_iter(this.cmd_ln);
-	const seen = new Set();
-	while (itor != 0) {
-	    const ckey = Module._hash_iter_key(itor);
-	    const key = this.normalize_ckey(ckey);
-	    if (seen.has(key))
-		continue;
-	    seen.add(key);
-	    itor = Module._hash_table_iter_next(itor);
-	    yield key;
-	}
-    }
-};
-
-/**
- * Speech recognizer object.
- */
-class Decoder {
-    /**
-     * Create the decoder.
-     *
-     * This can be called with a previously created Config
-     * object, or with an Object containing configuration keys and
-     * values from which a Config will be created.
-     *
-     * @param {Object|Config} [config] - Configuration parameters.
-     */
-    constructor(config) {
-	if (config && typeof(config) == 'object' && 'cmd_ln' in config)
-	    this.config = config;
-	else
-	    this.config = new Module.Config(...arguments);
-	this.initialized = false;
-	this.ps = Module._decoder_init(0);
-	if (this.ps == 0)
-	    throw new Error("Failed to construct Decoder");
+        const cconfig = Module._decoder_config(this.cdecoder);
+	return Module._config_typeof(cconfig, ckey) != 0;
     }
     /**
-     * (Re-)initialize the decoder asynchronously.
-     * @param {Object|Config} [config] - New configuration parameters
-     * to apply, if desired.
+     * Initialize the decoder asynchronously.
      * @returns {Promise} Promise resolved once decoder is ready.
      */
-    async initialize(config) {
-	if (this.ps == 0)
+    async initialize() {
+	if (this.cdecoder == 0)
 	    throw new Error("Decoder was somehow not constructed (ps==0)");
-	if (config !== undefined) {
-	    if (typeof(config) == 'object' && 'cmd_ln' in config)
-		this.config = config;
-	    else
-		this.config = new Module.Config(...arguments);
-	}
-	await this.init_config();
+	await this.init_featparams()
+	await this.init_cleanup();
 	await this.init_fe();
 	await this.init_feat();
 	await this.init_acmod();
@@ -235,35 +154,31 @@ class Decoder {
     }
 
     /**
-     * Initialize decoder configuration.
+     * Read feature parameters from acoustic model.
      */
-    async init_config() {
-	await this.init_featparams()
-	let rv = Module._decoder_init_config(this.ps, this.config.cmd_ln);
-	if (rv < 0)
-	    throw new Error("Failed to initialize basic configuration");
-	rv = Module._decoder_init_cleanup(this.ps);
+    async init_featparams() {
+	const featparams = this.model_file_path("featparams", "feat_params.json");
+        const fpdata = await load_json(featparams);
+	for (const key in fpdata) {
+	    if (this.has_config(key)) /* Sometimes it doesn't */
+		this.set_config(key, fpdata[key]);
+	}
+    }
+    
+    /**
+     * Clean up any lingering search modules.
+     */
+    async init_cleanup() {
+	let rv = Module._decoder_init_cleanup(this.cdecoder);
 	if (rv < 0)
 	    throw new Error("Failed to clean up decoder internals");
     }
 
     /**
-     * Read feature parameters from acoustic model.
-     */
-    async init_featparams() {
-	const featparams = this.config.model_file_path("featparams", "feat_params.json");
-        const fpdata = await load_json(featparams);
-	for (const key in fpdata) {
-	    if (this.config.has(key)) /* Sometimes it doesn't */
-		this.config.set(key, fpdata[key]);
-	}
-    }
-    
-    /**
      * Create front-end from configuration.
      */
     async init_fe() {
-	const rv = Module._decoder_init_fe(this.ps);
+	const rv = Module._decoder_init_fe(this.cdecoder);
 	if (rv == 0)
 	    throw new Error("Failed to initialize frontend");
     }
@@ -274,12 +189,12 @@ class Decoder {
     async init_feat() {
 	let rv;
 	try {
-	    const lda_path = this.config.model_file_path("lda", "feature_transform");
+	    const lda_path = this.model_file_path("lda", "feature_transform");
 	    const lda = await load_to_s3file(lda_path);
-	    rv = Module._decoder_init_feat_s3file(this.ps, lda);
+	    rv = Module._decoder_init_feat_s3file(this.cdecoder, lda);
 	}
 	catch (e) {
-	    rv = Module._decoder_init_feat_s3file(this.ps, 0);
+	    rv = Module._decoder_init_feat_s3file(this.cdecoder, 0);
 	}
 	if (rv == 0)
 	    throw new Error("Failed to initialize feature module");
@@ -289,7 +204,7 @@ class Decoder {
      * Create acoustic model from configuration.
      */
     async init_acmod() {
-	const rv = Module._decoder_init_acmod_pre(this.ps);
+	const rv = Module._decoder_init_acmod_pre(this.cdecoder);
 	if (rv == 0)
 	    throw new Error("Failed to initialize acoustic model");
     }
@@ -299,14 +214,14 @@ class Decoder {
      */
     async load_acmod_files() {
 	await this.load_mdef();
-	const tmat = this.config.model_file_path("tmat", "transition_matrices");
+	const tmat = this.model_file_path("tmat", "transition_matrices");
 	await this.load_tmat(tmat);
-	const means = this.config.model_file_path("mean", "means");
-	const variances = this.config.model_file_path("var", "variances");
-	const sendump = this.config.model_file_path("sendump", "sendump");
-	const mixw = this.config.model_file_path("mixw", "mixture_weights");
+	const means = this.model_file_path("mean", "means");
+	const variances = this.model_file_path("var", "variances");
+	const sendump = this.model_file_path("sendump", "sendump");
+	const mixw = this.model_file_path("mixw", "mixture_weights");
 	await this.load_gmm(means, variances, sendump, mixw);
-	const rv = Module._decoder_init_acmod_post(this.ps);
+	const rv = Module._decoder_init_acmod_post(this.cdecoder);
 	if (rv < 0)
 	    throw new Error("Failed to initialize acoustic scoring");
     }
@@ -315,27 +230,14 @@ class Decoder {
      * Load binary model definition file
      */
     async load_mdef() {
-	/* Prefer mixw.bin if available. */
 	var mdef_path, s3f;
-	try {
-	    mdef_path = this.config.model_file_path("mdef", "mdef.bin");
-	    s3f = await load_to_s3file(mdef_path);
-	}
-	catch (e) {
-	    try {
-		mdef_path = this.config.model_file_path("mdef", "mdef.txt");
-		s3f = await load_to_s3file(mdef_path);
-	    }
-	    catch (ee) {
-		mdef_path = this.config.model_file_path("mdef", "mdef");
-		s3f = await load_to_s3file(mdef_path);
-	    }
-	}
-        const mdef = Module._bin_mdef_read_s3file(s3f, this.config.get("cionly"));
+	mdef_path = this.model_file_path("mdef", "mdef");
+	s3f = await load_to_s3file(mdef_path);
+        const mdef = Module._bin_mdef_read_s3file(s3f, this.get_config("cionly"));
 	Module._s3file_free(s3f);
 	if (mdef == 0)
 	    throw new Error("Failed to read mdef");
-	Module._set_mdef(this.ps, mdef);
+	Module._set_mdef(this.cdecoder, mdef);
     }
 
     /**
@@ -343,13 +245,13 @@ class Decoder {
      */
     async load_tmat(tmat_path) {
 	const s3f = await load_to_s3file(tmat_path);
-	const logmath = Module._decoder_logmath(this.ps);
-	const tpfloor = this.config.get("tmatfloor");
+	const logmath = Module._decoder_logmath(this.cdecoder);
+	const tpfloor = this.get_config("tmatfloor");
 	const tmat = Module._tmat_init_s3file(s3f, logmath, tpfloor);
 	Module._s3file_free(s3f);
 	if (tmat == 0)
 	    throw new Error("Failed to read tmat");
-	Module._set_tmat(this.ps, tmat);
+	Module._set_tmat(this.cdecoder, tmat);
     }
 
     /**
@@ -368,7 +270,7 @@ class Decoder {
 	    sendump = 0;
 	    mixw = await load_to_s3file(mixw_path);
 	}
-	if (Module._load_gmm(this.ps, means, variances, mixw, sendump) < 0)
+	if (Module._load_gmm(this.cdecoder, means, variances, mixw, sendump) < 0)
 	    throw new Error("Failed to load GMM parameters");
     }
 
@@ -376,17 +278,17 @@ class Decoder {
      * Load dictionary from configuration.
      */
     async init_dict() {
-	const dict_path = this.config.model_file_path("dict", "dict.txt");
+	const dict_path = this.model_file_path("dict", "dict.txt");
 	const dict = await load_to_s3file(dict_path);
 	let fdict;
 	try {
-	    const fdict_path = this.config.model_file_path("fdict", "noisedict.txt");
+	    const fdict_path = this.model_file_path("fdict", "noisedict.txt");
 	    fdict = await load_to_s3file(fdict_path);
 	}
 	catch (e) {
 	    fdict = 0;
 	}
-	const rv = Module._decoder_init_dict_s3file(this.ps, dict, fdict);
+	const rv = Module._decoder_init_dict_s3file(this.cdecoder, dict, fdict);
 	if (rv == 0)
 	    throw new Error("Failed to initialize dictionaries");
     }
@@ -396,14 +298,14 @@ class Decoder {
      */
     async init_grammar() {
 	let fsg = 0, jsgf = 0;
-	const jsgf_path = this.config.get("jsgf");
+	const jsgf_path = this.get_config("jsgf");
 	if (jsgf_path != null)
 	    jsgf = await load_to_s3file(jsgf_path)
-	const fsg_path = this.config.get("fsg");
+	const fsg_path = this.get_config("fsg");
 	if (fsg_path != null)
 	    fsg = await load_to_s3file(fsg_path)
 	if (fsg || jsgf) {
-	    const rv = Module._decoder_init_grammar_s3file(this.ps, fsg, jsgf);
+	    const rv = Module._decoder_init_grammar_s3file(this.cdecoder, fsg, jsgf);
 	    if (rv < 0)
 		throw new Error("Failed to initialize grammar");
 	}
@@ -424,7 +326,7 @@ class Decoder {
      */
     async reinitialize_audio() {
 	this.assert_initialized();
-	Module._decoder_reinit_fe(this.ps, 0);
+	Module._decoder_reinit_fe(this.cdecoder, 0);
     }
 
     /**
@@ -433,7 +335,7 @@ class Decoder {
      */
     async start() {
 	this.assert_initialized();
-	if (Module._decoder_start_utt(this.ps) < 0) {
+	if (Module._decoder_start_utt(this.cdecoder) < 0) {
 	    throw new Error("Failed to start utterance processing");
 	}
     }
@@ -444,7 +346,7 @@ class Decoder {
      */
     async stop() {
 	this.assert_initialized();
-	if (Module._decoder_end_utt(this.ps) < 0) {
+	if (Module._decoder_end_utt(this.cdecoder) < 0) {
 	    throw new Error("Failed to stop utterance processing");
 	}
     }
@@ -464,7 +366,7 @@ class Decoder {
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
-	const rv = Module._decoder_process_float32(this.ps, pcm_addr, pcm_bytes / 4,
+	const rv = Module._decoder_process_float32(this.cdecoder, pcm_addr, pcm_bytes / 4,
 					           no_search, full_utt);
 	Module._free(pcm_addr);
 	if (rv < 0) {
@@ -479,7 +381,7 @@ class Decoder {
      */
     get_hyp() {
 	this.assert_initialized();
-	return UTF8ToString(Module._decoder_hyp(this.ps, 0));
+	return UTF8ToString(Module._decoder_hyp(this.cdecoder, 0));
     }
 
     /**
@@ -489,8 +391,8 @@ class Decoder {
      */
     get_hypseg() {
 	this.assert_initialized();
-	let itor = Module._decoder_seg_iter(this.ps);
-	const config = Module._decoder_config(this.ps);
+	let itor = Module._decoder_seg_iter(this.cdecoder);
+	const config = Module._decoder_config(this.cdecoder);
 	const frate = Module._config_int(config, allocateUTF8OnStack("frate"));
 	const seg = [];
 	while (itor != 0) {
@@ -518,7 +420,7 @@ class Decoder {
     lookup_word(word) {
 	this.assert_initialized();
 	const cword = allocateUTF8OnStack(word);
-	const cpron = Module._decoder_lookup_word(this.ps, cword);
+	const cpron = Module._decoder_lookup_word(this.cdecoder, cword);
 	if (cpron == 0)
 	    return null;
 	return UTF8ToString(cpron);
@@ -536,7 +438,7 @@ class Decoder {
 	this.assert_initialized();
 	const cword = allocateUTF8OnStack(word);
 	const cpron = allocateUTF8OnStack(pron);
-	const wid = Module._decoder_add_word(this.ps, cword, cpron, update);
+	const wid = Module._decoder_add_word(this.cdecoder, cword, cpron, update);
 	if (wid < 0)
 	    throw new Error("Failed to add word "+word+" with pronunciation "+
 			    pron+" to the dictionary.");
@@ -544,7 +446,7 @@ class Decoder {
     }
 
     /**
-     * Create a finite-state grammar from a list of transitions.
+     * Set recognition grammar from a list of transitions.
      * @param {string} name - Name of grammar.
      * @param {number} start_state - Index of starting state.
      * @param {number} final_state - Index of ending state.
@@ -553,10 +455,10 @@ class Decoder {
      * `prob`.  The word must exist in the dictionary.
      * @returns {Object} Newly created grammar.
      */
-    create_fsg(name, start_state, final_state, transitions) {
+    async set_fsg(name, start_state, final_state, transitions) {
 	this.assert_initialized();
-	const logmath = Module._decoder_logmath(this.ps);
-	const config = Module._decoder_config(this.ps);
+	const logmath = Module._decoder_logmath(this.cdecoder);
+	const config = Module._decoder_config(this.cdecoder);
 	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	let n_state = 0;
 	for (const t of transitions) {
@@ -586,22 +488,20 @@ class Decoder {
 		Module._fsg_model_null_trans_add(fsg, t.from, t.to, logprob);
 	    }
 	}
-	return {
-	    fsg: fsg,
-	};
+	if (Module._decoder_set_fsg(this.cdecoder, fsg) != 0)
+	    throw new Error("Failed to set FSG in decoder");
     }
 
     /**
-     * Create a grammar from JSGF.
+     * Set recognition grammar from JSGF.
      * @param {string} jsgf_string - String containing JSGF grammar.
      * @param {string} [toprule] - Name of starting rule for grammar,
      * if not specified, the first public rule will be used.
-     * @returns {Object} Newly created grammar.
      */
-    parse_jsgf(jsgf_string, toprule=null) {
+    async set_jsgf(jsgf_string, toprule=null) {
 	this.assert_initialized();
-	const logmath = Module._decoder_logmath(this.ps);
-	const config = Module._decoder_config(this.ps);
+	const logmath = Module._decoder_logmath(this.cdecoder);
+	const config = Module._decoder_config(this.cdecoder);
 	const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
 	const cjsgf = allocateUTF8OnStack(jsgf_string);
 	const jsgf = Module._jsgf_parse_string(cjsgf, 0);
@@ -621,22 +521,8 @@ class Decoder {
 	}
 	const fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
 	Module._jsgf_grammar_free(jsgf);
-	return {
-	    fsg: fsg
-	};
-    }
-
-    /**
-     * Set the grammar for recognition, asynchronously.
-     * @param {Object} fsg - Grammar produced by parse_jsgf() or
-     * create_fsg().
-     * @returns {Promise} Promise fulfilled once grammar is updated.
-     */
-    async set_fsg(fsg) {
-	this.assert_initialized();
-	if (Module._decoder_set_fsg(this.ps, fsg.fsg) != 0) {
+	if (Module._decoder_set_fsg(this.cdecoder, fsg) != 0)
 	    throw new Error("Failed to set FSG in decoder");
-	}
     }
 };
 
@@ -698,9 +584,8 @@ async function load_to_s3file(path) {
  * the module object, at initialization or any other time.  Or you can
  * also just override this function if you have special needs.
  *
- * This function is used by `Decoder` (and also `Config`) to find the
- * default model, which is equivalent to `Model.modelBase +
- * Model.defaultModel`.
+ * This function is used by `Decoder` to find the default model, which
+ * is equivalent to `Model.modelBase + Model.defaultModel`.
  *
  * @param {string} subpath - path to model directory or parameter
  * file, e.g. "en-us", "en-us/variances", etc
@@ -719,5 +604,4 @@ function get_model_path(subpath) {
 }
 
 Module.get_model_path = get_model_path;
-Module.Config = Config;
 Module.Decoder = Decoder;
