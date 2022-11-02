@@ -1225,7 +1225,7 @@ search_module_base_reinit(search_module_t *search, dict_t *dict,
 }
 
 #define HYP_FORMAT "{\"b\":%.3f,\"d\":%.3f,\"p\":%.3f,\"t\":\"%s\""
-int
+static int
 format_hyp(char *outptr, int len, decoder_t *decoder, double start, double duration)
 {
     logmath_t *lmath;
@@ -1245,7 +1245,7 @@ format_hyp(char *outptr, int len, decoder_t *decoder, double start, double durat
     return snprintf(outptr, len, HYP_FORMAT, start, duration, prob, hyp);
 }
 
-int
+static int
 format_seg(char *outptr, int len, seg_iter_t *seg,
            double utt_start, int frate,
            logmath_t *lmath)
@@ -1271,7 +1271,7 @@ format_seg(char *outptr, int len, seg_iter_t *seg,
     return len;
 }
 
-int
+static int
 format_align_iter(char *outptr, int maxlen,
                   alignment_iter_t *itor, double utt_start, int frate, logmath_t *lmath)
 {
@@ -1290,7 +1290,7 @@ format_align_iter(char *outptr, int maxlen,
     return snprintf(outptr, maxlen, HYP_FORMAT, st, dur, prob, word);
 }
 
-int
+static int
 format_seg_align(char *outptr, int maxlen,
                  alignment_iter_t *itor,
                  double utt_start, int frate,
@@ -1392,8 +1392,8 @@ format_seg_align(char *outptr, int maxlen,
     return len;
 }
 
-void
-output_hyp(decoder_t *decoder, alignment_t *alignment, double start, double duration)
+const char *
+decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, double duration)
 {
     logmath_t *lmath;
     char *hyp_json, *ptr;
