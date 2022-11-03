@@ -973,7 +973,7 @@ cdef class Endpointer:
             prev_in_speech = ep.in_speech
             speech = ep.process(frame)
             if speech is not None:
-                if prev_in_speech:
+                if not prev_in_speech:
                     print("Speech started at", ep.speech_start)
 
         Likewise, to detect transitions from speech to non-speech,
