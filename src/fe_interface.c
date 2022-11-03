@@ -408,13 +408,13 @@ overflow_append(fe_t *fe,
         return 0;
 
     if (encoding == FE_FLOAT32) {
-        float32 const **spch = (float32 const **)inout_spch;
+        const float32 **spch = (const float32 **)inout_spch;
         memcpy(fe->overflow_samps + fe->num_overflow_samps,
                *spch, *inout_nsamps * (sizeof(float32)));
         *spch += *inout_nsamps;
     }
     else {
-        int16 const **spch = (int16 const **)inout_spch;
+        const int16 **spch = (const int16 **)inout_spch;
         for (i = 0; i < *inout_nsamps; ++i) {
             int16 sample = (*spch)[i];
             if (fe->swap)
@@ -446,14 +446,14 @@ read_overflow_frame(fe_t *fe,
 
     /* Append start of spch to overflow samples to make a full frame. */
     if (encoding == FE_FLOAT32) {
-        float32 const **spch = (float32 const **)inout_spch;
+        const float32 **spch = (const float32 **)inout_spch;
         memcpy(fe->overflow_samps + fe->num_overflow_samps,
                *spch, offset * sizeof(float32));
         *spch += offset;
         *inout_nsamps -= offset;
     }
     else {
-        int16 const **spch = (int16 const **)inout_spch;
+        const int16 **spch = (const int16 **)inout_spch;
         int i;
         for (i = 0; i < offset; ++i) {
             int16 sample = (*spch)[i];
@@ -491,8 +491,8 @@ create_overflow_frame(fe_t *fe,
                               + n_overflow);
     if (fe->num_overflow_samps > 0) {
         if (encoding == FE_PCM16) {
-            int16 const **spch = (int16 const **)inout_spch; 
-            int16 const *inptr = *spch - (fe->frame_size
+            const int16 **spch = (const int16 **)inout_spch; 
+            const int16 *inptr = *spch - (fe->frame_size
                                           - fe->frame_shift);
             int i;
             for (i = 0; i < fe->num_overflow_samps; ++i) {
@@ -510,7 +510,7 @@ create_overflow_frame(fe_t *fe,
             *spch += n_overflow;
         }
         else {
-            float32 const **spch = (float32 const **)inout_spch;
+            const float32 **spch = (const float32 **)inout_spch;
             memcpy(fe->overflow_samps,
                    *spch - (fe->frame_size - fe->frame_shift),
                    fe->num_overflow_samps * sizeof(float32));
@@ -538,8 +538,8 @@ append_overflow_frame(fe_t *fe,
 
     assert(*inout_nsamps <= MAX_INT16);
     if (encoding == FE_PCM16) {
-        int16 const **spch = (int16 const **)inout_spch;
-        int16 const *orig = (int16 const *)orig_spch;
+        const int16 **spch = (const int16 **)inout_spch;
+        const int16 *orig = (const int16 *)orig_spch;
         /* Copy in whatever we had in the original speech buffer. */
         n_overflow = (int)(*spch - orig + *inout_nsamps);
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)
@@ -565,8 +565,8 @@ append_overflow_frame(fe_t *fe,
         }
     }
     else {
-        float32 const **spch = (float32 const **)inout_spch;
-        float32 const *orig = (float32 const *)orig_spch;
+        const float32 **spch = (const float32 **)inout_spch;
+        const float32 *orig = (const float32 *)orig_spch;
         /* Copy in whatever we had in the original speech buffer. */
         n_overflow = (int)(*spch - orig + *inout_nsamps);
         if (n_overflow > fe->frame_size - fe->num_overflow_samps)
@@ -609,7 +609,7 @@ fe_process(fe_t *fe,
         return 0;
 
     /* Keep track of the original start of the buffer. */
-    orig_spch = *(void const **)inout_spch;
+    orig_spch = *(void **)inout_spch;
     orig_n_overflow = fe->num_overflow_samps;
     /* How many frames will we be able to get? */
     frame_count = 1
@@ -627,11 +627,11 @@ fe_process(fe_t *fe,
     }
     else {
         if (encoding == FE_FLOAT32) {
-            float32 const **spch = (float32 const **)inout_spch;
+            const float32 **spch = (const float32 **)inout_spch;
             *spch += fe_read_frame_float32(fe, *spch, fe->frame_size);
         }
         else {
-            int16 const **spch = (int16 const **)inout_spch;
+            const int16 **spch = (const int16 **)inout_spch;
             *spch += fe_read_frame_int16(fe, *spch, fe->frame_size);
         }
         *inout_nsamps -= fe->frame_size;
@@ -645,12 +645,12 @@ fe_process(fe_t *fe,
         assert(*inout_nsamps >= (size_t)fe->frame_shift);
 
         if (encoding == FE_FLOAT32) {
-            float32 const **spch = (float32 const **)inout_spch;
+            const float32 **spch = (const float32 **)inout_spch;
             shift = fe_shift_frame_float32(fe, *spch, fe->frame_shift);
             *spch += shift;
         }
         else {
-            int16 const **spch = (int16 const **)inout_spch;
+            const int16 **spch = (const int16 **)inout_spch;
             shift = fe_shift_frame_int16(fe, *spch, fe->frame_shift);
             *spch += shift;
         }
@@ -684,7 +684,7 @@ fe_process(fe_t *fe,
 
 int
 fe_process_float32(fe_t *fe,
-                   float32 const **inout_spch,
+                   const float32 **inout_spch,
                    size_t *inout_nsamps,
                    mfcc_t **buf_cep,
                    int nframes)
@@ -695,7 +695,7 @@ fe_process_float32(fe_t *fe,
 
 int
 fe_process_int16(fe_t *fe,
-                 int16 const **inout_spch,
+                 const int16 **inout_spch,
                  size_t *inout_nsamps,
                  mfcc_t **buf_cep,
                  int nframes)

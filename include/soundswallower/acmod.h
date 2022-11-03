@@ -320,7 +320,7 @@ int acmod_set_grow(acmod_t *acmod, int grow_feat);
  * @return Number of frames of data processed.
  */
 int acmod_process_raw(acmod_t *acmod,
-                      int16 const **inout_raw,
+                      const int16 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt);
 
@@ -338,7 +338,7 @@ int acmod_process_raw(acmod_t *acmod,
  */
 int
 acmod_process_float32(acmod_t *acmod,
-                      float32 const **inout_raw,
+                      const float32 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt);
 
