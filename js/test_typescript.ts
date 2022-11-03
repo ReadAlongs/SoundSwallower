@@ -1,6 +1,6 @@
 /* -*- javascript -*- */
 import soundswallower_factory from "./soundswallower.js";
-import {SoundSwallowerModule, Decoder, Segment, Grammar} from "./soundswallower.js";
+import {SoundSwallowerModule, Decoder, Segment} from "./soundswallower.js";
 import {promises as fs} from "fs";
 import * as assert from "assert";
 
