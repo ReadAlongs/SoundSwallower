@@ -12,8 +12,10 @@ Makefile
 *.tgz
 *.tar.gz
 *.zip
-pre_soundswallower.js
 binary_sizes.txt
 server.py
 mdef.txt
 test_*
+testdata
+tsconfig.json
+api.js
