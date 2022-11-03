@@ -242,10 +242,12 @@ class Decoder {
      */
     async load_mdef() {
 	const s3f = await load_to_s3file(this.get_config("mdef"));
+	if (s3f == 0)
+	    throw new Error("Failed to read mdef from " + this.get_config("mdef"));
         const mdef = Module._bin_mdef_read_s3file(s3f, this.get_config("cionly"));
 	Module._s3file_free(s3f);
 	if (mdef == 0)
-	    throw new Error("Failed to read mdef");
+	    throw new Error("Failed to read mdef from " + this.get_config("mdef"));
 	Module._set_mdef(this.cdecoder, mdef);
         return mdef;
     }
