@@ -265,20 +265,15 @@ int decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string);
  * Decoding proceeds as normal, though only this word sequence will be
  * recognized, with silences and alternate pronunciations inserted.
  * Word alignments are available with decoder_seg_iter().  To obtain
- * phoneme or state segmentations with decoder_alignment(), you must
- * enable two-pass alignment, which can be done either with the
- * `state_align` argument here or by setting the `state_align`
- * configuration parameter.
+ * phoneme or state segmentations, use decoder_alignment().
  *
  * @memberof ps_decoder_t
  * @param ps Decoder
  * @param words String containing whitespace-separated words for alignment.
  *              These words are assumed to exist in the current dictionary.
- * @param state_align Enable two-pass alignment to get phone and state
- *                    segmentations.
  */
-int decoder_set_align_text(decoder_t *d, const char *text,
-                           int state_align);
+int decoder_set_align_text(decoder_t *d, const char *text);
+
 
 /**
  * Adapt current acoustic model using a linear transform.
@@ -339,10 +334,6 @@ int decoder_start_utt(decoder_t *d);
 /**
  * Decode integer audio data.
  *
- * In two-pass alignment mode (activated with the `state_align`
- * configuration parameter), one of `no_search` or `full_utt` must be
- * true (non-zero) in order to allow features to be reused.
- *
  * @param ps Decoder.
  * @param no_search If non-zero, perform feature extraction but don't
  *                  do any recognition yet (features will be buffered).
@@ -359,10 +350,6 @@ int decoder_process_int16(decoder_t *d,
 
 /**
  * Decode floating-point audio data.
- *
- * In two-pass alignment mode (activated with the `state_align`
- * configuration parameter), one of `no_search` or `full_utt` must be
- * true (non-zero) in order to allow features to be reused.
  *
  * @param ps Decoder.
  * @param no_search If non-zero, perform feature extraction but don't
@@ -542,22 +529,32 @@ seg_iter_t *hyp_iter_seg(hyp_iter_t *nbest);
 void hyp_iter_free(hyp_iter_t *nbest);
 
 /**
- * Get the state-level alignment for the current utterance.
+ * Get the phone and state-level alignment for the current utterance.
  *
- * The returned alignment is owned by the decoder and is only valid
- * until the next call to decoder_alignment() or decoder_reinit().
+ * @note The returned alignment is owned by the decoder and is only
+ * valid until the next call to decoder_alignment() or
+ * decoder_reinit().  If you wish to keep it, call alignment_retain()
+ * on it.
  */
-const alignment_t *decoder_alignment(decoder_t *d);
+alignment_t *decoder_alignment(decoder_t *d);
 
 /**
- * Get the decoding result as JSON.
+ * Get the decoding result as a null-terminated JSON line.
+ *
+ * The returned JSON is guaranteed to end with a newline, so
+ * you can safely concatenate it with other results to produce
+ * line-oriented JSON.
+ *
+ * @note The returned string is owned by the decoder and is only valid
+ * until the next call to decoder_result_json(), decoder_start_utt(),
+ * or decoder_reinit().  If you wish to keep it, copy it with strdup().
  *
  * @param start Start time to add to reported segment times.
- *
- * The returned alignment is owned by the decoder and is only valid
- * until the next call to decoder_result_json() or decoder_reinit().
+ * @param align_level 1 to output phone alignments, 2 to output phone
+ *                    and state alignments.
  */
-const char *decoder_result_json(decoder_t *decoder, double start);
+const char *decoder_result_json(decoder_t *decoder, double start,
+                                int align_level);
 
 /**
  * Get performance information for the current utterance.

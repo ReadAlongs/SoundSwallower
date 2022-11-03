@@ -26,7 +26,6 @@ To use a custom dictionary::
 from soundswallower import Decoder, Config, get_model_path
 import logging
 import argparse
-import json
 import sys
 import os
 
@@ -49,9 +48,11 @@ def make_argparse():
                         help="Write full configuration as JSON to OUTPUT "
                         "(or standard output if none given) and exit.")
     parser.add_argument("-o", "--output",
-                        help="Filename for output (default is standard output")
+                        help="Filename for output (default is standard output)")
     parser.add_argument("-v", "--verbose",
                         action="store_true", help="Be verbose.")
+    parser.add_argument("--phone-align", help="Produce phone-level alignments",
+                        action="store_true")
     grammars = parser.add_mutually_exclusive_group()
     grammars.add_argument("-a", "--align", help="Input text file for force alignment.")
     grammars.add_argument("-t", "--align-text",
@@ -62,9 +63,8 @@ def make_argparse():
     return parser
 
 
-def print_config_help():
+def print_config_help(config):
     """Describe the decoder configuration parameters."""
-    config = Config()
     print("Configuration parameters:")
     for defn in config.describe():
         print("\t%s (%s%s%s):\n\t\t%s"
@@ -81,9 +81,8 @@ def make_decoder_config(args):
     config = Config()
     if args.config is not None:
         with open(args.config) as fh:
-            json_config = json.load(fh)
-            for key, value in json_config.items():
-                config[key] = value
+            config_json = fh.read()
+            config.parse_json(config_json)
     model_path = get_model_path()
     if args.model in os.listdir(model_path):
         config["hmm"] = os.path.join(model_path, args.model)
@@ -119,20 +118,9 @@ def write_config(config, output=None):
         outfh = open(output, "wt")
     else:
         outfh = sys.stdout
-    json.dump(dict(config.items()), outfh)
+    outfh.write(config.dumps())
     if output is not None:
         outfh.close()
-
-
-def set_alignment_fsg(decoder, words):
-    """Make an FSG for word-level "force-alignment" that is just a linear
-    chain of all the words."""
-    fsg = decoder.create_fsg("align",
-                             start_state=0, final_state=len(words),
-                             transitions=[(idx, idx + 1, 1.0, w)
-                                          for idx, w
-                                          in enumerate(words)])
-    decoder.set_fsg(fsg)
 
 
 def main(argv=None):
@@ -140,38 +128,34 @@ def main(argv=None):
     logging.basicConfig(level=logging.INFO)
     parser = make_argparse()
     args = parser.parse_args(argv)
-    if args.help_config:
-        print_config_help()
-        sys.exit(0)
     config = make_decoder_config(args)
+    if args.help_config:
+        print_config_help(config)
+        sys.exit(0)
     if args.write_config is not None:
         write_config(config, args.write_config)
-    words = None
-    if args.align_text:
-        words = args.align_text.split()
-    elif args.align:
-        words = []
+    if args.align:
         with open(args.align) as fh:
-            words = fh.read().strip().split()
-    elif args.grammar or args.fsg:
+            args.align_text = fh.read().strip()
+    elif args.grammar or args.fsg or args.align_text:
         pass
     else:
         # Nothing to do!
         return
     decoder = Decoder(config)
-    if words is not None:
-        set_alignment_fsg(decoder, words)
+    if args.align_text is not None:
+        decoder.set_align_text(args.align_text)
     results = []
     for input_file in args.inputs:
-        _, file_align = decoder.decode_file(input_file)
-        results.append([{"id": seg.text,
-                         "start": seg.start,
-                         "end": seg.start + seg.duration} for seg in file_align])
+        decoder.decode_file(input_file)
+        results.append(decoder.dumps(align_level=args.phone_align))
     if args.output is not None:
         with open(args.output, 'w') as outfh:
-            json.dump(results, outfh)
+            for json_line in results:
+                outfh.write(json_line)
     else:
-        print(json.dumps(results))
+        for json_line in results:
+            print(json_line)
 
 
 if __name__ == "__main__":

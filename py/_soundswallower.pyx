@@ -768,25 +768,28 @@ cdef class Decoder:
 
         return self.hyp.text, self.seg
 
-    def set_align_text(self, text, state_align=False):
-        """Set a word sequence for alignment *and* enable alignment mode.
+    def dumps(self, start_time=0., align_level=0):
+        """Get decoding result as JSON."""
+        cdef const char *json_result = decoder_result_json(self._ps, start_time,
+                                                           align_level)
+        return json_result.decode("utf-8")
+
+    def set_align_text(self, text):
+        """Set a word sequence for alignment.
 
         You must do any text normalization yourself.  For word-level
         alignment, once you call this, simply decode and get the
         segmentation in the usual manner.  For phone-level alignment,
-        see `set_alignment` and `get_alignment`.
+        you can use the `alignment` property.
 
         Args:
             text(str): Sentence to align, as whitespace-separated
                        words.  All words must be present in the
                        dictionary.
-            state_align(bool): Whether to enable state and phone-level
-                       alignment.
         Raises:
             RuntimeError: If text is invalid somehow.
         """
-        cdef int rv = decoder_set_align_text(self._ps, text.encode("utf-8"),
-                                             state_align)
+        cdef int rv = decoder_set_align_text(self._ps, text.encode("utf-8"))
         if rv < 0:
             raise RuntimeError("Failed to set up alignment of %s" % (text))
 
@@ -794,11 +797,12 @@ cdef class Decoder:
     def alignment(self):
         """The current sub-word alignment, if any.
 
-        This will return something if and only if `set_align_text` has been
-        called with `state_align=True`.
+        This property may take some time to access as it runs a second
+        pass of decoding.
 
         Returns:
             Alignment - if an alignment exists.
+
         """
         cdef alignment_t *al = decoder_alignment(self._ps)
         if al == NULL:

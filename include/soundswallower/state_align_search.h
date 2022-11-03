@@ -77,7 +77,7 @@ struct state_align_search_s {
                                  (note that exit frame = end frame + 1) */
     int n_phones;	    /**< Number of HMMs (phones). */
 
-    int frame;              /**< Current frame being processed. */
+    frame_idx_t frame;      /**< Next frame to process (i.e. frame count). */
     int32 best_score;       /**< Best score in current frame. */
 
     int n_emit_state;       /**< Number of emitting states (tokens per frame) */

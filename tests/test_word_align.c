@@ -49,7 +49,7 @@ main(int argc, char *argv[])
     TEST_ASSERT(ps = decoder_init(config));
 
     /* First test just word alignment */
-    TEST_EQUAL(0, decoder_set_align_text(ps, AUSTEN_TEXT, FALSE));
+    TEST_EQUAL(0, decoder_set_align_text(ps, AUSTEN_TEXT));
     do_decode(ps);
     TEST_EQUAL(0, strcmp(decoder_hyp(ps, &i), AUSTEN_TEXT));
     printf("Word alignment:\n");
@@ -76,10 +76,12 @@ main(int argc, char *argv[])
     /* Test two-pass alignment.  Ensure that alignment and seg give
      * the same results and that phones have constraints propagated to
      * them. */
-    TEST_EQUAL(0, decoder_set_align_text(ps, AUSTEN_TEXT, TRUE));
+    TEST_EQUAL(0, decoder_set_align_text(ps, AUSTEN_TEXT));
     do_decode(ps);
     TEST_EQUAL(0, strcmp(decoder_hyp(ps, &i), AUSTEN_TEXT));
     TEST_ASSERT(al = decoder_alignment(ps));
+    /* Make sure that we reuse the existing alignment if nothing changes. */
+    TEST_EQUAL(al, decoder_alignment(ps));
     printf("Subword alignment:\n");
     /* It should have durations assigned (and properly constrained). */
     for (i = 0, seg = decoder_seg_iter(ps), itor = alignment_words(al); itor;

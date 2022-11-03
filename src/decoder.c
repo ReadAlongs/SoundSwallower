@@ -667,8 +667,7 @@ decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 }
 
 int
-decoder_set_align_text(decoder_t *d, const char *text,
-                       int state_align)
+decoder_set_align_text(decoder_t *d, const char *text)
 {
     fsg_model_t *fsg;
     char *textbuf = ckd_salloc(text);
@@ -716,20 +715,24 @@ decoder_set_align_text(decoder_t *d, const char *text,
         fsg_model_free(fsg);
         return -1;
     }
-    if (state_align) {
-        /* Buffer features for second pass. */
-        acmod_set_grow(d->acmod, TRUE);
-    }
     return 0;
 }
 
-const alignment_t *
+alignment_t *
 decoder_alignment(decoder_t *d)
 {
     seg_iter_t *seg;
     alignment_t *al;
     frame_idx_t output_frame;
 
+    /* Reuse the existing alignment if nothing has changed. */
+    if (d->align) {
+        state_align_search_t *align = (state_align_search_t *)d->align;
+        if (align->frame == d->acmod->output_frame) {
+            E_INFO("Reusing existing alignment at frame %d\n", align->frame);
+            return align->al;
+        }
+    }
     seg = decoder_seg_iter(d);
     if (seg == NULL)
         return NULL;
@@ -892,6 +895,14 @@ decoder_start_utt(decoder_t *d)
     d->search->post = 0;
     ckd_free(d->search->hyp_str);
     d->search->hyp_str = NULL;
+    ckd_free(d->json_result);
+    d->json_result = NULL;
+
+    /* Remove any state aligner. */
+    if (d->align) {
+        search_module_free(d->align);
+        d->align = NULL;
+    }
 
     if ((rv = acmod_start_utt(d->acmod)) < 0)
         return rv;
@@ -1461,18 +1472,21 @@ format_seg_align(char *outptr, int maxlen,
 }
 
 const char *
-decoder_result_json(decoder_t *d, double start)
+decoder_result_json(decoder_t *d, double start, int align_level)
 {
     logmath_t *lmath = decoder_logmath(d);
-    int state_align = (d->align != NULL);
-    alignment_t *alignment = (d->align
-                              ? ((state_align_search_t *)d->align)->al
-                              : NULL);
+    int state_align = (align_level > 1);
+    alignment_t *alignment = NULL;
     char *ptr;
     int frate;
     int maxlen, len;
     double duration;
 
+    if (align_level) {
+        alignment = decoder_alignment(d);
+        if (alignment == NULL)
+            return NULL;
+    }
     frate = config_int(decoder_config(d), "frate");
     duration = (double)decoder_n_frames(d) / frate;
     maxlen = format_hyp(NULL, 0, d, start, duration);

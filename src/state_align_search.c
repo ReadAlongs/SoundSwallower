@@ -207,7 +207,7 @@ state_align_search_step(search_module_t *search, int frame_idx)
     record_transitions(sas, frame_idx);
 
     /* Update frame counter */
-    sas->frame = frame_idx;
+    sas->frame++;
 
     return 0;
 }
@@ -231,8 +231,9 @@ state_align_search_finish(search_module_t *search)
         return -1;
     }
     itor = alignment_states(sas->al);
-    last_frame = sas->frame + 1;
-    for (cur_frame = sas->frame - 1; cur_frame >= 0; --cur_frame) {
+    last_frame = sas->frame;
+    /* Look at frame - 2 because we track transitions, I think */
+    for (cur_frame = sas->frame - 2; cur_frame >= 0; --cur_frame) {
 	cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
         /* State boundary, update alignment entry for next state. */
         if (cur.id != last.id) {

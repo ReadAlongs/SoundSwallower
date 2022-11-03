@@ -698,6 +698,7 @@ fsg_search_step(search_module_t *search, int frame_idx)
     fsg_pnode_t *pnode;
     hmm_t *hmm;
 
+    assert(fsgs->frame == frame_idx);
     /* Activate our HMMs for the current frame if need be. */
     if (!acmod->compallsen)
         fsg_search_sen_active(fsgs);
