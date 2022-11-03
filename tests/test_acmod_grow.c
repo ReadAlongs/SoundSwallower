@@ -64,7 +64,7 @@ main(int argc, char *argv[])
     frame_counter = 0;
     buf = ckd_calloc(nsamps, sizeof(*buf));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    TEST_EQUAL(FALSE, acmod_set_grow(acmod, TRUE));
+    TEST_EQUAL(ACMOD_GROW_DEFAULT, acmod_set_grow(acmod, TRUE));
     TEST_EQUAL(0, acmod_start_utt(acmod));
     printf("Incremental(2048):\n");
     while (!feof(rawfh)) {

@@ -67,6 +67,7 @@ main(int argc, char *argv[])
     fcb = feat_init(config);
     TEST_ASSERT(acmod = acmod_init(config, lmath, fe, fcb));
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
+    TEST_EQUAL(acmod_set_grow(acmod, FALSE), ACMOD_GROW_DEFAULT);
 
     nsamps = 2048;
     frame_counter = 0;
@@ -94,8 +95,7 @@ main(int argc, char *argv[])
             }
         }
     }
-    /* FIXME: Should this be 1?!?!? */
-    TEST_EQUAL(0, acmod_end_utt(acmod));
+    TEST_EQUAL(1, acmod_end_utt(acmod));
     nread = 0;
     {
         int16 best_score;

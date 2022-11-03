@@ -187,8 +187,11 @@ static int
 acmod_alloc_buffers(acmod_t *acmod)
 {
     /* The MFCC buffer needs to be at least as large as the dynamic
-     * feature window.  */
-    acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
+     * feature window (but just make it a reasonable size if growing).  */
+    if (acmod->grow_feat)
+        acmod->n_mfc_alloc = 128;
+    else
+        acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
     acmod->mfc_buf = (mfcc_t **)
         ckd_calloc_2d(acmod->n_mfc_alloc, acmod->fcb->cepsize,
                       sizeof(**acmod->mfc_buf));
@@ -209,6 +212,7 @@ acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     acmod->config = config_retain(config);
     acmod->lmath = logmath_retain(lmath);
     acmod->state = ACMOD_IDLE;
+    acmod->grow_feat = ACMOD_GROW_DEFAULT;
 
     /* Initialize feature computation. */
     if (acmod_fe_mismatch(acmod, fe))

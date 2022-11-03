@@ -36,7 +36,7 @@
  */
 
 /**
- * @file acmod.h Acoustic model structures for PocketSphinx.
+ * @file acmod.h Acoustic model structures for SoundSwallower
  * @author David Huggins-Daines <dhdaines@gmail.com>
  */
 
@@ -74,6 +74,11 @@ typedef enum acmod_state_e {
     ACMOD_PROCESSING,   /**< Utterance in progress. */
     ACMOD_ENDED         /**< Utterance ended, still buffering. */
 } acmod_state_t;
+
+/**
+ * Is acmod growable by default? (yes, for minimal surprise)
+ */
+#define ACMOD_GROW_DEFAULT TRUE
 
 /**
  * Dummy senone score value for unintentionally active states.
@@ -131,10 +136,6 @@ struct mgau_s {
  * scores (due to dynamic feature calculation), results may not be
  * immediately available after input, and the output results will not
  * correspond to the last piece of data input.
- *
- * TODO: In addition, this structure serves the purpose of queueing
- * frames of features (and potentially also scores in the future) for
- * asynchronous passes of recognition operating in parallel.
  */
 struct acmod_s {
     /* Global objects, not retained. */
@@ -270,9 +271,9 @@ int acmod_end_utt(acmod_t *acmod);
  *
  * After calling this function, the internal frame index is reset, and
  * acmod_score() will return scores starting at the first frame of the
- * current utterance.  Currently, acmod_set_grow() must have been
- * called to enable growing the feature buffer in order for this to
- * work.  In the future, senone scores may be cached instead.
+ * current utterance.  The acmod must be growable (which it probably
+ * is unless you disabled this with acmod_set_grow() - see
+ * ACMOD_GROW_DEFAULT).
  *
  * @return 0 for success, <0 for failure (if the utterance can't be
  *         rewound due to no feature or score data available)

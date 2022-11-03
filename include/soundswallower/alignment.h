@@ -140,7 +140,7 @@ alignment_t *alignment_init(dict2pid_t *d2p);
  * Append a word.
  */
 int alignment_add_word(alignment_t *al,
-                          int32 wid, int start, int duration);
+                       int32 wid, int start, int duration);
 
 /**
  * Populate lower layers using available word information.
