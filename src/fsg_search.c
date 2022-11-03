@@ -303,6 +303,7 @@ fsg_search_reinit(search_module_t *search, dict_t *dict, dict2pid_t *d2p)
                                      fsgs->hmmctx, fsgs->wip, fsgs->pip);
 
     /* Inform the history module of the new fsg */
+    fsg_history_reset(fsgs->history);
     fsg_history_set_fsg(fsgs->history, fsgs->fsg, dict);
 
     return 0;
