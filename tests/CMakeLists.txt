@@ -13,6 +13,7 @@ set(TESTS
   test_dict
   test_endpointer
   test_err
+  test_fe_long
   test_feat_fe
   test_feat_live
   test_filename
