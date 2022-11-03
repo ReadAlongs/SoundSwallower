@@ -180,3 +180,89 @@ cdef extern from "soundswallower/decoder.h":
     int decoder_set_jsgf_string(decoder_t *ps, const char *jsgf_string)
     const char *decoder_get_cmn(decoder_t *ps, int update)
     int decoder_set_cmn(decoder_t *ps, const char *cmn)
+    const alignment_t *decoder_alignment(decoder_t *d)
+    const char *decoder_result_json(decoder_t *decoder, double start)
+
+cdef extern from "soundswallower/vad.h":
+    ctypedef struct vad_t:
+        pass
+    cdef enum vad_mode_e:
+        VAD_LOOSE,
+        VAD_MEDIUM_LOOSE,
+        VAD_MEDIUM_STRICT,
+        VAD_STRICT
+    ctypedef vad_mode_e vad_mode_t
+    cdef enum vad_class_e:
+        VAD_ERROR,
+        VAD_NOT_SPEECH,
+        VAD_SPEECH
+    ctypedef vad_class_e vad_class_t
+    cdef int VAD_DEFAULT_SAMPLE_RATE
+    cdef double VAD_DEFAULT_FRAME_LENGTH
+
+    vad_t *vad_init(vad_mode_t mode, int sample_rate, double frame_length)
+    int vad_free(vad_t *vad)
+    int vad_set_input_params(vad_t *vad, int sample_rate, double frame_length)
+    int vad_sample_rate(vad_t *vad)
+    size_t vad_frame_size(vad_t *vad)
+    double vad_frame_length(vad_t *vad)
+    vad_class_t vad_classify(vad_t *vad, const short *frame)
+
+cdef extern from "soundswallower/endpointer.h":
+    ctypedef struct endpointer_t:
+        pass
+    cdef double ENDPOINTER_DEFAULT_WINDOW
+    cdef double ENDPOINTER_DEFAULT_RATIO
+    endpointer_t *endpointer_init(double window,
+                                        double ratio,
+                                        vad_mode_t mode,
+                                        int sample_rate, double frame_length)
+    endpointer_t *endpointer_retain(endpointer_t *ep)
+    int endpointer_free(endpointer_t *ep)
+    vad_t *endpointer_vad(endpointer_t *ep)
+    size_t endpointer_frame_size(endpointer_t *ep)
+    double endpointer_frame_length(endpointer_t *ep)
+    int endpointer_sample_rate(endpointer_t *ep)
+    const short *endpointer_process(endpointer_t *ep,
+                                       const short *frame)
+    const short *endpointer_end_stream(endpointer_t *ep,
+                                          const short *frame,
+                                          size_t nsamp,
+                                          size_t *out_nsamp)
+    int endpointer_in_speech(endpointer_t *ep)
+    double endpointer_speech_start(endpointer_t *ep)
+    double endpointer_speech_end(endpointer_t *ep)
+
+cdef extern from "soundswallower/alignment.h":
+    ctypedef struct alignment_t:
+        pass
+    ctypedef struct alignment_iter_t:
+        pass
+    ctypedef struct pid_struct:
+        short cipid
+        unsigned short ssid
+        int tmat
+    ctypedef union id_union:
+        int wid
+        pid_struct pid
+        unsigned short senid
+    ctypedef struct alignment_entry_t:
+        int start
+        int duration
+        int score
+        id_union id
+        int parent
+        int child
+    alignment_t *alignment_retain(alignment_t *al)
+    int alignment_free(alignment_t *al)
+    int alignment_n_words(alignment_t *al)
+    int alignment_n_phones(alignment_t *al)
+    int alignment_n_states(alignment_t *al)
+    alignment_iter_t *alignment_words(alignment_t *al)
+    alignment_iter_t *alignment_phones(alignment_t *al)
+    alignment_iter_t *alignment_states(alignment_t *al)
+    alignment_iter_t *alignment_iter_next(alignment_iter_t *itor)
+    alignment_iter_t *alignment_iter_children(alignment_iter_t *itor)
+    int alignment_iter_seg(alignment_iter_t *itor, int *start, int *duration)
+    const char *alignment_iter_name(alignment_iter_t *itor)
+    int alignment_iter_free(alignment_iter_t *itor)
