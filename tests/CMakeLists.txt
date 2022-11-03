@@ -25,7 +25,9 @@ set(TESTS
   test_ptm_mgau
   test_s3file
   test_subvq
-  test_vad)
+  test_vad
+  test_word_align
+  )
 
 foreach(TEST_EXECUTABLE ${TESTS})
   add_executable(${TEST_EXECUTABLE} EXCLUDE_FROM_ALL ${TEST_EXECUTABLE}.c)

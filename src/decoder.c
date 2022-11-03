@@ -53,6 +53,7 @@
 #include <soundswallower/config_defs.h>
 #include <soundswallower/decoder.h>
 #include <soundswallower/fsg_search.h>
+#include <soundswallower/state_align_search.h>
 #include <soundswallower/search_module.h>
 
 /* Do this unconditionally if we have no filesystem */
@@ -157,6 +158,10 @@ decoder_free_searches(decoder_t *d)
     if (d->search) {
         search_module_free(d->search);
         d->search = NULL;
+    }
+    if (d->align) {
+        search_module_free(d->align);
+        d->align = NULL;
     }
 }
 
@@ -656,6 +661,112 @@ decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
     result = decoder_set_fsg(d, fsg);
     jsgf_grammar_free(jsgf);
     return result;
+}
+
+int
+decoder_set_align_text(decoder_t *d, const char *text,
+                       int state_align)
+{
+    fsg_model_t *fsg;
+    char *textbuf = ckd_salloc(text);
+    char *ptr, *word, delimfound;
+    int n, nwords;
+
+    textbuf = string_trim(textbuf, STRING_BOTH);
+    /* First pass: count and verify words */
+    nwords = 0;
+    ptr = textbuf;
+    while ((n = nextword(ptr, " \t\n\r", &word, &delimfound)) >= 0) {
+        int wid;
+        if ((wid = dict_wordid(d->dict, word)) == BAD_S3WID) {
+            E_ERROR("Unknown word %s\n", word);
+            ckd_free(textbuf);
+            return -1;
+        }
+        ptr = word + n;
+        *ptr = delimfound;
+        ++nwords;
+    }
+    /* Second pass: make fsg */
+    fsg = fsg_model_init(text, d->lmath,
+                         config_float(d->config, "lw"),
+                         nwords + 1);
+    nwords = 0;
+    ptr = textbuf;
+    while ((n = nextword(ptr, " \t\n\r", &word, &delimfound)) >= 0) {
+        int wid;
+        if ((wid = dict_wordid(d->dict, word)) == BAD_S3WID) {
+            E_ERROR("Unknown word %s\n", word);
+            ckd_free(textbuf);
+            return -1;
+        }
+        wid = fsg_model_word_add(fsg, word);
+        fsg_model_trans_add(fsg, nwords, nwords + 1, 0, wid);
+        ptr = word + n;
+        *ptr = delimfound;
+        ++nwords;
+    }
+    ckd_free(textbuf);
+    fsg->start_state = 0;
+    fsg->final_state = nwords;
+    if (decoder_set_fsg(d, fsg) < 0) {
+        fsg_model_free(fsg);
+        return -1;
+    }
+    if (state_align) {
+        /* Buffer features for second pass. */
+        acmod_set_grow(d->acmod, TRUE);
+    }
+    return 0;
+}
+
+alignment_t *
+decoder_alignment(decoder_t *d)
+{
+    seg_iter_t *seg;
+    alignment_t *al;
+    frame_idx_t output_frame;
+
+    seg = decoder_seg_iter(d);
+    if (seg == NULL)
+        return NULL;
+    al = alignment_init(d->d2p);
+    while (seg) {
+        int32 wid = dict_wordid(d->dict, seg->word);
+        /* This is, actually, impossible. */
+        assert(wid != BAD_S3WID);
+        alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);
+        seg = seg_iter_next(seg);
+    }
+    if (alignment_populate(al) < 0) {
+        /* Not yet owned by the search module so we must free it */
+        alignment_free(al);
+        return NULL;
+    }
+
+    if (d->align)
+        search_module_free(d->align);
+    d->align = state_align_search_init("_state_align", d->config, d->acmod, al);
+    if (d->align == NULL) {
+        alignment_free(al);
+        return NULL;
+    }
+
+    /* Search only up to current output frame (in case this is called for a partial result) */
+    output_frame = d->acmod->output_frame;
+    if (acmod_rewind(d->acmod) < 0)
+        return NULL;
+    if (search_module_start(d->align) < 0)
+        return NULL;
+    while (d->acmod->output_frame < output_frame) {
+        if (search_module_step(d->align, d->acmod->output_frame) < 0)
+            return NULL;
+        acmod_advance(d->acmod);
+    }
+    if (search_module_finish(d->align) < 0)
+        return NULL;
+
+    return al;
 }
 
 int

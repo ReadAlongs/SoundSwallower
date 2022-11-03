@@ -260,6 +260,27 @@ int decoder_set_jsgf_file(decoder_t *d, const char *path);
 int decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string);
 
 /**
+ * Set a word sequence for force-alignment.
+ *
+ * Decoding proceeds as normal, though only this word sequence will be
+ * recognized, with silences and alternate pronunciations inserted.
+ * Word alignments are available with decoder_seg_iter().  To obtain
+ * phoneme or state segmentations with decoder_alignment(), you must
+ * enable two-pass alignment, which can be done either with the
+ * `state_align` argument here or by setting the `state_align`
+ * configuration parameter.
+ *
+ * @memberof ps_decoder_t
+ * @param ps Decoder
+ * @param words String containing whitespace-separated words for alignment.
+ *              These words are assumed to exist in the current dictionary.
+ * @param state_align Enable two-pass alignment to get phone and state
+ *                    segmentations.
+ */
+int decoder_set_align_text(decoder_t *d, const char *text,
+                           int state_align);
+
+/**
  * Adapt current acoustic model using a linear transform.
  *
  * @param mllr The new transform to use, or NULL to update the
@@ -318,11 +339,13 @@ int decoder_start_utt(decoder_t *d);
 /**
  * Decode integer audio data.
  *
+ * In two-pass alignment mode (activated with the `state_align`
+ * configuration parameter), one of `no_search` or `full_utt` must be
+ * true (non-zero) in order to allow features to be reused.
+ *
  * @param ps Decoder.
  * @param no_search If non-zero, perform feature extraction but don't
- *                  do any recognition yet.  This may be necessary if
- *                  your processor has trouble doing recognition in
- *                  real-time.
+ *                  do any recognition yet (features will be buffered).
  * @param full_utt If non-zero, this block of data is a full utterance
  *                 worth of data.  This may allow the recognizer to
  *                 produce more accurate results.
@@ -337,11 +360,13 @@ int decoder_process_int16(decoder_t *d,
 /**
  * Decode floating-point audio data.
  *
+ * In two-pass alignment mode (activated with the `state_align`
+ * configuration parameter), one of `no_search` or `full_utt` must be
+ * true (non-zero) in order to allow features to be reused.
+ *
  * @param ps Decoder.
  * @param no_search If non-zero, perform feature extraction but don't
- *                  do any recognition yet.  This may be necessary if
- *                  your processor has trouble doing recognition in
- *                  real-time.
+ *                  do any recognition yet (features will be buffered).
  * @param full_utt If non-zero, this block of data is a full utterance
  *                 worth of data.  This may allow the recognizer to
  *                 produce more accurate results.
@@ -515,6 +540,11 @@ seg_iter_t *hyp_iter_seg(hyp_iter_t *nbest);
  * @param nbest N-best iterator.
  */
 void hyp_iter_free(hyp_iter_t *nbest);
+
+/**
+ * Get the state-level alignment for the current utterance.
+ */
+alignment_t *decoder_alignment(decoder_t *d);
 
 /**
  * Get performance information for the current utterance.
