@@ -180,8 +180,10 @@ cdef extern from "soundswallower/decoder.h":
     int decoder_set_jsgf_string(decoder_t *ps, const char *jsgf_string)
     const char *decoder_get_cmn(decoder_t *ps, int update)
     int decoder_set_cmn(decoder_t *ps, const char *cmn)
+    int decoder_set_align_text(decoder_t *d, const char *text, int state_align)
     const alignment_t *decoder_alignment(decoder_t *d)
     const char *decoder_result_json(decoder_t *decoder, double start)
+    int decoder_n_frames(decoder_t *d)
 
 cdef extern from "soundswallower/vad.h":
     ctypedef struct vad_t:
