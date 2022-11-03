@@ -17,7 +17,7 @@ jobs:
 
       - name: Run tests
         run: |
-          cmake --build build --target check
+          CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --target check
   pytest:
     runs-on: ubuntu-latest
     steps:
