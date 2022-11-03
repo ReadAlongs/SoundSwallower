@@ -46,6 +46,8 @@ _fsg_model_init
 _fsg_model_word_add
 _fsg_model_free
 _decoder_set_fsg
+_decoder_set_align_text
+_decoder_result_json
 _malloc
 _free
 _s3file_init

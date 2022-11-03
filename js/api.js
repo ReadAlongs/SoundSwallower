@@ -431,6 +431,21 @@ class Decoder {
     }
 
     /**
+     * Run alignment and get word and phone segmentation as JSON
+     * @param start Start time to add to returned segment times.
+     * @param align_level 0 for no subword alignments, 1 for phone
+     *                    alignments, 2 for phone and state alignments.
+     * @returns JSON with a detailed word and phone-level alignment.
+     */
+    async get_alignment_json(start=0.0, align_level=1) {
+        this.assert_initialized();
+        /* FIXME: This could block for some time, decompose it. */
+        const cjson = Module._decoder_result_json(this.cdecoder, start,
+                                                  align_level);
+        return UTF8ToString(cjson);
+    }
+
+    /**
      * Look up a word in the pronunciation dictionary.
      * @param {string} word - Text of word to look up.
      * @returns {string} - Space-separated list of phones, or `null` if
@@ -465,14 +480,13 @@ class Decoder {
     }
 
     /**
-     * Set recognition grammar from a list of transitions.
+     * Set recognition grammar from a list of transitions asynchronously.
      * @param {string} name - Name of grammar.
      * @param {number} start_state - Index of starting state.
      * @param {number} final_state - Index of ending state.
      * @param {Array<Object>} transitions - Array of transitions, each
      * of which is an Object with the keys `from`, `to`, `word`, and
      * `prob`.  The word must exist in the dictionary.
-     * @returns {Object} Newly created grammar.
      */
     async set_fsg(name, start_state, final_state, transitions) {
 	this.assert_initialized();
@@ -499,7 +513,7 @@ class Decoder {
 				  [fsg, t.word]);
 		if (wid == -1) {
 		    Module._fsg_model_free(fsg);
-		    return 0;
+                    throw new Error(`Failed to add word ${t.word} to FSG`);
 		}
 		Module._fsg_model_trans_add(fsg, t.from, t.to, logprob, wid);
 	    }
@@ -540,8 +554,20 @@ class Decoder {
 	}
 	const fsg = Module._jsgf_build_fsg(jsgf, rule, logmath, lw);
 	Module._jsgf_grammar_free(jsgf);
-	if (Module._decoder_set_fsg(this.cdecoder, fsg) != 0)
+	if (Module._decoder_set_fsg(this.cdecoder, fsg) < 0)
 	    throw new Error("Failed to set FSG in decoder");
+    }
+    /**
+     * Set word sequence for alignment.
+     * @param {string} text - Sentence to align, as whitespace-separated
+     *                        words.  All words must be present in the
+     *                        dictionary.
+     */
+    async set_align_text(text) {
+	this.assert_initialized();
+        const ctext = allocateUTF8OnStack(text);
+        if (Module._decoder_set_align_text(this.cdecoder, ctext) < 0)
+            throw new Error("Failed to set alignment text");
     }
 };
 

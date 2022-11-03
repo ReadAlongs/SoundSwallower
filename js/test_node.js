@@ -87,6 +87,45 @@
 	    assert.equal("go forward ten meters", decoder.get_hyp());
             decoder.delete();
 	});
+	it('Should align "go forward ten meters"', async () => {
+	    let decoder = new ssjs.Decoder({
+		samprate: 16000,
+	    });
+	    await decoder.initialize();
+	    let pcm = await fs.readFile("testdata/goforward-float32.raw");
+            await decoder.set_align_text("go forward ten meters");
+	    await decoder.start();
+	    await decoder.process(pcm, false, true);
+	    await decoder.stop();
+	    assert.equal("go forward ten meters", decoder.get_hyp());
+	    let hypseg = decoder.get_hypseg();
+	    let hypseg_words = []
+	    for (const seg of hypseg) {
+		assert.ok(seg.end >= seg.start);
+                if (seg.word != "<sil>" && seg.word != "(NULL)")
+		    hypseg_words.push(seg.word);
+	    }
+	    assert.equal(hypseg_words.join(" "), "go forward ten meters");
+            let jseg = await decoder.get_alignment_json();
+            let result = JSON.parse(jseg);
+            assert.ok(result);
+	    assert.equal(result.t, "go forward ten meters");
+            let json_words = [];
+            let json_phones = [];
+            for (const word of result.w) {
+                if (word.t == "<sil>")
+                    continue;
+                json_words.push(word.t);
+                for (const phone of word.w) {
+                    json_phones.push(phone.t);
+                }
+            }
+            assert.equal(json_words.join(" "), "go forward ten meters");
+            assert.equal(json_phones.join(" "),
+                         "G OW F AO R W ER D T EH N M IY T ER Z");
+
+            decoder.delete();
+	});
     });
     describe("Test dictionary and FSG", () => {
 	it('Should recognize "_go _forward _ten _meters"', async () => {
