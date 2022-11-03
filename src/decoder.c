@@ -274,7 +274,9 @@ decoder_init_cleanup(decoder_t *d)
 {
     /* Free old searches (do this before other reinit) */
     decoder_free_searches(d);
-
+    ckd_free(d->json_result);
+    d->json_result = NULL;
+    
     return 0;
 }
 
@@ -546,6 +548,7 @@ decoder_free(decoder_t *d)
     acmod_free(d->acmod);
     logmath_free(d->lmath);
     config_free(d->config);
+    ckd_free(d->json_result);
 #ifndef __EMSCRIPTEN__
     if (d->logfh) {
         fclose(d->logfh);
@@ -720,7 +723,7 @@ decoder_set_align_text(decoder_t *d, const char *text,
     return 0;
 }
 
-alignment_t *
+const alignment_t *
 decoder_alignment(decoder_t *d)
 {
     seg_iter_t *seg;
@@ -1304,11 +1307,6 @@ format_hyp(char *outptr, int len, decoder_t *decoder, double start, double durat
 
     lmath = decoder_logmath(decoder);
     prob = logmath_exp(lmath, decoder_prob(decoder));
-    if (duration == 0.0) {
-        start = 0.0;
-        duration = (double)decoder_n_frames(decoder)
-            / config_int(decoder_config(decoder), "frate");
-    }
     hyp = decoder_hyp(decoder, NULL);
     if (hyp == NULL)
         hyp = "";
@@ -1463,18 +1461,22 @@ format_seg_align(char *outptr, int maxlen,
 }
 
 const char *
-decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, double duration)
+decoder_result_json(decoder_t *d, double start)
 {
-    logmath_t *lmath;
-    char *hyp_json, *ptr;
+    logmath_t *lmath = decoder_logmath(d);
+    int state_align = (d->align != NULL);
+    alignment_t *alignment = (d->align
+                              ? ((state_align_search_t *)d->align)->al
+                              : NULL);
+    char *ptr;
     int frate;
     int maxlen, len;
-    int state_align = config_bool(decoder->config, "state_align");
+    double duration;
 
-    maxlen = format_hyp(NULL, 0, decoder, start, duration);
+    frate = config_int(decoder_config(d), "frate");
+    duration = (double)decoder_n_frames(d) / frate;
+    maxlen = format_hyp(NULL, 0, d, start, duration);
     maxlen += 6; /* "w":,[ */
-    lmath = decoder_logmath(decoder);
-    frate = config_int(decoder_config(decoder), "frate");
     if (alignment) {
         alignment_iter_t *itor = alignment_words(alignment);
         if (itor == NULL)
@@ -1486,7 +1488,7 @@ decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, do
         }
     }
     else {
-        seg_iter_t *itor = decoder_seg_iter(decoder);
+        seg_iter_t *itor = decoder_seg_iter(d);
         if (itor == NULL)
             maxlen++; /* ] at end */
         for (; itor; itor = seg_iter_next(itor)) {
@@ -1497,9 +1499,10 @@ decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, do
     maxlen++; /* final } */
     maxlen++; /* trailing \0 */
 
-    ptr = hyp_json = ckd_calloc(maxlen, 1);
+    ckd_free(d->json_result);
+    ptr = d->json_result = ckd_calloc(maxlen, 1);
     len = maxlen;
-    len = format_hyp(hyp_json, len, decoder, start, duration);
+    len = format_hyp(d->json_result, len, d, start, duration);
     ptr += len;
     maxlen -= len;
 
@@ -1522,7 +1525,7 @@ decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, do
         }
     }
     else {
-        seg_iter_t *itor = decoder_seg_iter(decoder);
+        seg_iter_t *itor = decoder_seg_iter(d);
         if (itor == NULL) {
             *ptr++ = ']'; /* Gets overwritten below... */
             maxlen--;
@@ -1543,5 +1546,5 @@ decoder_result_json(decoder_t *decoder, alignment_t *alignment, double start, do
     --maxlen;
     *ptr = '\0';
 
-    return hyp_json;
+    return d->json_result;
 }

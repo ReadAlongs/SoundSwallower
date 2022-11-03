@@ -543,8 +543,21 @@ void hyp_iter_free(hyp_iter_t *nbest);
 
 /**
  * Get the state-level alignment for the current utterance.
+ *
+ * The returned alignment is owned by the decoder and is only valid
+ * until the next call to decoder_alignment() or decoder_reinit().
  */
-alignment_t *decoder_alignment(decoder_t *d);
+const alignment_t *decoder_alignment(decoder_t *d);
+
+/**
+ * Get the decoding result as JSON.
+ *
+ * @param start Start time to add to reported segment times.
+ *
+ * The returned alignment is owned by the decoder and is only valid
+ * until the next call to decoder_result_json() or decoder_reinit().
+ */
+const char *decoder_result_json(decoder_t *decoder, double start);
 
 /**
  * Get performance information for the current utterance.
@@ -599,6 +612,7 @@ struct decoder_s {
     logmath_t *lmath;  /**< Log math computation. */
     search_module_t *search;     /**< Main search module. */
     search_module_t *align;      /**< State alignment module. */
+    char *json_result; /**< Decoding result as JSON. */
 
     /* Utterance-processing related stuff. */
     uint32 uttno;       /**< Utterance counter. */
