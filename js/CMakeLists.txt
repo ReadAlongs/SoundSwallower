@@ -51,6 +51,7 @@ set(JSFILES
   test_node.js
   test_typescript.ts
   test_web.html
+  soundswallower.d.ts
   tsconfig.json
   )
 list(TRANSFORM JSFILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
