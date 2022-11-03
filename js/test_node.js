@@ -279,22 +279,30 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
             const frame_size = ep.get_frame_size();
 	    const pcm = await fs.readFile("testdata/goforward-float32.raw");
             const pcm32 = new Float32Array(pcm.buffer);
-            let idx;
-            for (idx = 0; idx + frame_size < pcm32.length; idx += frame_size) {
+            console.log(`read ${pcm32.length} samples`);
+            let idx = 0;
+            while (idx < pcm32.length) {
                 let prev_in_speech = ep.get_in_speech();
-                let speech = ep.process(pcm32.subarray(idx, idx + frame_size));
+                let frame, speech;
+                if (idx + frame_size > pcm32.length) {
+                    frame = pcm32.subarray(idx);
+                    speech = ep.end_stream(frame);
+                }
+                else {
+                    frame = pcm32.subarray(idx, idx + frame_size);
+                    speech = ep.process(frame);
+                }
                 if (speech !== null) {
                     if (!prev_in_speech) {
                         console.log("Speech started at " + ep.get_speech_start());
+                        assert.ok(Math.abs(ep.get_speech_start()- 1.53) < 0.1);
                     }
-                    else if (!ep.get_in_speech()) {
+                    if (!ep.get_in_speech()) {
                         console.log("Speech ended at " + ep.get_speech_end());
+                        assert.ok(Math.abs(ep.get_speech_end()- 3.39) < 0.1);
                     }
                 }
-            }
-            let speech = ep.end_stream(pcm32.subarray(idx))
-            if (speech !== null) {
-                console.log("Speech ended at " + ep.get_speech_end());
+                idx += frame_size;
             }
         });
     });

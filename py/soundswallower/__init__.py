@@ -22,6 +22,8 @@ import os
 from ._soundswallower import Config  # noqa: F401
 from ._soundswallower import Decoder  # noqa: F401
 from ._soundswallower import FsgModel  # noqa: F401
+from ._soundswallower import Vad  # noqa: F401
+from ._soundswallower import Endpointer  # noqa: F401
 
 
 def get_model_path(subpath=None):
