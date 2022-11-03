@@ -348,12 +348,16 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
         E_INFO("Must byte-swap\n");
         s->do_swap = 1;
     }
+    else if (val != BIN_MDEF_NATIVE_ENDIAN) {
+        E_INFO("Is not a binary mdef file, cannot read in memory\n");
+        goto error_out;
+    }
     if (s3file_get(&val, 4, 1, s) != 1) {
         E_ERROR("Failed to read version\n");
         goto error_out;
     }
     if (val > BIN_MDEF_FORMAT_VERSION) {
-        E_ERROR("File format version %d is newer than library\n",
+        E_ERROR("File format version %08x is newer than library\n",
                 val);
         goto error_out;
     }
