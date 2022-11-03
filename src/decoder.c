@@ -1511,6 +1511,7 @@ decoder_result_json(decoder_t *d, double start, int align_level)
         }
     }
     maxlen++; /* final } */
+    maxlen++; /* trailing \n */
     maxlen++; /* trailing \0 */
 
     ckd_free(d->json_result);
@@ -1555,8 +1556,10 @@ decoder_result_json(decoder_t *d, double start, int align_level)
     }
     --ptr;
     *ptr++ = ']';
-    assert(maxlen == 2);
+    assert(maxlen == 3);
     *ptr++ = '}';
+    --maxlen;
+    *ptr++ = '\n';
     --maxlen;
     *ptr = '\0';
 
