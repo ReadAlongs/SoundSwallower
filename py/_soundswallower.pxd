@@ -162,7 +162,7 @@ cdef extern from "soundswallower/decoder.h":
     logmath_t *decoder_logmath(decoder_t *ps)
     int decoder_start_utt(decoder_t *ps)
     int decoder_process_int16(decoder_t *ps,
-                              const short *data, size_t n_samples,
+                              short *data, size_t n_samples,
                               int no_search, int full_utt)
     int decoder_end_utt(decoder_t *ps)
     const char *decoder_hyp(decoder_t *ps, int *out_best_score)
