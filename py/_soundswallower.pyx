@@ -756,3 +756,375 @@ cdef class Decoder:
                                "please examine dictionary/grammar and input audio.")
 
         return self.hyp().text, self.seg()
+
+    def set_align_text(self, text, state_align=False):
+        """Set a word sequence for alignment *and* enable alignment mode.
+
+        You must do any text normalization yourself.  For word-level
+        alignment, once you call this, simply decode and get the
+        segmentation in the usual manner.  For phone-level alignment,
+        see `set_alignment` and `get_alignment`.
+
+        Args:
+            text(str): Sentence to align, as whitespace-separated
+                       words.  All words must be present in the
+                       dictionary.
+            state_align(bool): Whether to enable state and phone-level
+                       alignment.
+        Raises:
+            RuntimeError: If text is invalid somehow.
+        """
+        cdef int rv = decoder_set_align_text(self._ps, text.encode("utf-8"),
+                                             state_align)
+        if rv < 0:
+            raise RuntimeError("Failed to set up alignment of %s" % (text))
+
+    @property
+    def alignment(self):
+        """The current sub-word alignment, if any.
+
+        This will return something if and only if `set_align_text` has been
+        called with `state_align=True`.
+
+        Returns:
+            Alignment - if an alignment exists.
+        """
+        cdef alignment_t *al = decoder_alignment(self._ps)
+        if al == NULL:
+            return None
+        return Alignment.create_from_ptr(alignment_retain(al))
+
+    @property
+    def n_frames(self):
+        """The number of frames processed up to this point.
+
+        Returns:
+            int: Like it says.
+        """
+        return decoder_n_frames(self._ps)
+
+
+cdef class Vad:
+    """Voice activity detection class.
+
+    Args:
+      mode(int): Aggressiveness of voice activity detction (0-3)
+      sample_rate(int): Sampling rate of input, default is 16000.
+                        Rates other than 8000, 16000, 32000, 48000
+                        are only approximately supported, see note
+                        in `frame_length`.  Outlandish sampling
+                        rates like 3924 and 115200 will raise a
+                        `ValueError`.
+      frame_length(float): Desired input frame length in seconds,
+                           default is 0.03.  The *actual* frame
+                           length may be different if an
+                           approximately supported sampling rate is
+                           requested.  You must *always* use the
+                           `frame_bytes` and `frame_length`
+                           attributes to determine the input size.
+
+    Raises:
+      ValueError: Invalid input parameter (see above).
+    """
+    cdef vad_t *_vad
+    LOOSE = VAD_LOOSE
+    MEDIUM_LOOSE = VAD_MEDIUM_LOOSE
+    MEDIUM_STRICT = VAD_MEDIUM_STRICT
+    STRICT = VAD_STRICT
+    DEFAULT_SAMPLE_RATE = VAD_DEFAULT_SAMPLE_RATE
+    DEFAULT_FRAME_LENGTH = VAD_DEFAULT_FRAME_LENGTH
+
+    def __init__(self, mode=VAD_LOOSE,
+                 sample_rate=VAD_DEFAULT_SAMPLE_RATE,
+                 frame_length=VAD_DEFAULT_FRAME_LENGTH):
+        self._vad = vad_init(mode, sample_rate, frame_length)
+        if self._vad == NULL:
+            raise ValueError("Invalid VAD parameters")
+
+    def __dealloc__(self):
+        vad_free(self._vad)
+
+    @property
+    def frame_bytes(self):
+        """int: Number of bytes (not samples) required in an input frame.
+
+        You *must* pass input of this size, as `bytes`, to the `Vad`.
+        """
+        return vad_frame_size(self._vad) * 2
+
+    @property
+    def frame_length(self):
+        """float: Length of a frame in seconds (*may be different from the one
+        requested in the constructor*!)"""
+        return vad_frame_length(self._vad)
+
+    @property
+    def sample_rate(self):
+        """int: Sampling rate of input data."""
+        return vad_sample_rate(self._vad)
+
+    def is_speech(self, frame, sample_rate=None):
+        """Classify a frame as speech or not.
+
+        Args:
+          frame(bytes): Buffer containing speech data (16-bit signed
+                        integers).  Must be of length `frame_bytes`
+                        (in bytes).
+        Returns:
+          boolean: Classification as speech or not speech.
+        Raises:
+          IndexError: `buf` is of invalid size.
+          ValueError: Other internal VAD error.
+        """
+        cdef const unsigned char[:] cframe = frame
+        cdef Py_ssize_t n_samples = len(cframe) // 2
+        if len(cframe) != self.frame_bytes:
+            raise IndexError("Frame size must be %d bytes" % self.frame_bytes)
+        rv = vad_classify(self._vad, <const short *>&cframe[0])
+        if rv < 0:
+            raise ValueError("VAD classification failed")
+        return rv == VAD_SPEECH
+
+cdef class Endpointer:
+    """Simple endpointer using voice activity detection.
+
+    Args:
+      window(float): Length in seconds of window for decision.
+      ratio(float): Fraction of window that must be speech or
+                    non-speech to make a transition.
+      mode(int): Aggressiveness of voice activity detction (0-3)
+      sample_rate(int): Sampling rate of input, default is 16000.
+                        Rates other than 8000, 16000, 32000, 48000
+                        are only approximately supported, see note
+                        in `frame_length`.  Outlandish sampling
+                        rates like 3924 and 115200 will raise a
+                        `ValueError`.
+      frame_length(float): Desired input frame length in seconds,
+                           default is 0.03.  The *actual* frame
+                           length may be different if an
+                           approximately supported sampling rate is
+                           requested.  You must *always* use the
+                           `frame_bytes` and `frame_length`
+                           attributes to determine the input size.
+
+    Raises:
+      ValueError: Invalid input parameter.  Also raised if the ratio
+                  makes it impossible to do endpointing (i.e. it
+                  is more than N-1 or less than 1 frame).
+    """
+    cdef endpointer_t *_ep
+    DEFAULT_WINDOW = ENDPOINTER_DEFAULT_WINDOW
+    DEFAULT_RATIO = ENDPOINTER_DEFAULT_RATIO
+    def __init__(
+        self,
+        window=0.3,
+        ratio=0.9,
+        vad_mode=Vad.LOOSE,
+        sample_rate=Vad.DEFAULT_SAMPLE_RATE,
+        frame_length=Vad.DEFAULT_FRAME_LENGTH,
+    ):
+        self._ep = endpointer_init(window, ratio,
+                                   vad_mode, sample_rate, frame_length)
+        if (self._ep == NULL):
+            raise ValueError("Invalid endpointer or VAD parameters")
+
+    @property
+    def frame_bytes(self):
+        """int: Number of bytes (not samples) required in an input frame.
+
+        You *must* pass input of this size, as `bytes`, to the `Endpointer`.
+        """
+        return endpointer_frame_size(self._ep) * 2
+
+    @property
+    def frame_length(self):
+        """float: Length of a frame in secondsq (*may be different from the one
+        requested in the constructor*!)"""
+        return endpointer_frame_length(self._ep)
+
+    @property
+    def sample_rate(self):
+        """int: Sampling rate of input data."""
+        return endpointer_sample_rate(self._ep)
+
+    @property
+    def in_speech(self):
+        """bool: Is the endpointer currently in a speech segment?
+
+        To detect transitions from non-speech to speech, check this
+        before `process`.  If it was `False` but `process` returns
+        data, then speech has started::
+
+            prev_in_speech = ep.in_speech
+            speech = ep.process(frame)
+            if speech is not None:
+                if prev_in_speech:
+                    print("Speech started at", ep.speech_start)
+
+        Likewise, to detect transitions from speech to non-speech,
+        call this *after* `process`.  If `process` returned data but
+        this returns `False`, then speech has stopped::
+
+            speech = ep.process(frame)
+            if speech is not None:
+                if not ep.in_speech:
+                    print("Speech ended at", ep.speech_end)
+        """
+        return endpointer_in_speech(self._ep)
+
+    @property
+    def speech_start(self):
+        """float: Start time of current speech region."""
+        return endpointer_speech_start(self._ep)
+
+    @property
+    def speech_end(self):
+        """float: End time of current speech region."""
+        return endpointer_speech_end(self._ep)
+
+    def process(self, frame):
+        """Read a frame of data and return speech if detected.
+
+        Args:
+          frame(bytes): Buffer containing speech data (16-bit signed
+                        integers).  Must be of length `frame_bytes`
+                        (in bytes).
+        Returns:
+          bytes: Frame of speech data, or None if none detected.
+        Raises:
+          IndexError: `buf` is of invalid size.
+          ValueError: Other internal VAD error.
+        """
+        cdef const unsigned char[:] cframe = frame
+        cdef Py_ssize_t n_samples = len(cframe) // 2
+        cdef const short *outframe
+        if len(cframe) != self.frame_bytes:
+            raise IndexError("Frame size must be %d bytes" % self.frame_bytes)
+        outframe = endpointer_process(self._ep,
+                                      <const short *>&cframe[0])
+        if outframe == NULL:
+            return None
+        return (<const unsigned char *>&outframe[0])[:n_samples * 2]
+
+    def end_stream(self, frame):
+        """Read a final frame of data and return speech if any.
+
+        This function should only be called at the end of the input
+        stream (and then, only if you are currently in a speech
+        region).  It will return any remaining speech data detected by
+        the endpointer.
+
+        Args:
+          frame(bytes): Buffer containing speech data (16-bit signed
+                        integers).  Must be of length `frame_bytes`
+                        (in bytes) *or less*.
+        Returns:
+          bytes: Remaining speech data (could be more than one frame),
+          or None if none detected.
+        Raises:
+          IndexError: `buf` is of invalid size.
+          ValueError: Other internal VAD error.
+
+        """
+        cdef const unsigned char[:] cframe = frame
+        cdef Py_ssize_t n_samples = len(cframe) // 2
+        cdef const short *outbuf
+        cdef size_t out_n_samples
+        if len(cframe) > self.frame_bytes:
+            raise IndexError("Frame size must be %d bytes or less" % self.frame_bytes)
+        outbuf = endpointer_end_stream(self._ep,
+                                       <const short *>&cframe[0],
+                                       n_samples,
+                                       &out_n_samples)
+        if outbuf == NULL:
+            return None
+        return (<const unsigned char *>&outbuf[0])[:out_n_samples * 2]
+
+cdef class AlignmentEntry:
+    """Entry (word, phone, state) in an alignment.
+
+    Iterating over this will iterate over its children (i.e. the
+    phones in a word or the states in a phone) if any.  For example::
+
+        for word in decoder.get_alignment():
+            print("%s from %.2f to %.2f" % (word.name, word.start,
+                                            word.start + word.duration))
+            for phone in word:
+                print("%s at %.2f duration %.2f" %
+                      (phone.name, phone.start, phone.duration))
+
+    Attributes:
+      name(str): Name of segment (word, phone name, state id)
+      start(int): Index of start frame.
+      duration(int): Duration in frames.
+      score(float): Acoustic score (density).
+    """
+    cdef public int start
+    cdef public int duration
+    cdef public int score
+    cdef public str name
+    # DANGER! Not retained!
+    cdef alignment_iter_t *itor
+    @staticmethod
+    cdef create_from_iter(alignment_iter_t *itor):
+        cdef AlignmentEntry self
+        self = AlignmentEntry.__new__(AlignmentEntry)
+        self.score = alignment_iter_seg(itor, &self.start, &self.duration)
+        self.name = alignment_iter_name(itor).decode('utf-8')
+        self.itor = itor  # DANGER! DANGER!
+        return self
+
+    def __iter__(self):
+        cdef alignment_iter_t *itor = alignment_iter_children(self.itor)
+        while itor != NULL:
+            c = AlignmentEntry.create_from_iter(itor)
+            yield c
+            itor = alignment_iter_next(itor)
+        # FIXME: will leak memory if iteration stopped short!
+
+cdef class Alignment:
+    """Sub-word alignment as returned by `get_alignment`.
+
+    For the moment this is read-only.  You are able to iterate over
+    the words, phones, or states in it, as well as sub-iterating over
+    each of their children, as described in `AlignmentEntry`.
+    """
+    cdef alignment_t *_al
+
+    @staticmethod
+    cdef create_from_ptr(alignment_t *al):
+        cdef Alignment self = Alignment.__new__(Alignment)
+        self._al = al
+        return self
+
+    def __dealloc__(self):
+        if self._al != NULL:
+            alignment_free(self._al)
+
+    def __iter__(self):
+        return self.words()
+
+    def words(self):
+        """Iterate over words in the alignment."""
+        cdef alignment_iter_t *itor = alignment_words(self._al)
+        while itor != NULL:
+            w = AlignmentEntry.create_from_iter(itor)
+            yield w
+            itor = alignment_iter_next(itor)
+        # FIXME: will leak memory if iteration stopped short!
+
+    def phones(self):
+        """Iterate over phones in the alignment."""
+        cdef alignment_iter_t *itor = alignment_phones(self._al)
+        while itor != NULL:
+            p = AlignmentEntry.create_from_iter(itor)
+            yield p
+            itor = alignment_iter_next(itor)
+
+    def states(self):
+        """Iterate over states in the alignment."""
+        cdef alignment_iter_t *itor = alignment_states(self._al)
+        while itor != NULL:
+            s = AlignmentEntry.create_from_iter(itor)
+            yield s
+            itor = alignment_iter_next(itor)
