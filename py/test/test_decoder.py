@@ -16,7 +16,7 @@ class TestDecoder(unittest.TestCase):
             decoder.start_utt()
             decoder.process_raw(buf, full_utt=True)
             decoder.end_utt()
-            self._check_hyp(decoder.hyp().text, decoder.seg())
+            self._check_hyp(decoder.hyp.text, decoder.seg)
 
     def _check_hyp(self, hyp, hypseg):
         self.assertEqual(hyp, "go forward ten meters")

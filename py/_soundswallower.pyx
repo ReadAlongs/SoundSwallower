@@ -389,7 +389,17 @@ cdef class Decoder:
         cdef config_t *config = decoder_config(self._ps)
         return Config.create_from_ptr(config_retain(config))
 
-    def get_cmn(self, update=False):
+    def update_cmn(self):
+        """Update current cepstral mean.
+
+        Returns:
+          str: New cepstral mean as a comma-separated list of numbers.
+        """
+        cdef const char *cmn = decoder_get_cmn(self._ps, True)
+        return cmn.decode("utf-8")
+
+    @property
+    def cmn(self):
         """Get current cepstral mean.
 
         Args:
@@ -397,11 +407,12 @@ cdef class Decoder:
         Returns:
           str: Cepstral mean as a comma-separated list of numbers.
         """
-        cdef const char *cmn = decoder_get_cmn(self._ps, update)
+        cdef const char *cmn = decoder_get_cmn(self._ps, False)
         return cmn.decode("utf-8")
 
-    def set_cmn(self, cmn):
-        """Get current cepstral mean.
+    @cmn.setter
+    def cmn(self, cmn):
+        """Set current cepstral mean.
 
         Args:
           cmn(str): Cepstral mean as a comma-separated list of numbers.
@@ -451,8 +462,9 @@ cdef class Decoder:
         if decoder_end_utt(self._ps) < 0:
             raise RuntimeError, "Failed to stop utterance processing"
 
+    @property
     def hyp(self):
-        """Get current recognition hypothesis.
+        """Current recognition hypothesis.
         
         Returns:
             Hyp: Current recognition output.
@@ -512,8 +524,9 @@ cdef class Decoder:
             free(cphones)
             return phones
 
+    @property
     def seg(self):
-        """Get current word segmentation.
+        """Current word segmentation.
 
         Returns:
             Iterable[Seg]: Generator over word segmentations.
@@ -749,13 +762,11 @@ cdef class Decoder:
         self.process_raw(data, no_search=False, full_utt=True)
         self.end_utt()
 
-        hyp = self.hyp()
-        seg = self.seg()
-        if hyp.text is None:
+        if self.hyp.text is None:
             raise RuntimeError("Decoding produced no segments, "
                                "please examine dictionary/grammar and input audio.")
 
-        return self.hyp().text, self.seg()
+        return self.hyp.text, self.seg
 
     def set_align_text(self, text, state_align=False):
         """Set a word sequence for alignment *and* enable alignment mode.
