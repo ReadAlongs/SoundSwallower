@@ -935,7 +935,7 @@ search_module_forward(decoder_t *d)
 
 int
 decoder_process_float32(decoder_t *d,
-                        float32 const *data,
+                        float32 *data,
                         size_t n_samples,
                         int no_search,
                         int full_utt)
@@ -971,7 +971,7 @@ decoder_process_float32(decoder_t *d,
 
 int
 decoder_process_int16(decoder_t *d,
-                      int16 const *data,
+                      int16 *data,
                       size_t n_samples,
                       int no_search,
                       int full_utt)
