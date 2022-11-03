@@ -421,7 +421,7 @@ acmod_process_full_cep(acmod_t *acmod,
 
 static int
 acmod_process_full_raw(acmod_t *acmod,
-                       const int16 **inout_raw,
+                       int16 **inout_raw,
                        size_t *inout_n_samps)
 {
     int32 nfr, nvec;
@@ -455,7 +455,7 @@ acmod_process_full_raw(acmod_t *acmod,
 
 static int
 acmod_process_full_float32(acmod_t *acmod,
-                           const float32 **inout_raw,
+                           float32 **inout_raw,
                            size_t *inout_n_samps)
 {
     int32 nfr, nvec;
@@ -525,7 +525,7 @@ acmod_process_mfcbuf(acmod_t *acmod)
 
 int
 acmod_process_raw(acmod_t *acmod,
-                  const int16 **inout_raw,
+                  int16 **inout_raw,
                   size_t *inout_n_samps,
                   int full_utt)
 {
@@ -579,7 +579,7 @@ acmod_process_raw(acmod_t *acmod,
 
 int
 acmod_process_float32(acmod_t *acmod,
-                      const float32 **inout_raw,
+                      float32 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt)
 {

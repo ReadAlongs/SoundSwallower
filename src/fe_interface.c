@@ -684,7 +684,7 @@ fe_process(fe_t *fe,
 
 int
 fe_process_float32(fe_t *fe,
-                   const float32 **inout_spch,
+                   float32 **inout_spch,
                    size_t *inout_nsamps,
                    mfcc_t **buf_cep,
                    int nframes)
@@ -695,7 +695,7 @@ fe_process_float32(fe_t *fe,
 
 int
 fe_process_int16(fe_t *fe,
-                 const int16 **inout_spch,
+                 int16 **inout_spch,
                  size_t *inout_nsamps,
                  mfcc_t **buf_cep,
                  int nframes)

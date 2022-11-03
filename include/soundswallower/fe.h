@@ -223,7 +223,7 @@ int fe_start(fe_t *fe);
  * the trailing frame written by fe_end().
  */
 int fe_process_int16(fe_t *fe,
-                     const int16 **inout_spch,
+                     int16 **inout_spch,
                      size_t *inout_nsamps,
                      mfcc_t **buf_cep,
                      int nframes);
@@ -235,7 +235,7 @@ int fe_process_int16(fe_t *fe,
  * 32-bit floating point in the range of [-1.0, 1.0].
  */
 int fe_process_float32(fe_t *fe,
-                       const float32 **inout_spch,
+                       float32 **inout_spch,
                        size_t *inout_nsamps,
                        mfcc_t **buf_cep,
                        int nframes);
