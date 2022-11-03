@@ -637,7 +637,7 @@ class Endpointer {
     process(frame) {
         // Have to convert it to int16 for (fixed-point) VAD
         const pcm_i16 = Int16Array.from(frame, x => (x > 0 ? x * 0x7FFF : x * 0x8000));
-	const pcm_u8 = new Uint16Array(pcm_i16.buffer);
+	const pcm_u8 = new Uint8Array(pcm_i16.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	const pcm_addr = Module._malloc(pcm_u8.length);
@@ -663,7 +663,7 @@ class Endpointer {
     end_stream(frame) {
         // Have to convert it to int16 for (fixed-point) VAD
         const pcm_i16 = Int16Array.from(frame.map(x => (x > 0 ? x * 0x7FFF : x * 0x8000)))
-	const pcm_u8 = new Uint16Array(pcm_i16.buffer);
+	const pcm_u8 = new Uint8Array(pcm_i16.buffer);
 	// Emscripten documentation fails to mention that this
 	// function specifically takes a Uint8Array
 	const pcm_addr = Module._malloc(pcm_u8.length);
