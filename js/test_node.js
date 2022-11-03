@@ -273,6 +273,31 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
             decoder.delete();
 	});
     });
+    describe("Test endpointer", () => {
+        it("Should do endpointing", async () => {
+            const ep = new ssjs.Endpointer(16000);
+            const frame_size = ep.get_frame_size();
+	    const pcm = await fs.readFile("testdata/goforward-float32.raw");
+            const pcm32 = new Float32Array(pcm.buffer);
+            let idx;
+            for (idx = 0; idx + frame_size < pcm32.length; idx += frame_size) {
+                let prev_in_speech = ep.get_in_speech();
+                let speech = ep.process(pcm32.subarray(idx, idx + frame_size));
+                if (speech !== null) {
+                    if (!prev_in_speech) {
+                        console.log("Speech started at " + ep.get_speech_start());
+                    }
+                    else if (!ep.get_in_speech()) {
+                        console.log("Speech ended at " + ep.get_speech_end());
+                    }
+                }
+            }
+            let speech = ep.end_stream(pcm32.subarray(idx))
+            if (speech !== null) {
+                console.log("Speech ended at " + ep.get_speech_end());
+            }
+        });
+    });
     describe("Test dictionary lookup", () => {
 	it('Should return "W AH N"', async () => {
 	    let decoder = new ssjs.Decoder();

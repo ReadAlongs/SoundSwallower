@@ -143,6 +143,14 @@ vad_frame_size(vad_t *vad)
     return vad->frame_size;
 }
 
+double
+vad_frame_length(vad_t *vad)
+{
+    if (vad == NULL)
+        return 0;
+    return (double)vad_frame_size(vad) / vad_sample_rate(vad);
+}
+
 vad_class_t
 vad_classify(vad_t *vad, const short *frame)
 {

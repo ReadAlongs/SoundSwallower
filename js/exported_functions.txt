@@ -56,3 +56,12 @@ _bin_mdef_read_s3file
 _tmat_init_s3file
 _decoder_init_dict_s3file
 _decoder_init_grammar_s3file
+_endpointer_init
+_endpointer_vad
+_vad_frame_size
+_vad_frame_length
+_endpointer_in_speech
+_endpointer_speech_start
+_endpointer_speech_end
+_endpointer_process
+_endpointer_end_stream

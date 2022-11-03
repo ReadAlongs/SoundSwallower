@@ -574,6 +574,117 @@ class Decoder {
 };
 
 /**
+ * Simple endpointer using voice activity detection
+ */
+class Endpointer {
+    constructor(sample_rate, frame_length=0.03, mode=0, window=0.3, ratio=0.9) {
+        this.cep = Module._endpointer_init(window, ratio, mode,
+                                           sample_rate, frame_length);
+        if (this.cep == 0)
+            throw new Error("Invalid endpointer or VAD parameters");
+    }
+
+    /**
+     * Get the effective length of a frame in samples.
+     *
+     * Note that you *must* pass this many samples in each input
+     * frame, no more, no less.
+     */
+    get_frame_size() {
+        return Module._vad_frame_size(Module._endpointer_vad(this.cep));
+    }
+
+    /**
+     * Get the effective length of a frame in seconds (may be
+     * different from the one requested in the constructor)
+     */
+    get_frame_length() {
+        return Module._vad_frame_length(Module._endpointer_vad(this.cep));
+    }
+
+    /**
+     * Is the endpointer currently in a speech segment?
+     * 
+     * To detect transitions from non-speech to speech, check this
+     * before `process`.  If it was `False` but `process` returns
+     * data, then speech has started.
+     *
+     * Likewise, to detect transitions from speech to non-speech, call
+     * this *after* `process`.  If `process` returned data but
+     * this returns `False`, then speech has stopped.
+     */
+    get_in_speech() {
+        return Module._endpointer_in_speech(this.cep);
+    }
+
+    /**
+     * Get start time of current speech region.
+     */
+    get_speech_start() {
+        return Module._endpointer_speech_start(this.cep);
+    }
+
+    /**
+     * Get end time of current speech region.
+     */
+    get_speech_end() {
+        return Module._endpointer_speech_end(this.cep);
+    }
+
+    /**
+     * Read a frame of data and return speech if detected.
+     */
+    process(frame) {
+        // Have to convert it to int16 for (fixed-point) VAD
+        const pcm_i16 = Int16Array.from(frame, x => (x > 0 ? x * 0x7FFF : x * 0x8000));
+	const pcm_u8 = new Uint16Array(pcm_i16.buffer);
+	// Emscripten documentation fails to mention that this
+	// function specifically takes a Uint8Array
+	const pcm_addr = Module._malloc(pcm_u8.length);
+	writeArrayToMemory(pcm_u8, pcm_addr);
+	const rv = Module._endpointer_process(this.cep, pcm_addr);
+	Module._free(pcm_addr);
+        if (rv != 0) {
+            const pcm_i16 = new Int16Array(HEAP8.buffer, rv, this.get_frame_size() * 2);
+            return Float32Array.from(pcm_i16, x => (x > 0 ? x / 0x7fff : x / 0x8000));
+        }
+        else
+	    return null;
+    }
+
+    /**
+     * Read a final frame of data and return speech if any.
+     *
+     * This function should only be called at the end of the input
+     * stream (and then, only if you are currently in a speech
+     * region).  It will return any remaining speech data detected by
+     * the endpointer.
+     */
+    end_stream(frame) {
+        // Have to convert it to int16 for (fixed-point) VAD
+        const pcm_i16 = Int16Array.from(frame.map(x => (x > 0 ? x * 0x7FFF : x * 0x8000)))
+	const pcm_u8 = new Uint16Array(pcm_i16.buffer);
+	// Emscripten documentation fails to mention that this
+	// function specifically takes a Uint8Array
+	const pcm_addr = Module._malloc(pcm_u8.length);
+	writeArrayToMemory(pcm_u8, pcm_addr);
+        // FIXME: Depends on size_t being 32 bits on Emscripten (it is)
+        const nsamp_addr = stackAlloc(4);
+	const rv = Module._endpointer_end_stream(this.cep, pcm_addr, pcm_i16.length,
+                                                 nsamp_addr);
+	Module._free(pcm_addr);
+	if (rv != 0) {
+            const nsamp = getValue(nsamp_addr, 'i32');
+            const pcm_i16 = new Int16Array(HEAP8.buffer, rv, nsamp * 2);
+            return Float32Array.from(pcm_i16, x => (x > 0 ? x / 0x7fff : x / 0x8000));
+        }
+        else
+            return null;
+    }
+
+};
+
+/**
  * Async read some JSON (maybe there is a built-in that does this?)
  */
 async function load_json(path) {
@@ -652,3 +763,4 @@ function get_model_path(subpath) {
 
 Module.get_model_path = get_model_path;
 Module.Decoder = Decoder;
+Module.Endpointer = Endpointer;

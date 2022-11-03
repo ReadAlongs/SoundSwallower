@@ -166,7 +166,7 @@ size_t vad_frame_size(vad_t *vad);
  *
  * This may differ from the value requested in vad_set_input_params().
  */
-#define vad_frame_length(vad) ((double)vad_frame_size(vad) / vad_sample_rate(vad))
+double vad_frame_length(vad_t *vad);
 
 /**
  * Classify a frame as speech or not speech.
