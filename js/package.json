@@ -4,7 +4,9 @@
    "description": "An even smaller speech recognizer",
    "main": "soundswallower.js",
    "scripts": {
-      "test": "mocha test_node"
+       "test": "make && mocha test_node",
+       "tstest": "make && npx tsc && node test_typescript",
+       "webtest": "make && xdg-open http://localhost:8000/test_web.html && python server.py"
    },
    "repository": {
       "type": "git",
