@@ -99,14 +99,14 @@ typedef struct dict_s {
  *
  * Return ptr to dict_t if successful, NULL otherwise.
  */
-dict_t *dict_init(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
+dict_t *dict_init(config_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
                   bin_mdef_t *mdef  /**< For looking up CI phone IDs (or NULL) */
     );
 
 /**
  * Initialize a new dictionary from in-memory files.
  */
-dict_t *dict_init_s3file(cmd_ln_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
+dict_t *dict_init_s3file(config_t *config, /**< Configuration (-dict, -fdict, -dictcase) or NULL */
                          bin_mdef_t *mdef, /**< For looking up CI phone IDs (or NULL) */
                          s3file_t *dict,   /**< Dictionary file. */
                          s3file_t *fdict   /**< Filler dictionary file (if any) */
@@ -135,7 +135,7 @@ int dict_real_word(dict_t *d,  /**< The dictionary structure */
  * Return value: Result word id if successful, BAD_S3WID otherwise
  */
 s3wid_t dict_add_word(dict_t *d,          /**< The dictionary structure. */
-                      char const *word,   /**< The word. */
+                      const char *word,   /**< The word. */
                       s3cipid_t const *p, /**< The pronunciation. */
                       int32 np            /**< Number of phones. */
     );

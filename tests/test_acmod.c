@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/err.h>
@@ -33,7 +33,7 @@ main(int argc, char *argv[])
 {
     acmod_t *acmod;
     logmath_t *lmath;
-    cmd_ln_t *config;
+    config_t *config;
     FILE *rawfh;
     int16 *buf;
     int16 const *bptr;
@@ -48,33 +48,26 @@ main(int argc, char *argv[])
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
-    config = cmd_ln_init(NULL, ps_args(), TRUE,
-			 "-input_endian", "little", /* raw data demands it */
-			 "-compallsen", "true",
-			 "-cmn", "live",
-			 "-tmatfloor", "0.0001",
-			 "-mixwfloor", "0.001",
-			 "-varfloor", "0.0001",
-			 "-mmap", "no",
-			 "-topn", "4",
-			 "-ds", "1",
-			 "-samprate", "16000", NULL);
+    config = config_parse_json(
+        NULL,
+        "hmm: \"" MODELDIR "/en-us\","
+        "compallsen: true, cmn: live, tmatfloor: 0.0001,"
+        "mixwfloor: 0.001, varfloor: 0.0001,"
+        "topn: 4, ds: 1, samprate: 0");
     TEST_ASSERT(config);
-    cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
+    config_expand(config);
 
-    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef.bin");
-    cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/means");
-    cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/variances");
-    cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/transition_matrices");
-    cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/sendump");
-    cmd_ln_set_str_extra_r(config, "_mixw", NULL);
-    cmd_ln_set_str_extra_r(config, "_lda", NULL);
-    cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
-
+    TEST_ASSERT(config);
     fe = fe_init(config);
+
+    /* Test automatic sampling rate and fft */
+    TEST_EQUAL(fe->sampling_rate, 8000);
+    TEST_EQUAL(fe->fft_size, 256);
+
     fcb = feat_init(config);
     TEST_ASSERT(acmod = acmod_init(config, lmath, fe, fcb));
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
+    TEST_EQUAL(acmod_set_grow(acmod, FALSE), ACMOD_GROW_DEFAULT);
 
     nsamps = 2048;
     frame_counter = 0;
@@ -102,7 +95,6 @@ main(int argc, char *argv[])
             }
         }
     }
-    /* Updated to match pocketsphinx 0.7 (no silence removal) */
     TEST_EQUAL(1, acmod_end_utt(acmod));
     nread = 0;
     {
@@ -267,6 +259,6 @@ main(int argc, char *argv[])
     fe_free(fe);
     feat_free(fcb);
     logmath_free(lmath);
-    cmd_ln_free_r(config);
+    config_free(config);
     return 0;
 }

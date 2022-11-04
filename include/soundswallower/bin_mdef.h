@@ -56,7 +56,7 @@ extern "C" {
 #endif
 
 #include <soundswallower/s3file.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/mdef.h>
 
 #define BIN_MDEF_FORMAT_VERSION 1
@@ -168,7 +168,7 @@ struct bin_mdef_s {
 /**
  * Read a binary mdef from a file.
  */
-bin_mdef_t *bin_mdef_read(cmd_ln_t *config, const char *filename);
+bin_mdef_t *bin_mdef_read(config_t *config, const char *filename);
 
 /**
  * Read a binary mdef from an existing s3file_t.
@@ -178,7 +178,7 @@ bin_mdef_t *bin_mdef_read_s3file(s3file_t *s, int cionly);
 /**
  * Read a text mdef from a file (creating an in-memory binary mdef).
  */
-bin_mdef_t *bin_mdef_read_text(cmd_ln_t *config, const char *filename);
+bin_mdef_t *bin_mdef_read_text(config_t *config, const char *filename);
 
 /**
  * Retain a pointer to a bin_mdef_t.

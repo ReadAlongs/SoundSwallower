@@ -37,10 +37,10 @@
 #ifndef FE_NOISE_H
 #define FE_NOISE_H
 
-#include <soundswallower/fe.h>
 #include <soundswallower/fe_type.h>
 
 typedef struct noise_stats_s noise_stats_t;
+typedef struct fe_s fe_t;
 
 /* Creates noisestats object */
 noise_stats_t *fe_init_noisestats(int num_filters);

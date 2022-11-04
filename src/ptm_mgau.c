@@ -47,15 +47,14 @@
 #include <limits.h>
 #include <math.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/tied_mgau_common.h>
 #include <soundswallower/ptm_mgau.h>
-#include <soundswallower/export.h>
 
-static ps_mgaufuncs_t ptm_mgau_funcs = {
+static mgaufuncs_t ptm_mgau_funcs = {
     "ptm",
     ptm_mgau_frame_eval,      /* frame_eval */
     ptm_mgau_mllr_transform,  /* transform */
@@ -127,7 +126,10 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
             obs += 4;
             mean += 4;
         }
-        insertion_sort_topn(topn, i, (int32)d);
+        if (d < (mfcc_t)MAX_NEG_INT32)
+            insertion_sort_topn(topn, i, MAX_NEG_INT32);
+        else
+            insertion_sort_topn(topn, i, (int32)d);
     }
 
     return topn[0].score;
@@ -214,7 +216,10 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         }
         if (i < s->max_topn)
             continue;       /* already there.  Don't insert */
-        insertion_sort_cb(&cur, worst, best, cw, (int32)d);
+        if (d < (mfcc_t)MAX_NEG_INT32)
+            insertion_sort_cb(&cur, worst, best, cw, MAX_NEG_INT32);
+        else
+            insertion_sort_cb(&cur, worst, best, cw, (int32)d);
     }
 
     return best->score;
@@ -324,7 +329,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
                      uint8 *senone_active, int32 n_senone_active,
                      int compall)
 {
-    int i, lastsen, bestscore;
+    int32 i, lastsen, bestscore;
 
     memset(senone_scores, 0, s->n_sen * sizeof(*senone_scores));
     /* FIXME: This is the non-cache-efficient way to do this.  We want
@@ -334,7 +339,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
      * codewords. */
     if (compall)
         n_senone_active = s->n_sen;
-    bestscore = 0x7fffffff;
+    bestscore = MAX_INT32;
     for (lastsen = i = 0; i < n_senone_active; ++i) {
         int sen, f, cb;
         int ascore;
@@ -402,7 +407,7 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
  * Compute senone scores for the active senones.
  */
 int32
-ptm_mgau_frame_eval(ps_mgau_t *ps,
+ptm_mgau_frame_eval(mgau_t *ps,
                     int16 *senone_scores,
                     uint8 *senone_active,
                     int32 n_senone_active,
@@ -688,12 +693,40 @@ read_mixw(s3file_t *s3f, gauden_t *g, logmath_t *lmath,
     return n_sen;
 }
 
-EXPORT ps_mgau_t *
+void
+ptm_mgau_reset_fast_hist(mgau_t *ps)
+{
+    ptm_mgau_t *s = (ptm_mgau_t *)ps;
+    int i;
+
+    for (i = 0; i < s->n_fast_hist; ++i) {
+        int j, k, m;
+        /* Top-N codewords for every codebook and feature. */
+        s->hist[i].topn = ckd_calloc_3d(s->g->n_mgau, s->g->n_feat,
+                                        s->max_topn, sizeof(ptm_topn_t));
+        /* Initialize them to sane (yet arbitrary) defaults. */
+        for (j = 0; j < s->g->n_mgau; ++j) {
+            for (k = 0; k < s->g->n_feat; ++k) {
+                for (m = 0; m < s->max_topn; ++m) {
+                    s->hist[i].topn[j][k][m].cw = m;
+                    s->hist[i].topn[j][k][m].score = WORST_DIST;
+                }
+            }
+        }
+        /* Active codebook mapping (just codebook, not features,
+           at least not yet) */
+        s->hist[i].mgau_active = bitvec_alloc(s->g->n_mgau);
+        /* Start with them all on, prune them later. */
+        bitvec_set_all(s->hist[i].mgau_active, s->g->n_mgau);
+    }
+}
+
+mgau_t *
 ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                      s3file_t *mixw, s3file_t *sendump)
 {
     ptm_mgau_t *s;
-    ps_mgau_t *ps;
+    mgau_t *ps;
     int i;
 
     s = ckd_calloc(1, sizeof(*s));
@@ -713,7 +746,7 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
 
     /* Read means and variances. */
     if ((s->g = gauden_init_s3file(means, vars,
-                                   cmd_ln_float32_r(s->config, "-varfloor"),
+                                   config_float(s->config, "varfloor"),
                                    s->lmath)) == NULL) {
         E_ERROR("Failed to read means and variances\n");	
         goto error_out;
@@ -752,12 +785,12 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         s->sendump_mmap = s3file_retain(sendump);
     }
     else {
-        float32 mixw_floor = cmd_ln_float32_r(s->config, "-mixwfloor");
+        float32 mixw_floor = config_float(s->config, "mixwfloor");
         if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
     }
-    s->ds_ratio = cmd_ln_int32_r(s->config, "-ds");
-    s->max_topn = cmd_ln_int32_r(s->config, "-topn");
+    s->ds_ratio = config_int(s->config, "ds");
+    s->max_topn = config_int(s->config, "topn");
     E_INFO("Maximum top-N: %d\n", s->max_topn);
 
     /* Assume mapping of senones to their base phones, though this
@@ -773,28 +806,9 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     s->hist = ckd_calloc(s->n_fast_hist, sizeof(*s->hist));
     /* s->f will be a rotating pointer into s->hist. */
     s->f = s->hist;
-    for (i = 0; i < s->n_fast_hist; ++i) {
-        int j, k, m;
-        /* Top-N codewords for every codebook and feature. */
-        s->hist[i].topn = ckd_calloc_3d(s->g->n_mgau, s->g->n_feat,
-                                        s->max_topn, sizeof(ptm_topn_t));
-        /* Initialize them to sane (yet arbitrary) defaults. */
-        for (j = 0; j < s->g->n_mgau; ++j) {
-            for (k = 0; k < s->g->n_feat; ++k) {
-                for (m = 0; m < s->max_topn; ++m) {
-                    s->hist[i].topn[j][k][m].cw = m;
-                    s->hist[i].topn[j][k][m].score = WORST_DIST;
-                }
-            }
-        }
-        /* Active codebook mapping (just codebook, not features,
-           at least not yet) */
-        s->hist[i].mgau_active = bitvec_alloc(s->g->n_mgau);
-        /* Start with them all on, prune them later. */
-        bitvec_set_all(s->hist[i].mgau_active, s->g->n_mgau);
-    }
 
-    ps = (ps_mgau_t *)s;
+    ps = (mgau_t *)s;
+    ptm_mgau_reset_fast_hist(ps);
     ps->vt = &ptm_mgau_funcs;
     return ps;
 error_out:
@@ -802,7 +816,7 @@ error_out:
     return NULL;
 }
 
-ps_mgau_t *
+mgau_t *
 ptm_mgau_init(acmod_t *acmod)
 {
     s3file_t *means = NULL;
@@ -810,21 +824,21 @@ ptm_mgau_init(acmod_t *acmod)
     s3file_t *mixw = NULL;
     s3file_t *sendump = NULL;
     const char *path;
-    ps_mgau_t *ps = NULL;
+    mgau_t *ps = NULL;
 
-    path = cmd_ln_str_r(acmod->config, "_mean");
+    path = config_str(acmod->config, "mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((means = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", path);
         goto error_out;
     }
-    path = cmd_ln_str_r(acmod->config, "_var");
+    path = config_str(acmod->config, "var");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((vars = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", path);
         goto error_out;
     }
-    if ((path = cmd_ln_str_r(acmod->config, "_sendump"))) {
+    if ((path = config_str(acmod->config, "sendump"))) {
         E_INFO("Loading senones from dump file %s\n", path);
         if ((sendump = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
@@ -832,7 +846,7 @@ ptm_mgau_init(acmod_t *acmod)
         }
     }
     else {
-        path = cmd_ln_str_r(acmod->config, "_mixw");
+        path = config_str(acmod->config, "mixw");
         E_INFO("Reading senone mixture weights: %s\n", path);
         if ((mixw = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",
@@ -851,15 +865,15 @@ error_out:
 }
 
 int
-ptm_mgau_mllr_transform(ps_mgau_t *ps,
-                            ps_mllr_t *mllr)
+ptm_mgau_mllr_transform(mgau_t *ps,
+                            mllr_t *mllr)
 {
     ptm_mgau_t *s = (ptm_mgau_t *)ps;
     return gauden_mllr_transform(s->g, mllr, s->config);
 }
 
 void
-ptm_mgau_free(ps_mgau_t *ps)
+ptm_mgau_free(mgau_t *ps)
 {
     int i;
     ptm_mgau_t *s = (ptm_mgau_t *)ps;

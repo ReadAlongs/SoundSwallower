@@ -61,8 +61,8 @@ typedef struct vqFeature_s vqFeature_t;
 
 typedef struct s2_semi_mgau_s s2_semi_mgau_t;
 struct s2_semi_mgau_s {
-    ps_mgau_t base;     /**< base structure. */
-    cmd_ln_t *config;   /* configuration parameters */
+    mgau_t base;     /**< base structure. */
+    config_t *config;   /* configuration parameters */
 
     gauden_t *g;        /* Set of Gaussians (pointers below point in here and will go away soon) */
 
@@ -86,19 +86,19 @@ struct s2_semi_mgau_s {
     logmath_t *lmath;
 };
 
-ps_mgau_t *s2_semi_mgau_init(acmod_t *acmod);
-ps_mgau_t *s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
+mgau_t *s2_semi_mgau_init(acmod_t *acmod);
+mgau_t *s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                                     s3file_t *mixw, s3file_t *sendump);
-void s2_semi_mgau_free(ps_mgau_t *s);
-int s2_semi_mgau_frame_eval(ps_mgau_t *s,
+void s2_semi_mgau_free(mgau_t *s);
+int s2_semi_mgau_frame_eval(mgau_t *s,
                             int16 *senone_scores,
                             uint8 *senone_active,
                             int32 n_senone_active,
                             mfcc_t **featbuf,
                             int32 frame,
                             int32 compallsen);
-int s2_semi_mgau_mllr_transform(ps_mgau_t *s,
-                                ps_mllr_t *mllr);
+int s2_semi_mgau_mllr_transform(mgau_t *s,
+                                mllr_t *mllr);
 
 #ifdef __cplusplus
 } /* extern "C" */

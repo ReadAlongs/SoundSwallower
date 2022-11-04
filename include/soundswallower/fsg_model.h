@@ -65,8 +65,9 @@ extern "C" {
 }
 #endif
 
-/*
- * A single transition in the FSG.
+/**
+ * @struct fsg_link_t
+ * @brief A single transition in the FSG.
  */
 typedef struct fsg_link_s {
     int32 from_state;
@@ -82,12 +83,21 @@ typedef struct fsg_link_s {
 #define fsg_link_logs2prob(l)	((l)->logs2prob)
 
 /**
- * Adjacency list (opaque) for a state in an FSG.
+ * @struct trans_list_t
+ * @brief Adjacency list for a state in an FSG.
+ *
+ * Actually we use hash tables so that random access is a bit faster.
+ * Plus it allows us to make the lookup code a bit less ugly.
  */
-typedef struct trans_list_s trans_list_t;
+typedef struct trans_list_s {
+    hash_table_t *null_trans;   /* Null transitions keyed by state. */
+    hash_table_t *trans;        /* Lists of non-null transitions keyed by state. */
+} trans_list_t;
 
 /**
- * Word level FSG definition.
+ * @struct fsg_model_t
+ * @brief Word level FSG definition.
+ *
  * States are simply integers 0..n_state-1.
  * A transition emits a word and has a given probability of being taken.
  * There can also be null or epsilon transitions, with no associated emitted
@@ -123,8 +133,12 @@ typedef struct fsg_model_s {
 
 /**
  * Iterator over arcs.
+ * Implementation of arc iterator.
  */
-typedef struct fsg_arciter_s fsg_arciter_t;
+typedef struct fsg_arciter_s {
+    hash_iter_t *itor, *null_itor;
+    gnode_t *gn;
+} fsg_arciter_t;
 
 /**
  * Have silence transitions been added?
@@ -144,7 +158,7 @@ typedef struct fsg_arciter_s fsg_arciter_t;
 /**
  * Create a new FSG.
  */
-fsg_model_t *fsg_model_init(char const *name, logmath_t *lmath,
+fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
                             float32 lw, int32 n_state);
 
 /**
@@ -212,14 +226,14 @@ int fsg_model_free(fsg_model_t *fsg);
  *
  * @return Word ID for this new word.
  */
-int fsg_model_word_add(fsg_model_t *fsg, char const *word);
+int fsg_model_word_add(fsg_model_t *fsg, const char *word);
 
 /**
  * Look up a word in the FSG vocabulary.
  *
  * @return Word ID for this word
  */
-int fsg_model_word_id(fsg_model_t *fsg, char const *word);
+int fsg_model_word_id(fsg_model_t *fsg, const char *word);
 
 /**
  * Add the given transition to the FSG transition matrix.
@@ -302,14 +316,14 @@ fsg_link_t *fsg_model_null_trans(fsg_model_t *fsg, int32 i, int32 j);
  * @param state state to add a self-loop to, or -1 for all states.
  * @param silprob probability of silence transition.
  */
-int fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
+int fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
                           int state, float32 silprob);
 
 /**
  * Add alternate pronunciation transitions for a word in given FSG.
  */
-int fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
-                      char const *altword);
+int fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+                      const char *altword);
 
 /**
  * Write FSG to a file.
@@ -319,7 +333,7 @@ void fsg_model_write(fsg_model_t *fsg, FILE *fp);
 /**
  * Write FSG to a file.
  */
-void fsg_model_writefile(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile(fsg_model_t *fsg, const char *file);
 
 /**
  * Write FSG to a file in AT&T FSM format.
@@ -329,7 +343,7 @@ void fsg_model_write_fsm(fsg_model_t *fsg, FILE *fp);
 /**
  * Write FSG to a file in AT&T FSM format.
  */
-void fsg_model_writefile_fsm(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile_fsm(fsg_model_t *fsg, const char *file);
 
 /**
  * Write FSG symbol table to a file (for AT&T FSM)
@@ -339,7 +353,7 @@ void fsg_model_write_symtab(fsg_model_t *fsg, FILE *file);
 /**
  * Write FSG symbol table to a file (for AT&T FSM)
  */
-void fsg_model_writefile_symtab(fsg_model_t *fsg, char const *file);
+void fsg_model_writefile_symtab(fsg_model_t *fsg, const char *file);
 
 #ifdef __cplusplus
 }

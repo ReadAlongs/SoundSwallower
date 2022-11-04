@@ -1,4 +1,4 @@
-# cython: embedsignature=True
+# cython: embedsignature=True, language_level=3
 # Copyright (c) 2008-2020 Carnegie Mellon University. All rights
 # reserved.
 #
@@ -57,16 +57,16 @@ cdef extern from "soundswallower/hash_table.h":
     const char *hash_entry_key(hash_entry_t *ent)
 
 
-cdef extern from "soundswallower/cmd_ln.h":
-    ctypedef struct arg_t:
+cdef extern from "soundswallower/configuration.h":
+    ctypedef struct config_param_t:
         const char *name
         int type
         const char *deflt
         const char *doc
-    ctypedef struct cmd_ln_t:
+    ctypedef struct config_t:
         hash_table_t *ht
-        const arg_t *defn
-    cdef enum:
+        const config_param_t *defn
+    cdef enum config_type_e:
         ARG_REQUIRED,
         ARG_INTEGER,
         ARG_FLOATING,
@@ -76,23 +76,35 @@ cdef extern from "soundswallower/cmd_ln.h":
         REQARG_FLOATING,
         REQARG_STRING,
         REQARG_BOOLEAN
-    ctypedef struct cmd_ln_val_t:
+    ctypedef config_type_e config_type_t
+    ctypedef struct config_val_t:
         int type
+    ctypedef union anytype_t:
+        long i
+        float fl
+        void *ptr
         
-    cmd_ln_t *cmd_ln_parse_r(cmd_ln_t *inout_cmdln, arg_t *defn,
-                             int argc, char **argv, int strict)
-    int cmd_ln_free_r(cmd_ln_t *cmdln)
+    config_t *config_init(const config_param_t *defn)
+    config_t *config_retain(config_t *config)
+    int config_free(config_t *cmdln)
+    int config_validate(config_t *config)
+    void config_expand(config_t *config)
+    config_t *config_parse_json(config_t *config, const char *json)
+    const char *config_serialize_json(config_t *config)
+    config_type_t config_typeof(config_t *config, const char *name)
+    int config_exists(config_t *config, const char *name)
+    const anytype_t *config_get(config_t *config, const char *name)
 
-    double cmd_ln_float_r(cmd_ln_t *cmdln, const char *name)
-    int cmd_ln_type_r(cmd_ln_t *cmdln, const char *name)
-    long cmd_ln_int_r(cmd_ln_t *cmdln, const char *name)
-    const char *cmd_ln_str_r(cmd_ln_t *cmdln, const char *name)
-    void cmd_ln_set_str_r(cmd_ln_t *cmdln, const char *name, const char *str)
-    void cmd_ln_set_int_r(cmd_ln_t *cmdln, const char *name, long iv)
-    void cmd_ln_set_float_r(cmd_ln_t *cmdln, const char *name, double fv)
-    cmd_ln_val_t *cmd_ln_access_r(cmd_ln_t *cmdln, const char *name)
-
-    int cmd_ln_exists_r(cmd_ln_t *cmdln, const char *name)
+    double config_float(config_t *cmdln, const char *name)
+    long config_int(config_t *cmdln, const char *name)
+    const char *config_str(config_t *cmdln, const char *name)
+    const anytype_t *config_unset(config_t *config, const char *name)
+    const anytype_t *config_set(config_t *config, const char *name,
+                                const anytype_t *val, config_type_t t)
+    void config_set_str(config_t *cmdln, const char *name, const char *str)
+    void config_set_int(config_t *cmdln, const char *name, long val)
+    void config_set_bool(config_t *cmdln, const char *name, long val)
+    void config_set_float(config_t *cmdln, const char *name, double val)
 
 
 cdef extern from "soundswallower/fsg_model.h":
@@ -105,6 +117,7 @@ cdef extern from "soundswallower/fsg_model.h":
     fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath,
                                     float lw)
     const char *fsg_model_name(fsg_model_t *fsg)
+    fsg_model_t *fsg_model_retain(fsg_model_t *fsg)
     int fsg_model_free(fsg_model_t *fsg)
 
     int fsg_model_word_add(fsg_model_t *fsg, const char *word)
@@ -134,31 +147,124 @@ cdef extern from "soundswallower/jsgf.h":
                                 logmath_t *lmath, float lw)
 
 
-cdef extern from "soundswallower/pocketsphinx.h":
-    ctypedef struct ps_decoder_t:
+cdef extern from "soundswallower/decoder.h":
+    ctypedef struct decoder_t:
         pass
-    ctypedef struct ps_seg_t:
+    ctypedef struct seg_iter_t:
         pass
-    arg_t *ps_args()
-    ps_decoder_t *ps_init(cmd_ln_t *config)
-    int ps_free(ps_decoder_t *ps)
-    int ps_reinit(ps_decoder_t *ps, cmd_ln_t *config)
-    fe_t *ps_reinit_fe(ps_decoder_t *ps, cmd_ln_t *config)
-    logmath_t *ps_get_logmath(ps_decoder_t *ps)
-    int ps_start_utt(ps_decoder_t *ps)
-    int ps_process_raw(ps_decoder_t *ps,
-                       const short *data, size_t n_samples,
-                       int no_search, int full_utt)
-    int ps_end_utt(ps_decoder_t *ps)
-    const char *ps_get_hyp(ps_decoder_t *ps, int *out_best_score)
-    int ps_get_prob(ps_decoder_t *ps)
-    ps_seg_t *ps_seg_iter(ps_decoder_t *ps)
-    ps_seg_t *ps_seg_next(ps_seg_t *seg)
-    const char *ps_seg_word(ps_seg_t *seg)
-    void ps_seg_frames(ps_seg_t *seg, int *out_sf, int *out_ef)
-    int ps_seg_prob(ps_seg_t *seg, int *out_ascr, int *out_lscr)
-    void ps_seg_free(ps_seg_t *seg)
-    int ps_add_word(ps_decoder_t *ps, char *word, char *phones, int update)
-    int ps_set_fsg(ps_decoder_t *ps, const char *name, fsg_model_t *fsg)
-    int ps_set_jsgf_file(ps_decoder_t *ps, const char *name, const char *path)
-    int ps_set_jsgf_string(ps_decoder_t *ps, const char *name, const char *jsgf_string)
+    config_param_t *decoder_args()
+    decoder_t *decoder_create(config_t *config)
+    decoder_t *decoder_init(config_t *config)
+    int decoder_free(decoder_t *ps)
+    int decoder_reinit(decoder_t *ps, config_t *config)
+    int decoder_reinit_feat(decoder_t *ps, config_t *config)
+    config_t *decoder_config(decoder_t *ps)
+    logmath_t *decoder_logmath(decoder_t *ps)
+    int decoder_start_utt(decoder_t *ps)
+    int decoder_process_int16(decoder_t *ps,
+                              short *data, size_t n_samples,
+                              int no_search, int full_utt)
+    int decoder_end_utt(decoder_t *ps)
+    const char *decoder_hyp(decoder_t *ps, int *out_best_score)
+    int decoder_prob(decoder_t *ps)
+    seg_iter_t *decoder_seg_iter(decoder_t *ps)
+    seg_iter_t *seg_iter_next(seg_iter_t *seg)
+    const char *seg_iter_word(seg_iter_t *seg)
+    void seg_iter_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
+    int seg_iter_prob(seg_iter_t *seg, int *out_ascr, int *out_lscr)
+    void seg_iter_free(seg_iter_t *seg)
+    int decoder_add_word(decoder_t *ps, char *word, char *phones, int update)
+    char *decoder_lookup_word(decoder_t *d, const char *word)
+    int decoder_set_fsg(decoder_t *ps, fsg_model_t *fsg)
+    int decoder_set_jsgf_file(decoder_t *ps, const char *path)
+    int decoder_set_jsgf_string(decoder_t *ps, const char *jsgf_string)
+    const char *decoder_get_cmn(decoder_t *ps, int update)
+    int decoder_set_cmn(decoder_t *ps, const char *cmn)
+    int decoder_set_align_text(decoder_t *d, const char *text)
+    const alignment_t *decoder_alignment(decoder_t *d)
+    const char *decoder_result_json(decoder_t *decoder, double start, int align_level)
+    int decoder_n_frames(decoder_t *d)
+
+cdef extern from "soundswallower/vad.h":
+    ctypedef struct vad_t:
+        pass
+    cdef enum vad_mode_e:
+        VAD_LOOSE,
+        VAD_MEDIUM_LOOSE,
+        VAD_MEDIUM_STRICT,
+        VAD_STRICT
+    ctypedef vad_mode_e vad_mode_t
+    cdef enum vad_class_e:
+        VAD_ERROR,
+        VAD_NOT_SPEECH,
+        VAD_SPEECH
+    ctypedef vad_class_e vad_class_t
+    cdef int VAD_DEFAULT_SAMPLE_RATE
+    cdef double VAD_DEFAULT_FRAME_LENGTH
+
+    vad_t *vad_init(vad_mode_t mode, int sample_rate, double frame_length)
+    int vad_free(vad_t *vad)
+    int vad_set_input_params(vad_t *vad, int sample_rate, double frame_length)
+    int vad_sample_rate(vad_t *vad)
+    size_t vad_frame_size(vad_t *vad)
+    double vad_frame_length(vad_t *vad)
+    vad_class_t vad_classify(vad_t *vad, const short *frame)
+
+cdef extern from "soundswallower/endpointer.h":
+    ctypedef struct endpointer_t:
+        pass
+    cdef double ENDPOINTER_DEFAULT_WINDOW
+    cdef double ENDPOINTER_DEFAULT_RATIO
+    endpointer_t *endpointer_init(double window,
+                                        double ratio,
+                                        vad_mode_t mode,
+                                        int sample_rate, double frame_length)
+    endpointer_t *endpointer_retain(endpointer_t *ep)
+    int endpointer_free(endpointer_t *ep)
+    vad_t *endpointer_vad(endpointer_t *ep)
+    size_t endpointer_frame_size(endpointer_t *ep)
+    double endpointer_frame_length(endpointer_t *ep)
+    int endpointer_sample_rate(endpointer_t *ep)
+    const short *endpointer_process(endpointer_t *ep,
+                                       const short *frame)
+    const short *endpointer_end_stream(endpointer_t *ep,
+                                          const short *frame,
+                                          size_t nsamp,
+                                          size_t *out_nsamp)
+    int endpointer_in_speech(endpointer_t *ep)
+    double endpointer_speech_start(endpointer_t *ep)
+    double endpointer_speech_end(endpointer_t *ep)
+
+cdef extern from "soundswallower/alignment.h":
+    ctypedef struct alignment_t:
+        pass
+    ctypedef struct alignment_iter_t:
+        pass
+    ctypedef struct pid_struct:
+        short cipid
+        unsigned short ssid
+        int tmat
+    ctypedef union id_union:
+        int wid
+        pid_struct pid
+        unsigned short senid
+    ctypedef struct alignment_entry_t:
+        int start
+        int duration
+        int score
+        id_union id
+        int parent
+        int child
+    alignment_t *alignment_retain(alignment_t *al)
+    int alignment_free(alignment_t *al)
+    int alignment_n_words(alignment_t *al)
+    int alignment_n_phones(alignment_t *al)
+    int alignment_n_states(alignment_t *al)
+    alignment_iter_t *alignment_words(alignment_t *al)
+    alignment_iter_t *alignment_phones(alignment_t *al)
+    alignment_iter_t *alignment_states(alignment_t *al)
+    alignment_iter_t *alignment_iter_next(alignment_iter_t *itor)
+    alignment_iter_t *alignment_iter_children(alignment_iter_t *itor)
+    int alignment_iter_seg(alignment_iter_t *itor, int *start, int *duration)
+    const char *alignment_iter_name(alignment_iter_t *itor)
+    int alignment_iter_free(alignment_iter_t *itor)

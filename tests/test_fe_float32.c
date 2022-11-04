@@ -5,9 +5,10 @@
 #include <string.h>
 
 #include <soundswallower/fe.h>
-#include <soundswallower/fe_internal.h>
+
 #include <soundswallower/err.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/byteorder.h>
 
@@ -306,12 +307,12 @@ compare_cepstra(mfcc_t **c1, mfcc_t **c2, int nfr, int ncep)
 int
 main(int argc, char *argv[])
 {
-    static const arg_t fe_args[] = {
-        waveform_to_cepstral_command_line_macro(),
+    static const config_param_t fe_args[] = {
+        FE_OPTIONS,
         { NULL, 0, NULL, NULL }
     };
     FILE *raw;
-    cmd_ln_t *config;
+    config_t *config;
     fe_t *fe;
     int16 ibuf[1024];
     float32 buf[1024];
@@ -319,11 +320,12 @@ main(int argc, char *argv[])
     mfcc_t **cepbuf, **cepbuf1;
     size_t i;
 
+    (void)argc; (void)argv;
     err_set_loglevel_str("INFO");
-    TEST_ASSERT(config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE));
+    TEST_ASSERT(config = config_init(fe_args));
     /* Even though we make our own float32 data, we will ensure it's
        little-endian to be consistent. */
-    cmd_ln_set_str_r(config, "-input_endian", "little");
+    config_set_str(config, "input_endian", "little");
     TEST_ASSERT(fe = fe_init(config));
 
     TEST_EQUAL(fe_get_output_size(fe), DEFAULT_NUM_CEPSTRA);
@@ -380,7 +382,7 @@ main(int argc, char *argv[])
     ckd_free_2d(cepbuf);
     fclose(raw);
     fe_free(fe);
-    cmd_ln_free_r(config);
+    config_free(config);
 
     return 0;
 }

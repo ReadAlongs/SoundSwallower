@@ -1,18 +1,11 @@
 /* -*- javascript -*- */
 import soundswallower_factory from "./soundswallower.js";
-import {SoundSwallowerModule, Config, Decoder, Segment, Grammar} from "./soundswallower.js";
+import {SoundSwallowerModule, Decoder, Segment} from "./soundswallower.js";
 import {promises as fs} from "fs";
 import * as assert from "assert";
 
 (async () => {
     const soundswallower: SoundSwallowerModule = await soundswallower_factory();
-    const config: Config = new soundswallower.Config();
-    console.log(config.get("samprate"));
-    let nkeys: number = 0;
-    for (const key of config) {
-        ++nkeys;
-    }
-    console.log(`Found ${nkeys} keys in config`);
     /* Basic test */
     const decoder: Decoder = new soundswallower.Decoder({
 	fsg: "testdata/goforward.fsg",
@@ -41,14 +34,12 @@ import * as assert from "assert";
     await decoder.add_word("_forward", "F AO R W ER D", false);
     await decoder.add_word("_ten", "T EH N", false);
     await decoder.add_word("_meters", "M IY T ER Z", true);
-    let fsg: Grammar = decoder.create_fsg("goforward", 0, 4, [
+    await decoder.set_fsg("goforward", 0, 4, [
 	{from: 0, to: 1, prob: 1.0, word: "_go"},
 	{from: 1, to: 2, prob: 1.0, word: "_forward"},
 	{from: 2, to: 3, prob: 1.0, word: "_ten"},
 	{from: 3, to: 4, prob: 1.0, word: "_meters"}
     ]);
-    await decoder.set_fsg(fsg);
-    fsg.delete(); // has been retained by decoder
     pcm = await fs.readFile("testdata/goforward-float32.raw");
     await decoder.start();
     await decoder.process(pcm, false, true);
@@ -58,7 +49,7 @@ import * as assert from "assert";
     assert.equal("_go _forward _ten _meters", hyp);
 
     /* Test JSGF */
-    fsg = decoder.parse_jsgf(`#JSGF V1.0;
+    await decoder.set_jsgf(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
        [(pizza | pizzas)] [<toppings>];
@@ -70,8 +61,6 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 <toppings> = [with] <topping> ([and] <topping>)*;
 <topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
-    await decoder.set_fsg(fsg);
-    fsg.delete();
     pcm = await fs.readFile("testdata/pizza-float32.raw");
     await decoder.start();
     await decoder.process(pcm, false, true);
@@ -79,5 +68,4 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
     hyp = decoder.get_hyp();
     console.log(`recognized: ${hyp}`);
     assert.equal("yo gimme four large all dressed pizzas", hyp);
-    decoder.delete();
 })();

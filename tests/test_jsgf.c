@@ -1,23 +1,23 @@
 /* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
 
 #include <soundswallower/jsgf.h>
 #include <soundswallower/fsg_model.h>
-#include <soundswallower/pocketsphinx_internal.h>
-#include <soundswallower/fsg_search_internal.h>
+
+
 
 #include "test_macros.h"
 
 int
 main(int argc, char *argv[])
 {
-    ps_decoder_t *ps;
-    cmd_ln_t *config;
+    decoder_t *ps;
+    config_t *config;
     jsgf_t *jsgf;
     jsgf_rule_t *rule;
     fsg_model_t *fsg;
@@ -28,13 +28,12 @@ main(int argc, char *argv[])
     size_t nread;
 
     (void)argc; (void)argv;
-    TEST_ASSERT(config =
-		cmd_ln_init(NULL, ps_args(), TRUE,
-			    "-hmm", MODELDIR "/en-us",
-			    "-dict", TESTDATADIR "/turtle.dic",
-			    "-input_endian", "little", /* raw data demands it */
-			    "-samprate", "16000", NULL));
-    TEST_ASSERT(ps = ps_init(config));
+    TEST_ASSERT(config = config_init(NULL));
+    config_set_str(config, "hmm", MODELDIR "/en-us");
+    config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
+    config_set_str(config, "input_endian", "little");
+    config_set_str(config, "samprate", "16000");
+    TEST_ASSERT(ps = decoder_init(config));
 
     jsgf = jsgf_parse_file(TESTDATADIR "/goforward.gram", NULL);
     TEST_ASSERT(jsgf);
@@ -43,78 +42,73 @@ main(int argc, char *argv[])
     fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, 7.5);
     TEST_ASSERT(fsg);
     fsg_model_write(fsg, stdout);
-    ps_set_fsg(ps, "goforward.move2", fsg);
+    decoder_set_fsg(ps, fsg);
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_start_utt(ps);
+    decoder_start_utt(ps);
     while (!feof(rawfh)) {
 	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
-        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+        decoder_process_int16(ps, buf, nread, FALSE, FALSE);
     }
-    ps_end_utt(ps);
-    hyp = ps_get_hyp(ps, &score);
-    prob = ps_get_prob(ps);
+    decoder_end_utt(ps);
+    hyp = decoder_hyp(ps, &score);
+    prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
-    ps_free(ps);
+    decoder_free(ps);
     fclose(rawfh);
-    cmd_ln_free_r(config);
 
 
-    TEST_ASSERT(config =
-		cmd_ln_init(NULL, ps_args(), TRUE,
-			    "-hmm", MODELDIR "/en-us",
-			    "-dict", TESTDATADIR "/turtle.dic",
-			    "-jsgf", TESTDATADIR "/goforward.gram",
-			    "-input_endian", "little", /* raw data demands it */
-			    "-samprate", "16000", NULL));
-    TEST_ASSERT(ps = ps_init(config));
+    TEST_ASSERT(config = config_init(NULL));
+    config_set_str(config, "hmm", MODELDIR "/en-us");
+    config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
+    config_set_str(config, "jsgf", TESTDATADIR "/goforward.gram");
+    config_set_str(config, "input_endian", "little");
+    config_set_str(config, "samprate", "16000");
+    TEST_ASSERT(ps = decoder_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_start_utt(ps);
+    decoder_start_utt(ps);
     while (!feof(rawfh)) {
 	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
-        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+        decoder_process_int16(ps, buf, nread, FALSE, FALSE);
     }
-    ps_end_utt(ps);
-    hyp = ps_get_hyp(ps, &score);
-    prob = ps_get_prob(ps);
+    decoder_end_utt(ps);
+    hyp = decoder_hyp(ps, &score);
+    prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
-    ps_free(ps);
+    decoder_free(ps);
     fclose(rawfh);
-    cmd_ln_free_r(config);
 
-    TEST_ASSERT(config =
-		cmd_ln_init(NULL, ps_args(), TRUE,
-			    "-hmm", MODELDIR "/en-us",
-			    "-dict", TESTDATADIR "/turtle.dic",
-			    "-jsgf", TESTDATADIR "/goforward.gram",
-			    "-input_endian", "little", /* raw data demands it */
-			    "-toprule", "goforward.move2",
-			    "-samprate", "16000", NULL));
-    TEST_ASSERT(ps = ps_init(config));
+    TEST_ASSERT(config = config_init(NULL));
+    config_set_str(config, "hmm", MODELDIR "/en-us");
+    config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
+    config_set_str(config, "jsgf", TESTDATADIR "/goforward.gram");
+    config_set_str(config, "toprule", "goforward.move2");
+    config_set_str(config, "input_endian", "little");
+    config_set_str(config, "samprate", "16000");
+    TEST_ASSERT(ps = decoder_init(config));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    ps_start_utt(ps);
+    decoder_start_utt(ps);
     while (!feof(rawfh)) {
 	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
-        ps_process_raw(ps, buf, nread, FALSE, FALSE);
+        decoder_process_int16(ps, buf, nread, FALSE, FALSE);
     }
-    ps_end_utt(ps);
-    hyp = ps_get_hyp(ps, &score);
-    prob = ps_get_prob(ps);
+    decoder_end_utt(ps);
+    hyp = decoder_hyp(ps, &score);
+    prob = decoder_prob(ps);
     printf("%s (%d, %d)\n", hyp, score, prob);
+    TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
-    ps_free(ps);
-    cmd_ln_free_r(config);
+    decoder_free(ps);
     fclose(rawfh);
 
-    TEST_ASSERT(config =
-		cmd_ln_init(NULL, ps_args(), TRUE,
-			    "-hmm", MODELDIR "/en-us",
-			    "-dict", TESTDATADIR "/turtle.dic",
-			    "-jsgf", TESTDATADIR "/defective.gram",
-			    NULL));
-    TEST_ASSERT(NULL == ps_init(config));
-    cmd_ln_free_r(config);
+    TEST_ASSERT(config = config_init(NULL));
+    config_set_str(config, "hmm", MODELDIR "/en-us");
+    config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
+    config_set_str(config, "jsgf", TESTDATADIR "/defective.gram");
+    TEST_ASSERT(NULL == decoder_init(config));
 
     return 0;
 }

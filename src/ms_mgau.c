@@ -70,26 +70,25 @@
 
 /* Local headers. */
 #include <soundswallower/ms_mgau.h>
-#include <soundswallower/export.h>
 
-static ps_mgaufuncs_t ms_mgau_funcs = {
+static mgaufuncs_t ms_mgau_funcs = {
     "ms",
     ms_cont_mgau_frame_eval, /* frame_eval */
     ms_mgau_mllr_transform,  /* transform */
     ms_mgau_free             /* free */
 };
 
-EXPORT ps_mgau_t *
+mgau_t *
 ms_mgau_init_s3file(acmod_t *acmod,
                     s3file_t *means, s3file_t *vars, s3file_t *mixw,
                     s3file_t *senmgau)
 {
     /* Codebooks */
     ms_mgau_model_t *msg;
-    ps_mgau_t *mg;
+    mgau_t *mg;
     gauden_t *g;
     senone_t *s;
-    cmd_ln_t *config = acmod->config;
+    config_t *config = acmod->config;
     logmath_t *lmath = acmod->lmath;
     bin_mdef_t *mdef = acmod->mdef;
     int i;
@@ -100,7 +99,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
     msg->s = NULL;
     
     if ((g = msg->g = gauden_init_s3file(means, vars,
-                                         cmd_ln_float32_r(config, "-varfloor"),
+                                         config_float(config, "varfloor"),
                                          lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
@@ -122,10 +121,10 @@ ms_mgau_init_s3file(acmod_t *acmod,
 
     s = msg->s = senone_init_s3file(msg->g,
                                     mixw, senmgau,
-                                    cmd_ln_float32_r(config, "-mixwfloor"),
+                                    config_float(config, "mixwfloor"),
                                     lmath, mdef);
 
-    s->aw = cmd_ln_int32_r(config, "-aw");
+    s->aw = config_int(config, "aw");
 
     /* Verify senone parameters against gauden parameters */
     if (s->n_feat != (uint32)g->n_feat)
@@ -141,7 +140,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
         E_ERROR("Senones use fewer codebooks (%d) than present (%d)\n",
                 s->n_gauden, g->n_mgau);
 
-    msg->topn = cmd_ln_int32_r(config, "-topn");
+    msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
         E_WARN
@@ -155,7 +154,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
                       sizeof(gauden_dist_t));
     msg->mgau_active = ckd_calloc(g->n_mgau, sizeof(int8));
 
-    mg = (ps_mgau_t *)msg;
+    mg = (mgau_t *)msg;
     mg->vt = &ms_mgau_funcs;
     return mg;
 error_out:
@@ -163,15 +162,15 @@ error_out:
     return NULL;    
 }
 
-ps_mgau_t *
+mgau_t *
 ms_mgau_init(acmod_t *acmod)
 {
     /* Codebooks */
     ms_mgau_model_t *msg;
-    ps_mgau_t *mg;
+    mgau_t *mg;
     gauden_t *g;
     senone_t *s;
-    cmd_ln_t *config;
+    config_t *config;
     logmath_t *lmath = acmod->lmath;
     bin_mdef_t *mdef = acmod->mdef;
     int i;
@@ -183,9 +182,9 @@ ms_mgau_init(acmod_t *acmod)
     msg->g = NULL;
     msg->s = NULL;
     
-    if ((g = msg->g = gauden_init(cmd_ln_str_r(config, "_mean"),
-                             cmd_ln_str_r(config, "_var"),
-                             cmd_ln_float32_r(config, "-varfloor"),
+    if ((g = msg->g = gauden_init(config_str(config, "mean"),
+                             config_str(config, "var"),
+                             config_float(config, "varfloor"),
                              lmath)) == NULL) {
 	E_ERROR("Failed to read means and variances\n");	
 	goto error_out;
@@ -206,12 +205,12 @@ ms_mgau_init(acmod_t *acmod)
     }
 
     s = msg->s = senone_init(msg->g,
-                             cmd_ln_str_r(config, "_mixw"),
-                             cmd_ln_str_r(config, "_senmgau"),
-                             cmd_ln_float32_r(config, "-mixwfloor"),
+                             config_str(config, "mixw"),
+                             config_str(config, "senmgau"),
+                             config_float(config, "mixwfloor"),
                              lmath, mdef);
 
-    s->aw = cmd_ln_int32_r(config, "-aw");
+    s->aw = config_int(config, "aw");
 
     /* Verify senone parameters against gauden parameters */
     if (s->n_feat != (uint32)g->n_feat)
@@ -227,7 +226,7 @@ ms_mgau_init(acmod_t *acmod)
         E_ERROR("Senones use fewer codebooks (%d) than present (%d)\n",
                 s->n_gauden, g->n_mgau);
 
-    msg->topn = cmd_ln_int32_r(config, "-topn");
+    msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
         E_WARN
@@ -241,7 +240,7 @@ ms_mgau_init(acmod_t *acmod)
                       sizeof(gauden_dist_t));
     msg->mgau_active = ckd_calloc(g->n_mgau, sizeof(int8));
 
-    mg = (ps_mgau_t *)msg;
+    mg = (mgau_t *)msg;
     mg->vt = &ms_mgau_funcs;
     return mg;
 error_out:
@@ -250,7 +249,7 @@ error_out:
 }
 
 void
-ms_mgau_free(ps_mgau_t * mg)
+ms_mgau_free(mgau_t * mg)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)mg;
     if (msg == NULL)
@@ -269,15 +268,15 @@ ms_mgau_free(ps_mgau_t * mg)
 }
 
 int
-ms_mgau_mllr_transform(ps_mgau_t *s,
-		       ps_mllr_t *mllr)
+ms_mgau_mllr_transform(mgau_t *s,
+		       mllr_t *mllr)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)s;
     return gauden_mllr_transform(msg->g, mllr, msg->config);
 }
 
 int32
-ms_cont_mgau_frame_eval(ps_mgau_t * mg,
+ms_cont_mgau_frame_eval(mgau_t * mg,
 			int16 *senscr,
 			uint8 *senone_active,
 			int32 n_senone_active,
@@ -303,7 +302,7 @@ ms_cont_mgau_frame_eval(ps_mgau_t * mg,
 	for (gid = 0; gid < g->n_mgau; gid++)
 	    gauden_dist(g, gid, topn, feat, msg->dist[gid]);
 
-	best = (int32) 0x7fffffff;
+	best = MAX_INT32;
 	for (s = 0; (uint32)s < sen->n_sen; s++) {
 	    senscr[s] = senone_eval(sen, s, msg->dist[sen->mgau[s]], topn);
 	    if (best > senscr[s]) {
@@ -341,7 +340,7 @@ ms_cont_mgau_frame_eval(ps_mgau_t * mg,
 		gauden_dist(g, gid, topn, feat, msg->dist[gid]);
 	}
 
-	best = (int32) 0x7fffffff;
+	best = MAX_INT32;
 	n = 0;
 	for (i = 0; i < n_senone_active; i++) {
 	    int32 s = senone_active[i] + n;

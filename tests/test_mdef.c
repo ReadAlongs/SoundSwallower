@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/err.h>
 
@@ -146,12 +146,12 @@ test_cionly_mdef(bin_mdef_t *mdef)
 int
 main(int argc, char *argv[])
 {
-    cmd_ln_t *config;
+    config_t *config;
     bin_mdef_t *mdef;
     
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
-    config = cmd_ln_init(NULL, ps_args(), TRUE, NULL);
+    config = config_init(NULL);
 
     E_INFO("Testing text mdef read\n");
     mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.txt");
@@ -161,7 +161,7 @@ main(int argc, char *argv[])
     bin_mdef_free(mdef);
 
     E_INFO("Testing text mdef -cionly read\n");
-    cmd_ln_set_boolean_r(config, "-cionly", TRUE);
+    config_set_bool(config, "cionly", TRUE);
     mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.txt");
     TEST_ASSERT(mdef != NULL);
     test_ci_mdef(mdef);
@@ -169,21 +169,21 @@ main(int argc, char *argv[])
     bin_mdef_free(mdef);
 
     E_INFO("Testing binary mdef read\n");
-    cmd_ln_set_boolean_r(config, "-cionly", FALSE);
-    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.bin");
+    config_set_bool(config, "cionly", FALSE);
+    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef");
     TEST_ASSERT(mdef != NULL);
     test_ci_mdef(mdef);
     test_cd_mdef(mdef);
     bin_mdef_free(mdef);
 
     E_INFO("Testing binary mdef -cionly read\n");
-    cmd_ln_set_boolean_r(config, "-cionly", TRUE);
-    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef.bin");
+    config_set_bool(config, "cionly", TRUE);
+    mdef = bin_mdef_read(config, MODELDIR "/en-us/mdef");
     TEST_ASSERT(mdef != NULL);
     test_ci_mdef(mdef);
     test_cionly_mdef(mdef);
     bin_mdef_free(mdef);
 
-    cmd_ln_free_r(config);
+    config_free(config);
     return 0;
 }

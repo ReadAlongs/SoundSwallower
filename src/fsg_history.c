@@ -54,7 +54,7 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/fsg_search_internal.h>
+
 #include <soundswallower/fsg_history.h>
 
 

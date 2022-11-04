@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/dict.h>
 #include <soundswallower/strfuncs.h>
@@ -15,20 +15,18 @@ main(int argc, char *argv[])
 {
 	bin_mdef_t *mdef;
 	dict_t *dict;
-	cmd_ln_t *config;
+	config_t *config;
 
 	int i;
 	char buf[100];
 
 	(void)argc; (void)argv;
-	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-					 "_dict", MODELDIR "/en-us/dict.txt",
-					 "_fdict", MODELDIR "/en-us/noisedict",
-					 NULL));
-
-	/* Test dictionary in standard fashion. */
-	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef.bin"));
+	TEST_ASSERT(config = config_init(NULL));
+        config_set_str(config, "dict", MODELDIR "/en-us/dict.txt");
+        config_set_str(config, "fdict", MODELDIR "/en-us/noisedict.txt");
+	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/mdef"));
 	TEST_ASSERT(dict = dict_init(config, mdef));
+	/* Test dictionary in standard fashion. */
 
 	printf("Word ID (CARNEGIE) = %d\n",
 	       dict_wordid(dict, "CARNEGIE"));
@@ -57,7 +55,7 @@ main(int argc, char *argv[])
 	}
 	dict_free(dict);
 
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

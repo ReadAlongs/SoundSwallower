@@ -2,8 +2,9 @@ Building binary distributions for Linux
 ---------------------------------------
 
 To build distributions that are compatible with all the various Linux
-distributions, and can therefore be uploaded to PyPI, you can use the
-Docker images provided by the [manylinux
+distributions, and can therefore be uploaded to PyPI, we now use
+[cibuildwheel](https://pypi.org/project/cibuildwheel/).  But also, you
+can use the Docker images provided by the [manylinux
 project](https://github.com/pypa/manylinux).
 
 The full sequence of commands to create Linux wheels for Python 3.7

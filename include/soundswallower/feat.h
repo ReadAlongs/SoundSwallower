@@ -63,40 +63,6 @@ extern "C" {
 					   for livemode decoder */
 #define S3_MAX_FRAMES		15000    /* RAH, I believe this is still too large, but better than before */
 
-#define cepstral_to_feature_command_line_macro()                        \
-{ "-feat",                                                              \
-      ARG_STRING,                                                       \
-      "1s_c_d_dd",                                                      \
-      "Feature stream type, depends on the acoustic model" },           \
-{ "-ceplen",                                                            \
-      ARG_INTEGER,                                                        \
-      "13",                                                             \
-     "Number of components in the input feature vector" },              \
-{ "-cmn",                                                               \
-      ARG_STRING,                                                       \
-      "live",                                                        \
-      "Cepstral mean normalization scheme ('live', 'batch', or 'none')" }, \
-{ "-cmninit",                                                           \
-      ARG_STRING,                                                       \
-      "40,3,-1",                                                        \
-      "Initial values (comma-separated) for cepstral mean when 'live' is used" }, \
-{ "-varnorm",                                                           \
-      ARG_BOOLEAN,                                                      \
-      "no",                                                             \
-      "Variance normalize each utterance (only if CMN == current)" },   \
-{ "-lda",                                                               \
-      ARG_STRING,                                                       \
-      NULL,                                                             \
-      "File containing transformation matrix to be applied to features (single-stream features only)" }, \
-{ "-ldadim",                                                            \
-      ARG_INTEGER,                                                        \
-      "0",                                                              \
-      "Dimensionality of output of feature transformation (0 to use entire matrix)" }, \
-{"-svspec",                                                             \
-     ARG_STRING,                                                        \
-     NULL,                                                           \
-     "Subvector specification (e.g., 24,0-11/25,12-23/26-38 or 0-12/13-25/26-38)"}
-
 /**
  * \struct feat_t
  * \brief Structure for describing a speech feature type
@@ -121,7 +87,6 @@ typedef struct feat_s {
     cmn_type_t cmn;	/**< Type of CMN to be performed on each utterance */
     int32 varnorm;	/**< Whether variance normalization is to be performed on each utt;
                            Irrelevant if no CMN is performed */
-    int agc;		/**< UNUSED */
 
     /**
      * Feature computation function. 
@@ -138,7 +103,6 @@ typedef struct feat_s {
     void (*compute_feat)(struct feat_s *fcb, mfcc_t **input, mfcc_t **feat);
     cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral 
                            means normalization*/
-    void *agc_struct;	/**< UNUSED*/
 
     mfcc_t **cepbuf;    /**< Circular buffer of MFCC frames for live feature computation. */
     mfcc_t **tmpcepbuf; /**< Array of pointers into cepbuf to handle border cases. */
@@ -213,7 +177,7 @@ typedef struct feat_s {
  * NULL; and each subvec[0]..subvec[N-1] is -1 terminated vector of
  * feature dims.
  */
-int32 **parse_subvecs(char const *str);
+int32 **parse_subvecs(const char *str);
 
 /**
  * Free array of subvector specs.
@@ -258,7 +222,7 @@ void feat_array_free(mfcc_t ***feat);
  * Initialize feature module to use the selected type of feature
  * stream.  One-time only initialization at the beginning of the
  * program.  Uses configuration parameters as defined in
- * <cmdln_macro.h>. The `-type` is a string defining the kind of
+ * <config_defs.h>. The `-type` is a string defining the kind of
  * input->feature conversion desired:
  *
  * - "s2_4x":     s2mfc->Sphinx-II 4-feature stream,
@@ -271,12 +235,12 @@ void feat_array_free(mfcc_t ***feat);
  * @return (feat_t *) descriptor if successful, NULL if error.  Caller 
  * must not directly modify the contents of the returned value.
  */
-feat_t *feat_init(cmd_ln_t *config);
+feat_t *feat_init(config_t *config);
 
 /**
  * Initialize feature module with an s3file_t for LDA.
  */
-feat_t *feat_init_s3file(cmd_ln_t *config, s3file_t *lda);
+feat_t *feat_init_s3file(config_t *config, s3file_t *lda);
 
 /**
  * Add an LDA transformation to the feature module from a file.

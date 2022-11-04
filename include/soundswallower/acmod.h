@@ -36,7 +36,7 @@
  */
 
 /**
- * @file acmod.h Acoustic model structures for PocketSphinx.
+ * @file acmod.h Acoustic model structures for SoundSwallower
  * @author David Huggins-Daines <dhdaines@gmail.com>
  */
 
@@ -46,14 +46,14 @@
 /* System headers. */
 #include <stdio.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
 #include <soundswallower/bitvec.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-#include <soundswallower/ps_mllr.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/bin_mdef.h>
 #include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>
@@ -76,54 +76,46 @@ typedef enum acmod_state_e {
 } acmod_state_t;
 
 /**
+ * Is acmod growable by default? (yes, for minimal surprise)
+ */
+#define ACMOD_GROW_DEFAULT TRUE
+
+/**
  * Dummy senone score value for unintentionally active states.
  */
 #define SENSCR_DUMMY 0x7fff
 
-/**
- * Feature space linear transform structure.
- */
-struct ps_mllr_s {
-    int refcnt;     /**< Reference count. */
-    int n_class;    /**< Number of MLLR classes. */
-    int n_feat;     /**< Number of feature streams. */
-    int *veclen;    /**< Length of input vectors for each stream. */
-    float32 ****A;  /**< Rotation part of mean transformations. */
-    float32 ***b;   /**< Bias part of mean transformations. */
-    float32 ***h;   /**< Diagonal transformation of variances. */
-    int32 *cb2mllr; /**< Mapping from codebooks to transformations. */
-};
 
 /**
  * Acoustic model parameter structure. 
  */
-typedef struct ps_mgau_s ps_mgau_t;
+typedef struct mgau_s mgau_t;
 
-typedef struct ps_mgaufuncs_s {
-    char const *name;
+typedef struct mgaufuncs_s {
+    const char *name;
 
-    int (*frame_eval)(ps_mgau_t *mgau,
+    int (*frame_eval)(mgau_t *mgau,
                       int16 *senscr,
                       uint8 *senone_active,
                       int32 n_senone_active,
                       mfcc_t ** feat,
                       int32 frame,
                       int32 compallsen);
-    int (*transform)(ps_mgau_t *mgau,
-                     ps_mllr_t *mllr);
-    void (*free)(ps_mgau_t *mgau);
-} ps_mgaufuncs_t;    
+    int (*transform)(mgau_t *mgau,
+                     mllr_t *mllr);
+    void (*free)(mgau_t *mgau);
+} mgaufuncs_t;    
 
-struct ps_mgau_s {
-    ps_mgaufuncs_t *vt;  /**< vtable of mgau functions. */
+struct mgau_s {
+    mgaufuncs_t *vt;  /**< vtable of mgau functions. */
     int frame_idx;       /**< frame counter. */
 };
 
-#define ps_mgau_base(mg) ((ps_mgau_t *)(mg))
+#define ps_mgau_base(mg) ((mgau_t *)(mg))
 #define ps_mgau_frame_eval(mg,senscr,senone_active,n_senone_active,feat,frame,compallsen) \
     (*ps_mgau_base(mg)->vt->frame_eval)                                 \
     (mg, senscr, senone_active, n_senone_active, feat, frame, compallsen)
-#define ps_mgau_transform(mg, mllr)                                  \
+#define mgau_transform(mg, mllr)                                  \
     (*ps_mgau_base(mg)->vt->transform)(mg, mllr)
 #define ps_mgau_free(mg)                                  \
     (*ps_mgau_base(mg)->vt->free)(mg)
@@ -144,14 +136,10 @@ struct ps_mgau_s {
  * scores (due to dynamic feature calculation), results may not be
  * immediately available after input, and the output results will not
  * correspond to the last piece of data input.
- *
- * TODO: In addition, this structure serves the purpose of queueing
- * frames of features (and potentially also scores in the future) for
- * asynchronous passes of recognition operating in parallel.
  */
 struct acmod_s {
     /* Global objects, not retained. */
-    cmd_ln_t *config;          /**< Configuration. */
+    config_t *config;          /**< Configuration. */
     logmath_t *lmath;          /**< Log-math computation. */
     glist_t strings;           /**< Temporary acoustic model filenames. */
 
@@ -162,8 +150,8 @@ struct acmod_s {
     /* Model parameters: */
     bin_mdef_t *mdef;          /**< Model definition. */
     tmat_t *tmat;              /**< Transition matrices. */
-    ps_mgau_t *mgau;           /**< Model parameters. */
-    ps_mllr_t *mllr;           /**< Speaker transformation. */
+    mgau_t *mgau;           /**< Model parameters. */
+    mllr_t *mllr;           /**< Speaker transformation. */
 
     /* Senone scoring: */
     int16 *senone_scores;      /**< GMM scores for current frame. */
@@ -211,12 +199,17 @@ typedef struct acmod_s acmod_t;
  *           pointer is retained.
  * @return a newly initialized acmod_t, or NULL on failure.
  */
-acmod_t *acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+acmod_t *acmod_init(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
 
 /**
  * Create the acmod without loading any files.
  */
-acmod_t *acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+acmod_t *acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb);
+
+/**
+ * Reinitialize acmod with new feature computation modules.
+ */
+int acmod_reinit_feat(acmod_t *acmod, fe_t *fe, feat_t *fcb);
 
 /**
  * Load acoustic model files.
@@ -256,7 +249,7 @@ int acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb);
  * @return The updated transform object for this decoder, or
  *         NULL on failure.
  */
-ps_mllr_t *acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr);
+mllr_t *acmod_update_mllr(acmod_t *acmod, mllr_t *mllr);
 
 /**
  * Finalize an acoustic model.
@@ -278,9 +271,9 @@ int acmod_end_utt(acmod_t *acmod);
  *
  * After calling this function, the internal frame index is reset, and
  * acmod_score() will return scores starting at the first frame of the
- * current utterance.  Currently, acmod_set_grow() must have been
- * called to enable growing the feature buffer in order for this to
- * work.  In the future, senone scores may be cached instead.
+ * current utterance.  The acmod must be growable (which it probably
+ * is unless you disabled this with acmod_set_grow() - see
+ * ACMOD_GROW_DEFAULT).
  *
  * @return 0 for success, <0 for failure (if the utterance can't be
  *         rewound due to no feature or score data available)
@@ -327,7 +320,7 @@ int acmod_set_grow(acmod_t *acmod, int grow_feat);
  * @return Number of frames of data processed.
  */
 int acmod_process_raw(acmod_t *acmod,
-                      int16 const **inout_raw,
+                      int16 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt);
 
@@ -345,7 +338,7 @@ int acmod_process_raw(acmod_t *acmod,
  */
 int
 acmod_process_float32(acmod_t *acmod,
-                      float32 const **inout_raw,
+                      float32 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt);
 

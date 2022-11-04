@@ -11,22 +11,27 @@ set(TESTS
   test_ckd_alloc_catch
   test_dict2pid
   test_dict
+  test_endpointer
   test_err
+  test_fe_long
   test_feat_fe
   test_feat_live
   test_filename
   test_fsg
   test_hash_iter
-  test_heap
   test_jsgf
   test_listelem_alloc
   test_log_shifted
   test_mdef
   test_ptm_mgau
   test_s3file
-  test_subvq)
+  test_subvq
+  test_vad
+  test_word_align
+  )
+
 foreach(TEST_EXECUTABLE ${TESTS})
-  add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
+  add_executable(${TEST_EXECUTABLE} EXCLUDE_FROM_ALL ${TEST_EXECUTABLE}.c)
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)
   target_include_directories(
     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_SOURCE_DIR}/src
@@ -34,6 +39,7 @@ foreach(TEST_EXECUTABLE ${TESTS})
     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     )
   add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
+  add_dependencies(check ${TEST_EXECUTABLE})
 endforeach()
 
 # Tests that require separate definition (expected to fail, comparing
@@ -50,13 +56,14 @@ set(TEST_EXECUTABLES
   test_pitch
   )
 foreach(TEST_EXECUTABLE ${TEST_EXECUTABLES})
-  add_executable(${TEST_EXECUTABLE} ${TEST_EXECUTABLE}.c)
+  add_executable(${TEST_EXECUTABLE} EXCLUDE_FROM_ALL ${TEST_EXECUTABLE}.c)
   target_link_libraries(${TEST_EXECUTABLE} soundswallower)
   target_include_directories(
     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_SOURCE_DIR}/src
     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_BINARY_DIR}
     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     )
+  add_dependencies(check ${TEST_EXECUTABLE})
 endforeach()
 add_test(NAME test_ckd_alloc_fail COMMAND test_ckd_alloc_fail)
 set_property(TEST test_ckd_alloc_fail PROPERTY WILL_FAIL TRUE)

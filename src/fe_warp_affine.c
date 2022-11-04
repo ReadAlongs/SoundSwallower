@@ -95,7 +95,7 @@ fe_warp_affine_n_param()
 }
 
 void
-fe_warp_affine_set_parameters(char const *param_str, float sampling_rate)
+fe_warp_affine_set_parameters(const char *param_str, float sampling_rate)
 {
     char *tok;
     char *seps = " \t";

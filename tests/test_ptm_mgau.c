@@ -4,8 +4,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <soundswallower/pocketsphinx.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/decoder.h>
+
 #include <soundswallower/ptm_mgau.h>
 #include <soundswallower/ms_mgau.h>
 
@@ -87,30 +87,33 @@ int
 main(int argc, char *argv[])
 {
 	logmath_t *lmath;
-	cmd_ln_t *config;
+	config_t *config;
 	acmod_t *acmod;
 	fe_t *fe;
 	feat_t *fcb;
-	ps_mgau_t *ps;
+	mgau_t *ps;
 	ptm_mgau_t *s;
 	int i, lastcb;
 
 	(void)argc; (void)argv;
 	lmath = logmath_init(1.0001, 0, 0);
-	config = cmd_ln_init(NULL, ps_args(), TRUE,
-			     "-compallsen", "yes",
-			     "-input_endian", "little", /* raw data demands it */
-	     NULL);
-	cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
-
-	cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef.bin");
-	cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/means");
-	cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/variances");
-	cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/transition_matrices");
-	cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/sendump");
-	cmd_ln_set_str_extra_r(config, "_mixw", NULL);
-	cmd_ln_set_str_extra_r(config, "_lda", NULL);
-	cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
+        err_set_loglevel(ERR_INFO);
+	config = config_init(NULL);
+        config_set_str(config, "compallsen", "yes");
+        config_set_str(config, "input_endian", "little");
+        config_set_str(config, "lowerf", "130");
+        config_set_str(config, "upperf", "3700");
+        config_set_str(config, "nfilt", "20");
+        config_set_str(config, "transform", "dct");
+        config_set_str(config, "lifter", "22");
+        config_set_str(config, "feat", "1s_c_d_dd");
+        config_set_str(config, "remove_noise", "yes");
+        config_set_str(config, "svspec", "0-12/13-25/26-38");
+        config_set_str(config, "mdef", MODELDIR "/en-us/mdef");
+        config_set_str(config, "mean", MODELDIR "/en-us/means");
+        config_set_str(config, "var", MODELDIR "/en-us/variances");
+        config_set_str(config, "tmat", MODELDIR "/en-us/transition_matrices");
+        config_set_str(config, "sendump", MODELDIR "/en-us/sendump");
 	
 	TEST_ASSERT(config);
 	fe = fe_init(config);
@@ -119,34 +122,25 @@ main(int argc, char *argv[])
 	TEST_ASSERT((ps = acmod->mgau));
 	TEST_EQUAL(0, strcmp(ps->vt->name, "ptm"));
 	s = (ptm_mgau_t *)ps;
-	E_DEBUG("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
-		   s->g->n_mgau, s->n_sen, s->n_fast_hist);
-	E_DEBUG("Senone to codebook mappings:\n");
-	lastcb = s->sen2cb[0];
-	E_DEBUG("\t%d: 0", lastcb);
-	for (i = 0; i < s->n_sen; ++i) {
-		if (s->sen2cb[i] != lastcb) {
-			lastcb = s->sen2cb[i];
-			E_DEBUG("-%d\n", i-1);
-			E_DEBUG("\t%d: %d", lastcb, i);
-		}
-	}
-	E_INFOCONT("-%d\n", i-1);
-	run_acmod_test(acmod);
+	E_INFO("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
+                s->g->n_mgau, s->n_sen, s->n_fast_hist);
+        E_INFO("Senone to codebook mappings:\n");
+        lastcb = s->sen2cb[0];
+        E_INFO("\t%d: 0", lastcb);
+        for (i = 0; i < s->n_sen; ++i) {
+            if (s->sen2cb[i] != lastcb) {
+                lastcb = s->sen2cb[i];
+                E_INFOCONT("-%d\n", i-1);
+                E_INFO("\t%d: %d", lastcb, i);
+            }
+        }
+        E_INFOCONT("-%d\n", i-1);
+        run_acmod_test(acmod);
 
-#if 0
-	/* Replace it with ms_mgau. */
-	ptm_mgau_free(ps);
-	cmd_ln_set_str_r(config,
-			 "-mixw",
-			 MODELDIR "/en-us/mixture_weights");
-	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
-	run_acmod_test(acmod);
-#endif
 	acmod_free(acmod);
 	fe_free(fe);
 	feat_free(fcb);
 	logmath_free(lmath);
-	cmd_ln_free_r(config);
+	config_free(config);
 	return 0;
 }

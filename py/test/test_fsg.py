@@ -32,18 +32,16 @@ class TestDecodeFSG(unittest.TestCase):
             decoder.start_utt()
             decoder.process_raw(buf, full_utt=True)
             decoder.end_utt()
-            self.assertEqual(decoder.hyp().hypstr, "go forward ten meters")
+            self.assertEqual(decoder.hyp.text, "go forward ten meters")
             words = []
-            for seg in decoder.seg():
-                if seg.word not in ("<sil>", "(NULL)"):
-                    words.append(seg.word)
+            for seg in decoder.seg:
+                if seg.text not in ("<sil>", "(NULL)"):
+                    words.append(seg.text)
             self.assertEqual(words, "go forward ten meters".split())
 
     def test_fsg_loading(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        decoder = Decoder(config)
+        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
         # Read a file that isn't a FSG
         with self.assertRaises(RuntimeError):
             fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.raw'))
@@ -53,10 +51,8 @@ class TestDecodeFSG(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_fsg_creation(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        decoder = Decoder(config)
+        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
         num_transitions = [(4, 5, 0.1, num)
                            for num
                            in "one two three four five six seven eight nine ten"
@@ -75,10 +71,8 @@ class TestDecodeFSG(unittest.TestCase):
         self._run_decode(decoder)
 
     def test_jsgf_loading(self):
-        config = Decoder.default_config()
-        config['-hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['-dict'] = os.path.join(DATADIR, 'turtle.dic')
-        decoder = Decoder(config)
+        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
+                          dict=os.path.join(DATADIR, 'turtle.dic'))
         # Read a file that isn't a JSGF
         with self.assertRaises(RuntimeError):
             decoder.set_jsgf_file(os.path.join(DATADIR, 'goforward.fsg'))

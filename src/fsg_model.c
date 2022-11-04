@@ -38,7 +38,6 @@
 #include <assert.h>
 
 /* SphinxBase headers. */
-#include <soundswallower/export.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/prim_type.h>
@@ -46,26 +45,6 @@
 #include <soundswallower/hash_table.h>
 #include <soundswallower/fsg_model.h>
 #include <soundswallower/bitvec.h>
-
-/**
- * Adjacency list (opaque) for a state in an FSG.
- *
- * Actually we use hash tables so that random access is a bit faster.
- * Plus it allows us to make the lookup code a bit less ugly.
- */
-
-struct trans_list_s {
-    hash_table_t *null_trans;   /* Null transitions keyed by state. */
-    hash_table_t *trans;        /* Lists of non-null transitions keyed by state. */
-};
-
-/**
- * Implementation of arc iterator.
- */
-struct fsg_arciter_s {
-    hash_iter_t *itor, *null_itor;
-    gnode_t *gn;
-};
 
 #define FSG_MODEL_BEGIN_DECL		"FSG_BEGIN"
 #define FSG_MODEL_END_DECL		"FSG_END"
@@ -81,7 +60,7 @@ struct fsg_arciter_s {
 
 
 /* FIXME: if from or to is greater than n_state, mysterious crash! */
-EXPORT void
+void
 fsg_model_trans_add(fsg_model_t * fsg,
                     int32 from, int32 to, int32 logp, int32 wid)
 {
@@ -112,11 +91,11 @@ fsg_model_trans_add(fsg_model_t * fsg,
     /* Add it to the list of transitions and update the hash table */
     gl = glist_add_ptr(gl, (void *) link);
     hash_table_replace_bkey(fsg->trans[from].trans,
-                            (char const *) &link->to_state,
+                            (const char *) &link->to_state,
                             sizeof(link->to_state), gl);
 }
 
-EXPORT int32
+int32
 fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
                         int32 logp, int32 wid)
 {
@@ -156,14 +135,14 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
 
     link2 = (fsg_link_t *)
         hash_table_enter_bkey(fsg->trans[from].null_trans,
-                              (char const *) &link->to_state,
+                              (const char *) &link->to_state,
                               sizeof(link->to_state), link);
     assert(link == link2);
 
     return 1;
 }
 
-EXPORT int32
+int32
 fsg_model_null_trans_add(fsg_model_t * fsg, int32 from, int32 to,
                          int32 logp)
 {
@@ -252,7 +231,7 @@ fsg_model_trans(fsg_model_t * fsg, int32 i, int32 j)
 
     if (fsg->trans[i].trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].trans, (char const *) &j,
+    if (hash_table_lookup_bkey(fsg->trans[i].trans, (const char *) &j,
                                sizeof(j), &val) < 0)
         return NULL;
     return (glist_t) val;
@@ -265,7 +244,7 @@ fsg_model_null_trans(fsg_model_t * fsg, int32 i, int32 j)
 
     if (fsg->trans[i].null_trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (char const *) &j,
+    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (const char *) &j,
                                sizeof(j), &val) < 0)
         return NULL;
     return (fsg_link_t *) val;
@@ -339,8 +318,8 @@ fsg_arciter_free(fsg_arciter_t * itor)
     ckd_free(itor);
 }
 
-EXPORT int
-fsg_model_word_id(fsg_model_t * fsg, char const *word)
+int
+fsg_model_word_id(fsg_model_t * fsg, const char *word)
 {
     int wid;
 
@@ -355,8 +334,8 @@ fsg_model_word_id(fsg_model_t * fsg, char const *word)
     return wid;
 }
 
-EXPORT int
-fsg_model_word_add(fsg_model_t * fsg, char const *word)
+int
+fsg_model_word_add(fsg_model_t * fsg, const char *word)
 {
     int wid, old_size;
 
@@ -387,7 +366,7 @@ fsg_model_word_add(fsg_model_t * fsg, char const *word)
 }
 
 int
-fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
+fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
                       int state, float32 silprob)
 {
     int32 logsilp;
@@ -418,8 +397,8 @@ fsg_model_add_silence(fsg_model_t * fsg, char const *silword,
 }
 
 int
-fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
-                  char const *altword)
+fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+                  const char *altword)
 {
     int i, basewid, altwid;
     int ntrans;
@@ -483,8 +462,8 @@ fsg_model_add_alt(fsg_model_t * fsg, char const *baseword,
 }
 
 
-EXPORT fsg_model_t *
-fsg_model_init(char const *name, logmath_t * lmath, float32 lw,
+fsg_model_t *
+fsg_model_init(const char *name, logmath_t * lmath, float32 lw,
                int32 n_state)
 {
     fsg_model_t *fsg;
@@ -695,8 +674,8 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     fsg->vocab = ckd_calloc(fsg->n_word_alloc, sizeof(*fsg->vocab));
     for (itor = hash_table_iter(vocab); itor;
          itor = hash_table_iter_next(itor)) {
-        char const *word = hash_entry_key(itor->ent);
-        int32 wid = (int32) (long) hash_entry_val(itor->ent);
+        const char *word = hash_entry_key(itor->ent);
+        int32 wid = (int32) (size_t) hash_entry_val(itor->ent);
         fsg->vocab[wid] = (char *) word;
     }
     hash_table_free(vocab);
@@ -705,7 +684,11 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     if (fsgname)
         ckd_free(fsgname);
 
-    /* Do transitive closure on null transitions */
+    /* Do transitive closure on null transitions.  FIXME: This is
+     * actually quite inefficient as it *creates* a lot of new links
+     * as opposed to just *calculating* the epsilon-closure for each
+     * state.  Ideally we would epsilon-remove or determinize the FSG
+     * (but note that tag transitions are not really epsilons...) */
     nulls = fsg_model_null_trans_closure(fsg, nulls);
     glist_free(nulls);
     return fsg;
@@ -740,9 +723,11 @@ fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
     return fsg;
 }
 
-EXPORT fsg_model_t *
+fsg_model_t *
 fsg_model_retain(fsg_model_t * fsg)
 {
+    if (fsg == NULL)
+        return NULL;
     ++fsg->refcount;
     return fsg;
 }
@@ -766,7 +751,7 @@ trans_list_free(fsg_model_t * fsg, int32 i)
     hash_table_free(fsg->trans[i].null_trans);
 }
 
-EXPORT int
+int
 fsg_model_free(fsg_model_t * fsg)
 {
     int i;
@@ -825,7 +810,7 @@ fsg_model_write(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile(fsg_model_t * fsg, char const *file)
+fsg_model_writefile(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 
@@ -880,7 +865,7 @@ fsg_model_write_fsm(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile_fsm(fsg_model_t * fsg, char const *file)
+fsg_model_writefile_fsm(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 
@@ -911,7 +896,7 @@ fsg_model_write_symtab(fsg_model_t * fsg, FILE * file)
 }
 
 void
-fsg_model_writefile_symtab(fsg_model_t * fsg, char const *file)
+fsg_model_writefile_symtab(fsg_model_t * fsg, const char *file)
 {
     FILE *fp;
 

@@ -180,9 +180,9 @@ feat_print_dbg(feat_t *fcb, mfcc_t ***feat, int32 nfr, const char *text)
 #endif
 
 int32 **
-parse_subvecs(char const *str)
+parse_subvecs(const char *str)
 {
-    char const *strp;
+    const char *strp;
     int32 n, n2, l;
     glist_t dimlist;            /* List of dimensions in one subvector */
     glist_t veclist;            /* List of dimlists (subvectors) */
@@ -716,9 +716,9 @@ feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 feat_t *
-feat_init(cmd_ln_t *config)
+feat_init(config_t *config)
 {
-    const char *ldapath = cmd_ln_str_r(config, "_lda");
+    const char *ldapath = config_str(config, "lda");
     s3file_t *lda = NULL;
     feat_t *feat;
 
@@ -734,13 +734,13 @@ feat_init(cmd_ln_t *config)
 }
 
 feat_t *
-feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
+feat_init_s3file(config_t *config, s3file_t *lda)
 {
     feat_t *fcb;
-    const char *type = cmd_ln_str_r(config, "-feat");
-    cmn_type_t cmn = cmn_type_from_str(cmd_ln_str_r(config,"-cmn"));
-    int varnorm = cmd_ln_boolean_r(config, "-varnorm");
-    int cepsize = cmd_ln_int32_r(config, "-ceplen");
+    const char *type = config_str(config, "feat");
+    cmn_type_t cmn = cmn_type_from_str(config_str(config,"cmn"));
+    int varnorm = config_bool(config, "varnorm");
+    int cepsize = config_int(config, "ceplen");
 
     if (cepsize == 0)
         cepsize = 13;
@@ -896,27 +896,11 @@ feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
         ckd_free(wd);
     }
 
-    /* Set up CMN initialization if requested */
     if (cmn != CMN_NONE) {
         fcb->cmn_struct = cmn_init(feat_cepsize(fcb));
-        if (cmd_ln_exists_r(config, "-cmninit")) {
-            char *c, *cc, *vallist;
-            int32 nvals;
-
-            vallist = ckd_salloc(cmd_ln_str_r(config, "-cmninit"));
-            c = vallist;
-            nvals = 0;
-            while (nvals < fcb->cmn_struct->veclen
-                   && (cc = strchr(c, ',')) != NULL) {
-                *cc = '\0';
-                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-                c = cc + 1;
-                ++nvals;
-            }
-            if (nvals < fcb->cmn_struct->veclen && *c != '\0') {
-                fcb->cmn_struct->cmn_mean[nvals] = FLOAT2MFCC(atof(c));
-            }
-            ckd_free(vallist);
+        if (config_str(config, "cmninit")) {
+            E_INFO("Setting initial CMN to %s\n", config_str(config, "cmninit"));
+            cmn_set_repr(fcb->cmn_struct, config_str(config, "cmninit"));
         }
     }
     fcb->cmn = cmn;
@@ -935,15 +919,15 @@ feat_init_s3file(cmd_ln_t *config, s3file_t *lda)
     /* Load LDA. */
     if (lda) {
         if (feat_read_lda_s3file(fcb, lda,
-                                 cmd_ln_int32_r(config, "-ldadim")) < 0)
+                                 config_int(config, "ldadim")) < 0)
             goto error_out;
     }
     /* Set up subvector specification */
-    if (cmd_ln_str_r(config, "-svspec")) {
+    if (config_str(config, "svspec")) {
         int32 **subvecs;
         E_INFO("Using subvector specification %s\n",
-               cmd_ln_str_r(config, "-svspec"));
-        if ((subvecs = parse_subvecs(cmd_ln_str_r(config, "-svspec"))) == NULL)
+               config_str(config, "svspec"));
+        if ((subvecs = parse_subvecs(config_str(config, "svspec"))) == NULL)
             goto error_out;
         if ((feat_set_subvecs(fcb, subvecs)) < 0)
             goto error_out;
@@ -1161,6 +1145,8 @@ feat_update_stats(feat_t *fcb)
 feat_t *
 feat_retain(feat_t *f)
 {
+    if (f == NULL)
+        return NULL;
     ++f->refcount;
     return f;
 }
@@ -1191,8 +1177,7 @@ feat_free(feat_t * f)
         ckd_free(f->sv_buf);
     subvecs_free(f->subvecs);
 
-    if (f->cmn_struct)
-        cmn_free(f->cmn_struct);
+    cmn_free(f->cmn_struct);
     ckd_free(f);
     return 0;
 }

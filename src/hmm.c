@@ -748,3 +748,55 @@ hmm_vit_eval(hmm_t * hmm)
             return hmm_vit_eval_anytopo(hmm);
     }
 }
+void
+hmm_dump(hmm_t * hmm,
+         FILE * fp)
+{
+    int32 i;
+
+    if (hmm_is_mpx(hmm)) {
+        fprintf(fp, "MPX   ");
+        for (i = 0; i < hmm_n_emit_state(hmm); i++)
+            fprintf(fp, " %11d", hmm_senid(hmm, i));
+        fprintf(fp, " ( ");
+        for (i = 0; i < hmm_n_emit_state(hmm); i++)
+            fprintf(fp, "%d ", hmm_ssid(hmm, i));
+        fprintf(fp, ")\n");
+    }
+    else {
+        fprintf(fp, "SSID  ");
+        for (i = 0; i < hmm_n_emit_state(hmm); i++)
+            fprintf(fp, " %11d", hmm_senid(hmm, i));
+        fprintf(fp, " (%d)\n", hmm_ssid(hmm, 0));
+    }
+
+    if (hmm->ctx->senscore) {
+        fprintf(fp, "SENSCR");
+        for (i = 0; i < hmm_n_emit_state(hmm); i++)
+            fprintf(fp, " %11d", hmm_senscr(hmm, i));
+        fprintf(fp, "\n");
+    }
+
+    fprintf(fp, "SCORES %11d", hmm_in_score(hmm));
+    for (i = 1; i < hmm_n_emit_state(hmm); i++)
+        fprintf(fp, " %11d", hmm_score(hmm, i));
+    fprintf(fp, " %11d", hmm_out_score(hmm));
+    fprintf(fp, "\n");
+
+    fprintf(fp, "HISTID %11d", hmm_in_history(hmm));
+    for (i = 1; i < hmm_n_emit_state(hmm); i++)
+        fprintf(fp, " %11d", hmm_history(hmm, i));
+    fprintf(fp, " %11d", hmm_out_history(hmm));
+    fprintf(fp, "\n");
+
+    if (hmm_in_score(hmm) > 0)
+        fprintf(fp,
+                "ALERT!! The input score %d is large than 0. Probably wrap around.\n",
+                hmm_in_score(hmm));
+    if (hmm_out_score(hmm) > 0)
+        fprintf(fp,
+                "ALERT!! The output score %d is large than 0. Probably wrap around\n.",
+                hmm_out_score(hmm));
+
+    fflush(fp);
+}

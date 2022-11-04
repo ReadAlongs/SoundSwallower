@@ -72,7 +72,7 @@ dict_ciphone_str(dict_t * d, s3wid_t wid, int32 pos)
 
 
 s3wid_t
-dict_add_word(dict_t * d, char const *word, s3cipid_t const * p, int32 np)
+dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
 {
     int32 len;
     dictword_t *wordp;
@@ -141,7 +141,7 @@ dict_add_word(dict_t * d, char const *word, s3cipid_t const * p, int32 np)
 
 
 dict_t *
-dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
+dict_init(config_t *config, bin_mdef_t * mdef)
 {
     dict_t *d = NULL;
     s3file_t *dict = NULL;
@@ -149,13 +149,13 @@ dict_init(cmd_ln_t *config, bin_mdef_t * mdef)
 
     if (config) {
         const char *path;
-        if ((path = cmd_ln_str_r(config, "_dict")) != NULL) {
+        if ((path = config_str(config, "dict")) != NULL) {
             if ((dict = s3file_map_file(path)) == NULL) {
                 E_ERROR_SYSTEM("Failed to read dictionary from %s", path);
                 goto error_out;
             }
         }
-        if ((path = cmd_ln_str_r(config, "_fdict")) != NULL) {
+        if ((path = config_str(config, "fdict")) != NULL) {
             if ((fdict = s3file_map_file(path)) == NULL) {
                 E_ERROR_SYSTEM("Failed to read filler dictionary from %s", path);
                 goto error_out;
@@ -248,7 +248,7 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
 
 
 dict_t *
-dict_init_s3file(cmd_ln_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *fdict)
+dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *fdict)
 {
     int32 n;
     dict_t *d;
@@ -302,8 +302,8 @@ dict_init_s3file(cmd_ln_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
         d->mdef = bin_mdef_retain(mdef);
 
     /* Create new hash table for word strings; case-insensitive word strings */
-    if (config && cmd_ln_exists_r(config, "-dictcase"))
-        d->nocase = cmd_ln_boolean_r(config, "-dictcase");
+    if (config && config_exists(config, "dictcase"))
+        d->nocase = config_bool(config, "dictcase");
     d->ht = hash_table_new(d->max_words, d->nocase);
 
     /* Digest main dictionary file */
@@ -433,6 +433,8 @@ dict_word2basestr(char *word)
 dict_t *
 dict_retain(dict_t *d)
 {
+    if (d == NULL)
+        return NULL;
     ++d->refcnt;
     return d;
 }

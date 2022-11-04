@@ -1,32 +1,26 @@
 /// <reference types="emscripten" />
-export class Config implements Iterable<string> {
-    delete(): void;
-    set(key: string, val: string|number): boolean;
-    get(key: string): string|number;
-    model_file_path(key: string, modelfile: string): string;
-    has(key: string): boolean;
-    [Symbol.iterator](): IterableIterator<string>;
-}
 export class Decoder {
-    config: Config;
     initialized: boolean;
     delete(): void;
-    initialize(config?: Config|Object): Promise<any>;
+    get_config_json(): string;
+    set_config(key: string, val: string|number): boolean;
+    unset_config(key: string): void;
+    get_config(key: string): string|number;
+    has_config(key: string): boolean;
+    initialize(): Promise<any>;
     reinitialize_audio(): Promise<void>;
     start(): Promise<void>;
     stop(): Promise<void>;
-    process(pcm: Float32Array|Uint8Array, no_search:boolean, full_utt:boolean): Promise<number>;
+    process(pcm: Float32Array|Uint8Array, no_search: boolean, full_utt: boolean): Promise<number>;
     get_hyp(): string;
     get_hypseg(): Array<Segment>;
+    get_alignment_json(start?: number, align_level?: number): Promise<string>;
     lookup_word(word: string): string;
-    add_word(word:string, pron: string, update?: boolean): Promise<number>;
-    create_fsg(name:string, start_state: number, final_state: number,
-               transitions: Array<Transition>): Grammar;
-    parse_jsgf(jsgf_string:string, toprule?: string): Grammar;
-    set_fsg(fsg: Grammar): Promise<void>;
-}
-export interface Grammar {
-    delete(): void;
+    add_word(word: string, pron: string, update?: boolean): Promise<number>;
+    set_fsg(name: string, start_state: number, final_state: number,
+            transitions: Array<Transition>): Promise<void>;
+    set_jsgf(jsgf_string: string, toprule?: string): Promise<void>;
+    set_align_text(text: string): Promise<void>;
 }
 export interface Transition {
     from: number;
@@ -41,12 +35,8 @@ export interface Segment {
 }
 export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(subpath: string): string;
-    Config: {
-        /* Everything else is declared above.. */
-        new(dict?: Object): Config;
-    }
     Decoder: {
-        new(config?: Config|Object): Decoder;
+        new(config?: Object): Decoder;
     }
 }
 declare const Module: EmscriptenModuleFactory<SoundSwallowerModule>;

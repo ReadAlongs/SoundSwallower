@@ -4,12 +4,12 @@ include(CheckSymbolExists)
 include(CheckLibraryExists)
 include(TestBigEndian)
 
-project(soundswallower VERSION 0.3.2
+project(soundswallower VERSION 0.4.0
   DESCRIPTION "An even smaller speech recognizer")
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
-  enable_testing()
+  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
 endif()
 
 CHECK_INCLUDE_FILE(unistd.h HAVE_UNISTD_H)
@@ -57,7 +57,7 @@ elseif(SKBUILD)
   add_subdirectory(py)
 else()
   # C shared library build
-  option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+  option(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
   # Build the core library source (needs to go after BUILD_SHARED_LIBS
   # option because CMake is magically stupid)
   add_subdirectory(src)

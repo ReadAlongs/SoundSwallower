@@ -5,7 +5,8 @@
 
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
 
 #include "test_macros.h"
@@ -15,13 +16,13 @@ enum { AGC_NONE };
 int
 main(int argc, char *argv[])
 {
-	static const arg_t fe_args[] = {
-		waveform_to_cepstral_command_line_macro(),
-		cepstral_to_feature_command_line_macro(),
-		{ NULL, 0, NULL, NULL }
+	static const config_param_t fe_args[] = {
+            FE_OPTIONS,
+            FEAT_OPTIONS,
+            { NULL, 0, NULL, NULL }
 	};
 	FILE *raw;
-	cmd_ln_t *config;
+	config_t *config;
 	fe_t *fe;
 	feat_t *fcb;
 	int16 buf[2048];
@@ -30,12 +31,13 @@ main(int argc, char *argv[])
 	size_t nsamp;
 	int32 total_frames, ncep, nfr, i;
 
+        (void)argc; (void)argv;
 	if ((raw = fopen(TESTDATADIR "/goforward.raw", "rb")) == NULL) {
 		perror(TESTDATADIR "/goforward.raw");
 		return 1;
 	}
 
-	config = cmd_ln_parse_r(NULL, fe_args, argc, argv, FALSE);
+	config = config_init(fe_args);
 	fe = fe_init(config);
 	fcb = feat_init(config);
 
@@ -150,7 +152,7 @@ main(int argc, char *argv[])
 	feat_array_free(featbuf2);
 	feat_free(fcb);
 	ckd_free_2d(cepbuf);
-	cmd_ln_free_r(config);
+	config_free(config);
 
 	return 0;
 }

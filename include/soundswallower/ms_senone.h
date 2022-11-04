@@ -44,7 +44,7 @@
 
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
 #include <soundswallower/bin_mdef.h>
@@ -101,8 +101,8 @@ typedef struct senone_s {
  * @return pointer to senone structure created.  Caller MUST NOT change its contents.
  */
 senone_t *senone_init(gauden_t *g,             /**< In: codebooks */
-                      char const *mixwfile,	/**< In: mixing weights file */
-                      char const *mgau_mapfile,/**< In: file or magic string specifying
+                      const char *mixwfile,	/**< In: mixing weights file */
+                      const char *mgau_mapfile,/**< In: file or magic string specifying
                                                   mapping from each senone to mixture
                                                   gaussian codebook.
                                                   If NULL divine it from gauden_t */

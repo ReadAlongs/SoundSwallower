@@ -37,7 +37,7 @@
 #ifndef FE_WARP_H
 #define FE_WARP_H
 
-#include "fe_internal.h"
+#include <soundswallower/fe.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,7 +55,7 @@ extern "C" {
 #define FE_WARP_ID_NONE	       0xffffffff
 
 typedef struct {
-    void (*set_parameters)(char const *param_str, float sampling_rate);
+    void (*set_parameters)(const char *param_str, float sampling_rate);
     const char * (*doc)(void);
     uint32 (*id)(void);
     uint32 (*n_param)(void);
@@ -70,7 +70,7 @@ uint32 fe_warp_id(melfb_t *mel);
 
 const char * fe_warp_doc(melfb_t *mel);
 
-void fe_warp_set_parameters(melfb_t *mel, char const *param_str, float sampling_rate);
+void fe_warp_set_parameters(melfb_t *mel, const char *param_str, float sampling_rate);
 
 uint32 fe_warp_n_param(melfb_t *mel);
 

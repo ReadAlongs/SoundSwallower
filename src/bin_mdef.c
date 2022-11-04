@@ -58,7 +58,6 @@
 #include <soundswallower/err.h>
 #include <soundswallower/mdef.h>
 #include <soundswallower/bin_mdef.h>
-#include <soundswallower/export.h>
 
 static cd_tree_t *
 build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
@@ -164,7 +163,7 @@ build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
 }
 
 bin_mdef_t *
-bin_mdef_read_text(cmd_ln_t *config, const char *filename)
+bin_mdef_read_text(config_t *config, const char *filename)
 {
     bin_mdef_t *bmdef;
     mdef_t *mdef;
@@ -172,7 +171,7 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 
     (void)config;
 
-    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
         return NULL;
 
@@ -273,6 +272,8 @@ bin_mdef_read_text(cmd_ln_t *config, const char *filename)
 bin_mdef_t *
 bin_mdef_retain(bin_mdef_t *m)
 {
+    if (m == NULL)
+        return NULL;
     ++m->refcnt;
     return m;
 }
@@ -309,7 +310,7 @@ bin_mdef_free(bin_mdef_t * m)
 }
 
 bin_mdef_t *
-bin_mdef_read(cmd_ln_t *config, const char *filename)
+bin_mdef_read(config_t *config, const char *filename)
 {
     bin_mdef_t *m;
     s3file_t *s;
@@ -325,13 +326,13 @@ bin_mdef_read(cmd_ln_t *config, const char *filename)
         return NULL;
     }
 
-    cionly = (config == NULL) ? FALSE : cmd_ln_boolean_r(config, "-cionly");
+    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     m = bin_mdef_read_s3file(s, cionly);
     s3file_free(s);
     return m;
 }
 
-EXPORT bin_mdef_t *
+bin_mdef_t *
 bin_mdef_read_s3file(s3file_t *s, int cionly)
 {
     size_t tree_start;
@@ -347,12 +348,16 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
         E_INFO("Must byte-swap\n");
         s->do_swap = 1;
     }
+    else if (val != BIN_MDEF_NATIVE_ENDIAN) {
+        E_INFO("Is not a binary mdef file, cannot read in memory\n");
+        goto error_out;
+    }
     if (s3file_get(&val, 4, 1, s) != 1) {
         E_ERROR("Failed to read version\n");
         goto error_out;
     }
     if (val > BIN_MDEF_FORMAT_VERSION) {
-        E_ERROR("File format version %d is newer than library\n",
+        E_ERROR("File format version %08x is newer than library\n",
                 val);
         goto error_out;
     }

@@ -43,7 +43,6 @@
 #include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/vector.h>
-#include <soundswallower/export.h>
 
 #define TMAT_PARAM_VERSION		"1.0"
 
@@ -109,7 +108,7 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 
 
 tmat_t *
-tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor)
+tmat_init(const char *file_name, logmath_t *lmath, float64 tpfloor)
 {
     s3file_t *s;
     tmat_t *tmat;
@@ -126,7 +125,7 @@ tmat_init(char const *file_name, logmath_t *lmath, float64 tpfloor)
     return tmat;
 }
 
-EXPORT tmat_t *
+tmat_t *
 tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
 {
     int32 n_src, n_dst, n_tmat;

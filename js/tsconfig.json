@@ -1,4 +1,7 @@
 {
+    "files": [
+        "test_typescript.ts"
+    ],
     "compilerOptions": {
         "downlevelIteration": true,
         "esModuleInterop": true,

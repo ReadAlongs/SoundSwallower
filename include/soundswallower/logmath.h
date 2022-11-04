@@ -73,7 +73,7 @@
 #define __LOGMATH_H__
 
 #include <soundswallower/prim_type.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 
 
 #ifdef __cplusplus

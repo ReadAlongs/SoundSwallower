@@ -97,7 +97,6 @@
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/case.h>
-#include <soundswallower/export.h>
 
 
 #if 0
@@ -329,7 +328,7 @@ hash_table_lookup_int32(hash_table_t * h, const char *key, int32 *val)
     if (rv != 0)
         return rv;
     if (val)
-        *val = (int32)vval;
+        *val = (int32)(size_t)vval;
     return 0;
 }
 
@@ -365,7 +364,7 @@ hash_table_lookup_bkey_int32(hash_table_t * h, const char *key, size_t len, int3
     if (rv != 0)
         return rv;
     if (val)
-        *val = (int32)vval;
+        *val = (int32)(size_t)vval;
     return 0;
 }
 
@@ -653,7 +652,7 @@ hash_table_iter(hash_table_t *h)
 	return hash_table_iter_next(itor);
 }
 
-EXPORT hash_iter_t *
+hash_iter_t *
 hash_table_iter_next(hash_iter_t *itor)
 {
 	/* If there is an entry, walk down its list. */

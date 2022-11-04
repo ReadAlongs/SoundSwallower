@@ -52,9 +52,9 @@
 
 #include <soundswallower/feat.h>
 #include <soundswallower/logmath.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/vector.h>
-#include <soundswallower/pocketsphinx_internal.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/hmm.h>
 #include <soundswallower/s3file.h>
 
@@ -99,8 +99,8 @@ typedef struct gauden_s {
  * Return value: ptr to the model created; NULL if error.
  * (See Sphinx3 model file-format documentation.)
  */
-gauden_t *gauden_init(char const *meanfile,/**< Input: File containing means of mixture gaussians */
-                      char const *varfile,/**< Input: File containing variances of mixture gaussians */
+gauden_t *gauden_init(const char *meanfile,/**< Input: File containing means of mixture gaussians */
+                      const char *varfile,/**< Input: File containing variances of mixture gaussians */
                       float32 varfloor,	/**< Input: Floor value to be applied to variances */
                       logmath_t *lmath
                       );
@@ -118,7 +118,7 @@ gauden_t *gauden_init_s3file(s3file_t *meanfile,/**< Input: File containing mean
 void gauden_free(gauden_t *g); /**< In: The gauden_t to free */
 
 /** Transform Gaussians according to an MLLR matrix (or, eventually, more). */
-int32 gauden_mllr_transform(gauden_t *s, ps_mllr_t *mllr, cmd_ln_t *config);
+int32 gauden_mllr_transform(gauden_t *s, mllr_t *mllr, config_t *config);
 
 /**
  * Compute gaussian density values for the given input observation vector wrt the

@@ -46,15 +46,14 @@
 #include <limits.h>
 #include <math.h>
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/tied_mgau_common.h>
-#include <soundswallower/export.h>
 
-static ps_mgaufuncs_t s2_semi_mgau_funcs = {
+static mgaufuncs_t s2_semi_mgau_funcs = {
     "s2_semi",
     s2_semi_mgau_frame_eval,      /* frame_eval */
     s2_semi_mgau_mllr_transform,  /* transform */
@@ -94,11 +93,14 @@ eval_topn(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
             d = GMMSUB(d, compl);
             ++var;
         }
-        topn[i].score = (int32)d;
+        if (d < (mfcc_t)MAX_NEG_INT32)  /* Redundant if FIXED_POINT */
+            topn[i].score = MAX_NEG_INT32;
+        else
+            topn[i].score = (int32)d;
         if (i == 0)
             continue;
         vtmp = topn[i];
-        for (j = i - 1; j >= 0 && (int32)d > topn[j].score; j--) {
+        for (j = i - 1; j >= 0 && vtmp.score > topn[j].score; j--) {
             topn[j + 1] = topn[j];
         }
         topn[j + 1] = vtmp;
@@ -126,7 +128,7 @@ eval_cb(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
         mfcc_t d;
         mfcc_t *obs;
         vqFeature_t *cur;
-        int32 cw, j;
+        int32 cw, j, d_int;
 
         d = *detP;
         obs = z;
@@ -144,7 +146,11 @@ eval_cb(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
             var += (ceplen - j);
             continue;
         }
-        if ((int32)d < worst->score)
+        if (d < (mfcc_t)MAX_NEG_INT32)
+            d_int = MAX_NEG_INT32;
+        else
+            d_int = (int32) d;
+        if (d_int < worst->score)
             continue;
         for (i = 0; i < s->max_topn; i++) {
             /* already there, so don't need to insert */
@@ -154,11 +160,11 @@ eval_cb(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
         if (i < s->max_topn)
             continue;       /* already there.  Don't insert */
         /* remaining code inserts codeword and dist in correct spot */
-        for (cur = worst - 1; cur >= best && (int32)d >= cur->score; --cur)
+        for (cur = worst - 1; cur >= best && d_int >= cur->score; --cur)
             memcpy(cur + 1, cur, sizeof(vqFeature_t));
         ++cur;
         cur->codeword = cw;
-        cur->score = (int32)d;
+        cur->score = d_int;
     }
 }
 
@@ -827,7 +833,7 @@ get_scores_4b_feat_all(s2_semi_mgau_t * s, int i, int topn, int16 *senone_scores
  * Compute senone scores for the active senones.
  */
 int32
-s2_semi_mgau_frame_eval(ps_mgau_t *ps,
+s2_semi_mgau_frame_eval(mgau_t *ps,
                         int16 *senone_scores,
                         uint8 *senone_active,
                         int32 n_senone_active,
@@ -877,7 +883,7 @@ s2_semi_mgau_frame_eval(ps_mgau_t *ps,
 
 
 static int
-split_topn(char const *str, uint8 *out, int nfeat)
+split_topn(const char *str, uint8 *out, int nfeat)
 {
     char *topn_list = ckd_salloc(str);
     char *c, *cc;
@@ -906,12 +912,12 @@ split_topn(char const *str, uint8 *out, int nfeat)
 }
 
 
-EXPORT ps_mgau_t *
+mgau_t *
 s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
                          s3file_t *mixw, s3file_t *sendump)
 {
     s2_semi_mgau_t *s;
-    ps_mgau_t *ps;
+    mgau_t *ps;
     int i;
     int n_feat;
 
@@ -932,7 +938,7 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
 
     /* Read means and variances. */
     if ((s->g = gauden_init_s3file(means, vars,
-                                   cmd_ln_float32_r(s->config, "-varfloor"),
+                                   config_float(s->config, "varfloor"),
                                    s->lmath)) == NULL) {
         E_ERROR("Failed to read means and variances\n");	
         goto error_out;
@@ -966,16 +972,16 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         s->sendump_mmap = s3file_retain(sendump);
     }
     else {
-        float32 mixw_floor = cmd_ln_float32_r(s->config, "-mixwfloor");
+        float32 mixw_floor = config_float(s->config, "mixwfloor");
         if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
     }
-    s->ds_ratio = cmd_ln_int32_r(s->config, "-ds");
+    s->ds_ratio = config_int(s->config, "ds");
 
     /* Determine top-N for each feature */
     s->topn_beam = ckd_calloc(n_feat, sizeof(*s->topn_beam));
-    s->max_topn = cmd_ln_int32_r(s->config, "-topn");
-    split_topn(cmd_ln_str_r(s->config, "-topn_beam"), s->topn_beam, n_feat);
+    s->max_topn = config_int(s->config, "topn");
+    split_topn(config_str(s->config, "topn_beam"), s->topn_beam, n_feat);
     E_INFO("Maximum top-N: %d ", s->max_topn);
     E_INFOCONT("Top-N beams:");
     for (i = 0; i < n_feat; ++i) {
@@ -1001,7 +1007,7 @@ s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
         }
     }
 
-    ps = (ps_mgau_t *)s;
+    ps = (mgau_t *)s;
     ps->vt = &s2_semi_mgau_funcs;
     return ps;
 error_out:
@@ -1010,7 +1016,7 @@ error_out:
 }
 
 /* FIXME: This is identical to ptm_mgau_init */
-ps_mgau_t *
+mgau_t *
 s2_semi_mgau_init(acmod_t *acmod)
 {
     s3file_t *means = NULL;
@@ -1018,21 +1024,21 @@ s2_semi_mgau_init(acmod_t *acmod)
     s3file_t *mixw = NULL;
     s3file_t *sendump = NULL;
     const char *path;
-    ps_mgau_t *ps = NULL;
+    mgau_t *ps = NULL;
 
-    path = cmd_ln_str_r(acmod->config, "_mean");
+    path = config_str(acmod->config, "mean");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((means = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", path);
         goto error_out;
     }
-    path = cmd_ln_str_r(acmod->config, "_var");
+    path = config_str(acmod->config, "var");
     E_INFO("Reading mixture gaussian parameter: %s\n", path);
     if ((vars = s3file_map_file(path)) == NULL) {
         E_ERROR_SYSTEM("Failed to open variance file '%s' for reading", path);
         goto error_out;
     }
-    if ((path = cmd_ln_str_r(acmod->config, "_sendump"))) {
+    if ((path = config_str(acmod->config, "sendump"))) {
         E_INFO("Loading senones from dump file %s\n", path);
         if ((sendump = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
@@ -1040,7 +1046,7 @@ s2_semi_mgau_init(acmod_t *acmod)
         }
     }
     else {
-        path = cmd_ln_str_r(acmod->config, "_mixw");
+        path = config_str(acmod->config, "mixw");
         E_INFO("Reading senone mixture weights: %s\n", path);
         if ((mixw = s3file_map_file(path)) == NULL) {
             E_ERROR_SYSTEM("Failed to open mixture weights '%s' for reading",
@@ -1059,15 +1065,15 @@ error_out:
 }
 
 int
-s2_semi_mgau_mllr_transform(ps_mgau_t *ps,
-                            ps_mllr_t *mllr)
+s2_semi_mgau_mllr_transform(mgau_t *ps,
+                            mllr_t *mllr)
 {
     s2_semi_mgau_t *s = (s2_semi_mgau_t *)ps;
     return gauden_mllr_transform(s->g, mllr, s->config);
 }
 
 void
-s2_semi_mgau_free(ps_mgau_t *ps)
+s2_semi_mgau_free(mgau_t *ps)
 {
     s2_semi_mgau_t *s = (s2_semi_mgau_t *)ps;
 

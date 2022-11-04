@@ -1,33 +1,32 @@
 /* -*- c-basic-offset: 4 -*- */
 #include <soundswallower/err.h>
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 
 #include "test_macros.h"
 
 int
 main(int argc, char *argv[])
 {
-    cmd_ln_t *config;
-    ps_decoder_t *ps;
+    config_t *config;
+    decoder_t *ps;
 
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
     err_msg(ERR_INFO, "blah", 1, "hello world %d %d\n", 2, 3);
-    config = cmd_ln_init(NULL, ps_args(), TRUE,
-			 "-hmm", MODELDIR "/en-us",
-			 "-fsg", TESTDATADIR "/goforward.fsg",
-			 "-dict", TESTDATADIR "/turtle.dic",
-			 "-bestpath", "no",
-			 "-logfn", "test.log",
-			 "-loglevel", "INFO",
-			 "-samprate", "16000", NULL);
-    ps = ps_init(config);
-    cmd_ln_free_r(config);
-    ps_set_logfile(ps, NULL);
+    config = config_init(NULL);
+    config_set_str(config, "hmm", MODELDIR "/en-us");
+    config_set_str(config, "fsg", TESTDATADIR "/goforward.fsg");
+    config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
+    config_set_str(config, "bestpath", "no");
+    config_set_str(config, "logfn", "test.log");
+    config_set_str(config, "loglevel", "INFO");
+    config_set_str(config, "samprate", "16000");
+    TEST_ASSERT(ps = decoder_init(config));
+    decoder_set_logfile(ps, NULL);
     E_INFO("HELLO\n");
-    ps_set_logfile(ps, "test2.log");
+    decoder_set_logfile(ps, "test2.log");
     E_INFO("HELLO\n");
-    ps_free(ps);
+    decoder_free(ps);
     
     return 0;
 }

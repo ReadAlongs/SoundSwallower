@@ -1,13 +1,12 @@
 {
    "name": "soundswallower",
-   "version": "0.3.2",
+   "version": "0.4.0",
    "description": "An even smaller speech recognizer",
    "main": "soundswallower.js",
    "scripts": {
-      "test": "mocha test_node",
-      "build:prod": "emcmake cmake .. -DCMAKE_BUILD_TYPE=Release && emmake make",
-      "build:dev": "emcmake cmake .. -DCMAKE_BUILD_TYPE=Debug && emmake make",
-      "build": "npm run build:prod"
+       "test": "make && mocha test_node",
+       "tstest": "make && npx tsc && node test_typescript",
+       "webtest": "make && xdg-open http://localhost:8000/test_web.html && python server.py"
    },
    "repository": {
       "type": "git",

@@ -37,7 +37,7 @@
 
 
 /**
- * @file acmod.c Acoustic model structures for PocketSphinx.
+ * @file acmod.c Acoustic model structures
  * @author David Huggins-Daines <dhdaines@gmail.com>
  */
 
@@ -48,11 +48,11 @@
 
 #include <soundswallower/prim_type.h>
 #include <soundswallower/err.h>
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/cmdln_macro.h>
+#include <soundswallower/config_defs.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/s2_semi_mgau.h>
 #include <soundswallower/ptm_mgau.h>
@@ -63,11 +63,11 @@ static int32 acmod_process_mfcbuf(acmod_t *acmod);
 int
 acmod_load_am(acmod_t *acmod)
 {
-    char const *mdeffn, *tmatfn, *mllrfn, *hmmdir;
+    const char *mdeffn, *tmatfn, *mllrfn, *hmmdir;
 
     /* Read model definition. */
-    if ((mdeffn = cmd_ln_str_r(acmod->config, "_mdef")) == NULL) {
-        if ((hmmdir = cmd_ln_str_r(acmod->config, "-hmm")) == NULL)
+    if ((mdeffn = config_str(acmod->config, "mdef")) == NULL) {
+        if ((hmmdir = config_str(acmod->config, "hmm")) == NULL)
             E_ERROR("Acoustic model definition is not specified either "
                     "with -mdef option or with -hmm\n");
         else
@@ -83,22 +83,22 @@ acmod_load_am(acmod_t *acmod)
     }
 
     /* Read transition matrices. */
-    if ((tmatfn = cmd_ln_str_r(acmod->config, "_tmat")) == NULL) {
+    if ((tmatfn = config_str(acmod->config, "tmat")) == NULL) {
         E_ERROR("No tmat file specified\n");
         return -1;
     }
     acmod->tmat = tmat_init(tmatfn, acmod->lmath,
-                            cmd_ln_float32_r(acmod->config, "-tmatfloor"));
+                            config_float(acmod->config, "tmatfloor"));
 
     /* Read the acoustic models. */
-    if ((cmd_ln_str_r(acmod->config, "_mean") == NULL)
-        || (cmd_ln_str_r(acmod->config, "_var") == NULL)
-        || (cmd_ln_str_r(acmod->config, "_tmat") == NULL)) {
+    if ((config_str(acmod->config, "mean") == NULL)
+        || (config_str(acmod->config, "var") == NULL)
+        || (config_str(acmod->config, "tmat") == NULL)) {
         E_ERROR("No mean/var/tmat files specified\n");
         return -1;
     }
 
-    if (cmd_ln_str_r(acmod->config, "_senmgau")) {
+    if (config_str(acmod->config, "senmgau")) {
         E_INFO("Using general multi-stream GMM computation\n");
         acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
@@ -120,8 +120,8 @@ acmod_load_am(acmod_t *acmod)
     }
 
     /* If there is an MLLR transform, apply it. */
-    if ((mllrfn = cmd_ln_str_r(acmod->config, "-mllr"))) {
-        ps_mllr_t *mllr = ps_mllr_read(mllrfn);
+    if ((mllrfn = config_str(acmod->config, "mllr"))) {
+        mllr_t *mllr = mllr_read(mllrfn);
         if (mllr == NULL)
             return -1;
         acmod_update_mllr(acmod, mllr);
@@ -143,7 +143,7 @@ acmod_init_senscr(acmod_t *acmod)
     acmod->senone_active = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
                                                      sizeof(*acmod->senone_active));
     acmod->log_zero = logmath_get_zero(acmod->lmath);
-    acmod->compallsen = cmd_ln_boolean_r(acmod->config, "-compallsen");
+    acmod->compallsen = config_bool(acmod->config, "compallsen");
 
     return 0;
 }
@@ -152,10 +152,10 @@ int
 acmod_fe_mismatch(acmod_t *acmod, fe_t *fe)
 {
     /* Output vector dimension needs to be the same. */
-    if (cmd_ln_int32_r(acmod->config, "-ceplen") != fe_get_output_size(fe)) {
+    if (config_int(acmod->config, "ceplen") != fe_get_output_size(fe)) {
         E_ERROR("Configured feature length %d doesn't match feature "
                 "extraction output size %d\n",
-                cmd_ln_int32_r(acmod->config, "-ceplen"),
+                config_int(acmod->config, "ceplen"),
                 fe_get_output_size(fe));
         return TRUE;
     }
@@ -168,36 +168,30 @@ int
 acmod_feat_mismatch(acmod_t *acmod, feat_t *fcb)
 {
     /* Feature type needs to be the same. */
-    if (0 != strcmp(cmd_ln_str_r(acmod->config, "-feat"), feat_name(fcb)))
+    if (0 != strcmp(config_str(acmod->config, "feat"), feat_name(fcb))) {
+        E_ERROR("Mismatch in feature type: %s != %s\n",
+                config_str(acmod->config, "feat"), feat_name(fcb));
         return TRUE;
+    }
     /* Input vector dimension needs to be the same. */
-    if (cmd_ln_int32_r(acmod->config, "-ceplen") != feat_cepsize(fcb))
+    if (config_int(acmod->config, "ceplen") != feat_cepsize(fcb)) {
+        E_ERROR("Mismatch in input vector length: %d != %d\n",
+                config_int(acmod->config, "ceplen") != feat_cepsize(fcb));
         return TRUE;
+    }
     /* FIXME: Need to check LDA and stuff too. */
     return FALSE;
 }
 
-acmod_t *
-acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+static int
+acmod_alloc_buffers(acmod_t *acmod)
 {
-    acmod_t *acmod;
-    
-    acmod = ckd_calloc(1, sizeof(*acmod));
-    acmod->config = cmd_ln_retain(config);
-    acmod->lmath = logmath_retain(lmath);
-    acmod->state = ACMOD_IDLE;
-
-    /* Initialize feature computation. */
-    if (acmod_fe_mismatch(acmod, fe))
-        goto error_out;
-    acmod->fe = fe_retain(fe);
-    if (acmod_feat_mismatch(acmod, fcb))
-        goto error_out;
-    acmod->fcb = feat_retain(fcb);
-
     /* The MFCC buffer needs to be at least as large as the dynamic
-     * feature window.  */
-    acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
+     * feature window (but just make it a reasonable size if growing).  */
+    if (acmod->grow_feat)
+        acmod->n_mfc_alloc = 128;
+    else
+        acmod->n_mfc_alloc = acmod->fcb->window_size * 2 + 1;
     acmod->mfc_buf = (mfcc_t **)
         ckd_calloc_2d(acmod->n_mfc_alloc, acmod->fcb->cepsize,
                       sizeof(**acmod->mfc_buf));
@@ -206,6 +200,29 @@ acmod_create(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
     acmod->n_feat_alloc = acmod->n_mfc_alloc;
     acmod->feat_buf = feat_array_alloc(acmod->fcb, acmod->n_feat_alloc);
     acmod->framepos = ckd_calloc(acmod->n_feat_alloc, sizeof(*acmod->framepos));
+    return 0;
+}
+
+acmod_t *
+acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+{
+    acmod_t *acmod;
+    
+    acmod = ckd_calloc(1, sizeof(*acmod));
+    acmod->config = config_retain(config);
+    acmod->lmath = logmath_retain(lmath);
+    acmod->state = ACMOD_IDLE;
+    acmod->grow_feat = ACMOD_GROW_DEFAULT;
+
+    /* Initialize feature computation. */
+    if (acmod_fe_mismatch(acmod, fe))
+        goto error_out;
+    acmod->fe = fe_retain(fe);
+    if (acmod_feat_mismatch(acmod, fcb))
+        goto error_out;
+    acmod->fcb = feat_retain(fcb);
+    if (acmod_alloc_buffers(acmod) < 0)
+        goto error_out;
     return acmod;
 
 error_out:
@@ -214,7 +231,7 @@ error_out:
 }
 
 acmod_t *
-acmod_init(cmd_ln_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
+acmod_init(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
 
@@ -242,7 +259,7 @@ acmod_free(acmod_t *acmod)
 
     feat_free(acmod->fcb);
     fe_free(acmod->fe);
-    cmd_ln_free_r(acmod->config);
+    config_free(acmod->config);
 
     if (acmod->mfc_buf)
         ckd_free_2d((void **)acmod->mfc_buf);
@@ -261,19 +278,49 @@ acmod_free(acmod_t *acmod)
     tmat_free(acmod->tmat);
     if (acmod->mgau) /* FIXME: Should make this transparent */
         ps_mgau_free(acmod->mgau);
-    ps_mllr_free(acmod->mllr);
+    mllr_free(acmod->mllr);
     logmath_free(acmod->lmath);
 
     ckd_free(acmod);
 }
 
-ps_mllr_t *
-acmod_update_mllr(acmod_t *acmod, ps_mllr_t *mllr)
+int
+acmod_reinit_feat(acmod_t *acmod, fe_t *fe, feat_t *fcb)
+{
+    if (fe) {
+        if (acmod_fe_mismatch(acmod, fe))
+            return -1;
+        if (acmod->fe != fe) {
+            fe_free(acmod->fe);
+            acmod->fe = fe_retain(fe);
+        }
+    }
+    if (fcb) {
+        if (acmod_feat_mismatch(acmod, fcb))
+            return -1;
+        if (acmod->fcb != fcb) {
+            feat_free(acmod->fcb);
+            acmod->fcb = feat_retain(fcb);
+        }
+    }
+
+    if (acmod->mfc_buf)
+        ckd_free_2d(acmod->mfc_buf);
+    if (acmod->feat_buf)
+        feat_array_free(acmod->feat_buf);
+    if (acmod->framepos)
+        ckd_free(acmod->framepos);
+
+    return acmod_alloc_buffers(acmod);
+}
+
+mllr_t *
+acmod_update_mllr(acmod_t *acmod, mllr_t *mllr)
 {
     if (acmod->mllr)
-        ps_mllr_free(acmod->mllr);
-    acmod->mllr = ps_mllr_retain(mllr);
-    ps_mgau_transform(acmod->mgau, mllr);
+        mllr_free(acmod->mllr);
+    acmod->mllr = mllr_retain(mllr);
+    mgau_transform(acmod->mgau, mllr);
 
     return mllr;
 }
@@ -374,7 +421,7 @@ acmod_process_full_cep(acmod_t *acmod,
 
 static int
 acmod_process_full_raw(acmod_t *acmod,
-                       int16 const **inout_raw,
+                       int16 **inout_raw,
                        size_t *inout_n_samps)
 {
     int32 nfr, nvec;
@@ -408,7 +455,7 @@ acmod_process_full_raw(acmod_t *acmod,
 
 static int
 acmod_process_full_float32(acmod_t *acmod,
-                           float32 const **inout_raw,
+                           float32 **inout_raw,
                            size_t *inout_n_samps)
 {
     int32 nfr, nvec;
@@ -478,7 +525,7 @@ acmod_process_mfcbuf(acmod_t *acmod)
 
 int
 acmod_process_raw(acmod_t *acmod,
-                  int16 const **inout_raw,
+                  int16 **inout_raw,
                   size_t *inout_n_samps,
                   int full_utt)
 {
@@ -532,7 +579,7 @@ acmod_process_raw(acmod_t *acmod,
 
 int
 acmod_process_float32(acmod_t *acmod,
-                      float32 const **inout_raw,
+                      float32 **inout_raw,
                       size_t *inout_n_samps,
                       int full_utt)
 {
@@ -676,37 +723,6 @@ acmod_process_cep(acmod_t *acmod,
     if (acmod->state == ACMOD_STARTED)
         acmod->state = ACMOD_PROCESSING;
     return orig_n_frames - *inout_n_frames;
-}
-
-int
-acmod_process_feat(acmod_t *acmod,
-		   mfcc_t **feat)
-{
-    int i, inptr;
-
-    if (acmod->n_feat_frame == acmod->n_feat_alloc) {
-        if (acmod->grow_feat)
-            acmod_grow_feat_buf(acmod, acmod->n_feat_alloc * 2);
-        else
-            return 0;
-    }
-
-    if (acmod->grow_feat) {
-        /* Grow to avoid wraparound if grow_feat == TRUE. */
-        inptr = acmod->feat_outidx + acmod->n_feat_frame;
-        while (inptr + 1 >= acmod->n_feat_alloc)
-            acmod_grow_feat_buf(acmod, acmod->n_feat_alloc * 2);
-    }
-    else {
-        inptr = (acmod->feat_outidx + acmod->n_feat_frame) % acmod->n_feat_alloc;
-    }
-    for (i = 0; i < feat_dimension1(acmod->fcb); ++i)
-        memcpy(acmod->feat_buf[inptr][i],
-               feat[i], feat_dimension2(acmod->fcb, i) * sizeof(**feat));
-    ++acmod->n_feat_frame;
-    assert(acmod->n_feat_frame <= acmod->n_feat_alloc);
-
-    return 1;
 }
 
 int

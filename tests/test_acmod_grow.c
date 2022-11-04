@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/pocketsphinx.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/acmod.h>
 
@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 {
     acmod_t *acmod;
     logmath_t *lmath;
-    cmd_ln_t *config;
+    config_t *config;
     fe_t *fe;
     feat_t *fcb;
     FILE *rawfh;
@@ -45,28 +45,15 @@ main(int argc, char *argv[])
 
     (void)argc; (void)argv;
     lmath = logmath_init(1.0001, 0, 0);
-    config = cmd_ln_init(NULL, ps_args(), TRUE,
-			 "-input_endian", "little", /* raw data demands it */
-			 "-compallsen", "true",
-			 "-cmn", "live",
-			 "-tmatfloor", "0.0001",
-			 "-mixwfloor", "0.001",
-			 "-varfloor", "0.0001",
-			 "-mmap", "no",
-			 "-topn", "4",
-			 "-ds", "1",
-			 "-samprate", "16000", NULL);
+    config = config_parse_json(
+        NULL,
+        "hmm: \"" MODELDIR "/en-us\","
+        "compallsen: true, cmn: live, tmatfloor: 0.0001,"
+        "input_endian: little," /* raw data demands it */
+        "mixwfloor: 0.001, varfloor: 0.0001,"
+        "topn: 4, ds: 1, samprate: 0");
     TEST_ASSERT(config);
-    cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/feat.params", FALSE);
-
-    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/mdef.bin");
-    cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/means");
-    cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/variances");
-    cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/transition_matrices");
-    cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/sendump");
-    cmd_ln_set_str_extra_r(config, "_mixw", NULL);
-    cmd_ln_set_str_extra_r(config, "_lda", NULL);
-    cmd_ln_set_str_extra_r(config, "_senmgau", NULL);
+    config_expand(config);
 
     fe = fe_init(config);
     fcb = feat_init(config);
@@ -77,7 +64,7 @@ main(int argc, char *argv[])
     frame_counter = 0;
     buf = ckd_calloc(nsamps, sizeof(*buf));
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
-    TEST_EQUAL(FALSE, acmod_set_grow(acmod, TRUE));
+    TEST_EQUAL(ACMOD_GROW_DEFAULT, acmod_set_grow(acmod, TRUE));
     TEST_EQUAL(0, acmod_start_utt(acmod));
     printf("Incremental(2048):\n");
     while (!feof(rawfh)) {
@@ -146,6 +133,6 @@ main(int argc, char *argv[])
     ckd_free(buf);
     acmod_free(acmod);
     logmath_free(lmath);
-    cmd_ln_free_r(config);
+    config_free(config);
     return 0;
 }

@@ -41,6 +41,7 @@
 #include <float.h>
 
 #include <soundswallower/err.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/ms_gauden.h>
 
@@ -306,7 +307,7 @@ gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixtur
 }
 
 gauden_t *
-gauden_init(char const *meanfile, char const *varfile, float32 varfloor, logmath_t *lmath)
+gauden_init(const char *meanfile, const char *varfile, float32 varfloor, logmath_t *lmath)
 {
     s3file_t *means, *vars;
     gauden_t *g;
@@ -464,7 +465,7 @@ gauden_dist(gauden_t * g,
 }
 
 int32
-gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
+gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
 {
     int32 i, m, f, d, *flen;
     const char *meanfile, *varfile;
@@ -483,7 +484,7 @@ gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
     g->featlen = NULL;
 
     /* Reload means and variances (un-precomputed). */
-    meanfile = cmd_ln_str_r(config, "_mean");
+    meanfile = config_str(config, "mean");
     if ((s = s3file_map_file(meanfile)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", meanfile);
         return -1;
@@ -491,7 +492,7 @@ gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
     g->mean = (mfcc_t ****)gauden_param_read(s, &g->n_mgau, &g->n_feat, &g->n_density,
                       &g->featlen);
     s3file_free(s);
-    varfile = cmd_ln_str_r(config, "_var");
+    varfile = config_str(config, "var");
     if ((s = s3file_map_file(varfile)) == NULL) {
         E_ERROR_SYSTEM("Failed to open mean file '%s' for reading", varfile);
         return -1;
@@ -542,6 +543,6 @@ gauden_mllr_transform(gauden_t *g, ps_mllr_t *mllr, cmd_ln_t *config)
 
     /* Re-precompute (if we aren't adapting variances this isn't
      * actually necessary...) */
-    gauden_dist_precompute(g, g->lmath, cmd_ln_float32_r(config, "-varfloor"));
+    gauden_dist_precompute(g, g->lmath, config_float(config, "varfloor"));
     return 0;
 }

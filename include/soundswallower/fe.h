@@ -56,7 +56,9 @@
 #ifndef _NEW_FE_H_
 #define _NEW_FE_H_
 
-#include <soundswallower/cmd_ln.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/fe_type.h>
+#include <soundswallower/fe_noise.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,166 +67,6 @@ extern "C" {
 /* Fool Emacs. */
 }
 #endif
-
-#if WORDS_BIGENDIAN
-#define NATIVE_ENDIAN "big"
-#else
-#define NATIVE_ENDIAN "little"
-#endif
-
-/** Default number of samples per second. */
-#ifdef __EMSCRIPTEN__
-#define DEFAULT_SAMPLING_RATE 44100
-#else
-#define DEFAULT_SAMPLING_RATE 16000
-#endif
-/** Default number of frames per second. */
-#define DEFAULT_FRAME_RATE 100
-/** Default spacing between frame starts (equal to
- * DEFAULT_SAMPLING_RATE/DEFAULT_FRAME_RATE) */
-#define DEFAULT_FRAME_SHIFT 160
-/** Default size of each frame (410 samples @ 16000Hz). */
-#define DEFAULT_WINDOW_LENGTH 0.025625 
-/** Default number of FFT points. */
-#ifdef __EMSCRIPTEN__
-#define DEFAULT_FFT_SIZE 2048
-#else
-#define DEFAULT_FFT_SIZE 512
-#endif
-/** Default number of MFCC coefficients in output. */
-#define DEFAULT_NUM_CEPSTRA 13
-/** Default number of filter bands used to generate MFCCs. */
-#define DEFAULT_NUM_FILTERS 40
-/** Default lower edge of mel filter bank. */
-#define DEFAULT_LOWER_FILT_FREQ 133.33334
-/** Default upper edge of mel filter bank. */
-#define DEFAULT_UPPER_FILT_FREQ 6855.4976
-/** Default pre-emphasis filter coefficient. */
-#define DEFAULT_PRE_EMPHASIS_ALPHA 0.97
-/** Default type of frequency warping to use for VTLN. */
-#define DEFAULT_WARP_TYPE "inverse_linear"
-/** Default random number seed to use for dithering. */
-#define SEED  -1
-
-#define waveform_to_cepstral_command_line_macro() \
-  { "-logspec", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Write out logspectral files instead of cepstra" }, \
-   \
-  { "-smoothspec", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Write out cepstral-smoothed logspectral files" }, \
-   \
-  { "-transform", \
-    ARG_STRING, \
-    "legacy", \
-    "Which type of transform to use to calculate cepstra (legacy, dct, or htk)" }, \
-   \
-  { "-alpha", \
-    ARG_FLOATING, \
-    ARG_STRINGIFY(DEFAULT_PRE_EMPHASIS_ALPHA), \
-    "Preemphasis parameter" }, \
-   \
-  { "-samprate", \
-    ARG_FLOATING, \
-    ARG_STRINGIFY(DEFAULT_SAMPLING_RATE), \
-    "Sampling rate" }, \
-   \
-  { "-frate", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_FRAME_RATE), \
-    "Frame rate" }, \
-   \
-  { "-wlen", \
-    ARG_FLOATING, \
-    ARG_STRINGIFY(DEFAULT_WINDOW_LENGTH), \
-    "Hamming window length" }, \
-   \
-  { "-nfft", \
-    ARG_INTEGER, \
-    "0", \
-    "Size of FFT, or 0 to set automatically (recommended)" }, \
-   \
-  { "-nfilt", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_NUM_FILTERS), \
-    "Number of filter banks" }, \
-   \
-  { "-lowerf", \
-    ARG_FLOATING, \
-    ARG_STRINGIFY(DEFAULT_LOWER_FILT_FREQ), \
-    "Lower edge of filters" }, \
-   \
-  { "-upperf", \
-    ARG_FLOATING, \
-    ARG_STRINGIFY(DEFAULT_UPPER_FILT_FREQ), \
-    "Upper edge of filters" }, \
-   \
-  { "-unit_area", \
-    ARG_BOOLEAN, \
-    "yes", \
-    "Normalize mel filters to unit area" }, \
-   \
-  { "-round_filters", \
-    ARG_BOOLEAN, \
-    "yes", \
-    "Round mel filter frequencies to DFT points" }, \
-   \
-  { "-ncep", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(DEFAULT_NUM_CEPSTRA), \
-    "Number of cep coefficients" }, \
-   \
-  { "-doublebw", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Use double bandwidth filters (same center freq)" }, \
-   \
-  { "-lifter", \
-    ARG_INTEGER, \
-    "0", \
-    "Length of sin-curve for liftering, or 0 for no liftering." }, \
-   \
-  { "-input_endian", \
-    ARG_STRING, \
-    NATIVE_ENDIAN, \
-    "Endianness of input data, big or little, ignored if NIST or MS Wav" }, \
-   \
-  { "-warp_type", \
-    ARG_STRING, \
-    DEFAULT_WARP_TYPE, \
-    "Warping function type (or shape)" }, \
-   \
-  { "-warp_params", \
-    ARG_STRING, \
-    NULL, \
-    "Parameters defining the warping function" }, \
-   \
-  { "-dither", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Add 1/2-bit noise" }, \
-   \
-  { "-seed", \
-    ARG_INTEGER, \
-    ARG_STRINGIFY(SEED), \
-    "Seed for random number generator; if less than zero, pick our own" }, \
-   \
-  { "-remove_dc", \
-    ARG_BOOLEAN, \
-    "no", \
-    "Remove DC offset from each frame" }, \
-  { "-remove_noise", \
-    ARG_BOOLEAN,                          \
-    "no",                                        \
-    "Remove noise using spectral subtraction" }, \
-  { "-verbose",                                 \
-          ARG_BOOLEAN,                          \
-          "no",                                 \
-          "Show input filenames" }
-
   
 /** MFCC computation type. */
 typedef float32 mfcc_t;
@@ -262,12 +104,12 @@ enum fe_error_e {
 /**
  * Initialize a front-end object from a command-line parse.
  *
- * @param config Command-line object, as returned by cmd_ln_parse_r()
+ * @param config Command-line object, as returned by config_parse()
  *               or cmd_ln_parse_file().  Ownership is retained by the
  *               fe_t, so you may free this if you no longer need it.
  * @return Newly created front-end object.
  */
-fe_t *fe_init(cmd_ln_t *config);
+fe_t *fe_init(config_t *config);
 
 /**
  * Retain ownership of a front end object.
@@ -292,7 +134,7 @@ int fe_free(fe_t *fe);
  *         owned by the fe_t, so you should not attempt to free it
  *         manually.
  */
-cmd_ln_t *fe_get_config(fe_t *fe);
+config_t *fe_get_config(fe_t *fe);
 
 /**
  * Get the dimensionality of the output of this front-end object.
@@ -381,10 +223,10 @@ int fe_start(fe_t *fe);
  * the trailing frame written by fe_end().
  */
 int fe_process_int16(fe_t *fe,
-               int16 const **inout_spch,
-               size_t *inout_nsamps,
-               mfcc_t **buf_cep,
-               int nframes);
+                     int16 **inout_spch,
+                     size_t *inout_nsamps,
+                     mfcc_t **buf_cep,
+                     int nframes);
 
 /** 
  * Process a block of floating-point samples.
@@ -393,7 +235,7 @@ int fe_process_int16(fe_t *fe,
  * 32-bit floating point in the range of [-1.0, 1.0].
  */
 int fe_process_float32(fe_t *fe,
-                       float32 const **inout_spch,
+                       float32 **inout_spch,
                        size_t *inout_nsamps,
                        mfcc_t **buf_cep,
                        int nframes);
@@ -467,6 +309,143 @@ int fe_mfcc_dct3(fe_t *fe,  /**< A fe structure */
                  const mfcc_t *fr_cep, /**< One frame of cepstrum */
                  mfcc_t *fr_spec /**< One frame of spectrum */
         );
+
+
+/* Values for the 'logspec' field. */
+enum {
+	RAW_LOG_SPEC = 1,
+	SMOOTH_LOG_SPEC = 2
+};
+
+/* Values for the 'transform' field. */
+enum {
+	LEGACY_DCT = 0,
+	DCT_II = 1,
+        DCT_HTK = 2
+};
+
+/**
+ * Encodings for input data.
+ */
+typedef enum fe_encoding_e {
+    FE_PCM16,
+    FE_FLOAT32
+} fe_encoding_t;
+
+typedef struct melfb_s melfb_t;
+/** Base Struct to hold all structure for MFCC computation. */
+struct melfb_s {
+    float32 sampling_rate;
+    int32 num_cepstra;
+    int32 num_filters;
+    int32 fft_size;
+    float32 lower_filt_freq;
+    float32 upper_filt_freq;
+    /* DCT coefficients. */
+    mfcc_t **mel_cosine;
+    /* Filter coefficients. */
+    mfcc_t *filt_coeffs;
+    int16 *spec_start;
+    int16 *filt_start;
+    int16 *filt_width;
+    /* Luxury mobile home. */
+    int32 doublewide;
+    const char *warp_type;
+    const char *warp_params;
+    uint32 warp_id;
+    /* Precomputed normalization constants for unitary DCT-II/DCT-III */
+    mfcc_t sqrt_inv_n, sqrt_inv_2n;
+    /* Value and coefficients for HTK-style liftering */
+    int32 lifter_val;
+    mfcc_t *lifter;
+    /* Normalize filters to unit area */
+    int32 unit_area;
+    /* Round filter frequencies to DFT points (hurts accuracy, but is
+       useful for legacy purposes) */
+    int32 round_filters;
+};
+
+/* sqrt(1/2), also used for unitary DCT-II/DCT-III */
+#define SQRT_HALF FLOAT2MFCC(0.707106781186548)
+
+/* Scale for float data. */
+#define FLOAT32_SCALE 32768.0F
+/* Dithering constant for float data. */
+#define FLOAT32_DITHER 1.0F
+
+/** Structure for the front-end computation. */
+struct fe_s {
+    config_t *config;
+    int refcount;
+
+    float32 sampling_rate;
+    int16 frame_rate;
+    int16 frame_shift;
+
+    float32 window_length;
+    int16 frame_size;
+    int16 fft_size;
+
+    uint8 fft_order;
+    uint8 feature_dimension;
+    uint8 num_cepstra;
+    uint8 remove_dc;
+
+    uint8 log_spec;
+    uint8 swap;
+    uint8 dither;
+    uint8 transform;
+
+    float32 pre_emphasis_alpha;
+    int32 dither_seed;
+
+    /* Twiddle factors for FFT. */
+    frame_t *ccc, *sss;
+    /* Mel filter parameters. */
+    melfb_t *mel_fb;
+    /* Half of a Hamming Window. */
+    window_t *hamming_window;
+
+    /* One frame's worth of PCM data. */
+    float32 *spch;
+    /* One frame's worth of extra PCM data. */
+    float32 *overflow_samps;
+    /* How many extra samples there are. */
+    int num_overflow_samps;    
+    /* One frame's worth of waveform (FIXME: redundant with spch/overflow). */
+    frame_t *frame;
+    /* Spectrum and mel-spectrum. */
+    powspec_t *spec, *mfspec;
+    /* Carryover value from previous frame for pre-emphasis filter. */
+    float32 pre_emphasis_prior;
+
+    /* Noise removal parameters and buffers. */
+    noise_stats_t *noise_stats;
+};
+
+void fe_init_dither(int32 seed);
+
+/* Load a frame of data into the fe. */
+int fe_read_frame_int16(fe_t *fe, int16 const *in, int32 len);
+int fe_read_frame_float32(fe_t *fe, float32 const *in, int32 len);
+
+/* Shift the input buffer back and read more data. */
+int fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len);
+int fe_shift_frame_float32(fe_t *fe, float32 const *in, int32 len);
+
+/* Process a frame of data into features. */
+int fe_write_frame(fe_t *fe, mfcc_t *fea);
+
+/* Initialization functions. */
+int32 fe_build_melfilters(melfb_t *MEL_FB);
+int32 fe_compute_melcosine(melfb_t *MEL_FB);
+void fe_create_hamming(window_t *in, int32 in_len);
+void fe_create_twiddle(fe_t *fe);
+
+/* Miscellaneous processing functions. */
+void fe_spec2cep(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep);
+void fe_dct2(fe_t *fe, const powspec_t *mflogspec, mfcc_t *mfcep, int htk);
+void fe_dct3(fe_t *fe, const mfcc_t *mfcep, powspec_t *mflogspec);
 
 #ifdef __cplusplus
 }
