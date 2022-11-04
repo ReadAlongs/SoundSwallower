@@ -31,7 +31,7 @@ class Decoder {
      * You may optionally call this with an Object containing
      * configuration keys and values.
      *
-     * @param {Object} [config] - Configuration parameters.
+     * @param {Object} [config] Configuration parameters.
      */
     constructor(config) {
 	this.initialized = false;
@@ -63,8 +63,8 @@ class Decoder {
     }
     /**
      * Set a configuration parameter.
-     * @param {string} key - Parameter name.
-     * @param {number|string} val - Parameter value.
+     * @param {string} key Parameter name.
+     * @param {number|string} val Parameter value.
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
     set_config(key, val) {
@@ -91,7 +91,7 @@ class Decoder {
     }
     /**
      * Reset a configuration parameter to its default value.
-     * @param {string} key - Parameter name.
+     * @param {string} key Parameter name.
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
     unset_config(key) {
@@ -105,7 +105,7 @@ class Decoder {
     }
     /**
      * Get a configuration parameter's value.
-     * @param {string} key - Parameter name.
+     * @param {string} key Parameter name.
      * @returns {number|string} Parameter value.
      * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
      */
@@ -137,7 +137,7 @@ class Decoder {
     }
     /**
      * Test if a key is a known parameter.
-     * @param {string} key - Key whose existence to check.
+     * @param {string} key Key whose existence to check.
      */
     has_config(key) {
 	const ckey = allocateUTF8OnStack(key);
@@ -374,7 +374,7 @@ class Decoder {
 
     /**
      * Process a block of audio data asynchronously.
-     * @param {Float32Array} pcm - Audio data, in float32 format, in
+     * @param {Float32Array} pcm Audio data, in float32 format, in
      * the range [-1.0, 1.0].
      * @returns {Promise<number>} Promise resolved to the number of
      * frames processed.
@@ -449,8 +449,8 @@ class Decoder {
 
     /**
      * Look up a word in the pronunciation dictionary.
-     * @param {string} word - Text of word to look up.
-     * @returns {string} - Space-separated list of phones, or `null` if
+     * @param {string} word Text of word to look up.
+     * @returns {string} Space-separated list of phones, or `null` if
      * word is not in the dictionary.
      */
     lookup_word(word) {
@@ -464,11 +464,11 @@ class Decoder {
     
     /**
      * Add a word to the pronunciation dictionary asynchronously.
-     * @param {string} word - Text of word to add.
-     * @param {string} pron - Pronunciation of word as space-separated list of phonemes.
-     * @param {number} update - Update decoder immediately (set to
+     * @param {string} word Text of word to add.
+     * @param {string} pron Pronunciation of word as space-separated list of phonemes.
+     * @param {number} update Update decoder immediately (set to
      * false when adding a list of words, except for the last word).
-     * @returns {Promise} - Promise resolved once word has been added.
+     * @returns {Promise} Promise resolved once word has been added.
      */
     async add_word(word, pron, update=true) {
 	this.assert_initialized();
@@ -483,10 +483,10 @@ class Decoder {
 
     /**
      * Set recognition grammar from a list of transitions asynchronously.
-     * @param {string} name - Name of grammar.
-     * @param {number} start_state - Index of starting state.
-     * @param {number} final_state - Index of ending state.
-     * @param {Array<Object>} transitions - Array of transitions, each
+     * @param {string} name Name of grammar.
+     * @param {number} start_state Index of starting state.
+     * @param {number} final_state Index of ending state.
+     * @param {Array<Object>} transitions Array of transitions, each
      * of which is an Object with the keys `from`, `to`, `word`, and
      * `prob`.  The word must exist in the dictionary.
      */
@@ -529,8 +529,8 @@ class Decoder {
 
     /**
      * Set recognition grammar from JSGF.
-     * @param {string} jsgf_string - String containing JSGF grammar.
-     * @param {string} [toprule] - Name of starting rule for grammar,
+     * @param {string} jsgf_string String containing JSGF grammar.
+     * @param {string} [toprule] Name of starting rule for grammar,
      * if not specified, the first public rule will be used.
      */
     async set_jsgf(jsgf_string, toprule=null) {
@@ -561,7 +561,7 @@ class Decoder {
     }
     /**
      * Set word sequence for alignment.
-     * @param {string} text - Sentence to align, as whitespace-separated
+     * @param {string} text Sentence to align, as whitespace-separated
      *                        words.  All words must be present in the
      *                        dictionary.
      */
@@ -574,9 +574,25 @@ class Decoder {
 };
 
 /**
- * Simple endpointer using voice activity detection
+ * Simple endpointer using voice activity detection.
  */
 class Endpointer {
+    /**
+     * Create the endpointer
+     *
+     * @param {number} [sample_rate] Sampling rate of the input audio.
+     * @param {number} [frame_length] Length in seconds of an input
+     * frame, must be 0.01, 0.02, or 0.03.
+     * @param {number} [mode] Aggressiveness of voice activity detction,
+     * must be 0, 1, 2, or 3.  Higher numbers will create "tighter"
+     * endpoints at the possible expense of clipping the start of
+     * utterances.
+     * @param {number} [window] Length in seconds of the window used to
+     * make a speech/non-speech decision.
+     * @param {number} [ratio] Ratio of `window` that must be detected as
+     * speech (or not speech) in order to trigger decision.
+     * @throws {Error} on invalid parameters.
+     */
     constructor(sample_rate, frame_length=0.03, mode=0, window=0.3, ratio=0.9) {
         this.cep = Module._endpointer_init(window, ratio, mode,
                                            sample_rate, frame_length);
@@ -589,6 +605,8 @@ class Endpointer {
      *
      * Note that you *must* pass this many samples in each input
      * frame, no more, no less.
+     *
+     * @returns {number} Size of required frame in samples.
      */
     get_frame_size() {
         return Module._vad_frame_size(Module._endpointer_vad(this.cep));
@@ -597,6 +615,8 @@ class Endpointer {
     /**
      * Get the effective length of a frame in seconds (may be
      * different from the one requested in the constructor)
+     *
+     * @returns {number} Length of a frame in seconds.
      */
     get_frame_length() {
         return Module._vad_frame_length(Module._endpointer_vad(this.cep));
@@ -606,19 +626,41 @@ class Endpointer {
      * Is the endpointer currently in a speech segment?
      * 
      * To detect transitions from non-speech to speech, check this
-     * before `process`.  If it was `False` but `process` returns
+     * before process().  If it was `false` but process() returns
      * data, then speech has started.
      *
      * Likewise, to detect transitions from speech to non-speech, call
-     * this *after* `process`.  If `process` returned data but
-     * this returns `False`, then speech has stopped.
+     * this *after* process().  If process() returned data but
+     * this returns `false`, then speech has stopped.
+     *
+     * For example:
+     *
+     * .. code-block:: javascript
+     *
+     *     let prev_in_speech = ep.get_in_speech();
+     *     let frame_size = ep.get_frame_size();
+     *     // Presume `frame` is a Float32Array of frame_size or less
+     *     let speech;
+     *     if (frame.size < frame_size)
+     *         speech = ep.end_stream(frame);
+     *     else
+     *         speech = ep.process(frame);
+     *     if (speech !== null) {
+     *         if (!prev_in_speech)
+     *             console.log("Speech started at " + ep.get_speech_start());
+     *         if (!ep.get_in_speech())
+     *             console.log("Speech ended at " + ep.get_speech_end());
+     *     }
+     *
+     * @returns {Boolean} are we currently in a speech region?
      */
     get_in_speech() {
-        return Module._endpointer_in_speech(this.cep);
+        return Module._endpointer_in_speech(this.cep) != 0;
     }
 
     /**
      * Get start time of current speech region.
+     * @returns {number} Time in seconds.
      */
     get_speech_start() {
         return Module._endpointer_speech_start(this.cep);
@@ -626,6 +668,7 @@ class Endpointer {
 
     /**
      * Get end time of current speech region.
+     * @returns {number} Time in seconds.
      */
     get_speech_end() {
         return Module._endpointer_speech_end(this.cep);
@@ -633,6 +676,9 @@ class Endpointer {
 
     /**
      * Read a frame of data and return speech if detected.
+     * @param {Float32Array} pcm Audio data, in float32 format, in
+     * the range [-1.0, 1.0].  Must contain `get_frame_size()` samples.
+     * @returns {Float32Array} Speech data, if any, or `null` if none.
      */
     process(frame) {
         // Have to convert it to int16 for (fixed-point) VAD
@@ -659,6 +705,11 @@ class Endpointer {
      * stream (and then, only if you are currently in a speech
      * region).  It will return any remaining speech data detected by
      * the endpointer.
+     *
+     * @param {Float32Array} pcm Audio data, in float32 format, in
+     * the range [-1.0, 1.0].  Must contain `get_frame_size()` samples
+     * or less.
+     * @returns {Float32Array} Speech data, if any, or `null` if none.
      */
     end_stream(frame) {
         // Have to convert it to int16 for (fixed-point) VAD
@@ -745,7 +796,7 @@ async function load_to_s3file(path) {
  * This function is used by `Decoder` to find the default model, which
  * is equivalent to `Model.modelBase + Model.defaultModel`.
  *
- * @param {string} subpath - path to model directory or parameter
+ * @param {string} subpath path to model directory or parameter
  * file, e.g. "en-us", "en-us/variances", etc
  * @returns {string} concatenated path. Note this is a simple string
  * concatenation on the Web, so ensure that `modelBase` has a trailing

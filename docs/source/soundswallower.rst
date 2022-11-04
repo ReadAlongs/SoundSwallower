@@ -12,19 +12,20 @@ Decoder class
    :members:
    :undoc-members:
 
+Segmentation and Endpointing classes
+------------------------------------
+
+.. autoclass:: soundswallower.Endpointer
+   :members:
+   :no-undoc-members:
+
+.. autoclass:: soundswallower.Vad
+   :members:
+   :no-undoc-members:
+
 Other classes
 -------------
 
 .. autoclass:: soundswallower.Config
    :members:
    :no-undoc-members:
-
-.. autoclass:: soundswallower.FsgModel
-   :members:
-   :undoc-members:
-
-.. autoclass:: soundswallower.Segment
-   :no-members:
-
-.. autoclass:: soundswallower.Hypothesis
-   :no-members:

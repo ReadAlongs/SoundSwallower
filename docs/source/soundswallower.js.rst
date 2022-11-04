@@ -50,6 +50,43 @@ and placed them under ``/model`` in your web server root:
                                       dict: "/model/br-pt.dic"});
     await decoder.initialize();
 
+For the moment, to use SoundSwallower with Webpack, various
+incantations are required in your `webpack.config.js`.  Sorry, I don't
+make the rules:
+
+.. code-block:: javascript
+
+    const CopyPlugin = require("copy-webpack-plugin");
+
+    // Then... in your `module_exports` or `config` or whatever:
+    plugins: [
+        // Just copy the damn WASM because webpack can't recognize
+        // Emscripten modules.
+        new CopyPlugin({
+            patterns: [
+            { from: "node_modules/soundswallower/soundswallower.wasm*",
+              to: "[name][ext]"},
+            // And copy the model files too. (add any excludes you like)
+            { from: modelDir,
+              to: "model"},
+        ],
+    // Eliminate webpack's node junk when using webpack
+    resolve: {
+        fallback: {
+            crypto: false,
+            fs: false,
+            path: false,
+        },
+    },
+    node: {
+        global: false,
+        __filename: false,
+        __dirname: false,
+    },
+
+For a more elaborate example, see [the soundswallower-demo
+code](https://github.com/dhdaines/soundswallower-demo).
+
 Using SoundSwallower under Node.js
 ----------------------------------
 
@@ -73,16 +110,11 @@ Now run this with ``node``:
 	const decoder = new ssjs.Decoder();
 	// Initialization is asynchronous
 	await decoder.initialize();
-	const grammar = decoder.parse_jsgf(`#JSGF V1.0;
+	const grammar = decoder.set_jsgf(`#JSGF V1.0;
     grammar digits;
     public <digits> = <digit>*;
     <digit> = one | two | three | four | five | six | seven | eight
 	| nine | ten | eleven;`); // It goes to eleven
-	// Anything that changes decoder state is asynchronous
-	await decoder.set_fsg(grammar);
-	// We must manually release memory, because JavaScript
-	// has no destructors, whose great idea was that?
-	grammar.delete();
 	// Default input is 16kHz, 32-bit floating-point PCM
 	const fs = require("fs/promises");
 	let pcm = await fs.readFile("digits.raw");
@@ -94,7 +126,7 @@ Now run this with ``node``:
 	await decoder.stop();
 	// Get recognized text (NOTE: synchronous method)
 	console.log(decoder.get_hyp());
-	// Again we must manually release memory
+	// We must manually release memory...
 	decoder.delete();
     })();
 
@@ -102,19 +134,19 @@ Now run this with ``node``:
 Decoder class
 -------------
 
-.. js:autoclass:: pre_soundswallower.Decoder
+.. js:autoclass:: api.Decoder
    :members:
    :short-name:
 
-Config class
--------------
+Endpointer class
+----------------
 
-.. js:autoclass:: pre_soundswallower.Config
+.. js:autoclass:: api.Endpointer
    :members:
    :short-name:
 
 Functions
 ---------
 
-.. js:autofunction:: pre_soundswallower.get_model_path
+.. js:autofunction:: api.get_model_path
    :short-name:
