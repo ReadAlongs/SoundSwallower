@@ -44,4 +44,6 @@ jobs:
           cmake --build jsbuild
       - name: Run tests
         run: |
-          (cd jsbuild && npm install && npm test)
+          (cd jsbuild && npm install --also=dev)
+          (cd jsbuild && npm test)
+          (cd jsbuild && npm run tstest)
