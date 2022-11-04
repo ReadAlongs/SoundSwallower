@@ -13,7 +13,7 @@ useful speech technologies.
 
 With that in mind the current version is limited to finite-state
 grammar recognition.  In addition, the eternally problematic and
-badly-designed audio library as well as all other external
+badly-designed audio library as well as (almost) all other external
 dependencies have been removed.
 
 Compiling SoundSwallower
@@ -22,12 +22,10 @@ Compiling SoundSwallower
 Currently SoundSwallower can be built in several different ways. To
 build the C shared library, run CMake in the standard way:
 
-    mkdir build
-    cd build
-    cmake ..
-    make
-    make test
-    make install
+    cmake -S . -B build
+    cmake --build build
+    cmake --build build --target check
+    sudo cmake --build --target install
 
 Note that this isn't terribly useful as there is no command-line
 frontend.  You probably want to target JavaScript or Python.
@@ -62,7 +60,16 @@ alignment for one or more input files, for example:
 Note that multiple input files are not particularly useful for
 `--align` or `--align-text` as they will simply (try to) align the
 same text to each file.  The output results (a list of time-aligned
-words) can be written to a JSON file with `--output`.
+words) can be written to a JSON file with `--output`.  To obtain
+phoneme-level alignments, add the `--phone-align` flag.  The JSON
+format (which has recently changed) is the same as used in
+[PocketSphinx 5.0](https://github.com/cmusphinx/pocketsphinx) and is
+more compact than it is readable, but briefly, it consists of one
+dictionary (or "object" in JavaScript-ese) per line, where the `t`
+attribute is the recognized text and the `w` attribute contains a list
+of word segmentations, with start time in `b` and duration in `d` and,
+optionally, a list of phone segmentations in the `w` attribute with
+the same format.
 
 See also the [full documentation of the Python
 API](https://soundswallower.readthedocs.io/en/latest/soundswallower.html).
@@ -70,17 +77,36 @@ API](https://soundswallower.readthedocs.io/en/latest/soundswallower.html).
 Compiling to JavaScript/WebAssembly
 -----------------------------------
 
+To use the JavaScript library in your projects:
+
+    npm install soundswallower
+
 To build the JavaScript library, use CMake with
 [Emscripten](https://emscripten.org/):
 
     emcmake cmake -S . -B jsbuild
     cmake --build jsbuild
 
-This will create `soundswallower.js` and `soundswallower.wasm`
-in the `jsbuild` directory, which you can then include in your
-projects.  Demo applications can be seen at
+This will create `soundswallower.js` and `soundswallower.wasm` in the
+`jsbuild` directory, which you can then include in your projects.  You
+can also use `npm link` to link it to your `node_modules` folder for
+development Demo applications can be seen at
 https://github.com/dhdaines/alignment-demo and
 https://github.com/dhdaines/soundswallower-demo.
+
+To run the JavaScript tests:
+
+    cd jsbuild
+    npm install
+    npm test
+    npx tsc
+    node test_typescript.js
+    
+And in the browser:
+
+    cd jsbuild
+    python server.py
+    # Navigate to http://localhost:8000/test_web.html
 
 For more details on the JavaScript implementation and API, see
 [js/README.js](https://github.com/ReadAlongs/SoundSwallower/blob/master/js/README.md).

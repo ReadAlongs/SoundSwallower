@@ -1,33 +1,23 @@
 Roadmap:
 
-- 0.4.0: Merge PocketSphinx 5.0.0 and update API
-  - Two-pass alignment (but easier)
-  - TESTING
-    - find solution for tests with output on Windows
-  - Update Python and JavaScript + docs
-  - Config updates, but smaller (no s3kr3t command-line, etc) - DONE
-  - CMN interface - DONE (need testing)
-  - Overflow fixes - DONE (need testing)
-  - VAD/Endpointer - DONE (need testing)
-  - JSGF correctness - DONE (need testing - fsg_accept in test lib)
-  - JSON decoding/alignment output - DONE (need testing)
-  - Eliminate "pocketsphinx" API - DONE
-  - Rusty move semantics - DONE (need testing)
-    - passing config, fsg, etc to decoder consumes it
-
-- 1.0.0: Finalize API
+- 1.0: Finalize API
+  - ES6 module (possibly separate for Node vs. Web)
+  - Optimize JSGF compiler
   - Support IPA dictionaries
-  - ES6 module
-  - Clearly define use cases
+  - Improve Endpointer/VAD
+  - Clearly define use cases and restructure API for them
     - Live: feed data asynchronously, check results synchronously or emit events
       - *recording* is real-time in a separate thread
+        - VAD/Endpointing should be done in the recording thread
+        - Feature extraction could be done there but this is not necessary
       - *decoding* is not real-time, can be decomposed to microtasks
-    - Single: pass data with promise of result, emit progress events
+    - Single/Batch: pass data with promise of result, emit progress events
+      - Good fit for async
   - Easier support for observable/event type uses
     - async/await/promise is actually not a great fit
   - Support web audio formats directly
   - Better solution for float vs. int in front-end
 
-- 2.0.0: Improved modeling
-  - DNN acoustic models?
-  - WFST search?
+- 2.0: Improved modeling
+  - WFST search
+  - DNN acoustic models
