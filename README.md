@@ -5,7 +5,7 @@ SoundSwallower: an even smaller speech recognizer
 > always searching for one or the other."<br>
 > Leena Krohn, *Datura, or a delusion we all see*
 
-SoundSwallower is a refactored version of PocketSphinx intended
+SoundSwallower is a very small and simple speech recognizer intended
 primarily for embedding in web applications.  The goal is not to
 provide a fast implementation of large-vocabulary continuous speech
 recognition, but rather to provide a *small* implementation of simple,
@@ -20,7 +20,7 @@ Compiling SoundSwallower
 ========================
 
 Currently SoundSwallower can be built in several different ways. To
-build the C shared library, run CMake in the standard way:
+build the C library, run CMake in the standard way:
 
     cmake -S . -B build
     cmake --build build
@@ -28,7 +28,9 @@ build the C shared library, run CMake in the standard way:
     sudo cmake --build --target install
 
 Note that this isn't terribly useful as there is no command-line
-frontend.  You probably want to target JavaScript or Python.
+frontend, and shared libraries are not built by default (pass
+`-DBUILD_SHARED_LIBS=ON` if you insist).  You probably want to target
+JavaScript or Python.
 
 Installing the Python module and CLI
 ------------------------------------
@@ -155,3 +157,19 @@ If you don't have Conda, then what you will need to do is:
         py310\scripts\activate
 
 - now you can build wheels with pip, using the same method mentioned above.
+
+Authors
+-------
+
+SoundSwallower is based on PocketSphinx, which is based on Sphinx-II,
+which is based on Sphinx, which is based on Harpy, and so on, and so
+on, back to somewhere around the Unix Epoch.  Thanks to Kevin Lenzo
+for releasing CMU Sphinx under a BSD license and making this possible,
+and Ravishankar Mosur who actually wrote most of the decoder.  Many
+others also contributed along the way, take a look at [the AUTHORS
+file in
+PocketSphinx](https://github.com/cmusphinx/pocketsphinx/blob/master/AUTHORS)
+for an idea.
+
+This document and SoundSwallower are now being developed by David
+Huggins-Daines.
