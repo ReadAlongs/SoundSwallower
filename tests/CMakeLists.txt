@@ -7,6 +7,7 @@ set(TESTS
   test_acmod_grow
   test_add_words
   test_bitvec
+  test_byteorder
   test_ckd_alloc
   test_ckd_alloc_catch
   test_dict2pid
