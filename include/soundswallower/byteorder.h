@@ -71,7 +71,10 @@
 				(0xff000000 & (*(x))<<24))
 
 /* Macro to byteswap a float32 variable.  x = ptr to variable */
-#define SWAP_FLOAT32(x)	SWAP_INT32((int32 *) x)
+#define SWAP_FLOAT32(x)	{ uint8 tmp, *ux = (uint8 *)x;    \
+    tmp = ux[3]; ux[3] = ux[0]; ux[0] = tmp; \
+    tmp = ux[2]; ux[2] = ux[1]; ux[1] = tmp; \
+}
 
 /* Macro to byteswap a float64 variable.  x = ptr to variable */
 #define SWAP_FLOAT64(x)	{ int32 *low = (int32 *) (x), *high = (int32 *) (x) + 1,\
