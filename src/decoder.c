@@ -71,6 +71,11 @@ expand_file_config(config_t *config, const char *arg,
     }
 }
 #else
+#ifdef WIN32
+#define PATHSEP "\\"
+#else
+#define PATHSEP "/"
+#endif
 static int
 file_exists(const char *path)
 {
@@ -87,7 +92,7 @@ expand_file_config(config_t *config, const char *arg,
 {
     const char *val;
     if ((val = config_str(config, arg)) == NULL) {
-        char *tmp = string_join(hmmdir, "/", file, NULL);
+        char *tmp = string_join(hmmdir, PATHSEP, file, NULL);
         if (file_exists(tmp))
 	    config_set_str(config, arg, tmp);
 	else
@@ -124,9 +129,10 @@ config_expand(config_t *config)
 #else
     /* Look for feat_params.json in acoustic model dir. */
     if ((featparams = config_str(config, "featparams")) != NULL) {
-        FILE *json = fopen(featparams, "rt");
+        /* Open in binary mode so fread() matches ftell() on Windows */
+        FILE *json = fopen(featparams, "rb");
         char *jsontxt;
-        size_t len;
+        size_t len, rv;
 
         if (json == NULL)
             return;
@@ -138,8 +144,9 @@ config_expand(config_t *config)
         }
         jsontxt = malloc(len + 1);
         jsontxt[len] = '\0';
-        if (fread(jsontxt, 1, len, json) != len) {
-            E_ERROR_SYSTEM("Failed to read %s", featparams);
+        if ((rv = fread(jsontxt, 1, len, json)) != len) {
+            E_ERROR_SYSTEM("Failed to read %s (got %zu not %zu)",
+                           featparams, rv, len);
             ckd_free(jsontxt);
             return;
         }
