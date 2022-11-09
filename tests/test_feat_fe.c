@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	cptr = cepbuf;
 	nfr = total_frames;
 	while ((nsamp = fread(buf, sizeof(int16), 2048, raw)) > 0) {
-		int16 const *bptr = buf;
+		int16 *bptr = buf;
 		while (nsamp) {
 			int ncep = fe_process_int16(fe, &bptr, &nsamp,
                                                     cptr, nfr);

@@ -13,7 +13,7 @@ decoder_test(config_t *config, char const *sname, char const *expected)
     mfcc_t **cepbuf;
     FILE *rawfh;
     int16 *buf;
-    int16 const *bptr;
+    int16 *bptr;
     size_t nread;
     size_t nsamps;
     int32 nfr, i, score, prob;

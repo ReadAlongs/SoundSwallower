@@ -127,10 +127,10 @@ create_shifted(fe_t *fe, float32 *data, size_t nsamp)
 }
 
 mfcc_t **
-create_full(fe_t *fe, const float32 *data, size_t nsamp)
+create_full(fe_t *fe, float32 *data, size_t nsamp)
 {
     mfcc_t **cepbuf;
-    const float32 *inptr;
+    float32 *inptr;
     int rv, nfr, ncep;
     
     TEST_EQUAL(0, fe_start(fe));
@@ -157,10 +157,10 @@ create_full(fe_t *fe, const float32 *data, size_t nsamp)
 }
 
 mfcc_t **
-create_process_frames(fe_t *fe, const float32 *data, size_t nsamp)
+create_process_frames(fe_t *fe, float32 *data, size_t nsamp)
 {
     mfcc_t **cepbuf;
-    const float32 *inptr;
+    float32 *inptr;
     int i, rv, nfr, ncep, frame_shift, frame_size;
     
     fe_get_input_size(fe, &frame_shift, &frame_size);
@@ -197,10 +197,10 @@ create_process_frames(fe_t *fe, const float32 *data, size_t nsamp)
 
 
 mfcc_t **
-create_fragments(fe_t *fe, const float32 *data, size_t nsamp)
+create_fragments(fe_t *fe, float32 *data, size_t nsamp)
 {
     mfcc_t **cepbuf, **cepptr;
-    const float32 *inptr;
+    float32 *inptr;
     int i, rv, nfr, ncep, frame_shift, frame_size;
     /* Should total 1024 :) */
     size_t fragments[] = {
@@ -238,11 +238,11 @@ create_fragments(fe_t *fe, const float32 *data, size_t nsamp)
 
 
 mfcc_t **
-create_mixed_fragments(fe_t *fe, const float32 *data, const int16 *idata, size_t nsamp, int odd)
+create_mixed_fragments(fe_t *fe, float32 *data, int16 *idata, size_t nsamp, int odd)
 {
     mfcc_t **cepbuf, **cepptr;
-    const float32 *inptr;
-    const int16 *iinptr;
+    float32 *inptr;
+    int16 *iinptr;
     int i, rv, nfr, ncep, frame_shift, frame_size;
     /* Should total 1024 :) */
     size_t fragments[] = {
