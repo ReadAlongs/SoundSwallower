@@ -129,9 +129,10 @@ config_expand(config_t *config)
 #else
     /* Look for feat_params.json in acoustic model dir. */
     if ((featparams = config_str(config, "featparams")) != NULL) {
-        FILE *json = fopen(featparams, "rt");
+        /* Open in binary mode so fread() matches ftell() on Windows */
+        FILE *json = fopen(featparams, "rb");
         char *jsontxt;
-        size_t len;
+        size_t len, rv;
 
         if (json == NULL)
             return;
@@ -143,8 +144,9 @@ config_expand(config_t *config)
         }
         jsontxt = malloc(len + 1);
         jsontxt[len] = '\0';
-        if (fread(jsontxt, 1, len, json) != len) {
-            E_ERROR_SYSTEM("Failed to read %s", featparams);
+        if ((rv = fread(jsontxt, 1, len, json)) != len) {
+            E_ERROR_SYSTEM("Failed to read %s (got %zu not %zu)",
+                           featparams, rv, len);
             ckd_free(jsontxt);
             return;
         }
