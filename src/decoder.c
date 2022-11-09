@@ -71,6 +71,11 @@ expand_file_config(config_t *config, const char *arg,
     }
 }
 #else
+#ifdef WIN32
+#define PATHSEP "\\"
+#else
+#define PATHSEP "/"
+#endif
 static int
 file_exists(const char *path)
 {
@@ -87,7 +92,7 @@ expand_file_config(config_t *config, const char *arg,
 {
     const char *val;
     if ((val = config_str(config, arg)) == NULL) {
-        char *tmp = string_join(hmmdir, "/", file, NULL);
+        char *tmp = string_join(hmmdir, PATHSEP, file, NULL);
         if (file_exists(tmp))
 	    config_set_str(config, arg, tmp);
 	else
