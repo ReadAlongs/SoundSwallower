@@ -36,7 +36,7 @@ main(int argc, char *argv[])
     config_t *config;
     FILE *rawfh;
     int16 *buf;
-    int16 const *bptr;
+    int16 *bptr;
     mfcc_t **cepbuf, **cptr;
     size_t nread, nsamps;
     fe_t *fe;

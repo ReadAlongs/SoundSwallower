@@ -1,5 +1,4 @@
-scikit-build~=0.13
-Cython~=0.29.21
-pytest~=7.1.2
-build~=0.8.0
+scikit-build
+Cython
+pytest
 numpy

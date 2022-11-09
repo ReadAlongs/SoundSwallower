@@ -1,9 +1,7 @@
 include CMakeLists.txt
 include LICENSE
-include README.manylinux.md
 include README.md
 include TODO.md
-include build_wheels.sh
 include config.h.in
 include requirements.dev.txt
 include docs/Makefile
@@ -17,10 +15,15 @@ include docs/source/readme.js.rst
 include docs/source/readme.rst
 include docs/source/soundswallower.rst
 include include/soundswallower/CMakeLists.txt
-include include/soundswallower/*.h
-include js/CMakeLists.txt
+recursive-include include *.h
 include js/README.md
+include js/.npmignore
+include js/*.txt
 include js/*.js
+include js/*.ts
+include js/*.html
+include js/*.py
+include js/*.c
 include js/*.json
 recursive-include model *
 include py/CMakeLists.txt
@@ -35,23 +38,27 @@ include py/test/test_fsg.py
 include pyproject.toml
 include setup.py
 include src/CMakeLists.txt
-include src/*.c
-include src/*.h
-include src/*.y
-include src/*.l
+recursive-include src *.c
+recursive-include src *.h
+recursive-include src *.y
+recursive-include src *.l
 include tests/CMakeLists.txt
 include tests/*.test
 include tests/*.res
 include tests/*.c
+include tests/*.sh
+include tests/testfuncs.sh.in
+include tests/test_macros.h.in
 include tests/compare_table.pl
 recursive-include tests/data *
-include tests/test_macros.h.in
 exclude MANIFEST.in
 exclude .readthedocs.yml
 exclude .travis.yml
 exclude .gitignore
 recursive-exclude .github *
 recursive-exclude _skbuild *
+recursive-exclude build *
+recursive-exclude jsbuild *
 recursive-exclude * .gitignore
 recursive-exclude * *.py[co]
 recursive-exclude * *~ 

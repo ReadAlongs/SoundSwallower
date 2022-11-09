@@ -37,7 +37,7 @@ main(int argc, char *argv[])
     feat_t *fcb;
     FILE *rawfh;
     int16 *buf;
-    int16 const *bptr;
+    int16 *bptr;
     size_t nread, nsamps;
     int nfr;
     int frame_counter;

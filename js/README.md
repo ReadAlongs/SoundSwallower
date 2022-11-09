@@ -124,23 +124,29 @@ await decoder.initialize();
 
 The optional `loglevel` and `backtrace` options will make it a bit
 more verbose, so you can be sure it's actually doing something.  Now
-we will create the world's stupidest grammar, which recognizes one
-sentence:
+we will create and enable the world's stupidest grammar, which
+recognizes one sentence:
 
 ```js
-let fsg = decoder.create_fsg("goforward", 0, 4, [
+await decoder.set_fsg("goforward", 0, 4, [
     {from: 0, to: 1, prob: 1.0, word: "go"},
     {from: 1, to: 2, prob: 1.0, word: "forward"},
     {from: 2, to: 3, prob: 1.0, word: "ten"},
     {from: 3, to: 4, prob: 1.0, word: "meters"}
 ]);
-await decoder.set_fsg(fsg);
 ```
 
-You should `delete()` it, unless of course you intend to create a
-bunch of them and swap them in and out.  It is also possible to parse
-a grammar in [JSGF](https://en.wikipedia.org/wiki/JSGF) format, see
-below for an example.
+If you actually want to just recognize a single sentence, in order to
+get time alignments (this is known as "force-alignment"), we have a
+better method for you:
+
+```js
+await decoder.set_align_text("go forward ten meters");
+```
+
+It is also possible to parse a grammar in
+[JSGF](https://en.wikipedia.org/wiki/JSGF) format, see below for an
+example.
 
 Okay, let's wreck a nice beach!  Record yourself saying something,
 preferably the sentence "go forward ten meters", using SoX, for
@@ -169,6 +175,23 @@ the decoder:
 ```js
 console.log(decoder.get_hyp());
 console.log(decoder.get_hypseg());
+```
+
+If you want even more detailed segmentation (phone and HMM state
+level) you can use `get_alignment_json`.  For more detail on this
+format, see [the PocketSphinx
+documentation](https://github.com/cmusphinx/pocketsphinx#usage) as it
+is borrowed from there.  Since this is JSON, you can create an object
+from it and iterate over it:
+
+```js
+const result = JSON.parse(await decoder.get_alignment_json());
+for (const word of result.w) {
+    console.log(`word ${word.t} at ${word.b} has duration ${word.d}`);
+    for (const phone of word.w) {
+        console.log(`phone ${phone.t} at ${phone.b} has duration ${phone.d}`);
+    }
+}
 ```
 
 Finally, if your program is long-running and you think you might make
@@ -210,18 +233,6 @@ await require('soundswallower')(ssjs);
 This is simply concatenated to the model name, so you should make sure
 to include the trailing slash, e.g. "model/" and not "model"!
 
-Currently, it should also support any Sphinx format acoustic model, many of
-which are available for download at [the SourceForge
-page](https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/).
-
-To use a module, pass the directory (or base URL) containing its files
-(i.e. `means`, `variances`, etc) in the `hmm` property when
-initializing the decoder, for example:
-
-```js
-const decoder = ssjs.Decoder({hmm: "https://example.com/excellent-acoustic-model/"});
-```
-
 
 Using grammars
 --------------
@@ -231,7 +242,7 @@ from a JavaScript string and set it in the decoder like this (a
 hypothetical pizza-ordering grammar):
 
 ```js
-    let fsg = decoder.parse_jsgf(`#JSGF V1.0;
+    await decoder.set_jsgf(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 <greeting> = hi | hello | yo | howdy;
@@ -241,7 +252,6 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 <toppings> = [with] <topping> ([and] <topping>)*;
 <topping> = olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
-    await decoder.set_fsg(fsg);
 ```
 
 Note that all the words in the grammar must first be defined in the
@@ -256,4 +266,33 @@ the internal state.
 ```js
     await decoder.add_word("supercalifragilisticexpialidocious",
 	    "S UW P ER K AE L IH F R AE JH IH L IH S T IH K EH K S P IY AE L IH D OW SH Y UH S");
+```
+
+Voice activity detection / Endpointing
+--------------------------------------
+
+This is a work in progress, but it is also possible to detect the
+start and end of speech in an input stream using an `Endpointer`
+object.  This requires you to pass buffers of a specific size, which
+is understandably difficult since WebAudio also only wants to *give*
+you buffers of a specific (and entirely different) size.  A better
+example is forthcoming but it looks a bit like this (copied directly
+from [the
+documentation](https://soundswallower.readthedocs.io/en/latest/soundswallower.js.html#Endpointer.get_in_speech):
+
+```js
+let prev_in_speech = ep.get_in_speech();
+let frame_size = ep.get_frame_size();
+// Presume `frame` is a Float32Array of frame_size or less
+let speech;
+if (frame.size < frame_size)
+    speech = ep.end_stream(frame);
+else
+    speech = ep.process(frame);
+if (speech !== null) {
+    if (!prev_in_speech)
+        console.log("Speech started at " + ep.get_speech_start());
+    if (!ep.get_in_speech())
+        console.log("Speech ended at " + ep.get_speech_end());
+}
 ```
