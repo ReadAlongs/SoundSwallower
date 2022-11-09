@@ -10,11 +10,14 @@ requires = [
 build-backend = "setuptools.build_meta"
 [tool.cibuildwheel]
 # Build the versions found in Ubuntu LTS, the stable PyPy, Anaconda on Windows
+# ...and some other versions we want for Windows
 build = [
       "pp38*",
       "cp36-manylinux_*",
       "cp38-manylinux_*",
-	  "cp39-win*",
+      "cp37-win*",
+      "cp38-win*",
+      "cp39-win*",
       "cp310-*"
 ]
 # PyPy 3.8 will choke on CPython 3.8 build leftovers...
