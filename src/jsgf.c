@@ -41,7 +41,6 @@
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/strfuncs.h>
 #include <soundswallower/hash_table.h>
-#include <soundswallower/filename.h>
 #include <soundswallower/err.h>
 #include <soundswallower/jsgf.h>
 
@@ -56,6 +55,27 @@ extern int yyparse(void *scanner, jsgf_t * jsgf);
  * This file implements the data structures for parsing JSGF grammars
  * into Sphinx finite-state grammars.
  **/
+
+/* Return all leading pathname components */
+static void
+path2dirname(const char *path, char *dir)
+{
+    size_t i, l;
+
+    l = strlen(path);
+#if defined(_WIN32) || defined(__CYGWIN__)
+    for (i = l - 1; (i > 0) && !(path[i] == '/' || path[i] == '\\'); --i);
+#else
+    for (i = l - 1; (i > 0) && !(path[i] == '/'); --i);
+#endif
+    if (i == 0) {
+        dir[0] = '.';
+        dir[1] = '\0';
+    } else {
+        memcpy(dir, path, i);
+        dir[i] = '\0';
+    }
+}
 
 jsgf_atom_t *
 jsgf_atom_new(char *name, float weight)

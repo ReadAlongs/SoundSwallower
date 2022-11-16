@@ -52,7 +52,6 @@
 
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-#include <soundswallower/filename.h>
 #include <soundswallower/ckd_alloc.h>
 
 static err_cb_f err_cb = err_stderr_cb;
@@ -62,6 +61,20 @@ static const char *err_level[ERR_MAX] =
     {
      "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
     };
+
+static const char *
+path2basename(const char *path)
+{
+    const char *result;
+
+#if defined(_WIN32) || defined(__CYGWIN__)
+    result = strrchr(path, '\\');
+#else
+    result = strrchr(path, '/');
+#endif
+
+    return (result == NULL ? path : result + 1);
+}
 
 int
 err_set_loglevel(err_lvl_t lvl)

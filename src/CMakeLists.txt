@@ -37,7 +37,6 @@ fe_warp_affine.c
 fe_warp.c
 fe_warp_inverse_linear.c
 fe_warp_piecewise_linear.c
-filename.c
 fsg_history.c
 fsg_lextree.c
 fsg_model.c
