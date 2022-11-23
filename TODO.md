@@ -1,9 +1,20 @@
 Roadmap:
 
+- 0.4.x: Fix some problems
+  - Absence of mdef_convert
+    - Make a general model conversion tool
+    - Allows us flexibility in model implementation for future
+  - Documentation deficiencies
+    - Lack of example for endpointer
+  - Lack of adapter for endpointer (WebAudio, etc)
+  - Lack of web audio format support
+    
+- 0.5.x: Improve performance/usability
+  - Phone input/output as IPA
+  - Optimize JSGF compiler
+
 - 1.0: Finalize API
   - ES6 module (possibly separate for Node vs. Web)
-  - Optimize JSGF compiler
-  - Support IPA dictionaries
   - Improve Endpointer/VAD
   - Clearly define use cases and restructure API for them
     - Live: feed data asynchronously, check results synchronously or emit events
