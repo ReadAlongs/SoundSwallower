@@ -42,6 +42,7 @@
  * \brief Operations on dictionary. 
  */
 
+#include <soundswallower/configuration.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/s3types.h>
 #include <soundswallower/bin_mdef.h>

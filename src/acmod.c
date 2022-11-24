@@ -77,7 +77,8 @@ acmod_load_am(acmod_t *acmod)
         return -1;
     }
 
-    if ((acmod->mdef = bin_mdef_read(acmod->config, mdeffn)) == NULL) {
+    if ((acmod->mdef = bin_mdef_read(mdeffn,
+                                     config_bool(acmod->config, "cionly"))) == NULL) {
         E_ERROR("Failed to read acoustic model definition from %s\n", mdeffn);
         return -1;
     }

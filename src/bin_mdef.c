@@ -163,15 +163,12 @@ build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
 }
 
 bin_mdef_t *
-bin_mdef_read_text(config_t *config, const char *filename)
+bin_mdef_read_text(const char *filename, int cionly)
 {
     bin_mdef_t *bmdef;
     mdef_t *mdef;
-    int i, nchars, cionly;
+    int i, nchars;
 
-    (void)config;
-
-    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
         return NULL;
 
@@ -310,14 +307,13 @@ bin_mdef_free(bin_mdef_t * m)
 }
 
 bin_mdef_t *
-bin_mdef_read(config_t *config, const char *filename)
+bin_mdef_read(const char *filename, int cionly)
 {
     bin_mdef_t *m;
     s3file_t *s;
-    int cionly;
 
     /* Try to read it as text first. */
-    if ((m = bin_mdef_read_text(config, filename)) != NULL)
+    if ((m = bin_mdef_read_text(filename, cionly)) != NULL)
         return m;
     E_INFO("Reading binary model definition: %s\n", filename);
     if ((s = s3file_map_file(filename)) == NULL) {
@@ -326,7 +322,6 @@ bin_mdef_read(config_t *config, const char *filename)
         return NULL;
     }
 
-    cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
     m = bin_mdef_read_s3file(s, cionly);
     s3file_free(s);
     return m;
