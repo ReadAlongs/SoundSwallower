@@ -11,7 +11,7 @@ export class Decoder {
     reinitialize_audio(): Promise<void>;
     start(): Promise<void>;
     stop(): Promise<void>;
-    process(pcm: Float32Array|Uint8Array, no_search: boolean, full_utt: boolean): Promise<number>;
+    process(pcm: Float32Array|Uint8Array, no_search?: boolean, full_utt?: boolean): Promise<number>;
     get_hyp(): string;
     get_hypseg(): Array<Segment>;
     get_alignment_json(start?: number, align_level?: number): Promise<string>;
@@ -21,6 +21,15 @@ export class Decoder {
             transitions: Array<Transition>): Promise<void>;
     set_jsgf(jsgf_string: string, toprule?: string): Promise<void>;
     set_align_text(text: string): Promise<void>;
+}
+export class Endpointer {
+    get_frame_size(): number;
+    get_frame_length(): number;
+    get_in_speech(): boolean;
+    get_speech_start(): number;
+    get_speech_end(): number;
+    process(frame: Float32Array): Float32Array;
+    end_stream(frame: Float32Array): Float32Array;
 }
 export interface Transition {
     from: number;
@@ -37,6 +46,10 @@ export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(subpath: string): string;
     Decoder: {
         new(config?: Object): Decoder;
+    }
+    Endpointer: {
+        new(sample_rate: number, frame_length?: number,
+            mode?: number, window?: number, ratio?: number): Endpointer;
     }
 }
 declare const Module: EmscriptenModuleFactory<SoundSwallowerModule>;
