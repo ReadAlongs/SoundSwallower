@@ -66,11 +66,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(_WIN32) && !defined(__SYMBIAN32__)
+#if defined(_WIN32)
 # include <windows.h>
-# ifndef _WIN32_WCE
-#  include <time.h>
-# endif
 #elif defined(HAVE_UNISTD_H) /* I know this, this is Unix... */
 # include <unistd.h>
 # include <sys/time.h>
@@ -84,23 +81,6 @@
 #include <soundswallower/profile.h>
 #include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-
-#if defined(_WIN32_WCE) || defined(_WIN32_WP)
-DWORD unlink(const char *filename)
-{
-	WCHAR *wfilename;
-	DWORD rv;
-	size_t len;
-
-	len = mbstowcs(NULL, filename, 0);
-	wfilename = ckd_calloc(len+1, sizeof(*wfilename));
-	mbstowcs(wfilename, filename, len);
-	rv = DeleteFileW(wfilename);
-	ckd_free(wfilename);
-
-	return rv;
-}
-#endif
 
 pctr_t *
 pctr_new(char *nm)
@@ -139,7 +119,7 @@ pctr_free(pctr_t * pc)
 }
 
 
-#if defined(_WIN32) && !defined(GNUWINCE) && !defined(__SYMBIAN32__)
+#if defined(_WIN32)
 
 #define TM_LOWSCALE	1e-7
 #define TM_HIGHSCALE	(4294967296.0 * TM_LOWSCALE);
@@ -169,17 +149,10 @@ make_sec(struct timeval *s)
 void
 ptmr_start(ptmr_t * tm)
 {
-#if (!defined(_WIN32)) || defined(GNUWINCE) || defined(__SYMBIAN32__)
+#if !defined(_WIN32)
     struct timeval e_start;     /* Elapsed time */
     gettimeofday(&e_start, 0);
     tm->start_elapsed = make_sec(&e_start);
-#elif defined(_WIN32_WP)
-    tm->start_cpu = GetTickCount64() / 1000;
-    tm->start_elapsed = GetTickCount64() / 1000;
-#elif defined(_WIN32_WCE)
-    /* No GetProcessTimes() on WinCE.  (Note CPU time will be bogus) */
-    tm->start_cpu = GetTickCount() / 1000;
-    tm->start_elapsed = GetTickCount() / 1000;
 #else
     HANDLE pid;
     FILETIME t_create, t_exit, kst, ust;
@@ -199,31 +172,22 @@ ptmr_stop(ptmr_t * tm)
 {
     float64 dt_cpu, dt_elapsed;
 
-#if (! defined(_WIN32)) || defined(GNUWINCE) || defined(__SYMBIAN32__)
+#if !defined(_WIN32)
+    /* Unix */
     struct timeval e_stop;      /* Elapsed time */
-
-#if (! defined(_HPUX_SOURCE))  && (! defined(__SYMBIAN32__))
+#  if defined(HAVE_GETRUSAGE) && !defined(__EMSCRIPTEN__) /* Which LIES */
     struct rusage stop;         /* CPU time */
-
-    /* Unix but not HPUX */
     getrusage(RUSAGE_SELF, &stop);
     dt_cpu =
         make_sec(&stop.ru_utime) + make_sec(&stop.ru_stime) -
         tm->start_cpu;
-#else
+#  else
     dt_cpu = 0.0;
-#endif
-    /* Unix + HP */
+#  endif
     gettimeofday(&e_stop, 0);
     dt_elapsed = (make_sec(&e_stop) - tm->start_elapsed);
-#elif defined(_WIN32_WP)
-    dt_cpu = GetTickCount64() / 1000 - tm->start_cpu;
-    dt_elapsed = GetTickCount64() / 1000 - tm->start_elapsed;
-#elif defined(_WIN32_WCE)
-    /* No GetProcessTimes() on WinCE.  (Note CPU time will be bogus) */
-    dt_cpu = GetTickCount() / 1000 - tm->start_cpu;
-    dt_elapsed = GetTickCount() / 1000 - tm->start_elapsed;
 #else
+    /* Windows */
     HANDLE pid;
     FILETIME t_create, t_exit, kst, ust;
 
