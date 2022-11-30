@@ -18,11 +18,12 @@ CHECK_INCLUDE_FILE(sys/types.h HAVE_SYS_TYPES_H)
 CHECK_INCLUDE_FILE(sys/stat.h HAVE_SYS_STAT_H)
 CHECK_SYMBOL_EXISTS(snprintf stdio.h HAVE_SNPRINTF)
 CHECK_SYMBOL_EXISTS(popen stdio.h HAVE_POPEN)
+CHECK_SYMBOL_EXISTS(getrusage sys/resource.h HAVE_GETRUSAGE)
 
 # Testing endianness is stupidly hard with CMake
 if(EMSCRIPTEN)
-  # FIXME: and doesn't work at all with emscripten, maybe it's just
-  # always little-endian?
+  # Emscripten is always little-endian (requires a linker flag to work
+  # on big-endian platforms though)
   set(WORDS_BIGENDIAN 0)
 else()
   test_big_endian(WORDS_BIGENDIAN)
