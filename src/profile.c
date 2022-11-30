@@ -68,6 +68,7 @@
 
 #if defined(_WIN32)
 # include <windows.h>
+# include <time.h>
 #elif defined(HAVE_UNISTD_H) /* I know this, this is Unix... */
 # include <unistd.h>
 # include <sys/time.h>
