@@ -17,7 +17,6 @@ set(TESTS
   test_fe_long
   test_feat_fe
   test_feat_live
-  test_filename
   test_fsg
   test_hash_iter
   test_jsgf

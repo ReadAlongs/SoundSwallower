@@ -22,7 +22,6 @@ fe_warp_affine.h
 fe_warp.h
 fe_warp_inverse_linear.h
 fe_warp_piecewise_linear.h
-filename.h
 fsg_history.h
 fsg_lextree.h
 fsg_model.h

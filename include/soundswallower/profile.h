@@ -179,21 +179,6 @@ void ptmr_init (ptmr_t *tmr /**< The timer*/
 void ptmr_reset_all (ptmr_t *tmr /**< The timer*/
 	);
 
-
-/**
- * Return the processor clock speed (in MHz); only available on some machines (Alphas).
- * The dummy argument can be any integer value.
- */
-int32 host_pclk (int32 dummy);
-
-
-/*
- * Check the native byte-ordering of the machine by writing a magic
- * number to a temporary file and reading it back.  * Return value:
- * 0 if BIG-ENDIAN, 1 if LITTLE-ENDIAN, -1 if error.  
- */
-int32 host_endian ( void );
-
 #ifdef __cplusplus
 }
 #endif
