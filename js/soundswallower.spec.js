@@ -1,3 +1,4 @@
+/* A bunch of junk to make this work in Node and Web */
 const ENVIRONMENT_IS_WEB = typeof(window) !== "undefined";
 let assert, load_binary_file;
 if (ENVIRONMENT_IS_WEB) {
@@ -20,36 +21,37 @@ else {
     }
     assert = require('assert');
 }
-const ssjs = {};
+
+const soundswallower = {};
 before(async () => {
     if (ENVIRONMENT_IS_WEB) {
-        await createModule(ssjs);
+        await createModule(soundswallower);
     }
     else {
-        await require("./soundswallower.js")(ssjs);
+        await require("./soundswallower.js")(soundswallower);
     }
         
 });
 describe("Test initialization", () => {
     it("Should load the WASM module", () => {
-	assert.ok(ssjs);
+	assert.ok(soundswallower);
     });
 });
 describe("Test decoder initialization", () => {
     it("Should initialize the decoder", async () => {
-	let decoder = new ssjs.Decoder({
+	let decoder = new soundswallower.Decoder({
 	    fsg: "testdata/goforward.fsg",
 	    samprate: 16000,
 	});
         assert.ok(decoder);
         assert.equal(decoder.get_config("hmm"),
-                     ssjs.get_model_path(ssjs.defaultModel));
+                     soundswallower.get_model_path(soundswallower.defaultModel));
         decoder.delete();
     });
 });
 describe("Test configuration as JSON", () => {
     it("Should contain default configuration", () => {
-	let decoder = new ssjs.Decoder({
+	let decoder = new soundswallower.Decoder({
 	    fsg: "testdata/goforward.fsg",
 	    samprate: 16000,
 	});
@@ -58,14 +60,14 @@ describe("Test configuration as JSON", () => {
         let config = JSON.parse(json);
         assert.ok(config);
         assert.equal(config.hmm,
-                     ssjs.get_model_path(ssjs.defaultModel));
+                     soundswallower.get_model_path(soundswallower.defaultModel));
         assert.equal(config.loglevel, "WARN");
         assert.equal(config.fsg, "testdata/goforward.fsg");
     });
 });
 describe("Test acoustic model loading", () => {
     it('Should load acoustic model', async () => {
-	let decoder = new ssjs.Decoder();
+	let decoder = new soundswallower.Decoder();
 	await decoder.init_featparams();
 	await decoder.init_fe();
 	await decoder.init_feat();
@@ -77,7 +79,7 @@ describe("Test acoustic model loading", () => {
 });
 describe("Test decoding", () => {
     it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new ssjs.Decoder({
+        let decoder = new soundswallower.Decoder({
             fsg: "testdata/goforward.fsg",
             samprate: 16000,
         });
@@ -99,7 +101,7 @@ describe("Test decoding", () => {
         decoder.delete();
     });
     it('Should accept Float32Array as well as UInt8Array', async () => {
-        let decoder = new ssjs.Decoder({
+        let decoder = new soundswallower.Decoder({
             fsg: "testdata/goforward.fsg",
             samprate: 16000
         });
@@ -113,7 +115,7 @@ describe("Test decoding", () => {
         decoder.delete();
     });
     it('Should align "go forward ten meters"', async () => {
-        let decoder = new ssjs.Decoder({
+        let decoder = new soundswallower.Decoder({
             samprate: 16000,
         });
         await decoder.initialize();
@@ -154,7 +156,7 @@ describe("Test decoding", () => {
 });
 describe("Test dictionary and FSG", () => {
     it('Should recognize "_go _forward _ten _meters"', async () => {
-        let decoder = new ssjs.Decoder({samprate: 16000});
+        let decoder = new soundswallower.Decoder({samprate: 16000});
         decoder.unset_config("dict");
         await decoder.initialize();
         await decoder.add_word("_go", "G OW", false);
@@ -177,7 +179,7 @@ describe("Test dictionary and FSG", () => {
 });
 describe("Test reinitialization", () => {
     it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new ssjs.Decoder({samprate: 16000});
+        let decoder = new soundswallower.Decoder({samprate: 16000});
         await decoder.initialize();
         await decoder.add_word("_go", "G OW", false);
         await decoder.add_word("_forward", "F AO R W ER D", false);
@@ -190,7 +192,7 @@ describe("Test reinitialization", () => {
             {from: 3, to: 4, prob: 1.0, word: "_meters"}
         ]);
         decoder.set_config("dict",
-                           ssjs.get_model_path(ssjs.defaultModel) + "/dict.txt");
+                           soundswallower.get_model_path(soundswallower.defaultModel) + "/dict.txt");
         decoder.set_config("fsg", "testdata/goforward.fsg");
         await decoder.initialize();
         let pcm = await load_binary_file("testdata/goforward-float32.raw");
@@ -203,7 +205,7 @@ describe("Test reinitialization", () => {
 });
 describe("Test loading model for other language", () => {
     it('Should recognize "avance de dix mètres"', async () => {
-        let decoder = new ssjs.Decoder({hmm: ssjs.get_model_path("fr-fr"),
+        let decoder = new soundswallower.Decoder({hmm: soundswallower.get_model_path("fr-fr"),
                                         samprate: 16000});
         await decoder.initialize();
         await decoder.set_fsg("goforward", 0, 4, [
@@ -234,7 +236,7 @@ describe("Test loading model for other language", () => {
 });
 describe("Test JSGF", () => {
     it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
-        let decoder = new ssjs.Decoder({
+        let decoder = new soundswallower.Decoder({
             jsgf: "testdata/pizza.gram",
             samprate: 16000
         });
@@ -249,7 +251,7 @@ describe("Test JSGF", () => {
 });
 describe("Test JSGF string", () => {
     it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
-	let decoder = new ssjs.Decoder({samprate: 16000});
+	let decoder = new soundswallower.Decoder({samprate: 16000});
 	await decoder.initialize();
 	await decoder.set_jsgf(`#JSGF V1.0;
 grammar pizza;
@@ -273,7 +275,7 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 });
 describe("Test reinitialize_audio", () => {
     it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new ssjs.Decoder({
+        let decoder = new soundswallower.Decoder({
             fsg: "testdata/goforward.fsg",
             samprate: 11025,
             loglevel: "INFO"
@@ -300,7 +302,7 @@ describe("Test reinitialize_audio", () => {
 });
 describe("Test dictionary lookup", () => {
     it('Should return "W AH N"', async () => {
-	let decoder = new ssjs.Decoder();
+	let decoder = new soundswallower.Decoder();
 	await decoder.initialize();
 	const phones = decoder.lookup_word("one");
 	assert.equal("W AH N", phones);
