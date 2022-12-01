@@ -47,9 +47,9 @@ set(JSFILES
   package.json
   README.md
   server.py
-  test_node.js
   test_typescript.ts
   test_web.html
+  soundswallower.spec.js
   soundswallower.d.ts
   tsconfig.json
   )
