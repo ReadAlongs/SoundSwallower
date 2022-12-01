@@ -9,7 +9,6 @@ set(TESTS
   test_bitvec
   test_byteorder
   test_ckd_alloc
-  test_ckd_alloc_catch
   test_dict2pid
   test_dict
   test_endpointer
@@ -46,8 +45,6 @@ endforeach()
 # output, etc)
 set(TEST_EXECUTABLES
   test_case
-  test_ckd_alloc_fail
-  test_ckd_alloc_abort
   test_display_hash
   test_delete_hash
   test_feat
@@ -65,8 +62,6 @@ foreach(TEST_EXECUTABLE ${TEST_EXECUTABLES})
     )
   add_dependencies(check ${TEST_EXECUTABLE})
 endforeach()
-add_test(NAME test_ckd_alloc_fail COMMAND test_ckd_alloc_fail)
-set_property(TEST test_ckd_alloc_fail PROPERTY WILL_FAIL TRUE)
 # CTest won't find test_case here unless we use the named-argument
 # format (see this bug, mysteriously closed with no explanation:
 # https://gitlab.kitware.com/cmake/cmake/-/issues/21099)
@@ -86,7 +81,6 @@ set(TEST_SCRIPTS
   _hash_delete3.test
   _hash_delete4.test
   _hash_delete5.test
-  test_ckd_alloc_abort.sh
   _test_feat.test
   _test_fe.test
   _test_fe_float32.test
