@@ -8,8 +8,8 @@ set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # also
 # https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#binding-libraries)
 target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
-target_compile_options(soundswallower PRIVATE -Oz)
-target_compile_options(ssjs PRIVATE -Oz)
+target_compile_options(soundswallower PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
+target_compile_options(ssjs PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
 # Cannot, will not set lists of functions directly on the command line
 #
 # https://github.com/emscripten-core/emscripten/pull/17403

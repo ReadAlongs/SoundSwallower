@@ -97,26 +97,11 @@
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 
-/**
- * Target for longjmp() on failure.
- *
- * FIXME: This should be in thread-local storage.
- */
-static jmp_buf *ckd_target;
-static int jmp_abort;
-
-jmp_buf *
-ckd_set_jump(jmp_buf *env, int abort)
-{
-    jmp_buf *old;
-
-    if (abort)
-        jmp_abort = 1;
-
-    old = ckd_target;
-    ckd_target = env;
-    return old;
-}
+#ifdef SPHINX_DEBUG
+#define jmp_abort 1
+#else
+#define jmp_abort 0
+#endif
 
 void
 ckd_fail(char *format, ...)
@@ -128,14 +113,7 @@ ckd_fail(char *format, ...)
     va_end(args);
 
     if (jmp_abort)
-        /* abort() doesn't exist in Windows CE */
-        #if defined(_WIN32_WCE)
-        exit(-1);
-        #else
         abort();
-        #endif
-    else if (ckd_target)
-        longjmp(*ckd_target, 1);
     else
         exit(-1);
 }
