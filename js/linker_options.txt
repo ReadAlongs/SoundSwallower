@@ -7,3 +7,4 @@
 -sSTRICT=1
 -sSTRICT_JS=1
 -sSUPPORT_LONGJMP=0
+-sEXPORT_NAME=createModule

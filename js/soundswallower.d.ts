@@ -52,5 +52,5 @@ export interface SoundSwallowerModule extends EmscriptenModule {
             mode?: number, window?: number, ratio?: number): Endpointer;
     }
 }
-declare const Module: EmscriptenModuleFactory<SoundSwallowerModule>;
-export default Module;
+declare const createModule: EmscriptenModuleFactory<SoundSwallowerModule>;
+export default createModule;
