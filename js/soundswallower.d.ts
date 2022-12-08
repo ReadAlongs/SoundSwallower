@@ -50,7 +50,7 @@ export interface FeatureBuffer {
     data: Float32Array;
     nfr: number;
     nfeat: number;
-};
+}
 
 export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(subpath: string): string;
