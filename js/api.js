@@ -727,7 +727,11 @@ class Endpointer {
 	const rv = Module._endpointer_process(this.cep, pcm_addr);
 	Module._free(pcm_addr);
         if (rv != 0) {
-            const pcm_i16 = new Int16Array(HEAP8.buffer, rv, this.get_frame_size() * 2);
+            /* Yes, the *offset* is in bytes, but the *length* is in
+             * items.  No, I don't know what Google/Apple/Mozilla/Microsoft/W3C
+             * brain genius thought that was a good idea (it is logical, and yet
+             * very much not obvious... */
+            const pcm_i16 = new Int16Array(HEAP8.buffer, rv, this.get_frame_size());
             return Float32Array.from(pcm_i16, x => (x > 0 ? x / 0x7fff : x / 0x8000));
         }
         else
