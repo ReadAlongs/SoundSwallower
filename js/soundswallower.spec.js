@@ -86,18 +86,23 @@ describe("Test decoding", () => {
         await decoder.initialize();
         let pcm = await load_binary_file("testdata/goforward-float32.raw");
         await decoder.start();
-        await decoder.process(pcm, false, true);
+        // 128-sample buffers, because fuck you, that's why
+        for (let pos = 0; pos < pcm.length; pos += 128) {
+            let len = pcm.length - pos;
+            if (len > 128)
+                len = 128;
+            await decoder.process(pcm.subarray(pos, pos + len), false, false);
+        }
         await decoder.stop();
         assert.equal("go forward ten meters", decoder.get_hyp());
         let hypseg = decoder.get_hypseg();
         let hypseg_words = []
         for (const seg of hypseg) {
             assert.ok(seg.end >= seg.start);
-            hypseg_words.push(seg.word);
+            if (seg.word != "<sil>" && seg.word != "(NULL)")
+                hypseg_words.push(seg.word);
         }
-        assert.deepStrictEqual(hypseg_words,
-                               ["<sil>", "go", "forward",
-                                "(NULL)", "ten", "meters"]);
+        assert.equal(hypseg_words.join(" "), "go forward ten meters");
         decoder.delete();
     });
     it('Should accept Float32Array as well as UInt8Array', async () => {
