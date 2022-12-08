@@ -48,8 +48,10 @@ _fsg_model_free
 _decoder_set_fsg
 _decoder_set_align_text
 _decoder_result_json
+_decoder_fe
 _malloc
 _free
+_ckd_free_2d
 _s3file_init
 _s3file_free
 _bin_mdef_read_s3file

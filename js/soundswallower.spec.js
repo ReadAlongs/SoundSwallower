@@ -309,3 +309,13 @@ describe("Test dictionary lookup", () => {
         decoder.delete();
     });
 });
+describe("Test spectrogram", () => {
+    it('Should create a spectrogram', async () => {
+        let decoder = new soundswallower.Decoder();
+        await decoder.initialize();
+        let pcm = await load_binary_file("testdata/goforward-float32.raw");
+        let { data, nfr, nfeat } = await decoder.spectrogram(pcm);
+        assert.equal(nfr, 129);
+        assert.equal(nfeat, 20);
+    });
+});

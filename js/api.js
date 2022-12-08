@@ -571,6 +571,40 @@ class Decoder {
         if (Module._decoder_set_align_text(this.cdecoder, ctext) < 0)
             throw new Error("Failed to set alignment text");
     }
+    /**
+     * Compute spectrogram from audio
+     * @param {Float32Array} pcm Audio data, in float32 format, in
+     * the range [-1.0, 1.0].
+     * @returns {Promise<FeatureBuffer>} Promise resolved to an object
+     * containing `data`, `nfr`, and `nfeat` properties.
+     */
+    async spectrogram(pcm) {
+	this.assert_initialized();
+        const cfe = Module._decoder_fe(this.cdecoder);
+        if (cfe == 0)
+            throw new Error("Could not get front end from decoder");
+        /* Unfortunately we have to copy the data into the heap space,
+         * create the spectrum in heap space, then copy it out. */
+	const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
+	const pcm_addr = Module._malloc(pcm_bytes);
+	const pcm_u8 = new Uint8Array(pcm.buffer);
+	writeArrayToMemory(pcm_u8, pcm_addr);
+        /* Note, pointers and size_t are 4 bytes */
+	const shape = stackAlloc(8);
+        const cpfeats = Module._spectrogram(cfe, pcm_addr, pcm_bytes / 4, shape, shape + 4);
+        if (cpfeats == 0)
+            throw new Error("Spectrogram calculation failed");
+        Module._free(pcm_addr);
+        const cfeats = getValue(cpfeats, '*');
+        const nfr = getValue(shape, '*');
+        const nfeat = getValue(shape + 4, '*');
+        const data = new Float32Array(
+            /* This copies the data, which is what we want. */
+            HEAP8.slice(cfeats,
+                        cfeats + nfr * nfeat * 4).buffer);
+        Module._ckd_free_2d(cpfeats);
+        return { data, nfr, nfeat };
+    }
 };
 
 /**

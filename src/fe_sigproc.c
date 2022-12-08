@@ -653,8 +653,7 @@ fe_mel_cep(fe_t * fe, mfcc_t * mfcep)
     }
     /* For smoothed spectrum, do DCT-II followed by (its inverse) DCT-III */
     else if (fe->log_spec == SMOOTH_LOG_SPEC) {
-        /* FIXME: This is probably broken for fixed-point. */
-        fe_dct2(fe, mfspec, mfcep, 0);
+        fe_dct2(fe, mfspec, mfcep, FALSE);
         fe_dct3(fe, mfcep, mfspec);
         for (i = 0; i < fe->feature_dimension; i++) {
             mfcep[i] = (mfcc_t) mfspec[i];
@@ -728,7 +727,7 @@ fe_lifter(fe_t * fe, mfcc_t * mfcep)
 {
     int32 i;
 
-    if (fe->mel_fb->lifter_val == 0)
+    if (fe->log_spec || fe->mel_fb->lifter_val == 0)
         return;
 
     for (i = 0; i < fe->num_cepstra; ++i) {

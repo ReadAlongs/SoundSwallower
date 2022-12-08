@@ -21,6 +21,7 @@ export class Decoder {
             transitions: Array<Transition>): Promise<void>;
     set_jsgf(jsgf_string: string, toprule?: string): Promise<void>;
     set_align_text(text: string): Promise<void>;
+    spectrogram(pcm: Float32Array|Uint8Array): Promise<FeatureBuffer>;
 }
 export class Endpointer {
     get_frame_size(): number;
@@ -42,10 +43,19 @@ export interface Segment {
     end: number;
     word: string;
 }
+export interface Config {
+    [key: string]: string|number|boolean;
+}
+export interface FeatureBuffer {
+    data: Float32Array;
+    nfr: number;
+    nfeat: number;
+};
+
 export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(subpath: string): string;
     Decoder: {
-        new(config?: Object): Decoder;
+        new(config?: Config): Decoder;
     }
     Endpointer: {
         new(sample_rate: number, frame_length?: number,
