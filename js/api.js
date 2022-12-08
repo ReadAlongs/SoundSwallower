@@ -383,9 +383,10 @@ class Decoder {
 	this.assert_initialized();
 	const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	const pcm_addr = Module._malloc(pcm_bytes);
-	const pcm_u8 = new Uint8Array(pcm.buffer);
-	// Emscripten documentation fails to mention that this
-	// function specifically takes a Uint8Array
+        // This Javascript API is rather stupid.  DO NOT forget byteOffset and length.
+	const pcm_u8 = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm_bytes);
+	// Emscripten documentation (what documentation) fails to
+        // mention that this function specifically takes a Uint8Array
 	writeArrayToMemory(pcm_u8, pcm_addr);
 	const rv = Module._decoder_process_float32(this.cdecoder, pcm_addr, pcm_bytes / 4,
 					           no_search, full_utt);
