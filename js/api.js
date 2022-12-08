@@ -587,7 +587,8 @@ class Decoder {
          * create the spectrum in heap space, then copy it out. */
 	const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
 	const pcm_addr = Module._malloc(pcm_bytes);
-	const pcm_u8 = new Uint8Array(pcm.buffer);
+        // This Javascript API is rather stupid.  DO NOT forget byteOffset and length.
+	const pcm_u8 = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm_bytes);
 	writeArrayToMemory(pcm_u8, pcm_addr);
         /* Note, pointers and size_t are 4 bytes */
 	const shape = stackAlloc(8);
