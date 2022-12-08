@@ -82,3 +82,31 @@ load_gmm(decoder_t *ps, s3file_t *means, s3file_t *vars, s3file_t *mixw, s3file_
     /* FIXME: Apply MLLR as well... */
     return 0;
 }
+
+EMSCRIPTEN_KEEPALIVE float32 **
+spectrogram(fe_t *fe, float32 *pcm, size_t nsamp, size_t *nfr, size_t *nfeat, int smooth)
+{
+    config_t *config;
+    float32 **spec;
+    int rv, prev_spec, prev_ncep;
+
+    config = fe_get_config(fe);
+    assert(config != NULL);
+    if (nfeat == NULL || nfr == NULL || pcm == NULL)
+        return NULL;
+    *nfeat = config_int(config, "nfilt");
+    *nfr = fe_process_float32(fe, NULL, &nsamp, NULL, 0);
+    /* HACK! Until we fix the stupid API */
+    prev_spec = fe->log_spec;
+    prev_ncep = fe->feature_dimension;
+    fe->log_spec = smooth ? SMOOTH_LOG_SPEC : RAW_LOG_SPEC;
+    fe->feature_dimension = *nfeat;
+
+    spec = ckd_calloc_2d(*nfr, *nfeat, 4);
+    rv = fe_process_float32(fe, &pcm, &nsamp, spec, *nfr);
+    fe_end(fe, spec + rv, *nfr - rv);
+
+    fe->log_spec = prev_spec;
+    fe->feature_dimension = prev_ncep;
+    return spec;
+}

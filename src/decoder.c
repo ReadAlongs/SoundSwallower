@@ -577,6 +577,18 @@ decoder_logmath(decoder_t *d)
     return d->lmath;
 }
 
+fe_t *
+decoder_fe(decoder_t *d)
+{
+    return d->fe;
+}
+
+feat_t *
+decoder_feat(decoder_t *d)
+{
+    return d->fcb;
+}
+
 mllr_t *
 decoder_apply_mllr(decoder_t *d, mllr_t *mllr)
 {
