@@ -848,5 +848,6 @@ function get_model_path(subpath) {
 }
 
 Module.get_model_path = get_model_path;
+Module.load_json = load_json;
 Module.Decoder = Decoder;
 Module.Endpointer = Endpointer;

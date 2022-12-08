@@ -54,6 +54,7 @@ export interface FeatureBuffer {
 
 export interface SoundSwallowerModule extends EmscriptenModule {
     get_model_path(subpath: string): string;
+    load_json(path: string): any;
     Decoder: {
         new(config?: Config): Decoder;
     }
