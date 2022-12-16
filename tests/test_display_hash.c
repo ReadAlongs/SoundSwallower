@@ -37,6 +37,20 @@ main(int argc, char **argv)
         E_FATAL("Insertion of -lminmemory failed\n");
     }
 
+    /* Make sure that entering ints works as expected even though
+       there is nasty casting going on. */
+    if (hash_table_enter_int32(ht, "foo", -42) != -42) {
+        E_FATAL("Insertion of foo=-42 failed\n");
+    }
+
+    if (hash_table_enter_int32(ht, "bar", 0xdeadbeef) != (int32)0xdeadbeef) {
+        E_FATAL("Insertion of bar=0xdeadbeef failed\n");
+    }
+
+    if (hash_table_enter_int32(ht, "baz", 3) != 3) {
+        E_FATAL("Insertion of baz=3 failed\n");
+    }
+
     hash_table_display(ht, 1);
 
     hash_table_free(ht);
