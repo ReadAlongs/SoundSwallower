@@ -130,9 +130,8 @@ class Decoder {
       rv = Boolean(Module._config_int(cconfig, ckey));
     }
     Module._free(ckey);
-    if (rv === undefined) {
+    if (rv === undefined)
       throw new TypeError("Unsupported type " + type + " for parameter" + key);
-    }
     return rv;
   }
   /**
