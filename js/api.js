@@ -752,6 +752,7 @@ async function load_to_s3file(path) {
       throw new Error("Failed to fetch " + path + " :" + response.statusText);
   } else {
     const fs = require("fs/promises");
+    // FIXME: Should read directly to emscripten memory... how?
     const blob = await fs.readFile(path);
     blob_u8 = new Uint8Array(blob.buffer);
   }
@@ -779,11 +780,16 @@ async function load_to_s3file(path) {
  * @param {string} subpath path to model directory or parameter
  * file, e.g. "en-us", "en-us/variances", etc
  * @returns {string} concatenated path. Note this is a simple string
- * concatenation, so ensure that `modelBase` has a trailing slash if it is a
- * directory.
+ * concatenation on the Web, so ensure that `modelBase` has a trailing
+ * slash if it is a directory.
  */
 function get_model_path(subpath) {
-  return Module.modelBase + subpath;
+  if (ENVIRONMENT_IS_WEB) {
+    return Module.modelBase + subpath;
+  } else {
+    const path = require("path");
+    return path.join(Module.modelBase, subpath);
+  }
 }
 
 Module.get_model_path = get_model_path;
