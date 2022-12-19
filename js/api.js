@@ -604,7 +604,7 @@ class Decoder {
         shape,
         shape + 4
       );
-      Module.free(shape);
+      Module._free(shape);
     }
     if (cpfeats == 0) throw new Error("Spectrogram calculation failed");
     Module._free(pcm_addr);
