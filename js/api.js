@@ -339,10 +339,9 @@ class Decoder {
   }
 
   /**
-   * Start processing input asynchronously.
-   * @returns {Promise} Promise resolved once processing is started.
+   * Start processing input.
    */
-  async start() {
+  start() {
     this.assert_initialized();
     if (Module._decoder_start_utt(this.cdecoder) < 0) {
       throw new Error("Failed to start utterance processing");
@@ -350,10 +349,9 @@ class Decoder {
   }
 
   /**
-   * Finish processing input asynchronously.
-   * @returns {Promise} Promise resolved once processing is finished.
+   * Finish processing input.
    */
-  async stop() {
+  stop() {
     this.assert_initialized();
     if (Module._decoder_end_utt(this.cdecoder) < 0) {
       throw new Error("Failed to stop utterance processing");
@@ -361,13 +359,12 @@ class Decoder {
   }
 
   /**
-   * Process a block of audio data asynchronously.
+   * Process a block of audio data.
    * @param {Float32Array} pcm Audio data, in float32 format, in
    * the range [-1.0, 1.0].
-   * @returns {Promise<number>} Promise resolved to the number of
-   * frames processed.
+   * @returns Number of frames processed.
    */
-  async process(pcm, no_search = false, full_utt = false) {
+  process(pcm, no_search = false, full_utt = false) {
     this.assert_initialized();
     const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
     const pcm_addr = Module._malloc(pcm_bytes);
@@ -434,7 +431,7 @@ class Decoder {
    *                    alignments, 2 for phone and state alignments.
    * @returns JSON with a detailed word and phone-level alignment.
    */
-  async get_alignment_json(start = 0.0, align_level = 1) {
+  get_alignment_json(start = 0.0, align_level = 1) {
     this.assert_initialized();
     /* FIXME: This could block for some time, decompose it. */
     const cjson = Module._decoder_result_json(
@@ -461,14 +458,13 @@ class Decoder {
   }
 
   /**
-   * Add a word to the pronunciation dictionary asynchronously.
+   * Add a word to the pronunciation dictionary.
    * @param {string} word Text of word to add.
    * @param {string} pron Pronunciation of word as space-separated list of phonemes.
    * @param {number} update Update decoder immediately (set to
    * false when adding a list of words, except for the last word).
-   * @returns {Promise} Promise resolved once word has been added.
    */
-  async add_word(word, pron, update = true) {
+  add_word(word, pron, update = true) {
     this.assert_initialized();
     const cword = allocateUTF8(word);
     const cpron = allocateUTF8(pron);
@@ -487,7 +483,7 @@ class Decoder {
   }
 
   /**
-   * Set recognition grammar from a list of transitions asynchronously.
+   * Set recognition grammar from a list of transitions.
    * @param {string} name Name of grammar.
    * @param {number} start_state Index of starting state.
    * @param {number} final_state Index of ending state.
@@ -495,7 +491,7 @@ class Decoder {
    * of which is an Object with the keys `from`, `to`, `word`, and
    * `prob`.  The word must exist in the dictionary.
    */
-  async set_fsg(name, start_state, final_state, transitions) {
+  set_fsg(name, start_state, final_state, transitions) {
     this.assert_initialized();
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
@@ -543,7 +539,7 @@ class Decoder {
    * @param {string} [toprule] Name of starting rule for grammar,
    * if not specified, the first public rule will be used.
    */
-  async set_jsgf(jsgf_string, toprule = null) {
+  set_jsgf(jsgf_string, toprule = null) {
     this.assert_initialized();
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
@@ -573,7 +569,7 @@ class Decoder {
    *                        words.  All words must be present in the
    *                        dictionary.
    */
-  async set_align_text(text) {
+  set_align_text(text) {
     this.assert_initialized();
     const ctext = allocateUTF8(text);
     const rv = Module._decoder_set_align_text(this.cdecoder, ctext);
@@ -587,7 +583,7 @@ class Decoder {
    * @returns {Promise<FeatureBuffer>} Promise resolved to an object
    * containing `data`, `nfr`, and `nfeat` properties.
    */
-  async spectrogram(pcm) {
+  spectrogram(pcm) {
     this.assert_initialized();
     const cfe = Module._decoder_fe(this.cdecoder);
     if (cfe == 0) throw new Error("Could not get front end from decoder");

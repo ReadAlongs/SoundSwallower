@@ -9,27 +9,27 @@ export class Decoder {
   has_config(key: string): boolean;
   initialize(): Promise<any>;
   reinitialize_audio(): Promise<void>;
-  start(): Promise<void>;
-  stop(): Promise<void>;
+  start(): void;
+  stop(): void;
   process(
     pcm: Float32Array | Uint8Array,
     no_search?: boolean,
     full_utt?: boolean
-  ): Promise<number>;
+  ): number;
   get_hyp(): string;
   get_hypseg(): Array<Segment>;
-  get_alignment_json(start?: number, align_level?: number): Promise<string>;
+  get_alignment_json(start?: number, align_level?: number): string;
   lookup_word(word: string): string;
-  add_word(word: string, pron: string, update?: boolean): Promise<number>;
+  add_word(word: string, pron: string, update?: boolean): number;
   set_fsg(
     name: string,
     start_state: number,
     final_state: number,
     transitions: Array<Transition>
-  ): Promise<void>;
-  set_jsgf(jsgf_string: string, toprule?: string): Promise<void>;
-  set_align_text(text: string): Promise<void>;
-  spectrogram(pcm: Float32Array | Uint8Array): Promise<FeatureBuffer>;
+  ): void;
+  set_jsgf(jsgf_string: string, toprule?: string): void;
+  set_align_text(text: string): void;
+  spectrogram(pcm: Float32Array | Uint8Array): FeatureBuffer;
 }
 export class Endpointer {
   get_frame_size(): number;
