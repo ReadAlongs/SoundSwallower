@@ -324,9 +324,8 @@ class Decoder {
     this.assert_initialized();
     const fe = await this.init_fe();
     const fcb = await this.init_feat();
-    if (Module._acmod_reinit_feat(this.cacmod, fe, fcb) < 0) {
+    if (Module._acmod_reinit_feat(this.cacmod, fe, fcb) < 0)
       throw new Error("Failed to reinitialize audio parameters");
-    }
   }
 
   /**
@@ -334,9 +333,8 @@ class Decoder {
    */
   start() {
     this.assert_initialized();
-    if (Module._decoder_start_utt(this.cdecoder) < 0) {
+    if (Module._decoder_start_utt(this.cdecoder) < 0)
       throw new Error("Failed to start utterance processing");
-    }
   }
 
   /**
@@ -344,9 +342,8 @@ class Decoder {
    */
   stop() {
     this.assert_initialized();
-    if (Module._decoder_end_utt(this.cdecoder) < 0) {
+    if (Module._decoder_end_utt(this.cdecoder) < 0)
       throw new Error("Failed to stop utterance processing");
-    }
   }
 
   /**
