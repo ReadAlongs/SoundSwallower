@@ -7,9 +7,17 @@ const ARG_BOOLEAN = 1 << 4;
 const DEFAULT_MODEL = "en-us";
 
 // User can specify a default model, or none at all
-if (Module.defaultModel === undefined) Module.defaultModel = DEFAULT_MODEL;
+if (typeof Module.defaultModel === "undefined") {
+  Module.defaultModel = DEFAULT_MODEL;
+}
 // User can also specify the base URL for models
-if (Module.modelBase === undefined) Module.modelBase = "model/";
+if (typeof Module.modelBase === "undefined") {
+  if (ENVIRONMENT_IS_WEB) {
+    Module.modelBase = "model/";
+  } else {
+    Module.modelBase = require("./model/index.js");
+  }
+}
 
 /**
  * Speech recognizer object.
