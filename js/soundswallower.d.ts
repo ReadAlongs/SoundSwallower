@@ -44,6 +44,7 @@ export interface Segment {
   t: string;
   b: number;
   d: number;
+  p: number;
   w?: Array<Segment>;
 }
 export interface Config {
