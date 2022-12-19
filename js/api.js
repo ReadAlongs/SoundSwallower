@@ -595,22 +595,20 @@ class Decoder {
     const pcm_u8 = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm_bytes);
     writeArrayToMemory(pcm_u8, pcm_addr);
     /* Note, pointers and size_t are 4 bytes */
-    {
-      const shape = Module._malloc(8);
-      const cpfeats = Module._spectrogram(
-        cfe,
-        pcm_addr,
-        pcm_bytes / 4,
-        shape,
-        shape + 4
-      );
-      Module._free(shape);
-    }
+    const shape = Module._malloc(8);
+    const cpfeats = Module._spectrogram(
+      cfe,
+      pcm_addr,
+      pcm_bytes / 4,
+      shape,
+      shape + 4
+    );
     if (cpfeats == 0) throw new Error("Spectrogram calculation failed");
     Module._free(pcm_addr);
     const cfeats = getValue(cpfeats, "*");
     const nfr = getValue(shape, "*");
     const nfeat = getValue(shape + 4, "*");
+    Module._free(shape);
     const data = new Float32Array(
       /* This copies the data, which is what we want. */
       HEAP8.slice(cfeats, cfeats + nfr * nfeat * 4).buffer
