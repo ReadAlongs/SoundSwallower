@@ -16,18 +16,11 @@ export class Decoder {
     no_search?: boolean,
     full_utt?: boolean
   ): number;
-  get_hyp(): string;
-  get_hypseg(): Array<Segment>;
-  get_alignment_json(start?: number, align_level?: number): string;
+  get_sentence(): string;
+  get_alignment(start?: number, align_level?: number): Array<Segment>;
   lookup_word(word: string): string;
-  add_word(word: string, pron: string, update?: boolean): number;
-  set_fsg(
-    name: string,
-    start_state: number,
-    final_state: number,
-    transitions: Array<Transition>
-  ): void;
-  set_jsgf(jsgf_string: string, toprule?: string): void;
+  add_words(words: Array<Word>, update?: boolean): void;
+  set_grammar(jsgf_string: string, toprule?: string): void;
   set_align_text(text: string): void;
   spectrogram(pcm: Float32Array | Uint8Array): FeatureBuffer;
 }
@@ -40,16 +33,15 @@ export class Endpointer {
   process(frame: Float32Array): Float32Array;
   end_stream(frame: Float32Array): Float32Array;
 }
-export interface Transition {
-  from: number;
-  to: number;
-  prob?: number;
-  word?: string;
+export interface Word {
+  word: string;
+  pron: string;
 }
 export interface Segment {
-  start: number;
-  end: number;
-  word: string;
+  s: number;
+  d: number;
+  t: string;
+  w?: Array<Segment>;
 }
 export interface Config {
   [key: string]: string | number | boolean;
@@ -67,13 +59,13 @@ export interface SoundSwallowerModule extends EmscriptenModule {
     new (config?: Config): Decoder;
   };
   Endpointer: {
-    new (
-      sample_rate: number,
-      frame_length?: number,
-      mode?: number,
-      window?: number,
-      ratio?: number
-    ): Endpointer;
+    new (config?: {
+      samprate: number;
+      frame_length?: number;
+      mode?: number;
+      window?: number;
+      ratio?: number;
+    }): Endpointer;
   };
 }
 declare const createModule: EmscriptenModuleFactory<SoundSwallowerModule>;
