@@ -411,10 +411,11 @@ class Decoder {
     const frate = this.get_config("frate");
     const seg = [];
     while (itor != 0) {
-      const frames = stackAlloc(8);
+      const frames = Module._malloc(8);
       Module._seg_iter_frames(itor, frames, frames + 4);
       const start_frame = getValue(frames, "i32");
       const end_frame = getValue(frames + 4, "i32");
+      Module._free(frames);
       const seg_item = {
         word: UTF8ToString(Module._seg_iter_word(itor)),
         start: start_frame / frate,
@@ -598,14 +599,17 @@ class Decoder {
     const pcm_u8 = new Uint8Array(pcm.buffer, pcm.byteOffset, pcm_bytes);
     writeArrayToMemory(pcm_u8, pcm_addr);
     /* Note, pointers and size_t are 4 bytes */
-    const shape = stackAlloc(8);
-    const cpfeats = Module._spectrogram(
-      cfe,
-      pcm_addr,
-      pcm_bytes / 4,
-      shape,
-      shape + 4
-    );
+    {
+      const shape = Module._malloc(8);
+      const cpfeats = Module._spectrogram(
+        cfe,
+        pcm_addr,
+        pcm_bytes / 4,
+        shape,
+        shape + 4
+      );
+      Module.free(shape);
+    }
     if (cpfeats == 0) throw new Error("Spectrogram calculation failed");
     Module._free(pcm_addr);
     const cfeats = getValue(cpfeats, "*");
@@ -785,13 +789,14 @@ class Endpointer {
     const pcm_addr = Module._malloc(pcm_u8.length);
     writeArrayToMemory(pcm_u8, pcm_addr);
     // FIXME: Depends on size_t being 32 bits on Emscripten (it is)
-    const nsamp_addr = stackAlloc(4);
+    const nsamp_addr = Module._malloc(4);
     const rv = Module._endpointer_end_stream(
       this.cep,
       pcm_addr,
       pcm_i16.length,
       nsamp_addr
     );
+    Module._free(nsamp_addr);
     Module._free(pcm_addr);
     if (rv != 0) {
       const nsamp = getValue(nsamp_addr, "i32");
