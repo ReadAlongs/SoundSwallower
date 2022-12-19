@@ -11,15 +11,21 @@ export class Decoder {
   reinitialize_audio(): Promise<void>;
   start(): void;
   stop(): void;
-  process(
+  process_audio(
     pcm: Float32Array | Uint8Array,
     no_search?: boolean,
     full_utt?: boolean
   ): number;
-  get_sentence(): string;
-  get_alignment(start?: number, align_level?: number): Array<Segment>;
+  get_text(): string;
+  get_alignment({
+    start,
+    align_level,
+  }?: {
+    start?: number;
+    align_level?: number;
+  }): Segment;
   lookup_word(word: string): string;
-  add_words(words: Array<Word>, update?: boolean): void;
+  add_words(...words: Array<DictEntry>): void;
   set_grammar(jsgf_string: string, toprule?: string): void;
   set_align_text(text: string): void;
   spectrogram(pcm: Float32Array | Uint8Array): FeatureBuffer;
@@ -33,14 +39,11 @@ export class Endpointer {
   process(frame: Float32Array): Float32Array;
   end_stream(frame: Float32Array): Float32Array;
 }
-export interface Word {
-  word: string;
-  pron: string;
-}
+export type DictEntry = [string, string];
 export interface Segment {
-  s: number;
-  d: number;
   t: string;
+  b: number;
+  d: number;
   w?: Array<Segment>;
 }
 export interface Config {
@@ -59,7 +62,13 @@ export interface SoundSwallowerModule extends EmscriptenModule {
     new (config?: Config): Decoder;
   };
   Endpointer: {
-    new (config?: {
+    new ({
+      samprate,
+      frame_length,
+      mode,
+      window,
+      ratio,
+    }: {
       samprate: number;
       frame_length?: number;
       mode?: number;
