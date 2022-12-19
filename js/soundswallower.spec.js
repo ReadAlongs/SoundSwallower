@@ -1,264 +1,267 @@
 /* A bunch of junk to make this work in Node and Web */
-const ENVIRONMENT_IS_WEB = typeof(window) !== "undefined";
+const ENVIRONMENT_IS_WEB = typeof window !== "undefined";
 let assert, load_binary_file;
 if (ENVIRONMENT_IS_WEB) {
-    load_binary_file = async function(path) {
-	const response = await fetch(path);
-	if (response.ok) {
-            let blob = await response.blob();
-            return new Uint8Array(await blob.arrayBuffer());
-        }
-	else
-	    throw new Error("Failed to fetch " + path + " :"
-			    + response.statusText);
-    }
-    assert = chai.assert;
-}
-else {
-    load_binary_file = async function(path) {
-	const fs = require("fs/promises");
-	return fs.readFile(path);
-    }
-    assert = require('assert');
+  load_binary_file = async function (path) {
+    const response = await fetch(path);
+    if (response.ok) {
+      let blob = await response.blob();
+      return new Uint8Array(await blob.arrayBuffer());
+    } else
+      throw new Error("Failed to fetch " + path + " :" + response.statusText);
+  };
+  assert = chai.assert;
+} else {
+  load_binary_file = async function (path) {
+    const fs = require("fs/promises");
+    return fs.readFile(path);
+  };
+  assert = require("assert");
 }
 
 const soundswallower = {};
 before(async () => {
-    if (ENVIRONMENT_IS_WEB) {
-        await createModule(soundswallower);
-    }
-    else {
-        await require("./soundswallower.js")(soundswallower);
-    }
-        
+  if (ENVIRONMENT_IS_WEB) {
+    await createModule(soundswallower);
+  } else {
+    await require("./soundswallower.js")(soundswallower);
+  }
 });
 describe("Test initialization", () => {
-    it("Should load the WASM module", () => {
-	assert.ok(soundswallower);
-    });
+  it("Should load the WASM module", () => {
+    assert.ok(soundswallower);
+  });
 });
 describe("Test decoder initialization", () => {
-    it("Should initialize the decoder", async () => {
-	let decoder = new soundswallower.Decoder({
-	    fsg: "testdata/goforward.fsg",
-	    samprate: 16000,
-	});
-        assert.ok(decoder);
-        assert.equal(decoder.get_config("hmm"),
-                     soundswallower.get_model_path(soundswallower.defaultModel));
-        decoder.delete();
+  it("Should initialize the decoder", async () => {
+    let decoder = new soundswallower.Decoder({
+      fsg: "testdata/goforward.fsg",
+      samprate: 16000,
     });
+    assert.ok(decoder);
+    assert.equal(
+      decoder.get_config("hmm"),
+      soundswallower.get_model_path(soundswallower.defaultModel)
+    );
+    decoder.delete();
+  });
 });
 describe("Test configuration as JSON", () => {
-    it("Should contain default configuration", () => {
-	let decoder = new soundswallower.Decoder({
-	    fsg: "testdata/goforward.fsg",
-	    samprate: 16000,
-	});
-        assert.ok(decoder);
-        let json = decoder.get_config_json();
-        let config = JSON.parse(json);
-        assert.ok(config);
-        assert.equal(config.hmm,
-                     soundswallower.get_model_path(soundswallower.defaultModel));
-        assert.equal(config.loglevel, "WARN");
-        assert.equal(config.fsg, "testdata/goforward.fsg");
+  it("Should contain default configuration", () => {
+    let decoder = new soundswallower.Decoder({
+      fsg: "testdata/goforward.fsg",
+      samprate: 16000,
     });
+    assert.ok(decoder);
+    let json = decoder.get_config_json();
+    let config = JSON.parse(json);
+    assert.ok(config);
+    assert.equal(
+      config.hmm,
+      soundswallower.get_model_path(soundswallower.defaultModel)
+    );
+    assert.equal(config.loglevel, "WARN");
+    assert.equal(config.fsg, "testdata/goforward.fsg");
+  });
 });
 describe("Test acoustic model loading", () => {
-    it('Should load acoustic model', async () => {
-	let decoder = new soundswallower.Decoder();
-	await decoder.init_featparams();
-	await decoder.init_fe();
-	await decoder.init_feat();
-	await decoder.init_acmod();
-	await decoder.load_acmod_files();
-        assert.ok(decoder);
-        decoder.delete();
-    });
+  it("Should load acoustic model", async () => {
+    let decoder = new soundswallower.Decoder();
+    await decoder.init_featparams();
+    await decoder.init_fe();
+    await decoder.init_feat();
+    await decoder.init_acmod();
+    await decoder.load_acmod_files();
+    assert.ok(decoder);
+    decoder.delete();
+  });
 });
 describe("Test decoding", () => {
-    it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new soundswallower.Decoder({
-            fsg: "testdata/goforward.fsg",
-            samprate: 16000,
-        });
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        await decoder.start();
-        // 128-sample buffers, because fuck you, that's why
-        for (let pos = 0; pos < pcm.length; pos += 128) {
-            let len = pcm.length - pos;
-            if (len > 128)
-                len = 128;
-            await decoder.process(pcm.subarray(pos, pos + len), false, false);
-        }
-        await decoder.stop();
-        assert.equal("go forward ten meters", decoder.get_hyp());
-        let hypseg = decoder.get_hypseg();
-        let hypseg_words = []
-        for (const seg of hypseg) {
-            assert.ok(seg.end >= seg.start);
-            if (seg.word != "<sil>" && seg.word != "(NULL)")
-                hypseg_words.push(seg.word);
-        }
-        assert.equal(hypseg_words.join(" "), "go forward ten meters");
-        decoder.delete();
+  it('Should recognize "go forward ten meters"', async () => {
+    let decoder = new soundswallower.Decoder({
+      fsg: "testdata/goforward.fsg",
+      samprate: 16000,
     });
-    it('Should accept Float32Array as well as UInt8Array', async () => {
-        let decoder = new soundswallower.Decoder({
-            fsg: "testdata/goforward.fsg",
-            samprate: 16000
-        });
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        let pcm32 = new Float32Array(pcm.buffer);
-        await decoder.start();
-        await decoder.process(pcm32, false, true);
-        await decoder.stop();
-        assert.equal("go forward ten meters", decoder.get_hyp());
-        decoder.delete();
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    decoder.start();
+    // 128-sample buffers, because fuck you, that's why
+    for (let pos = 0; pos < pcm.length; pos += 128) {
+      let len = pcm.length - pos;
+      if (len > 128) len = 128;
+      decoder.process(pcm.subarray(pos, pos + len), false, false);
+    }
+    decoder.stop();
+    assert.equal("go forward ten meters", decoder.get_hyp());
+    let hypseg = decoder.get_hypseg();
+    let hypseg_words = [];
+    for (const seg of hypseg) {
+      assert.ok(seg.end >= seg.start);
+      if (seg.word != "<sil>" && seg.word != "(NULL)")
+        hypseg_words.push(seg.word);
+    }
+    assert.equal(hypseg_words.join(" "), "go forward ten meters");
+    decoder.delete();
+  });
+  it("Should accept Float32Array as well as UInt8Array", async () => {
+    let decoder = new soundswallower.Decoder({
+      fsg: "testdata/goforward.fsg",
+      samprate: 16000,
     });
-    it('Should align "go forward ten meters"', async () => {
-        let decoder = new soundswallower.Decoder({
-            samprate: 16000,
-        });
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        await decoder.set_align_text("go forward ten meters");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("go forward ten meters", decoder.get_hyp());
-        let hypseg = decoder.get_hypseg();
-        let hypseg_words = []
-        for (const seg of hypseg) {
-            assert.ok(seg.end >= seg.start);
-            if (seg.word != "<sil>" && seg.word != "(NULL)")
-                hypseg_words.push(seg.word);
-        }
-        assert.equal(hypseg_words.join(" "), "go forward ten meters");
-        let jseg = await decoder.get_alignment_json();
-        let result = JSON.parse(jseg);
-        assert.ok(result);
-        assert.equal(result.t, "go forward ten meters");
-        let json_words = [];
-        let json_phones = [];
-        for (const word of result.w) {
-            if (word.t == "<sil>")
-                continue;
-            json_words.push(word.t);
-            for (const phone of word.w) {
-                json_phones.push(phone.t);
-            }
-        }
-        assert.equal(json_words.join(" "), "go forward ten meters");
-        assert.equal(json_phones.join(" "),
-                     "G OW F AO R W ER D T EH N M IY T ER Z");
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    let pcm32 = new Float32Array(pcm.buffer);
+    decoder.start();
+    decoder.process(pcm32, false, true);
+    decoder.stop();
+    assert.equal("go forward ten meters", decoder.get_hyp());
+    decoder.delete();
+  });
+  it('Should align "go forward ten meters"', async () => {
+    let decoder = new soundswallower.Decoder({
+      samprate: 16000,
+    });
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    decoder.set_align_text("go forward ten meters");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("go forward ten meters", decoder.get_hyp());
+    let hypseg = decoder.get_hypseg();
+    let hypseg_words = [];
+    for (const seg of hypseg) {
+      assert.ok(seg.end >= seg.start);
+      if (seg.word != "<sil>" && seg.word != "(NULL)")
+        hypseg_words.push(seg.word);
+    }
+    assert.equal(hypseg_words.join(" "), "go forward ten meters");
+    let jseg = decoder.get_alignment_json();
+    let result = JSON.parse(jseg);
+    assert.ok(result);
+    assert.equal(result.t, "go forward ten meters");
+    let json_words = [];
+    let json_phones = [];
+    for (const word of result.w) {
+      if (word.t == "<sil>") continue;
+      json_words.push(word.t);
+      for (const phone of word.w) {
+        json_phones.push(phone.t);
+      }
+    }
+    assert.equal(json_words.join(" "), "go forward ten meters");
+    assert.equal(
+      json_phones.join(" "),
+      "G OW F AO R W ER D T EH N M IY T ER Z"
+    );
 
-        decoder.delete();
-    });
+    decoder.delete();
+  });
 });
 describe("Test dictionary and FSG", () => {
-    it('Should recognize "_go _forward _ten _meters"', async () => {
-        let decoder = new soundswallower.Decoder({samprate: 16000});
-        decoder.unset_config("dict");
-        await decoder.initialize();
-        await decoder.add_word("_go", "G OW", false);
-        await decoder.add_word("_forward", "F AO R W ER D", false);
-        await decoder.add_word("_ten", "T EH N", false);
-        await decoder.add_word("_meters", "M IY T ER Z", true);
-        await decoder.set_fsg("goforward", 0, 4, [
-            {from: 0, to: 1, prob: 1.0, word: "_go"},
-            {from: 1, to: 2, prob: 1.0, word: "_forward"},
-            {from: 2, to: 3, prob: 1.0, word: "_ten"},
-            {from: 3, to: 4, prob: 1.0, word: "_meters"}
-        ]);
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("_go _forward _ten _meters", decoder.get_hyp());
-        decoder.delete();
-    });
+  it('Should recognize "_go _forward _ten _meters"', async () => {
+    let decoder = new soundswallower.Decoder({ samprate: 16000 });
+    decoder.unset_config("dict");
+    await decoder.initialize();
+    decoder.add_word("_go", "G OW", false);
+    decoder.add_word("_forward", "F AO R W ER D", false);
+    decoder.add_word("_ten", "T EH N", false);
+    decoder.add_word("_meters", "M IY T ER Z", true);
+    decoder.set_fsg("goforward", 0, 4, [
+      { from: 0, to: 1, prob: 1.0, word: "_go" },
+      { from: 1, to: 2, prob: 1.0, word: "_forward" },
+      { from: 2, to: 3, prob: 1.0, word: "_ten" },
+      { from: 3, to: 4, prob: 1.0, word: "_meters" },
+    ]);
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("_go _forward _ten _meters", decoder.get_hyp());
+    decoder.delete();
+  });
 });
 describe("Test reinitialization", () => {
-    it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new soundswallower.Decoder({samprate: 16000});
-        await decoder.initialize();
-        await decoder.add_word("_go", "G OW", false);
-        await decoder.add_word("_forward", "F AO R W ER D", false);
-        await decoder.add_word("_ten", "T EH N", false);
-        await decoder.add_word("_meters", "M IY T ER Z", true);
-        await decoder.set_fsg("goforward", 0, 4, [
-            {from: 0, to: 1, prob: 1.0, word: "_go"},
-            {from: 1, to: 2, prob: 1.0, word: "_forward"},
-            {from: 2, to: 3, prob: 1.0, word: "_ten"},
-            {from: 3, to: 4, prob: 1.0, word: "_meters"}
-        ]);
-        decoder.set_config("dict",
-                           soundswallower.get_model_path(soundswallower.defaultModel) + "/dict.txt");
-        decoder.set_config("fsg", "testdata/goforward.fsg");
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("go forward ten meters", decoder.get_hyp());
-        decoder.delete();
-    });
+  it('Should recognize "go forward ten meters"', async () => {
+    let decoder = new soundswallower.Decoder({ samprate: 16000 });
+    await decoder.initialize();
+    decoder.add_word("_go", "G OW", false);
+    decoder.add_word("_forward", "F AO R W ER D", false);
+    decoder.add_word("_ten", "T EH N", false);
+    decoder.add_word("_meters", "M IY T ER Z", true);
+    decoder.set_fsg("goforward", 0, 4, [
+      { from: 0, to: 1, prob: 1.0, word: "_go" },
+      { from: 1, to: 2, prob: 1.0, word: "_forward" },
+      { from: 2, to: 3, prob: 1.0, word: "_ten" },
+      { from: 3, to: 4, prob: 1.0, word: "_meters" },
+    ]);
+    decoder.set_config(
+      "dict",
+      soundswallower.get_model_path(soundswallower.defaultModel) + "/dict.txt"
+    );
+    decoder.set_config("fsg", "testdata/goforward.fsg");
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("go forward ten meters", decoder.get_hyp());
+    decoder.delete();
+  });
 });
 describe("Test loading model for other language", () => {
-    it('Should recognize "avance de dix mètres"', async () => {
-        let decoder = new soundswallower.Decoder({hmm: soundswallower.get_model_path("fr-fr"),
-                                        samprate: 16000});
-        await decoder.initialize();
-        await decoder.set_fsg("goforward", 0, 4, [
-            {from: 0, to: 1, prob: 0.5, word: "avance"},
-            {from: 0, to: 1, prob: 0.5, word: "recule"},
-            {from: 1, to: 2, prob: 0.1, word: "d'"},
-            {from: 1, to: 2, prob: 0.9, word: "de"},
-            {from: 2, to: 3, prob: 0.1, word: "un"},
-            {from: 2, to: 3, prob: 0.1, word: "deux"},
-            {from: 2, to: 3, prob: 0.1, word: "trois"},
-            {from: 2, to: 3, prob: 0.1, word: "quatre"},
-            {from: 2, to: 3, prob: 0.1, word: "cinq"},
-            {from: 2, to: 3, prob: 0.1, word: "six"},
-            {from: 2, to: 3, prob: 0.1, word: "sept"},
-            {from: 2, to: 3, prob: 0.1, word: "huit"},
-            {from: 2, to: 3, prob: 0.1, word: "neuf"},
-            {from: 2, to: 3, prob: 0.1, word: "dix"},
-            {from: 3, to: 4, prob: 0.1, word: "mètre"},
-            {from: 3, to: 4, prob: 0.9, word: "mètres"}
-        ]);
-        let pcm = await load_binary_file("testdata/goforward_fr-float32.raw");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("avance de dix mètres", decoder.get_hyp());
-        decoder.delete();
+  it('Should recognize "avance de dix mètres"', async () => {
+    let decoder = new soundswallower.Decoder({
+      hmm: soundswallower.get_model_path("fr-fr"),
+      samprate: 16000,
     });
+    await decoder.initialize();
+    decoder.set_fsg("goforward", 0, 4, [
+      { from: 0, to: 1, prob: 0.5, word: "avance" },
+      { from: 0, to: 1, prob: 0.5, word: "recule" },
+      { from: 1, to: 2, prob: 0.1, word: "d'" },
+      { from: 1, to: 2, prob: 0.9, word: "de" },
+      { from: 2, to: 3, prob: 0.1, word: "un" },
+      { from: 2, to: 3, prob: 0.1, word: "deux" },
+      { from: 2, to: 3, prob: 0.1, word: "trois" },
+      { from: 2, to: 3, prob: 0.1, word: "quatre" },
+      { from: 2, to: 3, prob: 0.1, word: "cinq" },
+      { from: 2, to: 3, prob: 0.1, word: "six" },
+      { from: 2, to: 3, prob: 0.1, word: "sept" },
+      { from: 2, to: 3, prob: 0.1, word: "huit" },
+      { from: 2, to: 3, prob: 0.1, word: "neuf" },
+      { from: 2, to: 3, prob: 0.1, word: "dix" },
+      { from: 3, to: 4, prob: 0.1, word: "mètre" },
+      { from: 3, to: 4, prob: 0.9, word: "mètres" },
+    ]);
+    let pcm = await load_binary_file("testdata/goforward_fr-float32.raw");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("avance de dix mètres", decoder.get_hyp());
+    decoder.delete();
+  });
 });
 describe("Test JSGF", () => {
-    it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
-        let decoder = new soundswallower.Decoder({
-            jsgf: "testdata/pizza.gram",
-            samprate: 16000
-        });
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/pizza-float32.raw");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
-        decoder.delete();
+  it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
+    let decoder = new soundswallower.Decoder({
+      jsgf: "testdata/pizza.gram",
+      samprate: 16000,
     });
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/pizza-float32.raw");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
+    decoder.delete();
+  });
 });
 describe("Test JSGF string", () => {
-    it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
-	let decoder = new soundswallower.Decoder({samprate: 16000});
-	await decoder.initialize();
-	await decoder.set_jsgf(`#JSGF V1.0;
+  it('Should recognize "yo gimme four large all dressed pizzas"', async () => {
+    let decoder = new soundswallower.Decoder({ samprate: 16000 });
+    await decoder.initialize();
+    decoder.set_jsgf(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
        [(pizza | pizzas)] [<toppings>];
@@ -270,57 +273,62 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 <toppings> = [with] <topping> ([and] <topping>)*;
 <topping> = pepperoni | ham | olives | mushrooms | tomatoes | (green | hot) peppers | pineapple;
 `);
-        let pcm = await load_binary_file("testdata/pizza-float32.raw");
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
-        decoder.delete();
-    });
+    let pcm = await load_binary_file("testdata/pizza-float32.raw");
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("yo gimme four large all dressed pizzas", decoder.get_hyp());
+    decoder.delete();
+  });
 });
 describe("Test reinitialize_audio", () => {
-    it('Should recognize "go forward ten meters"', async () => {
-        let decoder = new soundswallower.Decoder({
-            fsg: "testdata/goforward.fsg",
-            samprate: 11025,
-            loglevel: "INFO"
-        });
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        decoder.set_config("samprate", 16000);
-        await decoder.reinitialize_audio();
-        await decoder.start();
-        await decoder.process(pcm, false, true);
-        await decoder.stop();
-        assert.equal("go forward ten meters", decoder.get_hyp());
-        let hypseg = decoder.get_hypseg();
-        let hypseg_words = []
-        for (const seg of hypseg) {
-            assert.ok(seg.end >= seg.start);
-            hypseg_words.push(seg.word);
-        }
-        assert.deepStrictEqual(hypseg_words,
-                               ["<sil>", "go", "forward",
-                                "(NULL)", "ten", "meters"]);
-        decoder.delete();
+  it('Should recognize "go forward ten meters"', async () => {
+    let decoder = new soundswallower.Decoder({
+      fsg: "testdata/goforward.fsg",
+      samprate: 11025,
+      loglevel: "INFO",
     });
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    decoder.set_config("samprate", 16000);
+    await decoder.reinitialize_audio();
+    decoder.start();
+    decoder.process(pcm, false, true);
+    decoder.stop();
+    assert.equal("go forward ten meters", decoder.get_hyp());
+    let hypseg = decoder.get_hypseg();
+    let hypseg_words = [];
+    for (const seg of hypseg) {
+      assert.ok(seg.end >= seg.start);
+      hypseg_words.push(seg.word);
+    }
+    assert.deepStrictEqual(hypseg_words, [
+      "<sil>",
+      "go",
+      "forward",
+      "(NULL)",
+      "ten",
+      "meters",
+    ]);
+    decoder.delete();
+  });
 });
 describe("Test dictionary lookup", () => {
-    it('Should return "W AH N"', async () => {
-	let decoder = new soundswallower.Decoder();
-	await decoder.initialize();
-	const phones = decoder.lookup_word("one");
-	assert.equal("W AH N", phones);
-        decoder.delete();
-    });
+  it('Should return "W AH N"', async () => {
+    let decoder = new soundswallower.Decoder();
+    await decoder.initialize();
+    const phones = decoder.lookup_word("one");
+    assert.equal("W AH N", phones);
+    decoder.delete();
+  });
 });
 describe("Test spectrogram", () => {
-    it('Should create a spectrogram', async () => {
-        let decoder = new soundswallower.Decoder();
-        await decoder.initialize();
-        let pcm = await load_binary_file("testdata/goforward-float32.raw");
-        let { data, nfr, nfeat } = await decoder.spectrogram(pcm);
-        assert.equal(nfr, 129);
-        assert.equal(nfeat, 20);
-    });
+  it("Should create a spectrogram", async () => {
+    let decoder = new soundswallower.Decoder();
+    await decoder.initialize();
+    let pcm = await load_binary_file("testdata/goforward-float32.raw");
+    let { data, nfr, nfeat } = decoder.spectrogram(pcm);
+    assert.equal(nfr, 129);
+    assert.equal(nfeat, 20);
+  });
 });
