@@ -18,18 +18,12 @@ You may still wish to do so if you are processing large blocks of data
 or running on a slower machine.  Doing so is currently outside the
 scope of this document.
 
-Most of the methods of :js:class:`Decoder` are asynchronous.  This
-means that you must either call them from within an asynchronous
-function using ``await``, or use the ``Promise`` they return in the
-usual manner.  If this means nothing to you, please consult
+Initialization of :js:class:`Decoder` is separate from configuration
+and asynchronous.  This means that you must either call it from within
+an asynchronous function using ``await``, or use the ``Promise`` it
+returns in the usual manner.  If this means nothing to you, please
+consult
 https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous.
-
-This means that for older browsers you will need to use some kind of
-magical incantation that "polyfills" (I think that's what the kids
-call it) or transcodes or whatever so that it works right.  Also
-outside the scope of this document, because there are approximately
-59,000 of these, all of which claim to be THE BEST EVAR and I do not
-know which one you should use.
 
 By default, a narrow-bandwidth English acoustic model is loaded and
 made available.  If you want to use a different one, just put it where
@@ -119,11 +113,11 @@ Now run this with ``node``:
 	const fs = require("fs/promises");
 	let pcm = await fs.readFile("digits.raw");
 	// Start speech processing
-	await decoder.start();
+	decoder.start();
 	// Takes a typed array, as returned by readFile
-	await decoder.process(pcm);
+	decoder.process(pcm);
 	// Finalize speech processing
-	await decoder.stop();
+	decoder.stop();
 	// Get recognized text (NOTE: synchronous method)
 	console.log(decoder.get_hyp());
 	// We must manually release memory...
