@@ -37,8 +37,9 @@ class Decoder {
     if (typeof config === "undefined") config = {};
     if (Module.defaultModel !== null && config.hmm === undefined)
       config.hmm = Module.get_model_path(Module.defaultModel);
-    const cjson = allocateUTF8OnStack(JSON.stringify(config));
+    const cjson = allocateUTF8(JSON.stringify(config));
     const cconfig = Module._config_parse_json(0, cjson);
+    Module._free(cjson);
     this.cdecoder = Module._decoder_create(cconfig);
     if (this.cdecoder == 0) throw new Error("Failed to construct Decoder");
   }
@@ -64,22 +65,26 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   set_config(key, val) {
-    const ckey = allocateUTF8OnStack(key);
+    const ckey = allocateUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
+      Module._free(ckey);
       throw new ReferenceError("Unknown cmd_ln parameter " + key);
     }
     if (type & ARG_STRING) {
-      const cval = allocateUTF8OnStack(val);
+      const cval = allocateUTF8(val);
       Module._config_set_str(cconfig, ckey, cval);
+      Module._free(cval);
     } else if (type & ARG_FLOATING) {
       Module._config_set_float(cconfig, ckey, val);
     } else if (type & (ARG_INTEGER | ARG_BOOLEAN)) {
       Module._config_set_int(cconfig, ckey, val);
     } else {
+      Module._free(ckey);
       return false;
     }
+    Module._free(ckey);
     return true;
   }
   /**
@@ -88,13 +93,15 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   unset_config(key) {
-    const ckey = allocateUTF8OnStack(key);
+    const ckey = allocateUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
+      Module._free(ckey);
       throw new ReferenceError("Unknown cmd_ln parameter " + key);
     }
     Module._config_set(cconfig, ckey, 0, type);
+    Module._free(ckey);
   }
   /**
    * Get a configuration parameter's value.
@@ -103,34 +110,41 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   get_config(key) {
-    const ckey = allocateUTF8OnStack(key);
+    const ckey = allocateUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
+      Module._free(ckey);
       throw new ReferenceError("Unknown cmd_ln parameter " + key);
     }
+    let rv;
     if (type & ARG_STRING) {
       const val = Module._config_str(cconfig, ckey);
-      if (val == 0) return null;
-      return UTF8ToString(val);
+      if (val == 0) rv = null;
+      else rv = UTF8ToString(val);
     } else if (type & ARG_FLOATING) {
-      return Module._config_float(cconfig, ckey);
+      rv = Module._config_float(cconfig, ckey);
     } else if (type & ARG_INTEGER) {
-      return Module._config_int(cconfig, ckey);
+      rv = Module._config_int(cconfig, ckey);
     } else if (type & ARG_BOOLEAN) {
-      return Boolean(Module._config_int(cconfig, ckey));
-    } else {
+      rv = Boolean(Module._config_int(cconfig, ckey));
+    }
+    Module._free(ckey);
+    if (rv === undefined) {
       throw new TypeError("Unsupported type " + type + " for parameter" + key);
     }
+    return rv;
   }
   /**
    * Test if a key is a known parameter.
    * @param {string} key Key whose existence to check.
    */
   has_config(key) {
-    const ckey = allocateUTF8OnStack(key);
+    const ckey = allocateUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
-    return Module._config_typeof(cconfig, ckey) != 0;
+    const rv = Module._config_typeof(cconfig, ckey) != 0;
+    Module._free(ckey);
+    return rv;
   }
   /**
    * Initialize or reinitialize the decoder asynchronously.
@@ -395,7 +409,7 @@ class Decoder {
     this.assert_initialized();
     let itor = Module._decoder_seg_iter(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
-    const frate = Module._config_int(config, allocateUTF8OnStack("frate"));
+    const frate = this.get_config("frate");
     const seg = [];
     while (itor != 0) {
       const frames = stackAlloc(8);
@@ -439,8 +453,9 @@ class Decoder {
    */
   lookup_word(word) {
     this.assert_initialized();
-    const cword = allocateUTF8OnStack(word);
+    const cword = allocateUTF8(word);
     const cpron = Module._decoder_lookup_word(this.cdecoder, cword);
+    Module._free(cword);
     if (cpron == 0) return null;
     return UTF8ToString(cpron);
   }
@@ -455,9 +470,11 @@ class Decoder {
    */
   async add_word(word, pron, update = true) {
     this.assert_initialized();
-    const cword = allocateUTF8OnStack(word);
-    const cpron = allocateUTF8OnStack(pron);
+    const cword = allocateUTF8(word);
+    const cpron = allocateUTF8(pron);
     const wid = Module._decoder_add_word(this.cdecoder, cword, cpron, update);
+    Module._free(cword);
+    Module._free(cpron);
     if (wid < 0)
       throw new Error(
         "Failed to add word " +
@@ -482,7 +499,7 @@ class Decoder {
     this.assert_initialized();
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
-    const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
+    const lw = this.get_config("lw");
     let n_state = 0;
     for (const t of transitions) {
       n_state = Math.max(n_state, t.from, t.to);
@@ -530,14 +547,16 @@ class Decoder {
     this.assert_initialized();
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
-    const lw = Module._config_float(config, allocateUTF8OnStack("lw"));
-    const cjsgf = allocateUTF8OnStack(jsgf_string);
+    const lw = this.get_config("lw");
+    const cjsgf = allocateUTF8(jsgf_string);
     const jsgf = Module._jsgf_parse_string(cjsgf, 0);
+    Module._free(cjsgf);
     if (jsgf == 0) throw new Error("Failed to parse JSGF");
     let rule;
     if (toprule !== null) {
-      const crule = allocateUTF8OnStack(toprule);
+      const crule = allocateUTF8(toprule);
       rule = Module._jsgf_get_rule(jsgf, crule);
+      Module._free(crule);
       if (rule == 0) throw new Error("Failed to find top rule " + toprule);
     } else {
       rule = Module._jsgf_get_public_rule(jsgf);
@@ -556,9 +575,10 @@ class Decoder {
    */
   async set_align_text(text) {
     this.assert_initialized();
-    const ctext = allocateUTF8OnStack(text);
-    if (Module._decoder_set_align_text(this.cdecoder, ctext) < 0)
-      throw new Error("Failed to set alignment text");
+    const ctext = allocateUTF8(text);
+    const rv = Module._decoder_set_align_text(this.cdecoder, ctext);
+    Module._free(ctext);
+    if (rv < 0) throw new Error("Failed to set alignment text");
   }
   /**
    * Compute spectrogram from audio

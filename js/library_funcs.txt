@@ -1,2 +1,2 @@
-$allocateUTF8OnStack
+$allocateUTF8
 $ccall
