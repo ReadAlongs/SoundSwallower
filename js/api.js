@@ -25,7 +25,7 @@ class Decoder {
    */
   constructor(config) {
     this.initialized = false;
-    if (typeof config === "undefined") config = {};
+    if (config === undefined) config = {};
     if (Module.defaultModel !== null && config.hmm === undefined)
       config.hmm = Module.get_model_path(Module.defaultModel);
     const cjson = allocateUTF8(JSON.stringify(config));
@@ -61,7 +61,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     if (type & ARG_STRING) {
       const cval = allocateUTF8(val);
@@ -89,7 +89,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     Module._config_set(cconfig, ckey, 0, type);
     Module._free(ckey);
@@ -106,7 +106,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     let rv;
     if (type & ARG_STRING) {
@@ -122,7 +122,7 @@ class Decoder {
     }
     Module._free(ckey);
     if (rv === undefined)
-      throw new TypeError("Unsupported type " + type + " for parameter" + key);
+      throw new TypeError(`Unsupported type ${type} for parameter ${key}`);
     return rv;
   }
   /**
