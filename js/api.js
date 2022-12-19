@@ -1,5 +1,4 @@
-// SoundSwallower JavaScript API code.
-
+"use strict";
 const ARG_INTEGER = 1 << 1;
 const ARG_FLOATING = 1 << 2;
 const ARG_STRING = 1 << 3;
