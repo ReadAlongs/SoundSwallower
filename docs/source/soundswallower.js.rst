@@ -115,11 +115,11 @@ Now run this with ``node``:
 	// Start speech processing
 	decoder.start();
 	// Takes a typed array, as returned by readFile
-	decoder.process(pcm);
+	decoder.process_audio(pcm);
 	// Finalize speech processing
 	decoder.stop();
 	// Get recognized text (NOTE: synchronous method)
-	console.log(decoder.get_hyp());
+	console.log(decoder.get_text());
 	// We must manually release memory...
 	decoder.delete();
     })();

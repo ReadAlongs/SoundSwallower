@@ -148,33 +148,29 @@ Now you can load it and recognize it with:
 ```js
 let audio = await fs.readFile("goforward.raw");
 decoder.start();
-decoder.process(audio, false, true);
+decoder.process_audio(audio, false, true);
 decoder.stop();
 ```
 
-The results can be obtained with `get_hyp()` or in a more detailed
-format with time alignments using `get_hypseg()`. These are not
-asynchronous methods, as they do not depend on or change the state of
-the decoder:
+The text result can be obtained with `get_text()` or in a more detailed format
+with time alignments using `get_alignment()`. These are not asynchronous
+methods, as they do not depend on or change the state of the decoder:
 
 ```js
-console.log(decoder.get_hyp());
-console.log(decoder.get_hypseg());
+console.log(decoder.get_text());
+console.log(decoder.get_alignment());
 ```
 
-If you want even more detailed segmentation (phone and HMM state
-level) you can use `get_alignment_json`. For more detail on this
-format, see [the PocketSphinx
-documentation](https://github.com/cmusphinx/pocketsphinx#usage) as it
-is borrowed from there. Since this is JSON, you can create an object
-from it and iterate over it:
+For more detail on the alignment format, see [the PocketSphinx
+documentation](https://github.com/cmusphinx/pocketsphinx#usage) as it is
+borrowed from there. For example:
 
 ```js
-const result = JSON.parse(decoder.get_alignment_json());
-for (const word of result.w) {
-  console.log(`word ${word.t} at ${word.b} has duration ${word.d}`);
-  for (const phone of word.w) {
-    console.log(`phone ${phone.t} at ${phone.b} has duration ${phone.d}`);
+const result = decoder.get_alignment_json({ align_level: 1 });
+for (const { w, t, b, d } of result.w) {
+  console.log(`word ${t} at ${b} has duration ${d} and probability ${p}`);
+  for (const { t, b, d } of w) {
+    console.log(`phone ${t} at ${b} has duration ${d}`);
   }
 }
 ```
@@ -224,7 +220,7 @@ from a JavaScript string and set it in the decoder like this (a
 hypothetical pizza-ordering grammar):
 
 ```js
-decoder.set_jsgf(`#JSGF V1.0;
+decoder.set_grammar(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 <greeting> = hi | hello | yo | howdy;
@@ -261,6 +257,7 @@ from [the
 documentation](https://soundswallower.readthedocs.io/en/latest/soundswallower.js.html#Endpointer.get_in_speech):
 
 ```js
+const ep = new Endpointer({ samprate: decoder.get_config("samprate"} });
 let prev_in_speech = ep.get_in_speech();
 let frame_size = ep.get_frame_size();
 // Presume `frame` is a Float32Array of frame_size or less
