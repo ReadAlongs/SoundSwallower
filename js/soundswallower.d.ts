@@ -11,23 +11,22 @@ export class Decoder {
   reinitialize_audio(): Promise<void>;
   start(): void;
   stop(): void;
-  process(
+  process_audio(
     pcm: Float32Array | Uint8Array,
     no_search?: boolean,
     full_utt?: boolean
   ): number;
-  get_hyp(): string;
-  get_hypseg(): Array<Segment>;
-  get_alignment_json(start?: number, align_level?: number): string;
+  get_text(): string;
+  get_alignment({
+    start,
+    align_level,
+  }?: {
+    start?: number;
+    align_level?: number;
+  }): Segment;
   lookup_word(word: string): string;
-  add_word(word: string, pron: string, update?: boolean): number;
-  set_fsg(
-    name: string,
-    start_state: number,
-    final_state: number,
-    transitions: Array<Transition>
-  ): void;
-  set_jsgf(jsgf_string: string, toprule?: string): void;
+  add_words(...words: Array<DictEntry>): void;
+  set_grammar(jsgf_string: string, toprule?: string): void;
   set_align_text(text: string): void;
   spectrogram(pcm: Float32Array | Uint8Array): FeatureBuffer;
 }
@@ -40,16 +39,13 @@ export class Endpointer {
   process(frame: Float32Array): Float32Array;
   end_stream(frame: Float32Array): Float32Array;
 }
-export interface Transition {
-  from: number;
-  to: number;
-  prob?: number;
-  word?: string;
-}
+export type DictEntry = [string, string];
 export interface Segment {
-  start: number;
-  end: number;
-  word: string;
+  t: string;
+  b: number;
+  d: number;
+  p: number;
+  w?: Array<Segment>;
 }
 export interface Config {
   [key: string]: string | number | boolean;
@@ -67,13 +63,19 @@ export interface SoundSwallowerModule extends EmscriptenModule {
     new (config?: Config): Decoder;
   };
   Endpointer: {
-    new (
-      sample_rate: number,
-      frame_length?: number,
-      mode?: number,
-      window?: number,
-      ratio?: number
-    ): Endpointer;
+    new ({
+      samprate,
+      frame_length,
+      mode,
+      window,
+      ratio,
+    }: {
+      samprate: number;
+      frame_length?: number;
+      mode?: number;
+      window?: number;
+      ratio?: number;
+    }): Endpointer;
   };
 }
 declare const createModule: EmscriptenModuleFactory<SoundSwallowerModule>;

@@ -237,19 +237,16 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [pizza] <toppings>;
 ```
 
 Note that all the words in the grammar must first be defined in the
-dictionary. You can add custom dictionary words using the `add_word`
+dictionary. You can add custom dictionary words using the `add_words`
 method on the `Decoder` object, as long as you speak ArpaBet (or
 whatever phoneset the acoustic model uses). IPA and
 grapheme-to-phoneme support may become possible in the near future.
-If you are going to add a bunch of words, pass `false` as the third
-argument for all but the last one, as this will delay the reloading of
-the internal state.
 
 ```js
-decoder.add_word(
+decoder.add_words([
   "supercalifragilisticexpialidocious",
-  "S UW P ER K AE L IH F R AE JH IH L IH S T IH K EH K S P IY AE L IH D OW SH Y UH S"
-);
+  "S UW P ER K AE L IH F R AE JH IH L IH S T IH K EH K S P IY AE L IH D OW SH Y UH S",
+]);
 ```
 
 ## Voice activity detection / Endpointing

@@ -1,5 +1,4 @@
-// SoundSwallower JavaScript API code.
-
+"use strict";
 const ARG_INTEGER = 1 << 1;
 const ARG_FLOATING = 1 << 2;
 const ARG_STRING = 1 << 3;
@@ -34,7 +33,7 @@ class Decoder {
    */
   constructor(config) {
     this.initialized = false;
-    if (typeof config === "undefined") config = {};
+    if (config === undefined) config = {};
     if (Module.defaultModel !== null && config.hmm === undefined)
       config.hmm = Module.get_model_path(Module.defaultModel);
     const cjson = allocateUTF8(JSON.stringify(config));
@@ -70,7 +69,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     if (type & ARG_STRING) {
       const cval = allocateUTF8(val);
@@ -98,7 +97,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     Module._config_set(cconfig, ckey, 0, type);
     Module._free(ckey);
@@ -115,7 +114,7 @@ class Decoder {
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
       Module._free(ckey);
-      throw new ReferenceError("Unknown cmd_ln parameter " + key);
+      throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     let rv;
     if (type & ARG_STRING) {
@@ -131,7 +130,7 @@ class Decoder {
     }
     Module._free(ckey);
     if (rv === undefined)
-      throw new TypeError("Unsupported type " + type + " for parameter" + key);
+      throw new TypeError(`Unsupported type ${type} for parameter ${key}`);
     return rv;
   }
   /**
@@ -333,9 +332,8 @@ class Decoder {
     this.assert_initialized();
     const fe = await this.init_fe();
     const fcb = await this.init_feat();
-    if (Module._acmod_reinit_feat(this.cacmod, fe, fcb) < 0) {
+    if (Module._acmod_reinit_feat(this.cacmod, fe, fcb) < 0)
       throw new Error("Failed to reinitialize audio parameters");
-    }
   }
 
   /**
@@ -343,9 +341,8 @@ class Decoder {
    */
   start() {
     this.assert_initialized();
-    if (Module._decoder_start_utt(this.cdecoder) < 0) {
+    if (Module._decoder_start_utt(this.cdecoder) < 0)
       throw new Error("Failed to start utterance processing");
-    }
   }
 
   /**
@@ -353,9 +350,8 @@ class Decoder {
    */
   stop() {
     this.assert_initialized();
-    if (Module._decoder_end_utt(this.cdecoder) < 0) {
+    if (Module._decoder_end_utt(this.cdecoder) < 0)
       throw new Error("Failed to stop utterance processing");
-    }
   }
 
   /**
@@ -364,7 +360,7 @@ class Decoder {
    * the range [-1.0, 1.0].
    * @returns Number of frames processed.
    */
-  process(pcm, no_search = false, full_utt = false) {
+  process_audio(pcm, no_search = false, full_utt = false) {
     this.assert_initialized();
     const pcm_bytes = pcm.length * pcm.BYTES_PER_ELEMENT;
     const pcm_addr = Module._malloc(pcm_bytes);
@@ -391,55 +387,31 @@ class Decoder {
    * Get the currently recognized text.
    * @returns {string} Currently recognized text.
    */
-  get_hyp() {
+  get_text() {
     this.assert_initialized();
     return UTF8ToString(Module._decoder_hyp(this.cdecoder, 0));
   }
 
   /**
-   * Get the current recognition result as a word segmentation.
-   * @returns {Array<Object>} Array of Objects for the words
-   * recognized, each with the keys `word`, `start` and `end`.
+   * Get the current recognition result as a word (and possibly phone) segmentation.
+   * @param {Object} config
+   * @param {number} config.start Start time to add to returned segment times.
+   * @param {number} config.align_level 0 for no word alignments only, 1 for wor 
+    and phone alignments, 2 for word, phone and state alignments.
+   * @returns {Array<Segment>} Array of segments for the words recognized, each
+   * with the keys `t`, `b` and `d`, for text, start time, and duration,
+   * respectively.
    */
-  get_hypseg() {
+  get_alignment({ start = 0.0, align_level = 0 } = {}) {
     this.assert_initialized();
-    let itor = Module._decoder_seg_iter(this.cdecoder);
-    const config = Module._decoder_config(this.cdecoder);
-    const frate = this.get_config("frate");
-    const seg = [];
-    while (itor != 0) {
-      const frames = Module._malloc(8);
-      Module._seg_iter_frames(itor, frames, frames + 4);
-      const start_frame = getValue(frames, "i32");
-      const end_frame = getValue(frames + 4, "i32");
-      Module._free(frames);
-      const seg_item = {
-        word: UTF8ToString(Module._seg_iter_word(itor)),
-        start: start_frame / frate,
-        end: end_frame / frate,
-      };
-      seg.push(seg_item);
-      itor = Module._seg_iter_next(itor);
-    }
-    return seg;
-  }
-
-  /**
-   * Run alignment and get word and phone segmentation as JSON
-   * @param start Start time to add to returned segment times.
-   * @param align_level 0 for no subword alignments, 1 for phone
-   *                    alignments, 2 for phone and state alignments.
-   * @returns JSON with a detailed word and phone-level alignment.
-   */
-  get_alignment_json(start = 0.0, align_level = 1) {
-    this.assert_initialized();
-    /* FIXME: This could block for some time, decompose it. */
+    if (align_level > 2) throw new Error(`Invalid align_level ${align_level}`);
     const cjson = Module._decoder_result_json(
       this.cdecoder,
       start,
       align_level
     );
-    return UTF8ToString(cjson);
+    const json = UTF8ToString(cjson);
+    return JSON.parse(json);
   }
 
   /**
@@ -458,79 +430,33 @@ class Decoder {
   }
 
   /**
-   * Add a word to the pronunciation dictionary.
-   * @param {string} word Text of word to add.
-   * @param {string} pron Pronunciation of word as space-separated list of phonemes.
-   * @param {number} update Update decoder immediately (set to
-   * false when adding a list of words, except for the last word).
+   * Add words to the pronunciation dictionary.
+   *
+   * Example:
+   *
+   *    decoder.add_words(["hello", "H EH L OW"], ["world", "W ER L D"]);
+   *
+   * @param (...Array) words Any number of 2-element arrays containing the
+   *        word text in position 0 and a string with whitespace-separated
+   *        phones in position 1.
    */
-  add_word(word, pron, update = true) {
+  add_words(...words) {
     this.assert_initialized();
-    const cword = allocateUTF8(word);
-    const cpron = allocateUTF8(pron);
-    const wid = Module._decoder_add_word(this.cdecoder, cword, cpron, update);
-    Module._free(cword);
-    Module._free(cpron);
-    if (wid < 0)
-      throw new Error(
-        "Failed to add word " +
-          word +
-          " with pronunciation " +
-          pron +
-          " to the dictionary."
-      );
-    return wid;
-  }
-
-  /**
-   * Set recognition grammar from a list of transitions.
-   * @param {string} name Name of grammar.
-   * @param {number} start_state Index of starting state.
-   * @param {number} final_state Index of ending state.
-   * @param {Array<Object>} transitions Array of transitions, each
-   * of which is an Object with the keys `from`, `to`, `word`, and
-   * `prob`.  The word must exist in the dictionary.
-   */
-  set_fsg(name, start_state, final_state, transitions) {
-    this.assert_initialized();
-    const logmath = Module._decoder_logmath(this.cdecoder);
-    const config = Module._decoder_config(this.cdecoder);
-    const lw = this.get_config("lw");
-    let n_state = 0;
-    for (const t of transitions) {
-      n_state = Math.max(n_state, t.from, t.to);
-    }
-    n_state++;
-    const fsg = ccall(
-      "fsg_model_init",
-      "number",
-      ["string", "number", "number", "number"],
-      [name, logmath, lw, n_state]
-    );
-    Module._fsg_set_states(fsg, start_state, final_state);
-    for (const t of transitions) {
-      let logprob = 0;
-      if ("prob" in t) {
-        logprob = Module._logmath_log(logmath, t.prob);
-      }
-      if ("word" in t) {
-        const wid = ccall(
-          "fsg_model_word_add",
-          "number",
-          ["number", "string"],
-          [fsg, t.word]
+    for (let i = 0; i < words.length; ++i) {
+      const [text, pron] = words[i];
+      if (text === undefined || pron === undefined)
+        throw new Error(
+          `Word at position ${i} has missing text or pronunciation`
         );
-        if (wid == -1) {
-          Module._fsg_model_free(fsg);
-          throw new Error(`Failed to add word ${t.word} to FSG`);
-        }
-        Module._fsg_model_trans_add(fsg, t.from, t.to, logprob, wid);
-      } else {
-        Module._fsg_model_null_trans_add(fsg, t.from, t.to, logprob);
-      }
+      const ctext = allocateUTF8(text);
+      const cpron = allocateUTF8(pron);
+      const update = i == words.length - 1;
+      const wid = Module._decoder_add_word(this.cdecoder, ctext, cpron, update);
+      Module._free(ctext);
+      Module._free(cpron);
+      if (wid < 0)
+        throw new Error(`Failed to add "${word}:${pron}" to the dictionary`);
     }
-    if (Module._decoder_set_fsg(this.cdecoder, fsg) != 0)
-      throw new Error("Failed to set FSG in decoder");
   }
 
   /**
@@ -539,7 +465,7 @@ class Decoder {
    * @param {string} [toprule] Name of starting rule for grammar,
    * if not specified, the first public rule will be used.
    */
-  set_jsgf(jsgf_string, toprule = null) {
+  set_grammar(jsgf_string, toprule = null) {
     this.assert_initialized();
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
@@ -625,31 +551,32 @@ class Endpointer {
   /**
    * Create the endpointer
    *
-   * @param {number} [sample_rate] Sampling rate of the input audio.
-   * @param {number} [frame_length] Length in seconds of an input
+   * @param {Object} config
+   * @param {number} config.samprate Sampling rate of the input audio.
+   * @param {number} config.frame_length Length in seconds of an input
    * frame, must be 0.01, 0.02, or 0.03.
-   * @param {number} [mode] Aggressiveness of voice activity detction,
+   * @param {number} config.mode Aggressiveness of voice activity detction,
    * must be 0, 1, 2, or 3.  Higher numbers will create "tighter"
    * endpoints at the possible expense of clipping the start of
    * utterances.
-   * @param {number} [window] Length in seconds of the window used to
+   * @param {number} config.window Length in seconds of the window used to
    * make a speech/non-speech decision.
-   * @param {number} [ratio] Ratio of `window` that must be detected as
+   * @param {number} config.ratio Ratio of `window` that must be detected as
    * speech (or not speech) in order to trigger decision.
    * @throws {Error} on invalid parameters.
    */
-  constructor(
-    sample_rate,
+  constructor({
+    samprate,
     frame_length = 0.03,
     mode = 0,
     window = 0.3,
-    ratio = 0.9
-  ) {
+    ratio = 0.9,
+  } = {}) {
     this.cep = Module._endpointer_init(
       window,
       ratio,
       mode,
-      sample_rate,
+      samprate,
       frame_length
     );
     if (this.cep == 0) throw new Error("Invalid endpointer or VAD parameters");

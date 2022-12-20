@@ -742,6 +742,7 @@ decoder_alignment(decoder_t *d)
     seg_iter_t *seg;
     alignment_t *al;
     frame_idx_t output_frame;
+    int prev_ef;
 
     /* Reuse the existing alignment if nothing has changed. */
     if (d->align) {
@@ -755,11 +756,16 @@ decoder_alignment(decoder_t *d)
     if (seg == NULL)
         return NULL;
     al = alignment_init(d->d2p);
+    prev_ef = -1;
     while (seg) {
         int32 wid = dict_wordid(d->dict, seg->word);
-        /* This is, actually, impossible. */
-        assert(wid != BAD_S3WID);
-        alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);
+        /* This is actually possible, because of (null) transitions. */
+        if (wid != BAD_S3WID) {
+            /* The important thing is that they be continguous. */
+            assert(seg->sf == prev_ef + 1);
+            prev_ef = seg->ef;
+            alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);
+        }
         seg = seg_iter_next(seg);
     }
     if (alignment_populate(al) < 0) {

@@ -4,6 +4,18 @@ import { SoundSwallowerModule, Decoder, Segment } from "./soundswallower.js";
 import { promises as fs } from "fs";
 import * as assert from "assert";
 
+function check_alignment(hypseg: Segment, text: string) {
+  let hypseg_words = [];
+  let prev = -1;
+  for (const { t, b, d } of hypseg.w) {
+    assert.ok(d > 0);
+    assert.ok(b > prev);
+    prev = b;
+    if (t != "<sil>" && t != "(NULL)") hypseg_words.push(t);
+  }
+  assert.equal(hypseg_words.join(" "), text);
+}
+
 (async () => {
   const soundswallower: SoundSwallowerModule = await soundswallower_factory();
   /* Basic test */
@@ -14,41 +26,31 @@ import * as assert from "assert";
   await decoder.initialize();
   let pcm: Uint8Array = await fs.readFile("testdata/goforward-float32.raw");
   decoder.start();
-  decoder.process(pcm, false, true);
+  decoder.process_audio(pcm, false, true);
   decoder.stop();
-  let hyp: string = decoder.get_hyp();
+  let hyp: string = decoder.get_text();
   console.log(`recognized: ${hyp}`);
   assert.equal("go forward ten meters", hyp);
-  let hypseg: Array<Segment> = decoder.get_hypseg();
-  let hypseg_words = [];
-  for (const seg of hypseg) {
-    assert.ok(seg.end >= seg.start);
-    if (seg.word != "<sil>" && seg.word != "(NULL)")
-      hypseg_words.push(seg.word);
-  }
-  assert.deepStrictEqual(hypseg_words, ["go", "forward", "ten", "meters"]);
+  check_alignment(decoder.get_alignment(), "go forward ten meters");
 
-  /* Test create_fsg */
-  decoder.add_word("_go", "G OW", false);
-  decoder.add_word("_forward", "F AO R W ER D", false);
-  decoder.add_word("_ten", "T EH N", false);
-  decoder.add_word("_meters", "M IY T ER Z", true);
-  decoder.set_fsg("goforward", 0, 4, [
-    { from: 0, to: 1, prob: 1.0, word: "_go" },
-    { from: 1, to: 2, prob: 1.0, word: "_forward" },
-    { from: 2, to: 3, prob: 1.0, word: "_ten" },
-    { from: 3, to: 4, prob: 1.0, word: "_meters" },
-  ]);
   pcm = await fs.readFile("testdata/goforward-float32.raw");
+  decoder.add_words(
+    ["_go", "G OW"],
+    ["_forward", "F AO R W ER D"],
+    ["_ten", "T EH N"],
+    ["_meters", "M IY T ER Z"]
+  );
+  decoder.set_align_text("_go _forward _ten _meters");
   decoder.start();
-  decoder.process(pcm, false, true);
+  decoder.process_audio(pcm, false, true);
   decoder.stop();
-  hyp = decoder.get_hyp();
+  hyp = decoder.get_text();
   console.log(`recognized: ${hyp}`);
   assert.equal("_go _forward _ten _meters", hyp);
+  check_alignment(decoder.get_alignment(), "_go _forward _ten _meters");
 
   /* Test JSGF */
-  decoder.set_jsgf(`#JSGF V1.0;
+  decoder.set_grammar(`#JSGF V1.0;
 grammar pizza;
 public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
        [(pizza | pizzas)] [<toppings>];
@@ -62,9 +64,13 @@ public <order> = [<greeting>] [<want>] [<quantity>] [<size>] [<style>]
 `);
   pcm = await fs.readFile("testdata/pizza-float32.raw");
   decoder.start();
-  decoder.process(pcm, false, true);
+  decoder.process_audio(pcm, false, true);
   decoder.stop();
-  hyp = decoder.get_hyp();
+  hyp = decoder.get_text();
   console.log(`recognized: ${hyp}`);
   assert.equal("yo gimme four large all dressed pizzas", hyp);
+  check_alignment(
+    decoder.get_alignment({ align_level: 1 }),
+    "yo gimme four large all dressed pizzas"
+  );
 })();
