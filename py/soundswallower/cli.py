@@ -30,7 +30,7 @@ import sys
 import os
 
 
-def make_argparse():
+def make_argparse() -> argparse.ArgumentParser:
     """Function to make the argument parser (for auto-documentation purposes)"""
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -63,7 +63,7 @@ def make_argparse():
     return parser
 
 
-def print_config_help(config):
+def print_config_help(config: Config) -> None:
     """Describe the decoder configuration parameters."""
     print("Configuration parameters:")
     for defn in config.describe():
@@ -75,7 +75,7 @@ def print_config_help(config):
                  defn.doc))
 
 
-def make_decoder_config(args):
+def make_decoder_config(args: argparse.Namespace) -> Config:
     """Make a decoder configuration from command-line arguments, possibly
     including a JSON configuration file."""
     config = Config()
@@ -112,7 +112,7 @@ def make_decoder_config(args):
     return config
 
 
-def write_config(config, output=None):
+def write_config(config: Config, output: Optional[str] = None) -> None:
     """Write the full configuraiton as JSON to output file or standard output."""
     if output is not None:
         outfh = open(output, "wt")
@@ -123,7 +123,7 @@ def write_config(config, output=None):
         outfh.close()
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> None:
     """Main entry point for SoundSwallower."""
     logging.basicConfig(level=logging.INFO)
     parser = make_argparse()

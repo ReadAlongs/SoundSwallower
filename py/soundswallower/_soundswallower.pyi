@@ -70,7 +70,7 @@ class Decoder:
     def update_cmn(self) -> str:
         ...
 
-    def start_utt(self):
+    def start_utt(self) -> None:
         ...
 
     def process_raw(
@@ -81,7 +81,7 @@ class Decoder:
     ):
         ...
 
-    def end_utt(self):
+    def end_utt(self) -> None:
         ...
 
     def add_word(self, word: str, phones: str, update: bool = ...) -> int:
