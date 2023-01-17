@@ -2,9 +2,9 @@
 
 import os
 import unittest
-from soundswallower import Decoder, Seg, get_model_path
 from typing import Iterator
 
+from soundswallower import Decoder, Seg, get_model_path
 
 DATADIR = os.path.join(os.path.dirname(__file__),
                        "..", "..", "tests", "data")

@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 
 import os
-import numpy as np
 import unittest
-from soundswallower import Endpointer
 
+import numpy as np
+from soundswallower import Endpointer
 
 DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
 

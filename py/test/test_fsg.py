@@ -2,8 +2,8 @@
 
 import os
 import unittest
-from soundswallower import Decoder, get_model_path
 
+from soundswallower import Decoder, get_model_path
 
 DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
 JSGF = b"""#JSGF V1.0;

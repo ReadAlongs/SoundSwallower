@@ -30,8 +30,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import unittest
 import os
+import unittest
+
 from soundswallower import Config, Decoder, get_model_path
 
 

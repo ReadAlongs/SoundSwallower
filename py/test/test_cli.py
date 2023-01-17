@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
+import json
 import os
 import re
-import json
 import unittest
-from soundswallower import cli, get_model_path
 from tempfile import TemporaryDirectory
-from typing import Mapping, Any
+from typing import Any, Mapping
+
+from soundswallower import cli, get_model_path
 
 DATADIR = os.path.join(os.path.dirname(__file__),
                        "..", "..", "tests", "data")

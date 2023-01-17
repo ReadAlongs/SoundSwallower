@@ -23,12 +23,13 @@ To use a custom dictionary::
 
 """
 
-from soundswallower import Decoder, Config, get_model_path
-from typing import Optional
-import logging
 import argparse
-import sys
+import logging
 import os
+import sys
+from typing import Optional
+
+from soundswallower import Config, Decoder, get_model_path
 
 
 def make_argparse() -> argparse.ArgumentParser:
