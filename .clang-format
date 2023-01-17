@@ -2,3 +2,4 @@ BasedOnStyle: WebKit
 PointerAlignment: Right
 AlignAfterOpenBracket: true
 AlwaysBreakAfterReturnType: TopLevelDefinitions
+UseTab: Never
