@@ -6,17 +6,18 @@ import json
 import unittest
 from soundswallower import cli, get_model_path
 from tempfile import TemporaryDirectory
+from typing import Mapping, Any
 
 DATADIR = os.path.join(os.path.dirname(__file__),
                        "..", "..", "tests", "data")
 
 
-def baseword(w):
+def baseword(w: Mapping[str, Any]) -> str:
     return re.sub(r"\(\d+\)$", "", w["t"])
 
 
 class TestCLI(unittest.TestCase):
-    def check_output(self, jpath, text="go forward ten meters") -> None:
+    def check_output(self, jpath: str, text: str = "go forward ten meters") -> None:
         with open(jpath, "rt") as infh:
             for line in infh:
                 result = json.loads(line)

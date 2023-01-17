@@ -25,7 +25,7 @@ public <move2> = go <direction> <distance> [meter | meters];
 
 
 class TestDecodeFSG(unittest.TestCase):
-    def _run_decode(self, decoder) -> None:
+    def _run_decode(self, decoder: Decoder) -> None:
         with open(os.path.join(DATADIR, "goforward.raw"), "rb") as fh:
             buf = fh.read()
             decoder.start_utt()

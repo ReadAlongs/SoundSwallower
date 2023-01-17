@@ -2,7 +2,8 @@
 
 import os
 import unittest
-from soundswallower import Decoder, get_model_path
+from soundswallower import Decoder, Seg, get_model_path
+from typing import Iterator
 
 
 DATADIR = os.path.join(os.path.dirname(__file__),
@@ -18,7 +19,7 @@ class TestDecoder(unittest.TestCase):
             decoder.end_utt()
             self._check_hyp(decoder.hyp.text, decoder.seg)
 
-    def _check_hyp(self, hyp, hypseg) -> None:
+    def _check_hyp(self, hyp: str, hypseg: Iterator[Seg]) -> None:
         self.assertEqual(hyp, "go forward ten meters")
         words = []
         for seg in hypseg:
