@@ -1,4 +1,5 @@
 /* -*- mode: text -*- */
+// clang-format off
 /* ====================================================================
  * Copyright (c) 2007 Carnegie Mellon University.  All rights
  * reserved.
