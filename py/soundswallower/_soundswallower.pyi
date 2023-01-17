@@ -20,9 +20,6 @@ class Config:
 class FsgModel:
     pass
 
-class Alignment:
-    pass
-
 class Decoder:
     config: Config
     cmn: str
