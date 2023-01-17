@@ -2,3 +2,7 @@ scikit-build
 Cython
 pytest
 numpy
+pre-commit
+black
+isort
+mypy
