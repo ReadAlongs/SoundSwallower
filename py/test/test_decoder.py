@@ -10,7 +10,7 @@ DATADIR = os.path.join(os.path.dirname(__file__),
 
 
 class TestDecoder(unittest.TestCase):
-    def _run_decode(self, decoder):
+    def _run_decode(self, decoder: Decoder) -> None:
         with open(os.path.join(DATADIR, 'goforward.raw'), "rb") as fh:
             buf = fh.read()
             decoder.start_utt()
@@ -18,7 +18,7 @@ class TestDecoder(unittest.TestCase):
             decoder.end_utt()
             self._check_hyp(decoder.hyp.text, decoder.seg)
 
-    def _check_hyp(self, hyp, hypseg):
+    def _check_hyp(self, hyp, hypseg) -> None:
         self.assertEqual(hyp, "go forward ten meters")
         words = []
         for seg in hypseg:
@@ -26,7 +26,7 @@ class TestDecoder(unittest.TestCase):
                 words.append(seg.text)
         self.assertEqual(words, "go forward ten meters".split())
 
-    def test_from_scratch(self):
+    def test_from_scratch(self) -> None:
         decoder = Decoder.create(hmm=os.path.join(get_model_path(), 'en-us'),
                                  beam=0., wbeam=0., pbeam=0., loglevel="INFO")
         del decoder.config["dict"]
@@ -45,7 +45,7 @@ class TestDecoder(unittest.TestCase):
         decoder.set_fsg(fsg)
         self._run_decode(decoder)
 
-    def test_reinit(self):
+    def test_reinit(self) -> None:
         decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
                           fsg=os.path.join(DATADIR, 'goforward.fsg'),
                           dict=os.path.join(DATADIR, 'turtle.dic'))
@@ -57,7 +57,7 @@ class TestDecoder(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self._run_decode(decoder)
 
-    def test_reinit_feat(self):
+    def test_reinit_feat(self) -> None:
         # Initialize with wrong sampling rate
         decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
                           dict=os.path.join(DATADIR, 'turtle.dic'),
@@ -69,19 +69,19 @@ class TestDecoder(unittest.TestCase):
         decoder.reinit_feat()
         self._run_decode(decoder)
 
-    def test_turtle(self):
+    def test_turtle(self) -> None:
         decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
                           fsg=os.path.join(DATADIR, 'goforward.fsg'),
                           dict=os.path.join(DATADIR, 'turtle.dic'))
         self._run_decode(decoder)
 
-    def test_loglevel(self):
+    def test_loglevel(self) -> None:
         Decoder(hmm=os.path.join(get_model_path(), 'en-us'), loglevel="FATAL")
         with self.assertRaises(RuntimeError):
             Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
                     loglevel="FOOBIEBLETCH")
 
-    def test_decode_file(self):
+    def test_decode_file(self) -> None:
         """Test decode_file on a variety of data."""
         decoder = Decoder(hmm=os.path.join(get_model_path('en-us')),
                           dict=os.path.join(DATADIR, 'turtle.dic'))
@@ -97,7 +97,7 @@ class TestDecoder(unittest.TestCase):
                 os.path.join(DATADIR, "goforward4k.wav"))
             self._check_hyp(hyp, hypseg)
 
-    def test_decode_fail(self):
+    def test_decode_fail(self) -> None:
         """Test failure to initialize (should not segfault!)"""
         with self.assertRaises(RuntimeError):
             _ = Decoder(hmm=os.path.join(get_model_path('en-us')),

@@ -5,8 +5,7 @@ import unittest
 from soundswallower import Decoder, get_model_path
 
 
-DATADIR = os.path.join(os.path.dirname(__file__),
-                       "..", "..", "tests", "data")
+DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
 JSGF = b"""#JSGF V1.0;
 
 /**
@@ -26,8 +25,8 @@ public <move2> = go <direction> <distance> [meter | meters];
 
 
 class TestDecodeFSG(unittest.TestCase):
-    def _run_decode(self, decoder):
-        with open(os.path.join(DATADIR, 'goforward.raw'), "rb") as fh:
+    def _run_decode(self, decoder) -> None:
+        with open(os.path.join(DATADIR, "goforward.raw"), "rb") as fh:
             buf = fh.read()
             decoder.start_utt()
             decoder.process_raw(buf, full_utt=True)
@@ -39,45 +38,51 @@ class TestDecodeFSG(unittest.TestCase):
                     words.append(seg.text)
             self.assertEqual(words, "go forward ten meters".split())
 
-    def test_fsg_loading(self):
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          dict=os.path.join(DATADIR, 'turtle.dic'))
+    def test_fsg_loading(self) -> None:
+        decoder = Decoder(
+            hmm=os.path.join(get_model_path(), "en-us"),
+            dict=os.path.join(DATADIR, "turtle.dic"),
+        )
         # Read a file that isn't a FSG
         with self.assertRaises(RuntimeError):
-            fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.raw'))
+            fsg = decoder.read_fsg(os.path.join(DATADIR, "goforward.raw"))
         # OK, read the real thing :)
-        fsg = decoder.read_fsg(os.path.join(DATADIR, 'goforward.fsg'))
+        fsg = decoder.read_fsg(os.path.join(DATADIR, "goforward.fsg"))
         decoder.set_fsg(fsg)
         self._run_decode(decoder)
 
-    def test_fsg_creation(self):
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          dict=os.path.join(DATADIR, 'turtle.dic'))
-        num_transitions = [(4, 5, 0.1, num)
-                           for num
-                           in "one two three four five six seven eight nine ten"
-                           .split()]
-        fsg = decoder.create_fsg("turtle",
-                                 start_state=0, final_state=6,
-                                 transitions=[(0, 1, 1.0, "go"),
-                                              (1, 2, 0.5, "forward"),
-                                              (1, 3, 0.5, "backward"),
-                                              (2, 4, 1.0),
-                                              (3, 4, 1.0),
-                                              (5, 6, 0.1, "meter"),
-                                              (5, 6, 0.1, "meters")]
-                                 + num_transitions)
+    def test_fsg_creation(self) -> None:
+        decoder = Decoder(
+            hmm=os.path.join(get_model_path(), "en-us"),
+            dict=os.path.join(DATADIR, "turtle.dic"),
+        )
+        transitions = [
+            (0, 1, 1.0, "go"),
+            (1, 2, 0.5, "forward"),
+            (1, 3, 0.5, "backward"),
+            (2, 4, 1.0),
+            (3, 4, 1.0),
+            (5, 6, 0.1, "meter"),
+            (5, 6, 0.1, "meters"),
+        ]
+        for num in "one two three four five six seven eight nine ten".split():
+            transitions.append((4, 5, 0.1, num))
+        fsg = decoder.create_fsg(
+            "turtle", start_state=0, final_state=6, transitions=transitions
+        )
         decoder.set_fsg(fsg)
         self._run_decode(decoder)
 
-    def test_jsgf_loading(self):
-        decoder = Decoder(hmm=os.path.join(get_model_path(), 'en-us'),
-                          dict=os.path.join(DATADIR, 'turtle.dic'))
+    def test_jsgf_loading(self) -> None:
+        decoder = Decoder(
+            hmm=os.path.join(get_model_path(), "en-us"),
+            dict=os.path.join(DATADIR, "turtle.dic"),
+        )
         # Read a file that isn't a JSGF
         with self.assertRaises(RuntimeError):
-            decoder.set_jsgf_file(os.path.join(DATADIR, 'goforward.fsg'))
+            decoder.set_jsgf_file(os.path.join(DATADIR, "goforward.fsg"))
         # OK, read the real thing :)
-        decoder.set_jsgf_file(os.path.join(DATADIR, 'goforward.gram'))
+        decoder.set_jsgf_file(os.path.join(DATADIR, "goforward.gram"))
         self._run_decode(decoder)
         # Try loading it as a string
         decoder.set_jsgf_string(JSGF)
