@@ -37,7 +37,7 @@ def get_model_path(subpath: Optional[str] = None) -> str:
 
     Returns:
         The requested path within the model directory."""
-    model_path = os.path.join(os.path.dirname(__file__), 'model')
+    model_path = os.path.join(os.path.dirname(__file__), "model")
     if subpath is not None:
         return os.path.join(model_path, subpath)
     else:
@@ -89,3 +89,16 @@ Hyp.__doc__ = "Recognition hypothesis."
 Hyp.text.__doc__ = "Recognized text."
 Hyp.score.__doc__ = "Best path score."
 Hyp.prob.__doc__ = "Posterior probability of hypothesis (often 1.0, sorry)."
+
+__all__ = [
+    "Config",
+    "Decoder",
+    "FsgModel",
+    "Vad",
+    "Endpointer",
+    "Arg",
+    "Seg",
+    "Hyp",
+    "get_model_path",
+    "get_audio_data",
+]
