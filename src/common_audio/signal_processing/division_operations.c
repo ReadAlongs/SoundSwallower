@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+
 /*
  * This file contains implementations of the divisions
  * WebRtcSpl_DivU32U16()
@@ -23,41 +24,43 @@
 #include "common_audio/signal_processing/include/signal_processing_library.h"
 #include "rtc_base/sanitizer.h"
 
-uint32_t
-WebRtcSpl_DivU32U16(uint32_t num, uint16_t den)
+uint32_t WebRtcSpl_DivU32U16(uint32_t num, uint16_t den)
 {
     // Guard against division with 0
-    if (den != 0) {
+    if (den != 0)
+    {
         return (uint32_t)(num / den);
-    } else {
+    } else
+    {
         return (uint32_t)0xFFFFFFFF;
     }
 }
 
-int32_t
-WebRtcSpl_DivW32W16(int32_t num, int16_t den)
+int32_t WebRtcSpl_DivW32W16(int32_t num, int16_t den)
 {
     // Guard against division with 0
-    if (den != 0) {
+    if (den != 0)
+    {
         return (int32_t)(num / den);
-    } else {
+    } else
+    {
         return (int32_t)0x7FFFFFFF;
     }
 }
 
-int16_t
-WebRtcSpl_DivW32W16ResW16(int32_t num, int16_t den)
+int16_t WebRtcSpl_DivW32W16ResW16(int32_t num, int16_t den)
 {
     // Guard against division with 0
-    if (den != 0) {
+    if (den != 0)
+    {
         return (int16_t)(num / den);
-    } else {
+    } else
+    {
         return (int16_t)0x7FFF;
     }
 }
 
-int32_t
-WebRtcSpl_DivResultInQ31(int32_t num, int32_t den)
+int32_t WebRtcSpl_DivResultInQ31(int32_t num, int32_t den)
 {
     int32_t L_num = num;
     int32_t L_den = den;
@@ -68,30 +71,34 @@ WebRtcSpl_DivResultInQ31(int32_t num, int32_t den)
     if (num == 0)
         return 0;
 
-    if (num < 0) {
+    if (num < 0)
+    {
         change_sign++;
         L_num = -num;
     }
-    if (den < 0) {
+    if (den < 0)
+    {
         change_sign++;
         L_den = -den;
     }
-    while (k--) {
+    while (k--)
+    {
         div <<= 1;
         L_num <<= 1;
-        if (L_num >= L_den) {
+        if (L_num >= L_den)
+        {
             L_num -= L_den;
             div++;
         }
     }
-    if (change_sign == 1) {
+    if (change_sign == 1)
+    {
         div = -div;
     }
     return div;
 }
 
-int32_t
-WebRtcSpl_DivW32HiLow(int32_t num, int16_t den_hi, int16_t den_low)
+int32_t WebRtcSpl_DivW32HiLow(int32_t num, int16_t den_hi, int16_t den_low)
 {
     int16_t approx, tmp_hi, tmp_low, num_hi, num_low;
     int32_t tmpW32;
@@ -123,7 +130,8 @@ WebRtcSpl_DivW32HiLow(int32_t num, int16_t den_hi, int16_t den_low)
 
     // num * (1/den) by 32 bit multiplication (result in Q28)
 
-    tmpW32 = num_hi * tmp_hi + (num_hi * tmp_low >> 15) + (num_low * tmp_hi >> 15);
+    tmpW32 = num_hi * tmp_hi + (num_hi * tmp_low >> 15) +
+        (num_low * tmp_hi >> 15);
 
     // Put result in Q31 (convert from Q28)
     tmpW32 = WEBRTC_SPL_LSHIFT_W32(tmpW32, 3);

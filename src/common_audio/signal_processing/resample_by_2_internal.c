@@ -8,6 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+
 /*
  * This header file contains some internal resampling functions.
  *
@@ -18,8 +19,8 @@
 
 // allpass filter coefficients.
 static const int16_t kResampleAllpass[2][3] = {
-    { 821, 6110, 12382 },
-    { 3050, 9368, 15063 }
+        {821, 6110, 12382},
+        {3050, 9368, 15063}
 };
 
 //
@@ -28,9 +29,9 @@ static const int16_t kResampleAllpass[2][3] = {
 // output: int16_t (saturated) (of length len/2)
 // state:  filter state array; length = 8
 
-void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
-    WebRtcSpl_DownBy2IntToShort(int32_t *in, int32_t len, int16_t *out,
-                                int32_t *state)
+void RTC_NO_SANITIZE("signed-integer-overflow")  // bugs.webrtc.org/5486
+WebRtcSpl_DownBy2IntToShort(int32_t *in, int32_t len, int16_t *out,
+                            int32_t *state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
@@ -38,7 +39,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     len >>= 1;
 
     // lower allpass filter (operates on even input samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i << 1];
         diff = tmp0 - state[1];
         // UBSan: -1771017321 - 999586185 cannot be represented in type 'int'
@@ -69,7 +71,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     in++;
 
     // upper allpass filter (operates on odd input samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i << 1];
         diff = tmp0 - state[5];
         // scale down and round
@@ -98,7 +101,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     in--;
 
     // combine allpass outputs
-    for (i = 0; i < len; i += 2) {
+    for (i = 0; i < len; i += 2)
+    {
         // divide by two, add both allpass outputs and round
         tmp0 = (in[i << 1] + in[(i << 1) + 1]) >> 15;
         tmp1 = (in[(i << 1) + 2] + in[(i << 1) + 3]) >> 15;
@@ -121,11 +125,11 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
 // output: int32_t (shifted 15 positions to the left, + offset 16384) (of length len/2)
 // state:  filter state array; length = 8
 
-void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
-    WebRtcSpl_DownBy2ShortToInt(const int16_t *in,
-                                int32_t len,
-                                int32_t *out,
-                                int32_t *state)
+void RTC_NO_SANITIZE("signed-integer-overflow")  // bugs.webrtc.org/5486
+WebRtcSpl_DownBy2ShortToInt(const int16_t *in,
+                            int32_t len,
+                            int32_t *out,
+                            int32_t *state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
@@ -133,7 +137,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     len >>= 1;
 
     // lower allpass filter (operates on even input samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i << 1] << 15) + (1 << 14);
         diff = tmp0 - state[1];
         // scale down and round
@@ -164,7 +169,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     in++;
 
     // upper allpass filter (operates on odd input samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i << 1] << 15) + (1 << 14);
         diff = tmp0 - state[5];
         // scale down and round
@@ -198,15 +204,15 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
 // input:  int16_t
 // output: int32_t (normalized, not saturated) (of length len*2)
 // state:  filter state array; length = 8
-void
-WebRtcSpl_UpBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
-                          int32_t *state)
+void WebRtcSpl_UpBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
+                               int32_t *state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
 
     // upper allpass filter (generates odd output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i] << 15) + (1 << 14);
         diff = tmp0 - state[5];
         // scale down and round
@@ -235,7 +241,8 @@ WebRtcSpl_UpBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
     out++;
 
     // lower allpass filter (generates even output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i] << 15) + (1 << 14);
         diff = tmp0 - state[1];
         // scale down and round
@@ -267,15 +274,15 @@ WebRtcSpl_UpBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
 // input:  int32_t (shifted 15 positions to the left, + offset 16384)
 // output: int32_t (shifted 15 positions to the left, + offset 16384) (of length len*2)
 // state:  filter state array; length = 8
-void
-WebRtcSpl_UpBy2IntToInt(const int32_t *in, int32_t len, int32_t *out,
-                        int32_t *state)
+void WebRtcSpl_UpBy2IntToInt(const int32_t *in, int32_t len, int32_t *out,
+                             int32_t *state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
 
     // upper allpass filter (generates odd output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i];
         diff = tmp0 - state[5];
         // scale down and round
@@ -304,7 +311,8 @@ WebRtcSpl_UpBy2IntToInt(const int32_t *in, int32_t len, int32_t *out,
     out++;
 
     // lower allpass filter (generates even output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i];
         diff = tmp0 - state[1];
         // scale down and round
@@ -336,15 +344,15 @@ WebRtcSpl_UpBy2IntToInt(const int32_t *in, int32_t len, int32_t *out,
 // input:  int32_t (shifted 15 positions to the left, + offset 16384)
 // output: int16_t (saturated) (of length len*2)
 // state:  filter state array; length = 8
-void
-WebRtcSpl_UpBy2IntToShort(const int32_t *in, int32_t len, int16_t *out,
-                          int32_t *state)
+void WebRtcSpl_UpBy2IntToShort(const int32_t *in, int32_t len, int16_t *out,
+                               int32_t *state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
 
     // upper allpass filter (generates odd output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i];
         diff = tmp0 - state[5];
         // scale down and round
@@ -378,7 +386,8 @@ WebRtcSpl_UpBy2IntToShort(const int32_t *in, int32_t len, int16_t *out,
     out++;
 
     // lower allpass filter (generates even output samples)
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i];
         diff = tmp0 - state[1];
         // scale down and round
@@ -414,9 +423,8 @@ WebRtcSpl_UpBy2IntToShort(const int32_t *in, int32_t len, int16_t *out,
 // input:  int16_t
 // output: int32_t (normalized, not saturated)
 // state:  filter state array; length = 8
-void
-WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
-                          int32_t *state)
+void WebRtcSpl_LPBy2ShortToInt(const int16_t* in, int32_t len, int32_t* out,
+                               int32_t* state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
@@ -427,7 +435,8 @@ WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
     in++;
     // initial state of polyphase delay element
     tmp0 = state[12];
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         diff = tmp0 - state[1];
         // scale down and round
         diff = (diff + (1 << 13)) >> 14;
@@ -455,7 +464,8 @@ WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
     in--;
 
     // upper allpass filter: even input -> even output samples
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i << 1] << 15) + (1 << 14);
         diff = tmp0 - state[5];
         // scale down and round
@@ -485,7 +495,8 @@ WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
     out++;
 
     // lower allpass filter: even input -> odd output samples
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i << 1] << 15) + (1 << 14);
         diff = tmp0 - state[9];
         // scale down and round
@@ -513,7 +524,8 @@ WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
 
     // upper allpass filter: odd input -> odd output samples
     in++;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = ((int32_t)in[i << 1] << 15) + (1 << 14);
         diff = tmp0 - state[13];
         // scale down and round
@@ -544,9 +556,9 @@ WebRtcSpl_LPBy2ShortToInt(const int16_t *in, int32_t len, int32_t *out,
 // input:  int32_t (shifted 15 positions to the left, + offset 16384)
 // output: int32_t (normalized, not saturated)
 // state:  filter state array; length = 8
-void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
-    WebRtcSpl_LPBy2IntToInt(const int32_t *in, int32_t len, int32_t *out,
-                            int32_t *state)
+void RTC_NO_SANITIZE("signed-integer-overflow")  // bugs.webrtc.org/5486
+WebRtcSpl_LPBy2IntToInt(const int32_t* in, int32_t len, int32_t* out,
+                        int32_t* state)
 {
     int32_t tmp0, tmp1, diff;
     int32_t i;
@@ -557,7 +569,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     in++;
     // initial state of polyphase delay element
     tmp0 = state[12];
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         diff = tmp0 - state[1];
         // scale down and round
         diff = (diff + (1 << 13)) >> 14;
@@ -585,7 +598,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     in--;
 
     // upper allpass filter: even input -> even output samples
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i << 1];
         diff = tmp0 - state[5];
         // UBSan: -794814117 - 1566149201 cannot be represented in type 'int'
@@ -617,7 +631,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
     out++;
 
     // lower allpass filter: even input -> odd output samples
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i << 1];
         diff = tmp0 - state[9];
         // scale down and round
@@ -645,7 +660,8 @@ void RTC_NO_SANITIZE("signed-integer-overflow") // bugs.webrtc.org/5486
 
     // upper allpass filter: odd input -> odd output samples
     in++;
-    for (i = 0; i < len; i++) {
+    for (i = 0; i < len; i++)
+    {
         tmp0 = in[i << 1];
         diff = tmp0 - state[13];
         // scale down and round

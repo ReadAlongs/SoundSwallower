@@ -20,6 +20,7 @@
 #include "rtc_base/typedefs.h"
 #endif
 
+
 // Calculates the probability for `input`, given that `input` comes from a
 // normal distribution with mean and standard deviation (`mean`, `std`).
 //
@@ -39,6 +40,6 @@
 int32_t WebRtcVad_GaussianProbability(int16_t input,
                                       int16_t mean,
                                       int16_t std,
-                                      int16_t *delta);
+                                      int16_t* delta);
 
-#endif // COMMON_AUDIO_VAD_VAD_GMM_H_
+#endif  // COMMON_AUDIO_VAD_VAD_GMM_H_

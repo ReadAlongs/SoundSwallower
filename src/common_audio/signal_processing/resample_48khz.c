@@ -8,24 +8,24 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+
 /*
  * This file contains resampling functions between 48 kHz and nb/wb.
  * The description header can be found in signal_processing_library.h
  *
  */
 
+#include <string.h>
 #include "common_audio/signal_processing/include/signal_processing_library.h"
 #include "common_audio/signal_processing/resample_by_2_internal.h"
-#include <string.h>
 
 ////////////////////////////
 ///// 48 kHz -> 16 kHz /////
 ////////////////////////////
 
 // 48 -> 16 resampler
-void
-WebRtcSpl_Resample48khzTo16khz(const int16_t *in, int16_t *out,
-                               WebRtcSpl_State48khzTo16khz *state, int32_t *tmpmem)
+void WebRtcSpl_Resample48khzTo16khz(const int16_t* in, int16_t* out,
+                                    WebRtcSpl_State48khzTo16khz* state, int32_t* tmpmem)
 {
     ///// 48 --> 48(LP) /////
     // int16_t  in[480]
@@ -50,8 +50,7 @@ WebRtcSpl_Resample48khzTo16khz(const int16_t *in, int16_t *out,
 }
 
 // initialize state of 48 -> 16 resampler
-void
-WebRtcSpl_ResetResample48khzTo16khz(WebRtcSpl_State48khzTo16khz *state)
+void WebRtcSpl_ResetResample48khzTo16khz(WebRtcSpl_State48khzTo16khz* state)
 {
     memset(state->S_48_48, 0, 16 * sizeof(int32_t));
     memset(state->S_48_32, 0, 8 * sizeof(int32_t));
@@ -63,9 +62,8 @@ WebRtcSpl_ResetResample48khzTo16khz(WebRtcSpl_State48khzTo16khz *state)
 ////////////////////////////
 
 // 16 -> 48 resampler
-void
-WebRtcSpl_Resample16khzTo48khz(const int16_t *in, int16_t *out,
-                               WebRtcSpl_State16khzTo48khz *state, int32_t *tmpmem)
+void WebRtcSpl_Resample16khzTo48khz(const int16_t* in, int16_t* out,
+                                    WebRtcSpl_State16khzTo48khz* state, int32_t* tmpmem)
 {
     ///// 16 --> 32 /////
     // int16_t  in[160]
@@ -90,8 +88,7 @@ WebRtcSpl_Resample16khzTo48khz(const int16_t *in, int16_t *out,
 }
 
 // initialize state of 16 -> 48 resampler
-void
-WebRtcSpl_ResetResample16khzTo48khz(WebRtcSpl_State16khzTo48khz *state)
+void WebRtcSpl_ResetResample16khzTo48khz(WebRtcSpl_State16khzTo48khz* state)
 {
     memset(state->S_16_32, 0, 8 * sizeof(int32_t));
     memset(state->S_32_24, 0, 8 * sizeof(int32_t));
@@ -103,9 +100,8 @@ WebRtcSpl_ResetResample16khzTo48khz(WebRtcSpl_State16khzTo48khz *state)
 ////////////////////////////
 
 // 48 -> 8 resampler
-void
-WebRtcSpl_Resample48khzTo8khz(const int16_t *in, int16_t *out,
-                              WebRtcSpl_State48khzTo8khz *state, int32_t *tmpmem)
+void WebRtcSpl_Resample48khzTo8khz(const int16_t* in, int16_t* out,
+                                   WebRtcSpl_State48khzTo8khz* state, int32_t* tmpmem)
 {
     ///// 48 --> 24 /////
     // int16_t  in[480]
@@ -136,8 +132,7 @@ WebRtcSpl_Resample48khzTo8khz(const int16_t *in, int16_t *out,
 }
 
 // initialize state of 48 -> 8 resampler
-void
-WebRtcSpl_ResetResample48khzTo8khz(WebRtcSpl_State48khzTo8khz *state)
+void WebRtcSpl_ResetResample48khzTo8khz(WebRtcSpl_State48khzTo8khz* state)
 {
     memset(state->S_48_24, 0, 8 * sizeof(int32_t));
     memset(state->S_24_24, 0, 16 * sizeof(int32_t));
@@ -150,9 +145,8 @@ WebRtcSpl_ResetResample48khzTo8khz(WebRtcSpl_State48khzTo8khz *state)
 ////////////////////////////
 
 // 8 -> 48 resampler
-void
-WebRtcSpl_Resample8khzTo48khz(const int16_t *in, int16_t *out,
-                              WebRtcSpl_State8khzTo48khz *state, int32_t *tmpmem)
+void WebRtcSpl_Resample8khzTo48khz(const int16_t* in, int16_t* out,
+                                   WebRtcSpl_State8khzTo48khz* state, int32_t* tmpmem)
 {
     ///// 8 --> 16 /////
     // int16_t  in[80]
@@ -183,8 +177,7 @@ WebRtcSpl_Resample8khzTo48khz(const int16_t *in, int16_t *out,
 }
 
 // initialize state of 8 -> 48 resampler
-void
-WebRtcSpl_ResetResample8khzTo48khz(WebRtcSpl_State8khzTo48khz *state)
+void WebRtcSpl_ResetResample8khzTo48khz(WebRtcSpl_State8khzTo48khz* state)
 {
     memset(state->S_8_16, 0, 8 * sizeof(int32_t));
     memset(state->S_16_12, 0, 8 * sizeof(int32_t));
