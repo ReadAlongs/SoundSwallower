@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,7 +43,7 @@
  * Copyright (c) 1999 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
  * $Log: hash.c,v $
  * Revision 1.5  2005/06/22 03:04:01  arthchan2003
@@ -67,18 +67,18 @@
  * Revision 1.3  2005/03/30 01:22:48  archan
  * Fixed mistakes in last updates. Add
  *
- * 
+ *
  * 05-May-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Removed hash_key2hash().  Added hash_enter_bkey() and hash_lookup_bkey(),
  * 		and len attribute to hash_entry_t.
- * 
+ *
  * 30-Apr-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Added hash_key2hash().
- * 
+ *
  * 18-Jun-97	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Included case sensitive/insensitive option.  Removed local, static
  * 		maintenance of all hash tables.
- * 
+ *
  * 31-Jul-95	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Created.
  */
@@ -138,7 +138,7 @@ const int32 prime[] = {
 
 
 /**
- * This function returns a very large prime. 
+ * This function returns a very large prime.
  */
 static int32
 prime_size(int32 size)
@@ -179,8 +179,8 @@ key2hash(hash_table_t * h, const char *key)
 
     register const char *cp;
 
-    /* This is a hack because the best way to solve it is to make sure 
-       all character representation is unsigned character in the first place.        
+    /* This is a hack because the best way to solve it is to make sure
+       all character representation is unsigned character in the first place.
        (or better unicode.) */
     register unsigned char c;
     register int32 s;
@@ -662,7 +662,7 @@ hash_table_iter_next(hash_iter_t *itor)
 	 * forward in the table to find the next non-empty bucket. */
 	if (itor->ent == NULL) {
               while (itor->idx < (size_t)itor->ht->size
-		       && itor->ht->table[itor->idx].key == NULL) 
+		       && itor->ht->table[itor->idx].key == NULL)
 			++itor->idx;
 		/* If we did not find one then delete the iterator and
 		 * return NULL. */

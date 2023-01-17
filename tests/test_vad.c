@@ -134,6 +134,6 @@ main(int argc, char *argv[])
     TEST_ASSERT(vader == NULL);
     vader = vad_init(0, 96000, 0.03);
     TEST_ASSERT(vader == NULL);
-   
+
     return 0;
 }

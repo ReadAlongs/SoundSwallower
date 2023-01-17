@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,7 +36,7 @@
  */
 /*
  * ms_mgau.h -- Essentially a wrapper that wrap up gauden and
- * senone. It supports multi-stream. 
+ * senone. It supports multi-stream.
  *
  *
  * **********************************************
@@ -49,7 +49,7 @@
  * $Log$
  * Revision 1.1  2006/04/05  20:27:30  dhdfu
  * A Great Reorganzation of header files and executables
- * 
+ *
  * Revision 1.3  2006/02/22 16:57:15  arthchan2003
  * Fixed minor dox-doc issue
  *
@@ -77,7 +77,7 @@
 /** \file ms_mgau.h
  *
  * \brief (Sphinx 3.0 specific) A module that wraps up the code of
- * gauden and senone because they are closely related.  
+ * gauden and senone because they are closely related.
  *
  * At the time at Sphinx 3.1 to 3.2, Ravi has decided to rewrite only
  * single-stream part of the code into cont_mgau.[ch].  This marks the
@@ -122,10 +122,10 @@ typedef struct ms_mgau_model_s {
     int topn;      /**< Top-n gaussian will be computed */
 
     /**< Intermediate used in computation */
-    gauden_dist_t ***dist;  
+    gauden_dist_t ***dist;
     uint8 *mgau_active;
     config_t *config;
-} ms_mgau_model_t;  
+} ms_mgau_model_t;
 
 #define ms_mgau_gauden(msg) (msg->g)
 #define ms_mgau_senone(msg) (msg->s)

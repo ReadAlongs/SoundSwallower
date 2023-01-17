@@ -92,7 +92,7 @@ test_cionly_mdef(bin_mdef_t *mdef)
                                     bin_mdef_ciphone_id(mdef, "ZH"),
                                     WORD_POSN_SINGLE));
     /* Exact match is always impossible with no CD phones. */
-    TEST_EQUAL(-1, 
+    TEST_EQUAL(-1,
                bin_mdef_phone_id(mdef,
                                  bin_mdef_ciphone_id(mdef, "AA"),
                                  bin_mdef_ciphone_id(mdef, "AA"),
@@ -148,7 +148,7 @@ main(int argc, char *argv[])
 {
     config_t *config;
     bin_mdef_t *mdef;
-    
+
     (void)argc; (void)argv;
     err_set_loglevel(ERR_INFO);
     config = config_init(NULL);

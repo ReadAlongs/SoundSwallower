@@ -103,7 +103,7 @@ To run the JavaScript tests:
     npm test
     npx tsc
     node test_typescript.js
-    
+
 And in the browser:
 
     cd jsbuild

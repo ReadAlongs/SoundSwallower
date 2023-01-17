@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -53,8 +53,8 @@ extern "C" {
 }
 #endif
 
-/** 
- * Type for frame index values. Used in HMM indexes and 
+/**
+ * Type for frame index values. Used in HMM indexes and
  * backpointers and affects memory required.Due to limitations of FSG
  * search implementation this value needs to be signed.
  */
@@ -101,11 +101,11 @@ typedef int32 frame_idx_t;
  *
  * For efficiency, this version is hardwired for two possible HMM
  * topologies, but will fall back to others:
- * 
+ *
  * 5-state left-to-right HMMs: (0 is the *emitting* entry state and E
  * is a non-emitting exit state; the x's indicate allowed transitions
  * between source and destination states):
- * 
+ *
  * <pre>
  *               0   1   2   3   4   E (destination-states)
  *           0   x   x   x
@@ -117,18 +117,18 @@ typedef int32 frame_idx_t;
  * </pre>
  *
  * 5-state topologies that contain a subset of the above transitions should work as well.
- * 
+ *
  * 3-state left-to-right HMMs (similar notation as the 5-state topology above):
- * 
+ *
  * <pre>
  *               0   1   2   E (destination-states)
  *           0   x   x   x
  *           1       x   x   x
- *           2           x   x 
+ *           2           x   x
  *    (source-states)
  * </pre>
  *
- * 3-state topologies that contain a subset of the above transitions should work as well. 
+ * 3-state topologies that contain a subset of the above transitions should work as well.
  */
 
 /**

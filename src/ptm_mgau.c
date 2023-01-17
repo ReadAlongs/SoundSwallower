@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -286,7 +286,7 @@ ptm_mgau_codebook_norm(ptm_mgau_t *s, mfcc_t **z, int frame)
                 s->f->topn[i][j][k].score >>= SENSCR_SHIFT;
                 s->f->topn[i][j][k].score -= norm;
                 s->f->topn[i][j][k].score = -s->f->topn[i][j][k].score;
-                if (s->f->topn[i][j][k].score > MAX_NEG_ASCR) 
+                if (s->f->topn[i][j][k].score > MAX_NEG_ASCR)
                     s->f->topn[i][j][k].score = MAX_NEG_ASCR;
             }
         }
@@ -748,7 +748,7 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     if ((s->g = gauden_init_s3file(means, vars,
                                    config_float(s->config, "varfloor"),
                                    s->lmath)) == NULL) {
-        E_ERROR("Failed to read means and variances\n");	
+        E_ERROR("Failed to read means and variances\n");
         goto error_out;
     }
 
@@ -881,20 +881,20 @@ ptm_mgau_free(mgau_t *ps)
     logmath_free(s->lmath);
     logmath_free(s->lmath_8b);
     if (s->sendump_mmap) {
-        ckd_free_2d(s->mixw); 
+        ckd_free_2d(s->mixw);
         s3file_free(s->sendump_mmap);
     }
     else {
         ckd_free_3d(s->mixw);
     }
     ckd_free(s->sen2cb);
-    
+
     for (i = 0; i < s->n_fast_hist; i++) {
 	ckd_free_3d(s->hist[i].topn);
 	bitvec_free(s->hist[i].mgau_active);
     }
     ckd_free(s->hist);
-    
+
     gauden_free(s->g);
     ckd_free(s);
 }

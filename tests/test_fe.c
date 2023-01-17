@@ -130,7 +130,7 @@ create_full(fe_t *fe, int16 *data, size_t nsamp)
     mfcc_t **cepbuf;
     int16 *inptr;
     int rv, nfr, ncep;
-    
+
     TEST_EQUAL(0, fe_start(fe));
     nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
     TEST_EQUAL(5, nfr);
@@ -160,7 +160,7 @@ create_process_frames(fe_t *fe, int16 *data, size_t nsamp)
     mfcc_t **cepbuf;
     int16 *inptr;
     int i, rv, nfr, ncep, frame_shift, frame_size;
-    
+
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
     nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
@@ -204,7 +204,7 @@ create_fragments(fe_t *fe, int16 *data, size_t nsamp)
     size_t fragments[] = {
         1, 145, 39, 350, 410, 79
     };
-    
+
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(0, fe_start(fe));
     nfr = fe_process_int16(fe, NULL, &nsamp, NULL, 0);
@@ -285,7 +285,7 @@ main(int argc, char *argv[])
 
     printf("Creating reference features\n");
     cepbuf = create_reference(fe, buf, 1024);
- 
+
     printf("Creating features with frame_shift\n");
     cepbuf1 = create_shifted(fe, buf, 1024);
     compare_cepstra(cepbuf, cepbuf1, 5, DEFAULT_NUM_CEPSTRA);

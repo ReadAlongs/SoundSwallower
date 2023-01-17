@@ -114,7 +114,7 @@ main(int argc, char *argv[])
         config_set_str(config, "var", MODELDIR "/en-us/variances");
         config_set_str(config, "tmat", MODELDIR "/en-us/transition_matrices");
         config_set_str(config, "sendump", MODELDIR "/en-us/sendump");
-	
+
 	TEST_ASSERT(config);
 	fe = fe_init(config);
 	fcb = feat_init(config);

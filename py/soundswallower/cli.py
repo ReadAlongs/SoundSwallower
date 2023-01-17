@@ -27,7 +27,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Any
 
 from soundswallower import Config, Decoder, get_model_path
 
@@ -127,6 +127,7 @@ def make_decoder_config(args: argparse.Namespace) -> Config:
 
 def write_config(config: Config, output: Optional[str] = None) -> None:
     """Write the full configuraiton as JSON to output file or standard output."""
+    outfh: Any
     if output is not None:
         outfh = open(output, "wt")
     else:

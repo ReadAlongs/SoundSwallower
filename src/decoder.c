@@ -257,7 +257,7 @@ decoder_init_config(decoder_t *d, config_t *config)
     config_expand(d->config);
     /* Print out the config for logging. */
     config_log_values(d->config);
-    
+
     /* Logmath computation (used in acmod and search) */
     if (d->lmath == NULL
         || (logmath_get_base(d->lmath) !=
@@ -282,7 +282,7 @@ decoder_init_cleanup(decoder_t *d)
     decoder_free_searches(d);
     ckd_free(d->json_result);
     d->json_result = NULL;
-    
+
     return 0;
 }
 
@@ -446,7 +446,7 @@ decoder_init_grammar_s3file(decoder_t *d, s3file_t *fsg_file, s3file_t *jsgf_fil
             return -1;
         }
     }
-    
+
     return  0;
 }
 
@@ -483,7 +483,7 @@ decoder_reinit(decoder_t *d, config_t *config)
         return -1;
     if (decoder_init_grammar(d) < 0)
         return -1;
-    
+
     return 0;
 }
 
@@ -505,7 +505,7 @@ decoder_t *
 decoder_create(config_t *config)
 {
     decoder_t *d;
-    
+
     d = ckd_calloc(1, sizeof(*d));
     d->refcount = 1;
     if (config) {
@@ -608,7 +608,7 @@ decoder_set_fsg(decoder_t *d, fsg_model_t *fsg)
     return 0;
 }
 
-int 
+int
 decoder_set_jsgf_file(decoder_t *d, const char *path)
 {
     fsg_model_t *fsg;
@@ -646,7 +646,7 @@ decoder_set_jsgf_file(decoder_t *d, const char *path)
     return result;
 }
 
-int 
+int
 decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 {
     fsg_model_t *fsg;
@@ -873,7 +873,7 @@ decoder_lookup_word(decoder_t *d, const char *word)
     int phlen, j;
     char *phones;
     dict_t *dict = d->dict;
-    
+
     wid = dict_wordid(dict, word);
     if (wid == BAD_S3WID)
 	return NULL;
@@ -894,7 +894,7 @@ decoder_start_utt(decoder_t *d)
 {
     int rv;
     char uttid[16];
-    
+
     if (d->acmod->state == ACMOD_STARTED || d->acmod->state == ACMOD_PROCESSING) {
 	E_ERROR("Utterance already started\n");
 	return -1;
@@ -1049,7 +1049,7 @@ decoder_end_utt(decoder_t *d)
     if ((rv = search_module_forward(d)) < 0) {
         ptmr_stop(&d->perf);
         return rv;
-    } 
+    }
     /* Finish main search. */
     if ((rv = search_module_finish(d->search)) < 0) {
         ptmr_stop(&d->perf);
@@ -1063,7 +1063,7 @@ decoder_end_utt(decoder_t *d)
         int32 score;
 
         hyp = decoder_hyp(d, &score);
-        
+
         if (hyp != NULL) {
     	    E_INFO("%s (%d)\n", hyp, score);
     	    E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s\n",
@@ -1417,7 +1417,7 @@ format_seg_align(char *outptr, int maxlen,
     }
     if (maxlen)
         maxlen -= 6;
-    
+
     pitor = alignment_iter_children(itor);
     while (pitor != NULL) {
         hyplen = format_align_iter(outptr, maxlen,
@@ -1491,7 +1491,7 @@ format_seg_align(char *outptr, int maxlen,
     }
     if (maxlen)
         maxlen--;
-    
+
     return len;
 }
 

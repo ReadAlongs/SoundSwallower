@@ -39,33 +39,29 @@ from soundswallower import Config, Decoder, get_model_path
 class TestConfigHash(unittest.TestCase):
     def test_config__getitem(self) -> None:
         config = Config()
-        self.assertEqual(config['samprate'], 16000.)
-        self.assertEqual(config['nfft'], 0)
-        self.assertEqual(config['fsg'], None)
-        self.assertEqual(config['backtrace'], False)
-        self.assertEqual(config['feat'], '1s_c_d_dd')
+        self.assertEqual(config["samprate"], 16000.0)
+        self.assertEqual(config["nfft"], 0)
+        self.assertEqual(config["fsg"], None)
+        self.assertEqual(config["backtrace"], False)
+        self.assertEqual(config["feat"], "1s_c_d_dd")
 
     def test_config_easyinit(self) -> None:
-        config = Config(samprate=11025.,
-                        fsg=None,
-                        backtrace=False,
-                        feat="1s_c_d_dd")
-        self.assertEqual(config['samprate'], 11025.)
-        self.assertEqual(config['nfft'], 0)
-        self.assertEqual(config['fsg'], None)
-        self.assertEqual(config['backtrace'], False)
-        self.assertEqual(config['feat'], '1s_c_d_dd')
+        config = Config(samprate=11025.0, fsg=None, backtrace=False, feat="1s_c_d_dd")
+        self.assertEqual(config["samprate"], 11025.0)
+        self.assertEqual(config["nfft"], 0)
+        self.assertEqual(config["fsg"], None)
+        self.assertEqual(config["backtrace"], False)
+        self.assertEqual(config["feat"], "1s_c_d_dd")
 
     def test_config_coercion(self) -> None:
         config = Config()
         config["samprate"] = 48000
-        self.assertEqual(config['samprate'], 48000.)
+        self.assertEqual(config["samprate"], 48000.0)
         config["nfft"] = "1024"
-        self.assertEqual(config['nfft'], 1024)
+        self.assertEqual(config["nfft"], 1024)
 
 
-DATADIR = os.path.join(os.path.dirname(__file__),
-                       "..", "..", "tests", "data")
+DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
 
 
 class TestConfigIter(unittest.TestCase):
@@ -79,9 +75,9 @@ class TestConfigIter(unittest.TestCase):
             self.assertEqual(config[key], value)
         config = Config()
         self.assertEqual(default_len, len(config))
-        config['hmm'] = os.path.join(get_model_path(), 'en-us')
-        config['fsg'] = os.path.join(DATADIR, 'goforward.fsg')
-        config['dict'] = os.path.join(DATADIR, 'turtle.dic')
+        config["hmm"] = os.path.join(get_model_path(), "en-us")
+        config["fsg"] = os.path.join(DATADIR, "goforward.fsg")
+        config["dict"] = os.path.join(DATADIR, "turtle.dic")
         self.assertEqual(default_len, len(config))
         for key in config:
             self.assertTrue(key in config)
@@ -106,9 +102,9 @@ class TestConfigDefn(unittest.TestCase):
     def test_config_describe(self) -> None:
         config = Config()
         for defn in config.describe():
-            if defn.name == 'hmm':
+            if defn.name == "hmm":
                 self.assertTrue(defn.required)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

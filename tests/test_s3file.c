@@ -59,7 +59,7 @@ static void
 test_tokens(void)
 {
     s3file_t *s;
-    
+
     s = s3file_init(data_str, sizeof(data_str));
     /* Test line-oriented scanning (note that all this may be
        redundant with yyscan, which we should perhaps use instead) */
@@ -176,6 +176,6 @@ main(int argc, char *argv[])
 
     /* Simple tokenization */
     test_tokens();
-            
+
     return 0;
 }

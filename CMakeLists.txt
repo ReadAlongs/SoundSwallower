@@ -72,4 +72,3 @@ else()
     SOVERSION ${CMAKE_PROJECT_VERSION_MAJOR}
     )
 endif()
-
