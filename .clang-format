@@ -1,0 +1,4 @@
+BasedOnStyle: WebKit
+PointerAlignment: Right
+AlignAfterOpenBracket: true
+AlwaysBreakAfterReturnType: TopLevelDefinitions
