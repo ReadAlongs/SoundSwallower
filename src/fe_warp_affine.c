@@ -47,24 +47,24 @@
 
 /* static char rcsid[] = "@(#)$Id: fe_warp_affine.c,v 1.2 2006/02/17 00:31:34 egouvea Exp $"; */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4996)
+#pragma warning(disable : 4996)
 #endif
 
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
+#include <soundswallower/strfuncs.h>
 
 #include <soundswallower/fe_warp.h>
 #include <soundswallower/fe_warp_affine.h>
 
-#define N_PARAM		2
-#define YES             1
-#define NO              0
+#define N_PARAM 2
+#define YES 1
+#define NO 0
 
 /*
  * params[0] : a
@@ -74,7 +74,6 @@ static float params[N_PARAM] = { 1.0f, 0.0f };
 static int32 is_neutral = YES;
 static char p_str[256] = "";
 static float nyquist_frequency = 0.0f;
-
 
 const char *
 fe_warp_affine_doc()
@@ -118,21 +117,19 @@ fe_warp_affine_set_parameters(const char *param_str, float sampling_rate)
     /* FIXME: strtok() is not re-entrant... */
     tok = strtok(temp_param_str, seps);
     while (tok != NULL) {
-        params[param_index++] = (float) atof(tok);
+        params[param_index++] = (float)atof(tok);
         tok = strtok(NULL, seps);
         if (param_index >= N_PARAM) {
             break;
         }
     }
     if (tok != NULL) {
-        E_INFO
-            ("Affine warping takes up to two arguments, %s ignored.\n",
-             tok);
+        E_INFO("Affine warping takes up to two arguments, %s ignored.\n",
+               tok);
     }
     if (params[0] == 0) {
         is_neutral = YES;
-        E_INFO
-            ("Affine warping cannot have slope zero, warping not applied.\n");
+        E_INFO("Affine warping cannot have slope zero, warping not applied.\n");
     }
 }
 
@@ -141,15 +138,13 @@ fe_warp_affine_warped_to_unwarped(float nonlinear)
 {
     if (is_neutral) {
         return nonlinear;
-    }
-    else {
+    } else {
         /* linear = (nonlinear - b) / a */
         float temp = nonlinear - params[1];
         temp /= params[0];
         if (temp > nyquist_frequency) {
-            E_WARN
-                ("Warp factor %g results in frequency (%.1f) higher than Nyquist (%.1f)\n",
-                 params[0], temp, nyquist_frequency);
+            E_WARN("Warp factor %g results in frequency (%.1f) higher than Nyquist (%.1f)\n",
+                   params[0], temp, nyquist_frequency);
         }
         return temp;
     }
@@ -160,8 +155,7 @@ fe_warp_affine_unwarped_to_warped(float linear)
 {
     if (is_neutral) {
         return linear;
-    }
-    else {
+    } else {
         /* nonlinear = a * linear - b */
         float temp = linear * params[0];
         temp += params[1];

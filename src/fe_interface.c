@@ -35,16 +35,16 @@
  *
  */
 #include "config.h"
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/byteorder.h>
-#include <soundswallower/genrand.h>
-#include <soundswallower/err.h>
-#include <soundswallower/configuration.h>
-#include <soundswallower/config_defs.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/config_defs.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
+#include <soundswallower/genrand.h>
+#include <soundswallower/prim_type.h>
 
 #include <soundswallower/fe_warp.h>
 
@@ -62,7 +62,7 @@ static int sample_rates[] = {
     44100,
     48000
 };
-static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+static const int n_sample_rates = sizeof(sample_rates) / sizeof(sample_rates[0]);
 
 static int
 minimum_samprate(config_t *config)
@@ -81,7 +81,7 @@ minimum_samprate(config_t *config)
 }
 
 int
-fe_parse_general_params(config_t *config, fe_t * fe)
+fe_parse_general_params(config_t *config, fe_t *fe)
 {
     int j, frate, window_samples;
 
@@ -96,9 +96,8 @@ fe_parse_general_params(config_t *config, fe_t * fe)
 
     frate = config_int(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {
-        E_ERROR
-            ("Frame rate %d can not be bigger than sample rate %.02f\n",
-             frate, fe->sampling_rate);
+        E_ERROR("Frame rate %d can not be bigger than sample rate %.02f\n",
+                frate, fe->sampling_rate);
         return -1;
     }
 
@@ -133,14 +132,13 @@ fe_parse_general_params(config_t *config, fe_t * fe)
     /* Set FFT size automatically from window size. */
     if (fe->fft_size == 0) {
         fe->fft_order = 0;
-        fe->fft_size = (1<<fe->fft_order);
+        fe->fft_size = (1 << fe->fft_order);
         while (fe->fft_size < window_samples) {
             fe->fft_order++;
             fe->fft_size <<= 1;
         }
         E_INFO("FFT size automatically set to %d\n", fe->fft_size);
-    }
-    else {
+    } else {
         /* Check FFT size, compute FFT order (log_2(n)) */
         for (j = fe->fft_size, fe->fft_order = 0; j > 1; j >>= 1, fe->fft_order++) {
             if (((j % 2) != 0) || (fe->fft_size <= 0)) {
@@ -179,7 +177,7 @@ fe_parse_general_params(config_t *config, fe_t * fe)
 }
 
 static int
-fe_parse_melfb_params(config_t *config, fe_t *fe, melfb_t * mel)
+fe_parse_melfb_params(config_t *config, fe_t *fe, melfb_t *mel)
 {
     mel->sampling_rate = fe->sampling_rate;
     mel->fft_size = fe->fft_size;
@@ -230,8 +228,7 @@ fe_print_current(fe_t const *fe)
     if (fe->dither) {
         E_INFO("Will add dither to audio\n");
         E_INFO("Dither seeded with %d\n", fe->dither_seed);
-    }
-    else {
+    } else {
         E_INFO("Will not add dither to audio\n");
     }
     if (fe->mel_fb->lifter_val) {
@@ -251,7 +248,7 @@ fe_init(config_t *config)
 {
     fe_t *fe;
 
-    fe = (fe_t*)ckd_calloc(1, sizeof(*fe));
+    fe = (fe_t *)ckd_calloc(1, sizeof(*fe));
     fe->refcount = 1;
 
     /* transfer params to front end */
@@ -264,23 +261,21 @@ fe_init(config_t *config)
     /* We add 0.5 so approximate the float with the closest
      * integer. E.g., 2.3 is truncate to 2, whereas 3.7 becomes 4
      */
-    fe->frame_shift = (int32) (fe->sampling_rate / fe->frame_rate + 0.5);
-    fe->frame_size = (int32) (fe->window_length * fe->sampling_rate + 0.5);
+    fe->frame_shift = (int32)(fe->sampling_rate / fe->frame_rate + 0.5);
+    fe->frame_size = (int32)(fe->window_length * fe->sampling_rate + 0.5);
     fe->pre_emphasis_prior = 0;
 
-    assert (fe->frame_shift > 1);
+    assert(fe->frame_shift > 1);
     if (fe->frame_size < fe->frame_shift) {
-        E_ERROR
-            ("Frame size %d (-wlen) must be greater than frame shift %d (-frate)\n",
-             fe->frame_size, fe->frame_shift);
+        E_ERROR("Frame size %d (-wlen) must be greater than frame shift %d (-frate)\n",
+                fe->frame_size, fe->frame_shift);
         fe_free(fe);
         return NULL;
     }
 
     if (fe->frame_size > (fe->fft_size)) {
-        E_ERROR
-            ("Number of FFT points has to be a power of 2 higher than %d, it is %d\n",
-             fe->frame_size, fe->fft_size);
+        E_ERROR("Number of FFT points has to be a power of 2 higher than %d, it is %d\n",
+                fe->frame_size, fe->fft_size);
         fe_free(fe);
         return NULL;
     }
@@ -290,7 +285,7 @@ fe_init(config_t *config)
 
     /* establish buffers for overflow samps and hamming window */
     fe->overflow_samps = ckd_calloc(fe->frame_size, sizeof(float32));
-    fe->hamming_window = ckd_calloc(fe->frame_size/2, sizeof(window_t));
+    fe->hamming_window = ckd_calloc(fe->frame_size / 2, sizeof(window_t));
 
     /* create hamming window */
     fe_create_hamming(fe->hamming_window, fe->frame_size);
@@ -302,10 +297,10 @@ fe_init(config_t *config)
     fe_parse_melfb_params(config, fe, fe->mel_fb);
 
     if (fe->mel_fb->upper_filt_freq > fe->sampling_rate / 2 + 1.0) {
-	E_ERROR("Upper frequency %.1f is higher than samprate/2 (%.1f)\n",
-		fe->mel_fb->upper_filt_freq, fe->sampling_rate / 2);
-	fe_free(fe);
-	return NULL;
+        E_ERROR("Upper frequency %.1f is higher than samprate/2 (%.1f)\n",
+                fe->mel_fb->upper_filt_freq, fe->sampling_rate / 2);
+        fe_free(fe);
+        return NULL;
     }
 
     fe_build_melfilters(fe->mel_fb);
@@ -354,7 +349,7 @@ fe_init_dither(int32 seed)
 }
 
 int32
-fe_start(fe_t * fe)
+fe_start(fe_t *fe)
 {
     fe->num_overflow_samps = 0;
     memset(fe->overflow_samps, 0,
@@ -412,8 +407,7 @@ overflow_append(fe_t *fe,
         memcpy(fe->overflow_samps + fe->num_overflow_samps,
                *spch, *inout_nsamps * (sizeof(float32)));
         *spch += *inout_nsamps;
-    }
-    else {
+    } else {
         const int16 **spch = (const int16 **)inout_spch;
         for (i = 0; i < *inout_nsamps; ++i) {
             int16 sample = (*spch)[i];
@@ -451,8 +445,7 @@ read_overflow_frame(fe_t *fe,
                *spch, offset * sizeof(float32));
         *spch += offset;
         *inout_nsamps -= offset;
-    }
-    else {
+    } else {
         const int16 **spch = (const int16 **)inout_spch;
         int i;
         for (i = 0; i < offset; ++i) {
@@ -492,8 +485,7 @@ create_overflow_frame(fe_t *fe,
     if (fe->num_overflow_samps > 0) {
         if (encoding == FE_PCM16) {
             const int16 **spch = (const int16 **)inout_spch;
-            const int16 *inptr = *spch - (fe->frame_size
-                                          - fe->frame_shift);
+            const int16 *inptr = *spch - (fe->frame_size - fe->frame_shift);
             int i;
             for (i = 0; i < fe->num_overflow_samps; ++i) {
                 int16 sample = inptr[i];
@@ -508,8 +500,7 @@ create_overflow_frame(fe_t *fe,
             }
             /* Update the input pointer to cover this stuff. */
             *spch += n_overflow;
-        }
-        else {
+        } else {
             const float32 **spch = (const float32 **)inout_spch;
             memcpy(fe->overflow_samps,
                    *spch - (fe->frame_size - fe->frame_shift),
@@ -563,8 +554,7 @@ append_overflow_frame(fe_t *fe,
             *spch += n_overflow;
             *inout_nsamps -= n_overflow;
         }
-    }
-    else {
+    } else {
         const float32 **spch = (const float32 **)inout_spch;
         const float32 *orig = (const float32 *)orig_spch;
         /* Copy in whatever we had in the original speech buffer. */
@@ -614,7 +604,7 @@ fe_process(fe_t *fe,
     /* How many frames will we be able to get? */
     frame_count = 1
         + (int)((*inout_nsamps + fe->num_overflow_samps - fe->frame_size)
-           / fe->frame_shift);
+                / fe->frame_shift);
     /* Limit it to the number of output frames available. */
     if (frame_count > nframes)
         frame_count = nframes;
@@ -624,13 +614,11 @@ fe_process(fe_t *fe,
     /* Start processing, taking care of any incoming overflow. */
     if (fe->num_overflow_samps) {
         read_overflow_frame(fe, inout_spch, inout_nsamps, encoding);
-    }
-    else {
+    } else {
         if (encoding == FE_FLOAT32) {
             const float32 **spch = (const float32 **)inout_spch;
             *spch += fe_read_frame_float32(fe, *spch, fe->frame_size);
-        }
-        else {
+        } else {
             const int16 **spch = (const int16 **)inout_spch;
             *spch += fe_read_frame_int16(fe, *spch, fe->frame_size);
         }
@@ -648,8 +636,7 @@ fe_process(fe_t *fe,
             const float32 **spch = (const float32 **)inout_spch;
             shift = fe_shift_frame_float32(fe, *spch, fe->frame_shift);
             *spch += shift;
-        }
-        else {
+        } else {
             const int16 **spch = (const int16 **)inout_spch;
             shift = fe_shift_frame_int16(fe, *spch, fe->frame_shift);
             *spch += shift;
@@ -669,8 +656,7 @@ fe_process(fe_t *fe,
      * case where we have limited the number of output frames. */
     if (fe->num_overflow_samps <= 0) {
         create_overflow_frame(fe, inout_spch, inout_nsamps, encoding);
-    }
-    else {
+    } else {
         /* There is still some relevant data left in the overflow
          * buffer. */
         append_overflow_frame(fe, inout_spch, orig_spch, inout_nsamps,
@@ -735,7 +721,7 @@ fe_retain(fe_t *fe)
 }
 
 int
-fe_free(fe_t * fe)
+fe_free(fe_t *fe)
 {
     if (fe == NULL)
         return 0;
@@ -745,7 +731,7 @@ fe_free(fe_t * fe)
     /* kill FE instance - free everything... */
     if (fe->mel_fb) {
         if (fe->mel_fb->mel_cosine)
-            ckd_free_2d((void *) fe->mel_fb->mel_cosine);
+            ckd_free_2d((void *)fe->mel_fb->mel_cosine);
         ckd_free(fe->mel_fb->lifter);
         ckd_free(fe->mel_fb->spec_start);
         ckd_free(fe->mel_fb->filt_start);
@@ -770,14 +756,14 @@ fe_free(fe_t * fe)
 }
 
 int
-fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
+fe_logspec_to_mfcc(fe_t *fe, const mfcc_t *fr_spec, mfcc_t *fr_cep)
 {
     powspec_t *powspec;
     int i;
 
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
-        powspec[i] = (powspec_t) fr_spec[i];
+        powspec[i] = (powspec_t)fr_spec[i];
     fe_spec2cep(fe, powspec, fr_cep);
     ckd_free(powspec);
 
@@ -785,14 +771,14 @@ fe_logspec_to_mfcc(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 }
 
 int
-fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
+fe_logspec_dct2(fe_t *fe, const mfcc_t *fr_spec, mfcc_t *fr_cep)
 {
     powspec_t *powspec;
     int i;
 
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
-        powspec[i] = (powspec_t) fr_spec[i];
+        powspec[i] = (powspec_t)fr_spec[i];
     fe_dct2(fe, powspec, fr_cep, 0);
     ckd_free(powspec);
 
@@ -800,7 +786,7 @@ fe_logspec_dct2(fe_t * fe, const mfcc_t * fr_spec, mfcc_t * fr_cep)
 }
 
 int
-fe_mfcc_dct3(fe_t * fe, const mfcc_t * fr_cep, mfcc_t * fr_spec)
+fe_mfcc_dct3(fe_t *fe, const mfcc_t *fr_cep, mfcc_t *fr_spec)
 {
     powspec_t *powspec;
     int i;
@@ -808,7 +794,7 @@ fe_mfcc_dct3(fe_t * fe, const mfcc_t * fr_cep, mfcc_t * fr_spec)
     powspec = ckd_malloc(fe->mel_fb->num_filters * sizeof(powspec_t));
     fe_dct3(fe, fr_cep, powspec);
     for (i = 0; i < fe->mel_fb->num_filters; ++i)
-        fr_spec[i] = (mfcc_t) powspec[i];
+        fr_spec[i] = (mfcc_t)powspec[i];
     ckd_free(powspec);
 
     return 0;

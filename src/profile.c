@@ -67,21 +67,21 @@
 #include <string.h>
 
 #if defined(_WIN32)
-# include <windows.h>
-# include <time.h>
+#include <time.h>
+#include <windows.h>
 #elif defined(HAVE_UNISTD_H) /* I know this, this is Unix... */
-# include <unistd.h>
-# include <sys/time.h>
-# include <sys/resource.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <unistd.h>
 #endif
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4996)
+#pragma warning(disable : 4996)
 #endif
 
-#include <soundswallower/profile.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/profile.h>
 
 pctr_t *
 pctr_new(char *nm)
@@ -96,21 +96,20 @@ pctr_new(char *nm)
 }
 
 void
-pctr_reset(pctr_t * ctr)
+pctr_reset(pctr_t *ctr)
 {
     ctr->count = 0;
 }
 
-
 void
-pctr_increment(pctr_t * ctr, int32 inc)
+pctr_increment(pctr_t *ctr, int32 inc)
 {
     ctr->count += inc;
     /*   E_INFO("Name %s, Count %d, inc %d\n",ctr->name, ctr->count, inc); */
 }
 
 void
-pctr_free(pctr_t * pc)
+pctr_free(pctr_t *pc)
 {
     if (pc) {
         if (pc->name)
@@ -119,14 +118,13 @@ pctr_free(pctr_t * pc)
     ckd_free(pc);
 }
 
-
 #if defined(_WIN32)
 
-#define TM_LOWSCALE	1e-7
-#define TM_HIGHSCALE	(4294967296.0 * TM_LOWSCALE);
+#define TM_LOWSCALE 1e-7
+#define TM_HIGHSCALE (4294967296.0 * TM_LOWSCALE);
 
 static float64
-make_sec(FILETIME * tm)
+make_sec(FILETIME *tm)
 {
     float64 dt;
 
@@ -146,12 +144,11 @@ make_sec(struct timeval *s)
 
 #endif
 
-
 void
-ptmr_start(ptmr_t * tm)
+ptmr_start(ptmr_t *tm)
 {
 #if !defined(_WIN32)
-    struct timeval e_start;     /* Elapsed time */
+    struct timeval e_start; /* Elapsed time */
     gettimeofday(&e_start, 0);
     tm->start_elapsed = make_sec(&e_start);
 #else
@@ -163,28 +160,25 @@ ptmr_start(ptmr_t * tm)
     GetProcessTimes(pid, &t_create, &t_exit, &kst, &ust);
     tm->start_cpu = make_sec(&ust) + make_sec(&kst);
 
-    tm->start_elapsed = (float64) clock() / CLOCKS_PER_SEC;
+    tm->start_elapsed = (float64)clock() / CLOCKS_PER_SEC;
 #endif
 }
 
-
 void
-ptmr_stop(ptmr_t * tm)
+ptmr_stop(ptmr_t *tm)
 {
     float64 dt_cpu, dt_elapsed;
 
 #if !defined(_WIN32)
     /* Unix */
-    struct timeval e_stop;      /* Elapsed time */
-#  if defined(HAVE_GETRUSAGE) && !defined(__EMSCRIPTEN__) /* Which LIES */
-    struct rusage stop;         /* CPU time */
+    struct timeval e_stop; /* Elapsed time */
+#if defined(HAVE_GETRUSAGE) && !defined(__EMSCRIPTEN__) /* Which LIES */
+    struct rusage stop; /* CPU time */
     getrusage(RUSAGE_SELF, &stop);
-    dt_cpu =
-        make_sec(&stop.ru_utime) + make_sec(&stop.ru_stime) -
-        tm->start_cpu;
-#  else
+    dt_cpu = make_sec(&stop.ru_utime) + make_sec(&stop.ru_stime) - tm->start_cpu;
+#else
     dt_cpu = 0.0;
-#  endif
+#endif
     gettimeofday(&e_stop, 0);
     dt_elapsed = (make_sec(&e_stop) - tm->start_elapsed);
 #else
@@ -196,7 +190,7 @@ ptmr_stop(ptmr_t * tm)
     pid = GetCurrentProcess();
     GetProcessTimes(pid, &t_create, &t_exit, &kst, &ust);
     dt_cpu = make_sec(&ust) + make_sec(&kst) - tm->start_cpu;
-    dt_elapsed = ((float64) clock() / CLOCKS_PER_SEC) - tm->start_elapsed;
+    dt_elapsed = ((float64)clock() / CLOCKS_PER_SEC) - tm->start_elapsed;
 #endif
 
     tm->t_cpu += dt_cpu;
@@ -206,17 +200,15 @@ ptmr_stop(ptmr_t * tm)
     tm->t_tot_elapsed += dt_elapsed;
 }
 
-
 void
-ptmr_reset(ptmr_t * tm)
+ptmr_reset(ptmr_t *tm)
 {
     tm->t_cpu = 0.0;
     tm->t_elapsed = 0.0;
 }
 
-
 void
-ptmr_init(ptmr_t * tm)
+ptmr_init(ptmr_t *tm)
 {
     tm->t_cpu = 0.0;
     tm->t_elapsed = 0.0;
@@ -224,9 +216,8 @@ ptmr_init(ptmr_t * tm)
     tm->t_tot_elapsed = 0.0;
 }
 
-
 void
-ptmr_reset_all(ptmr_t * tm)
+ptmr_reset_all(ptmr_t *tm)
 {
     for (; tm->name; tm++)
         ptmr_reset(tm);

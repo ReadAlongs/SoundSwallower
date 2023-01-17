@@ -47,16 +47,16 @@ extern "C" {
 }
 #endif
 
-#define FE_WARP_ID_INVERSE_LINEAR	0
-#define FE_WARP_ID_AFFINE	        1
-#define FE_WARP_ID_PIECEWISE_LINEAR	2
-#define FE_WARP_ID_EIDE_GISH		3
-#define FE_WARP_ID_MAX		        2
-#define FE_WARP_ID_NONE	       0xffffffff
+#define FE_WARP_ID_INVERSE_LINEAR 0
+#define FE_WARP_ID_AFFINE 1
+#define FE_WARP_ID_PIECEWISE_LINEAR 2
+#define FE_WARP_ID_EIDE_GISH 3
+#define FE_WARP_ID_MAX 2
+#define FE_WARP_ID_NONE 0xffffffff
 
 typedef struct {
     void (*set_parameters)(const char *param_str, float sampling_rate);
-    const char * (*doc)(void);
+    const char *(*doc)(void);
     uint32 (*id)(void);
     uint32 (*n_param)(void);
     float (*warped_to_unwarped)(float nonlinear);
@@ -68,7 +68,7 @@ int fe_warp_set(melfb_t *mel, const char *id_name);
 
 uint32 fe_warp_id(melfb_t *mel);
 
-const char * fe_warp_doc(melfb_t *mel);
+const char *fe_warp_doc(melfb_t *mel);
 
 void fe_warp_set_parameters(melfb_t *mel, const char *param_str, float sampling_rate);
 
@@ -80,11 +80,10 @@ float fe_warp_unwarped_to_warped(melfb_t *mel, float linear);
 
 void fe_warp_print(melfb_t *mel, const char *label);
 
-#define FE_WARP_NO_SIZE	0xffffffff
+#define FE_WARP_NO_SIZE 0xffffffff
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* FE_WARP_H */

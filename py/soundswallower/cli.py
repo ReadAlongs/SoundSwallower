@@ -27,7 +27,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import Optional, Sequence, Any
+from typing import Any, Optional, Sequence
 
 from soundswallower import Config, Decoder, get_model_path
 

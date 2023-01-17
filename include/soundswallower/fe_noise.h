@@ -46,14 +46,14 @@ typedef struct fe_s fe_t;
 noise_stats_t *fe_init_noisestats(int num_filters);
 
 /* Resets collected noise statistics */
-void fe_reset_noisestats(noise_stats_t * noise_stats);
+void fe_reset_noisestats(noise_stats_t *noise_stats);
 
 /* Frees allocated data */
-void fe_free_noisestats(noise_stats_t * noise_stats);
+void fe_free_noisestats(noise_stats_t *noise_stats);
 
 /**
  * Process frame, update noise statistics, remove noise components if needed.
  */
 void fe_remove_noise(fe_t *fe);
 
-#endif                          /* FE_NOISE_H */
+#endif /* FE_NOISE_H */

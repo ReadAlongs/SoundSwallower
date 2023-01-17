@@ -42,10 +42,9 @@
 #ifndef __ALIGNMENT_H__
 #define __ALIGNMENT_H__
 
-
-#include <soundswallower/prim_type.h>
 #include <soundswallower/dict2pid.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,9 +58,9 @@ extern "C" {
  * @brief Entry (phone, word, or state) in an alignment
  */
 typedef struct alignment_entry_s {
-    int32 start;  /**< Start frame index. */
+    int32 start; /**< Start frame index. */
     int32 duration; /**< Duration in frames. */
-    int32 score;  /**< Alignment score (fairly meaningless). */
+    int32 score; /**< Alignment score (fairly meaningless). */
     /**
      * Index of parent node.
      *
@@ -70,7 +69,7 @@ typedef struct alignment_entry_s {
      * inside a word, you can store this for the first phone and stop
      * iterating once it changes. */
     int parent;
-    int child;  /**< Index of child node. */
+    int child; /**< Index of child node. */
     /**
      * ID or IDs for this entry.
      *
@@ -78,10 +77,10 @@ typedef struct alignment_entry_s {
      * this information to do state alignment.
      */
     union {
-        int32 wid;  /**< Word ID (for words) */
+        int32 wid; /**< Word ID (for words) */
         struct {
-            int16 cipid;  /**< Phone ID, which you care about. */
-            uint16 ssid;  /**< Senone sequence ID, which you don't. */
+            int16 cipid; /**< Phone ID, which you care about. */
+            uint16 ssid; /**< Senone sequence ID, which you don't. */
             int32 tmatid; /**< Transition matrix ID, almost certainly
                              the same as cipid. */
         } pid;

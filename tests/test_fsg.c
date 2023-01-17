@@ -1,11 +1,11 @@
 /* -*- c-basic-offset: 4 -*- */
 #include "config.h"
 
+#include "test_macros.h"
 #include <soundswallower/decoder.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include "test_macros.h"
 
 int
 main(int argc, char *argv[])
@@ -20,7 +20,8 @@ main(int argc, char *argv[])
     int16 buf[2048];
     size_t nread;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     TEST_ASSERT(config = config_init(NULL));
     config_set_str(config, "fsg", TESTDATADIR "/goforward.fsg");
     config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
@@ -47,7 +48,7 @@ main(int argc, char *argv[])
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     decoder_start_utt(ps);
     while (!feof(rawfh)) {
-	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        nread = fread(buf, sizeof(*buf), sizeof(buf) / sizeof(*buf), rawfh);
         decoder_process_int16(ps, buf, nread, FALSE, FALSE);
     }
     fclose(rawfh);
@@ -57,7 +58,6 @@ main(int argc, char *argv[])
     printf("%s (%d, %d)\n", hyp, score, prob);
     TEST_ASSERT(hyp);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
-
 
     for (seg = decoder_seg_iter(ps); seg;
          seg = seg_iter_next(seg)) {

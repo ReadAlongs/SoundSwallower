@@ -3,27 +3,27 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/decoder.h>
-#include <soundswallower/logmath.h>
 #include <soundswallower/acmod.h>
+#include <soundswallower/decoder.h>
 #include <soundswallower/err.h>
+#include <soundswallower/logmath.h>
 
 #include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
-	FLOAT2MFCC(41.00),
-	FLOAT2MFCC(-5.29),
-	FLOAT2MFCC(-0.12),
-	FLOAT2MFCC(5.09),
-	FLOAT2MFCC(2.48),
-	FLOAT2MFCC(-4.07),
-	FLOAT2MFCC(-1.37),
-	FLOAT2MFCC(-1.78),
-	FLOAT2MFCC(-5.08),
-	FLOAT2MFCC(-2.05),
-	FLOAT2MFCC(-6.45),
-	FLOAT2MFCC(-1.42),
-	FLOAT2MFCC(1.17)
+    FLOAT2MFCC(41.00),
+    FLOAT2MFCC(-5.29),
+    FLOAT2MFCC(-0.12),
+    FLOAT2MFCC(5.09),
+    FLOAT2MFCC(2.48),
+    FLOAT2MFCC(-4.07),
+    FLOAT2MFCC(-1.37),
+    FLOAT2MFCC(-1.78),
+    FLOAT2MFCC(-5.08),
+    FLOAT2MFCC(-2.05),
+    FLOAT2MFCC(-6.45),
+    FLOAT2MFCC(-1.42),
+    FLOAT2MFCC(1.17)
 };
 
 #define NUM_BEST_SEN 270
@@ -45,7 +45,8 @@ main(int argc, char *argv[])
     int frame_counter;
     int bestsen1[NUM_BEST_SEN];
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
     config = config_parse_json(
@@ -135,7 +136,7 @@ main(int argc, char *argv[])
             acmod_advance(acmod);
             best_score = acmod_best_score(acmod, &best_senid);
             E_INFO("Frame %d best senone %d score %d\n",
-               frame_idx, best_senid, best_score);
+                   frame_idx, best_senid, best_score);
             if (frame_counter < NUM_BEST_SEN)
                 TEST_EQUAL_LOG(best_score, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);

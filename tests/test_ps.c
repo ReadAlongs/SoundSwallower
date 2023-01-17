@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-
-
 #include "test_macros.h"
 
 int
@@ -70,8 +68,8 @@ decoder_test(config_t *config, char const *sname, char const *expected)
     TEST_EQUAL(nsamps, fread(buf, sizeof(*buf), nsamps, rawfh));
     fe_process_frames(ps->acmod->fe, &bptr, &nsamps, NULL, &nfr);
     cepbuf = ckd_calloc_2d(nfr + 1,
-                   fe_get_output_size(ps->acmod->fe),
-                   sizeof(**cepbuf));
+                           fe_get_output_size(ps->acmod->fe),
+                           sizeof(**cepbuf));
     fe_start(ps->acmod->fe);
     fe_process_frames(ps->acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
     fe_end(ps->acmod->fe, cepbuf[nfr], &i);

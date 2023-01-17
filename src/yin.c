@@ -40,28 +40,27 @@
  */
 
 #include "config.h"
+#include <limits.h>
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/prim_type.h>
 #include <soundswallower/yin.h>
 
-
 struct yin_s {
-    uint16 frame_size;       /** Size of analysis frame. */
+    uint16 frame_size; /** Size of analysis frame. */
     uint16 search_threshold; /**< Threshold for finding period, in Q15 */
-    uint16 search_range;     /**< Range around best local estimate to search, in Q15 */
-    uint16 nfr;              /**< Number of frames read so far. */
+    uint16 search_range; /**< Range around best local estimate to search, in Q15 */
+    uint16 nfr; /**< Number of frames read so far. */
 
-    unsigned char wsize;    /**< Size of smoothing window. */
-    unsigned char wstart;   /**< First frame in window. */
-    unsigned char wcur;     /**< Current frame of analysis. */
-    unsigned char endut;    /**< Hoch Hech! Are we at the utterance end? */
+    unsigned char wsize; /**< Size of smoothing window. */
+    unsigned char wstart; /**< First frame in window. */
+    unsigned char wcur; /**< Current frame of analysis. */
+    unsigned char endut; /**< Hoch Hech! Are we at the utterance end? */
 
-    int32 **diff_window;  /**< Window of difference function outputs. */
-    uint16 *period_window;  /**< Window of best period estimates. */
+    int32 **diff_window; /**< Window of difference function outputs. */
+    uint16 *period_window; /**< Window of best period estimates. */
 };
 
 /**
@@ -79,7 +78,7 @@ cmn_diff(int16 const *signal, int32 *out_diff, int ndiff)
 
     /* Determine how many bits we can scale t up by below. */
     for (tscale = 0; tscale < 32; ++tscale)
-        if (ndiff & (1<<(31-tscale)))
+        if (ndiff & (1 << (31 - tscale)))
             break;
     --tscale; /* Avoid teh overflowz. */
     /* printf("tscale is %d (ndiff - 1) << tscale is %d\n",
@@ -96,7 +95,7 @@ cmn_diff(int16 const *signal, int32 *out_diff, int ndiff)
         for (j = 0; j < ndiff; ++j) {
             int diff = signal[j] - signal[t + j];
             /* Guard against overflows. */
-            if (dd > (1UL<<tscale)) {
+            if (dd > (1UL << tscale)) {
                 dd >>= 1;
                 ++dshift;
             }
@@ -105,19 +104,19 @@ cmn_diff(int16 const *signal, int32 *out_diff, int ndiff)
         /* Make sure the diffs and cum are shifted to the same
          * scaling factor (usually dshift will be zero) */
         if (dshift > cshift) {
-            cum += dd << (dshift-cshift);
-        }
-        else {
-            cum += dd >> (cshift-dshift);
+            cum += dd << (dshift - cshift);
+        } else {
+            cum += dd >> (cshift - dshift);
         }
 
         /* Guard against overflows and also ensure that (t<<tscale) > cum. */
-        while (cum > (1UL<<tscale)) {
+        while (cum > (1UL << tscale)) {
             cum >>= 1;
             ++cshift;
         }
         /* Avoid divide-by-zero! */
-        if (cum == 0) cum = 1;
+        if (cum == 0)
+            cum = 1;
         /* Calculate the normalizer in high precision. */
         norm = (t << tscale) / cum;
         /* Do a long multiply and shift down to Q15. */
@@ -225,7 +224,7 @@ yin_read(yin_t *pe, uint16 *out_period, uint16 *out_bestdiff)
     int wstart, wlen, half_wsize, i;
     int best, best_diff, search_width, low_period, high_period;
 
-    half_wsize = (pe->wsize-1)/2;
+    half_wsize = (pe->wsize - 1) / 2;
     /* Without any smoothing, just return the current value (don't
      * need to do anything to the current poitner either). */
     if (half_wsize == 0) {
@@ -253,7 +252,8 @@ yin_read(yin_t *pe, uint16 *out_period, uint16 *out_bestdiff)
         wstart = (pe->wcur + pe->wsize - half_wsize) % pe->wsize;
         /* Number of frames from wstart up to pe->wstart. */
         wlen = pe->wstart - wstart;
-        if (wlen < 0) wlen += pe->wsize;
+        if (wlen < 0)
+            wlen += pe->wsize;
         /*printf("ENDUT! ");*/
     }
     /* Beginning of utterance. */
@@ -300,11 +300,14 @@ yin_read(yin_t *pe, uint16 *out_period, uint16 *out_bestdiff)
     search_width = best * pe->search_range / 32768;
     /* printf("Search width = %d * %.2f = %d\n",
        best, (double)pe->search_range/32768, search_width); */
-    if (search_width == 0) search_width = 1;
+    if (search_width == 0)
+        search_width = 1;
     low_period = best - search_width;
     high_period = best + search_width;
-    if (low_period < 0) low_period = 0;
-    if (high_period > pe->frame_size / 2) high_period = pe->frame_size / 2;
+    if (low_period < 0)
+        low_period = 0;
+    if (high_period > pe->frame_size / 2)
+        high_period = pe->frame_size / 2;
     /* printf("Searching from %d to %d\n", low_period, high_period); */
     best = thresholded_search(pe->diff_window[pe->wcur],
                               pe->search_threshold,

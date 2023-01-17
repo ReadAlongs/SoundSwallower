@@ -38,19 +38,19 @@
  * cmn.c -- Various forms of cepstral mean normalization
  */
 
+#include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <math.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4244)
+#pragma warning(disable : 4244)
 #endif
 
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/err.h>
 #include <soundswallower/cmn.h>
+#include <soundswallower/err.h>
 
 /* NOTE!  These must match the enum in cmn.h */
 const char *cmn_type_str[] = {
@@ -63,7 +63,7 @@ const char *cmn_alt_type_str[] = {
     "current",
     "prior"
 };
-static const int n_cmn_type_str = sizeof(cmn_type_str)/sizeof(cmn_type_str[0]);
+static const int n_cmn_type_str = sizeof(cmn_type_str) / sizeof(cmn_type_str[0]);
 
 cmn_type_t
 cmn_type_from_str(const char *str)
@@ -143,21 +143,20 @@ cmn_t *
 cmn_init(int32 veclen)
 {
     cmn_t *cmn;
-    cmn = (cmn_t *) ckd_calloc(1, sizeof(cmn_t));
+    cmn = (cmn_t *)ckd_calloc(1, sizeof(cmn_t));
     cmn->refcount = 1;
     cmn->veclen = veclen;
-    cmn->cmn_mean = (mfcc_t *) ckd_calloc(veclen, sizeof(mfcc_t));
-    cmn->cmn_var = (mfcc_t *) ckd_calloc(veclen, sizeof(mfcc_t));
-    cmn->sum = (mfcc_t *) ckd_calloc(veclen, sizeof(mfcc_t));
+    cmn->cmn_mean = (mfcc_t *)ckd_calloc(veclen, sizeof(mfcc_t));
+    cmn->cmn_var = (mfcc_t *)ckd_calloc(veclen, sizeof(mfcc_t));
+    cmn->sum = (mfcc_t *)ckd_calloc(veclen, sizeof(mfcc_t));
     cmn->nframe = 0;
     cmn_update_repr(cmn);
 
     return cmn;
 }
 
-
 void
-cmn(cmn_t *cmn, mfcc_t ** mfc, int32 varnorm, int32 n_frame)
+cmn(cmn_t *cmn, mfcc_t **mfc, int32 varnorm, int32 n_frame)
 {
     mfcc_t *mfcp;
     mfcc_t t;
@@ -178,7 +177,7 @@ cmn(cmn_t *cmn, mfcc_t ** mfc, int32 varnorm, int32 n_frame)
 
         /* Skip zero energy frames */
         if (mfcp[0] < 0)
-    	    continue;
+            continue;
 
         for (i = 0; i < cmn->veclen; i++) {
             cmn->sum[i] += mfcp[i];
@@ -199,8 +198,7 @@ cmn(cmn_t *cmn, mfcc_t ** mfc, int32 varnorm, int32 n_frame)
             for (i = 0; i < cmn->veclen; i++)
                 mfcp[i] -= cmn->cmn_mean[i];
         }
-    }
-    else {
+    } else {
         /* Scale cep vectors to have unit variance along each dimension, and subtract means */
         /* If cmn->cmn_var wasn't NULL, we need to zero the contents */
         memset(cmn->cmn_var, 0, cmn->veclen * sizeof(mfcc_t));
@@ -226,7 +224,7 @@ cmn(cmn_t *cmn, mfcc_t ** mfc, int32 varnorm, int32 n_frame)
 }
 
 int
-cmn_free(cmn_t * cmn)
+cmn_free(cmn_t *cmn)
 {
     if (cmn == NULL)
         return 0;

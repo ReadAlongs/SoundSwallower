@@ -60,7 +60,6 @@
  * 		Created.
  */
 
-
 /**
  * @file case.h
  * @brief Locale-independent implementation of case swapping operation.
@@ -85,43 +84,41 @@ extern "C" {
 }
 #endif
 
-  /**
-   * Return upper case form for c
-   */
-#define UPPER_CASE(c)	((((c) >= 'a') && ((c) <= 'z')) ? (c-32) : c)
+/**
+ * Return upper case form for c
+ */
+#define UPPER_CASE(c) ((((c) >= 'a') && ((c) <= 'z')) ? (c - 32) : c)
 
-  /**
-   * Return lower case form for c
-   */
-#define LOWER_CASE(c)	((((c) >= 'A') && ((c) <= 'Z')) ? (c+32) : c)
+/**
+ * Return lower case form for c
+ */
+#define LOWER_CASE(c) ((((c) >= 'A') && ((c) <= 'Z')) ? (c + 32) : c)
 
-
-  /**
-   * Convert str to all upper case.
-   * @param str is a string.
-   */
+/**
+ * Convert str to all upper case.
+ * @param str is a string.
+ */
 void ucase(char *str);
 
-  /**
-   * Convert str to all lower case
-   * @param str is a string.
-   */
+/**
+ * Convert str to all lower case
+ * @param str is a string.
+ */
 void lcase(char *str);
 
-  /**
-   * (FIXME! The implementation is incorrect!)
-   * Case insensitive string compare.  Return the usual -1, 0, +1, depending on
-   * str1 <, =, > str2 (case insensitive, of course).
-   * @param str1 is the first string.
-   * @param str2 is the second string.
-   */
+/**
+ * (FIXME! The implementation is incorrect!)
+ * Case insensitive string compare.  Return the usual -1, 0, +1, depending on
+ * str1 <, =, > str2 (case insensitive, of course).
+ * @param str1 is the first string.
+ * @param str2 is the second string.
+ */
 int32 strcmp_nocase(const char *str1, const char *str2);
 
 /**
  * Like strcmp_nocase() but with a maximum length.
  */
 int32 strncmp_nocase(const char *str1, const char *str2, size_t len);
-
 
 #ifdef __cplusplus
 }

@@ -4,10 +4,10 @@
  *
  * Author: David Huggins-Daines <dhdaines@gmail.com>
  */
+#include "test_macros.h"
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/endpointer.h>
 #include <soundswallower/err.h>
-#include <soundswallower/ckd_alloc.h>
-#include "test_macros.h"
 
 static int sample_rates[] = {
     8000,
@@ -16,16 +16,15 @@ static int sample_rates[] = {
     48000,
     11025,
     22050,
-    //44100
+    // 44100
 };
-static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+static const int n_sample_rates = sizeof(sample_rates) / sizeof(sample_rates[0]);
 
 static float labels[] = {
     0.48,
     2.43,
 };
-static const int n_labels = sizeof(labels)/sizeof(labels[0]);
-
+static const int n_labels = sizeof(labels) / sizeof(labels[0]);
 
 static FILE *
 open_data(int sample_rate)
@@ -72,7 +71,8 @@ test_sample_rate(int sample_rate)
                 E_INFO("Speech start at %.2f (label %.2f)\n",
                        endpointer_speech_start(ep), labels[i]);
                 TEST_ASSERT(fabs(endpointer_speech_start(ep)
-                                 - labels[i++]) < 0.3);
+                                 - labels[i++])
+                            < 0.3);
             }
             if (!endpointer_in_speech(ep)) {
                 TEST_ASSERT(i < n_labels);
@@ -80,7 +80,8 @@ test_sample_rate(int sample_rate)
                        endpointer_speech_end(ep), labels[i]);
                 TEST_ASSERT(fabs(endpointer_speech_end(ep)
                                  /* FIXME: This difference should be smaller */
-                                 - labels[i++]) < 0.8);
+                                 - labels[i++])
+                            < 0.8);
             }
         }
     }
@@ -90,7 +91,8 @@ test_sample_rate(int sample_rate)
         E_INFO("Speech end at %.2f (label %.2f)\n",
                endpointer_speech_end(ep), labels[i]);
         TEST_ASSERT(fabs(endpointer_speech_end(ep)
-                         - labels[i]) < 0.3);
+                         - labels[i])
+                    < 0.3);
     }
     pclose(fh);
     ckd_free(frame);
@@ -105,7 +107,8 @@ main(int argc, char *argv[])
     endpointer_t *ep;
     int i;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel(ERR_INFO);
     /* Test initialization with default parameters. */
     ep = endpointer_init(0, 0, 0, 0, 0);
@@ -120,7 +123,6 @@ main(int argc, char *argv[])
     TEST_EQUAL(endpointer_frame_size(ep),
                (int)(VAD_DEFAULT_SAMPLE_RATE * VAD_DEFAULT_FRAME_LENGTH));
     endpointer_free(ep);
-
 
     /* Test rejection of unreasonable sample rates. */
     ep = endpointer_init(0, 0, 0, 42, 0);

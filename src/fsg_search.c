@@ -49,34 +49,34 @@
  */
 
 #include "config.h"
+#include <assert.h>
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
-#include <soundswallower/fsg_search.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/fsg_search.h>
 #include <soundswallower/strfuncs.h>
 
 /* Turn this on for detailed debugging dump */
-#define __FSG_DBG__		0
-#define __FSG_DBG_CHAN__	0
-#define __FSG_ALLOW_BESTPATH__	0
+#define __FSG_DBG__ 0
+#define __FSG_DBG_CHAN__ 0
+#define __FSG_ALLOW_BESTPATH__ 0
 
 static seg_iter_t *fsg_search_seg_iter(search_module_t *search);
 static lattice_t *fsg_search_lattice(search_module_t *search);
 static int fsg_search_prob(search_module_t *search);
 
 static searchfuncs_t fsg_funcs = {
-    /* start: */  fsg_search_start,
-    /* step: */   fsg_search_step,
+    /* start: */ fsg_search_start,
+    /* step: */ fsg_search_step,
     /* finish: */ fsg_search_finish,
     /* reinit: */ fsg_search_reinit,
-    /* free: */   fsg_search_free,
-    /* lattice: */  fsg_search_lattice,
-    /* hyp: */      fsg_search_hyp,
-    /* prob: */     fsg_search_prob,
+    /* free: */ fsg_search_free,
+    /* lattice: */ fsg_search_lattice,
+    /* hyp: */ fsg_search_hyp,
+    /* prob: */ fsg_search_prob,
     /* seg_iter: */ fsg_search_seg_iter,
 };
 
@@ -132,9 +132,9 @@ fsg_search_check_dict(fsg_search_t *fsgs, fsg_model_t *fsg)
         word = fsg_model_word_str(fsg, i);
         wid = dict_wordid(dict, word);
         if (wid == BAD_S3WID) {
-    	    E_ERROR("The word '%s' is missing in the dictionary\n", word);
-    	    return FALSE;
-    	}
+            E_ERROR("The word '%s' is missing in the dictionary\n", word);
+            return FALSE;
+        }
     }
 
     return TRUE;
@@ -159,9 +159,9 @@ fsg_search_add_altpron(fsg_search_t *fsgs, fsg_model_t *fsg)
         wid = dict_wordid(dict, word);
         if (wid != BAD_S3WID) {
             while ((wid = dict_nextalt(dict, wid)) != BAD_S3WID) {
-	        n_alt += fsg_model_add_alt(fsg, word, dict_wordstr(dict, wid));
-    	    }
-    	}
+                n_alt += fsg_model_add_alt(fsg, word, dict_wordstr(dict, wid));
+            }
+        }
     }
 
     E_INFO("Added %d alternate word transitions\n", n_alt);
@@ -170,7 +170,7 @@ fsg_search_add_altpron(fsg_search_t *fsgs, fsg_model_t *fsg)
 
 search_module_t *
 fsg_search_init(const char *name,
-		fsg_model_t *fsg,
+                fsg_model_t *fsg,
                 config_t *config,
                 acmod_t *acmod,
                 dict_t *dict,
@@ -196,22 +196,22 @@ fsg_search_init(const char *name,
     /* Get search pruning parameters */
     fsgs->beam_factor = 1.0f;
     fsgs->beam = fsgs->beam_orig
-        = (int32) logmath_log(acmod->lmath, config_float(config, "beam"))
+        = (int32)logmath_log(acmod->lmath, config_float(config, "beam"))
         >> SENSCR_SHIFT;
     fsgs->pbeam = fsgs->pbeam_orig
-        = (int32) logmath_log(acmod->lmath, config_float(config, "pbeam"))
+        = (int32)logmath_log(acmod->lmath, config_float(config, "pbeam"))
         >> SENSCR_SHIFT;
     fsgs->wbeam = fsgs->wbeam_orig
-        = (int32) logmath_log(acmod->lmath, config_float(config, "wbeam"))
+        = (int32)logmath_log(acmod->lmath, config_float(config, "wbeam"))
         >> SENSCR_SHIFT;
 
     /* LM related weights/penalties */
     fsgs->lw = config_float(config, "lw");
-    fsgs->pip = (int32) (logmath_log(acmod->lmath, config_float(config, "pip"))
-                           * fsgs->lw)
+    fsgs->pip = (int32)(logmath_log(acmod->lmath, config_float(config, "pip"))
+                        * fsgs->lw)
         >> SENSCR_SHIFT;
-    fsgs->wip = (int32) (logmath_log(acmod->lmath, config_float(config, "wip"))
-                           * fsgs->lw)
+    fsgs->wip = (int32)(logmath_log(acmod->lmath, config_float(config, "wip"))
+                        * fsgs->lw)
         >> SENSCR_SHIFT;
 
     /* Acoustic score scale for posterior probabilities. */
@@ -226,12 +226,10 @@ fsg_search_init(const char *name,
         return NULL;
     }
 
-    if (config_bool(config, "fsgusefiller") &&
-        !fsg_model_has_sil(fsg))
+    if (config_bool(config, "fsgusefiller") && !fsg_model_has_sil(fsg))
         fsg_search_add_silences(fsgs, fsg);
 
-    if (config_bool(config, "fsgusealtpron") &&
-        !fsg_model_has_alt(fsg))
+    if (config_bool(config, "fsgusealtpron") && !fsg_model_has_alt(fsg))
         fsg_search_add_altpron(fsgs, fsg);
 
 #if __FSG_ALLOW_BESTPATH__
@@ -243,11 +241,10 @@ fsg_search_init(const char *name,
 
     if (fsg_search_reinit(search_module_base(fsgs),
                           search_module_dict(fsgs),
-                          search_module_dict2pid(fsgs)) < 0)
-    {
+                          search_module_dict2pid(fsgs))
+        < 0) {
         search_module_free(search_module_base(fsgs));
         return NULL;
-
     }
     ptmr_init(&fsgs->perf);
 
@@ -260,7 +257,7 @@ fsg_search_free(search_module_t *search)
     fsg_search_t *fsgs = (fsg_search_t *)search;
 
     double n_speech = (double)fsgs->n_tot_frame
-            / config_int(search_module_config(fsgs), "frate");
+        / config_int(search_module_config(fsgs), "frate");
 
     E_INFO("TOTAL fsg %.2f CPU %.3f xRT\n",
            fsgs->perf.t_tot_cpu,
@@ -309,7 +306,6 @@ fsg_search_reinit(search_module_t *search, dict_t *dict, dict2pid_t *d2p)
     return 0;
 }
 
-
 static void
 fsg_search_sen_active(fsg_search_t *fsgs)
 {
@@ -320,13 +316,12 @@ fsg_search_sen_active(fsg_search_t *fsgs)
     acmod_clear_active(search_module_acmod(fsgs));
 
     for (gn = fsgs->pnode_active; gn; gn = gnode_next(gn)) {
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         hmm = fsg_pnode_hmmptr(pnode);
         assert(hmm_frame(hmm) == fsgs->frame);
         acmod_activate_hmm(search_module_acmod(fsgs), hmm);
     }
 }
-
 
 /*
  * Evaluate all the active HMMs.
@@ -351,12 +346,12 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
     for (n = 0, gn = fsgs->pnode_active; gn; gn = gnode_next(gn), n++) {
         int32 score;
 
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         hmm = fsg_pnode_hmmptr(pnode);
         assert(hmm_frame(hmm) == fsgs->frame);
 
 #if __FSG_DBG__
-        E_INFO("pnode(%08x) active @frm %5d\n", (int32) pnode,
+        E_INFO("pnode(%08x) active @frm %5d\n", (int32)pnode,
                fsgs->frame);
 #if __FSG_DBG_CHAN__
         hmm_dump(hmm, stdout);
@@ -365,7 +360,7 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
         score = hmm_vit_eval(hmm);
 #if __FSG_DBG_CHAN__
         E_INFO("pnode(%08x) after eval @frm %5d\n",
-               (int32) pnode, fsgs->frame);
+               (int32)pnode, fsgs->frame);
         hmm_dump(hmm, stdout);
 #endif
 
@@ -385,17 +380,13 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
          * Too many HMMs active; reduce the beam factor applied to the default
          * beams, but not if the factor is already at a floor (0.1).
          */
-        if (fsgs->beam_factor > 0.1) {        /* Hack!!  Hardwired constant 0.1 */
-            fsgs->beam_factor *= 0.9f;        /* Hack!!  Hardwired constant 0.9 */
-            fsgs->beam =
-                (int32) (fsgs->beam_orig * fsgs->beam_factor);
-            fsgs->pbeam =
-                (int32) (fsgs->pbeam_orig * fsgs->beam_factor);
-            fsgs->wbeam =
-                (int32) (fsgs->wbeam_orig * fsgs->beam_factor);
+        if (fsgs->beam_factor > 0.1) { /* Hack!!  Hardwired constant 0.1 */
+            fsgs->beam_factor *= 0.9f; /* Hack!!  Hardwired constant 0.9 */
+            fsgs->beam = (int32)(fsgs->beam_orig * fsgs->beam_factor);
+            fsgs->pbeam = (int32)(fsgs->pbeam_orig * fsgs->beam_factor);
+            fsgs->wbeam = (int32)(fsgs->wbeam_orig * fsgs->beam_factor);
         }
-    }
-    else {
+    } else {
         fsgs->beam_factor = 1.0f;
         fsgs->beam = fsgs->beam_orig;
         fsgs->pbeam = fsgs->pbeam_orig;
@@ -409,9 +400,8 @@ fsg_search_hmm_eval(fsg_search_t *fsgs)
     fsgs->bestscore = bestscore;
 }
 
-
 static void
-fsg_search_pnode_trans(fsg_search_t *fsgs, fsg_pnode_t * pnode)
+fsg_search_pnode_trans(fsg_search_t *fsgs, fsg_pnode_t *pnode)
 {
     fsg_pnode_t *child;
     hmm_t *hmm;
@@ -434,9 +424,8 @@ fsg_search_pnode_trans(fsg_search_t *fsgs, fsg_pnode_t * pnode)
             /* Incoming score > pruning threshold and > target's existing score */
             if (hmm_frame(&child->hmm) < nf) {
                 /* Child node not yet activated; do so */
-                fsgs->pnode_active_next =
-                    glist_add_ptr(fsgs->pnode_active_next,
-                                  (void *) child);
+                fsgs->pnode_active_next = glist_add_ptr(fsgs->pnode_active_next,
+                                                        (void *)child);
             }
 
             hmm_enter(&child->hmm, newscore, hmm_out_history(hmm), nf);
@@ -444,9 +433,8 @@ fsg_search_pnode_trans(fsg_search_t *fsgs, fsg_pnode_t * pnode)
     }
 }
 
-
 static void
-fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
+fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t *pnode)
 {
     hmm_t *hmm;
     fsg_link_t *fl;
@@ -465,7 +453,7 @@ fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
 
 #if __FSG_DBG__
     E_INFO("[%5d] Exit(%08x) %10d(score) %5d(pred)\n",
-           fsgs->frame, (int32) pnode,
+           fsgs->frame, (int32)pnode,
            hmm_out_score(hmm), hmm_out_history(hmm));
 #endif
 
@@ -476,8 +464,8 @@ fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
     if (fsg_model_is_filler(fsgs->fsg, wid)
         /* FIXME: This might be slow due to repeated calls to dict_to_id(). */
         || (dict_is_single_phone(search_module_dict(fsgs),
-                                   dict_wordid(search_module_dict(fsgs),
-                                               fsg_model_word_str(fsgs->fsg, wid))))) {
+                                 dict_wordid(search_module_dict(fsgs),
+                                             fsg_model_word_str(fsgs->fsg, wid))))) {
         /* Create a dummy context structure that applies to all right contexts */
         fsg_pnode_add_all_ctxt(&ctxt);
 
@@ -489,8 +477,7 @@ fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
                               hmm_out_history(hmm),
                               pnode->ci_ext, ctxt);
 
-    }
-    else {
+    } else {
         /* Create history table entry for this word exit */
         fsg_history_entry_add(fsgs->history,
                               fl,
@@ -500,7 +487,6 @@ fsg_search_pnode_exit(fsg_search_t *fsgs, fsg_pnode_t * pnode)
                               pnode->ci_ext, pnode->ctxt);
     }
 }
-
 
 /*
  * (Beam) prune the just evaluated HMMs, determine which ones remain
@@ -523,18 +509,16 @@ fsg_search_hmm_prune_prop(fsg_search_t *fsgs)
     word_thresh = fsgs->bestscore + fsgs->wbeam;
 
     for (gn = fsgs->pnode_active; gn; gn = gnode_next(gn)) {
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         hmm = fsg_pnode_hmmptr(pnode);
 
         if (hmm_bestscore(hmm) >= thresh) {
             /* Keep this HMM active in the next frame */
             if (hmm_frame(hmm) == fsgs->frame) {
                 hmm_frame(hmm) = fsgs->frame + 1;
-                fsgs->pnode_active_next =
-                    glist_add_ptr(fsgs->pnode_active_next,
-                                  (void *) pnode);
-            }
-            else {
+                fsgs->pnode_active_next = glist_add_ptr(fsgs->pnode_active_next,
+                                                        (void *)pnode);
+            } else {
                 assert(hmm_frame(hmm) == fsgs->frame + 1);
             }
 
@@ -543,8 +527,7 @@ fsg_search_hmm_prune_prop(fsg_search_t *fsgs)
                     /* Transition out of this phone into its children */
                     fsg_search_pnode_trans(fsgs, pnode);
                 }
-            }
-            else {
+            } else {
                 if (hmm_out_score(hmm) >= word_thresh) {
                     /* Transition out of leaf node into destination FSG state */
                     fsg_search_pnode_exit(fsgs, pnode);
@@ -553,7 +536,6 @@ fsg_search_hmm_prune_prop(fsg_search_t *fsgs)
         }
     }
 }
-
 
 /*
  * Propagate newly created history entries through null transitions.
@@ -594,9 +576,7 @@ fsg_search_null_prop(fsg_search_t *fsgs)
             /* FIXME: Need to deal with tag transitions somehow. */
             if (fsg_link_wid(l) != -1)
                 continue;
-            newscore =
-                fsg_hist_entry_score(hist_entry) +
-                (fsg_link_logs2prob(l) >> SENSCR_SHIFT);
+            newscore = fsg_hist_entry_score(hist_entry) + (fsg_link_logs2prob(l) >> SENSCR_SHIFT);
 
             if (newscore >= thresh) {
                 fsg_history_entry_add(fsgs->history, l,
@@ -609,7 +589,6 @@ fsg_search_null_prop(fsg_search_t *fsgs)
         }
     }
 }
-
 
 /*
  * Perform cross-word transitions; propagate each history entry created in this
@@ -639,8 +618,7 @@ fsg_search_word_trans(fsg_search_t *fsgs)
         l = fsg_hist_entry_fsglink(hist_entry);
 
         /* Destination state for hist_entry */
-        d = l ? fsg_link_to_state(l) : fsg_model_start_state(fsgs->
-                                                                fsg);
+        d = l ? fsg_link_to_state(l) : fsg_model_start_state(fsgs->fsg);
 
         lc = fsg_hist_entry_lc(hist_entry);
 
@@ -649,8 +627,7 @@ fsg_search_word_trans(fsg_search_t *fsgs)
              root; root = root->sibling) {
             rc = root->ci_ext;
 
-            if ((root->ctxt.bv[lc >> 5] & (1 << (lc & 0x001f))) &&
-                (hist_entry->rc.bv[rc >> 5] & (1 << (rc & 0x001f)))) {
+            if ((root->ctxt.bv[lc >> 5] & (1 << (lc & 0x001f))) && (hist_entry->rc.bv[rc >> 5] & (1 << (rc & 0x001f)))) {
                 /*
                  * Last CIphone of history entry is in left-context list supported by
                  * target root node, and
@@ -664,20 +641,16 @@ fsg_search_word_trans(fsg_search_t *fsgs)
                     && (newscore BETTER_THAN hmm_in_score(&root->hmm))) {
                     if (hmm_frame(&root->hmm) < nf) {
                         /* Newly activated node; add to active list */
-                        fsgs->pnode_active_next =
-                            glist_add_ptr(fsgs->pnode_active_next,
-                                          (void *) root);
+                        fsgs->pnode_active_next = glist_add_ptr(fsgs->pnode_active_next,
+                                                                (void *)root);
 #if __FSG_DBG__
-                        E_INFO
-                            ("[%5d] WordTrans bpidx[%d] -> pnode[%08x] (activated)\n",
-                             fsgs->frame, bpidx, (int32) root);
+                        E_INFO("[%5d] WordTrans bpidx[%d] -> pnode[%08x] (activated)\n",
+                               fsgs->frame, bpidx, (int32)root);
 #endif
-                    }
-                    else {
+                    } else {
 #if __FSG_DBG__
-                        E_INFO
-                            ("[%5d] WordTrans bpidx[%d] -> pnode[%08x]\n",
-                             fsgs->frame, bpidx, (int32) root);
+                        E_INFO("[%5d] WordTrans bpidx[%d] -> pnode[%08x]\n",
+                               fsgs->frame, bpidx, (int32)root);
 #endif
                     }
 
@@ -687,7 +660,6 @@ fsg_search_word_trans(fsg_search_t *fsgs)
         }
     }
 }
-
 
 int
 fsg_search_step(search_module_t *search, int frame_idx)
@@ -742,14 +714,13 @@ fsg_search_step(search_module_t *search, int frame_idx)
      * did not survive into the next frame
      */
     for (gn = fsgs->pnode_active; gn; gn = gnode_next(gn)) {
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         hmm = fsg_pnode_hmmptr(pnode);
 
         if (hmm_frame(hmm) == fsgs->frame) {
             /* This HMM NOT activated for the next frame; reset it */
             fsg_psubtree_pnode_deactivate(pnode);
-        }
-        else {
+        } else {
             assert(hmm_frame(hmm) == (fsgs->frame + 1));
         }
     }
@@ -766,7 +737,6 @@ fsg_search_step(search_module_t *search, int frame_idx)
 
     return 1;
 }
-
 
 /*
  * Set all HMMs to inactive, clear active lists, initialize FSM start
@@ -840,11 +810,11 @@ fsg_search_finish(search_module_t *search)
 
     /* Deactivate all nodes in the current and next-frame active lists */
     for (gn = fsgs->pnode_active; gn; gn = gnode_next(gn)) {
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         fsg_psubtree_pnode_deactivate(pnode);
     }
     for (gn = fsgs->pnode_active_next; gn; gn = gnode_next(gn)) {
-        pnode = (fsg_pnode_t *) gnode_ptr(gn);
+        pnode = (fsg_pnode_t *)gnode_ptr(gn);
         fsg_psubtree_pnode_deactivate(pnode);
     }
 
@@ -857,27 +827,25 @@ fsg_search_finish(search_module_t *search)
 
     n_hist = fsg_history_n_entries(fsgs->history);
     fsgs->n_tot_frame += fsgs->frame;
-    E_INFO
-        ("%d frames, %d HMMs (%d/fr), %d senones (%d/fr), %d history entries (%d/fr)\n\n",
-         fsgs->frame, fsgs->n_hmm_eval,
-         (fsgs->frame > 0) ? fsgs->n_hmm_eval / fsgs->frame : 0,
-         fsgs->n_sen_eval,
-         (fsgs->frame > 0) ? fsgs->n_sen_eval / fsgs->frame : 0,
-         n_hist, (fsgs->frame > 0) ? n_hist / fsgs->frame : 0);
+    E_INFO("%d frames, %d HMMs (%d/fr), %d senones (%d/fr), %d history entries (%d/fr)\n\n",
+           fsgs->frame, fsgs->n_hmm_eval,
+           (fsgs->frame > 0) ? fsgs->n_hmm_eval / fsgs->frame : 0,
+           fsgs->n_sen_eval,
+           (fsgs->frame > 0) ? fsgs->n_sen_eval / fsgs->frame : 0,
+           n_hist, (fsgs->frame > 0) ? n_hist / fsgs->frame : 0);
 
     /* Print out some statistics. */
     ptmr_stop(&fsgs->perf);
     /* This is the number of frames processed. */
     cf = search_module_acmod(fsgs)->output_frame;
     if (cf > 0) {
-        double n_speech = (double) (cf + 1)
+        double n_speech = (double)(cf + 1)
             / config_int(search_module_config(fsgs), "frate");
         E_INFO("fsg %.2f CPU %.3f xRT\n",
                fsgs->perf.t_cpu, fsgs->perf.t_cpu / n_speech);
         E_INFO("fsg %.2f wall %.3f xRT\n",
                fsgs->perf.t_elapsed, fsgs->perf.t_elapsed / n_speech);
     }
-
 
     return 0;
 }
@@ -921,12 +889,12 @@ fsg_search_find_exit(fsg_search_t *fsgs, int frame_idx, int final, int32 *out_sc
         score = fsg_hist_entry_score(hist_entry);
 
         if (fl == NULL)
-	    break;
+            break;
 
-	/* Prefer final hypothesis */
-	if (score == bestscore && fsg_link_to_state(fl) == fsg_model_final_state(fsg)) {
-    	    besthist = bpidx;
-	} else if (score BETTER_THAN bestscore) {
+        /* Prefer final hypothesis */
+        if (score == bestscore && fsg_link_to_state(fl) == fsg_model_final_state(fsg)) {
+            besthist = bpidx;
+        } else if (score BETTER_THAN bestscore) {
             /* Only enforce the final state constraint if this is a final hypothesis. */
             if ((!final)
                 || fsg_link_to_state(fl) == fsg_model_final_state(fsg)) {
@@ -999,11 +967,11 @@ fsg_search_hyp(search_module_t *search, int32 *out_score)
         latlink_t *link;
 
         if ((dag = fsg_search_lattice(search)) == NULL) {
-    	    E_WARN("Failed to obtain the lattice while bestpath enabled\n");
+            E_WARN("Failed to obtain the lattice while bestpath enabled\n");
             return NULL;
         }
         if ((link = fsg_search_bestpath(search, out_score, FALSE)) == NULL) {
-    	    E_WARN("Failed to find the bestpath in a lattice\n");
+            E_WARN("Failed to find the bestpath in a lattice\n");
             return NULL;
         }
         return lattice_hyp(dag, link);
@@ -1029,8 +997,8 @@ fsg_search_hyp(search_module_t *search, int32 *out_score)
 
     ckd_free(search->hyp_str);
     if (len == 0) {
-	search->hyp_str = NULL;
-	return search->hyp_str;
+        search->hyp_str = NULL;
+        return search->hyp_str;
     }
     search->hyp_str = ckd_calloc(1, len);
 
@@ -1074,18 +1042,17 @@ fsg_seg_bp2itor(seg_iter_t *seg, fsg_hist_entry_t *hist_entry)
     seg->ef = fsg_hist_entry_frame(hist_entry);
     seg->sf = ph ? fsg_hist_entry_frame(ph) + 1 : 0;
     /* This is kind of silly but it happens for null transitions. */
-    if (seg->sf > seg->ef) seg->sf = seg->ef;
+    if (seg->sf > seg->ef)
+        seg->sf = seg->ef;
     /* "Language model" score = transition probability. */
     seg->lscr = fsg_link_logs2prob(hist_entry->fsglink) >> SENSCR_SHIFT;
     if (ph) {
         /* FIXME: Not sure exactly how cross-word triphones are handled. */
         seg->ascr = hist_entry->score - ph->score - seg->lscr;
-    }
-    else
+    } else
         seg->ascr = hist_entry->score - seg->lscr;
     seg->prob = seg->lscr + seg->ascr; /* Somewhat approximate value... */
 }
-
 
 static void
 fsg_seg_free(seg_iter_t *seg)
@@ -1190,8 +1157,7 @@ fsg_search_prob(search_module_t *search)
         if ((link = fsg_search_bestpath(search, NULL, TRUE)) == NULL)
             return 0;
         return search->post;
-    }
-    else {
+    } else {
         /* FIXME: Give some kind of good estimate here, eventually. */
         return 0;
     }
@@ -1225,8 +1191,7 @@ new_node(lattice_t *dag, fsg_model_t *fsg, int sf, int ef, int32 wid, int32 node
         /* Update best link score. */
         if (ascr BETTER_THAN node->info.best_exit)
             node->info.best_exit = ascr;
-    }
-    else {
+    } else {
         /* New node; link to head of list */
         node = listelem_malloc(dag->latnode_alloc);
         node->wid = wid;
@@ -1269,8 +1234,7 @@ find_start_node(fsg_search_t *fsgs, lattice_t *dag)
      * all of them. */
     if (nstart == 1) {
         node = gnode_ptr(start);
-    }
-    else {
+    } else {
         gnode_t *st;
         int wid;
 
@@ -1305,8 +1269,7 @@ find_end_node(fsg_search_t *fsgs, lattice_t *dag)
 
     if (nend == 1) {
         node = gnode_ptr(end);
-    }
-    else if (nend == 0) {
+    } else if (nend == 0) {
         latnode_t *last = NULL;
         int ef = 0;
 
@@ -1323,8 +1286,7 @@ find_end_node(fsg_search_t *fsgs, lattice_t *dag)
             E_INFO("End node %s.%d:%d:%d (%d)\n",
                    fsg_model_word_str(fsgs->fsg, node->wid),
                    node->sf, node->fef, node->lef, node->info.best_exit);
-    }
-    else {
+    } else {
         /* If there was more than one end node candidate, then we need
          * to create an artificial end node with epsilon transitions
          * out of all of them. */
@@ -1429,8 +1391,7 @@ fsg_search_lattice(search_module_t *search)
              * clear that this will actually yield correct results.*/
             ascr = fh->score - pfh->score;
             sf = pfh->frame + 1;
-        }
-        else {
+        } else {
             ascr = fh->score;
             sf = 0;
         }
@@ -1464,8 +1425,7 @@ fsg_search_lattice(search_module_t *search)
             fsg_hist_entry_t *pfh = fsg_history_entry_get(fsgs->history, fh->pred);
             sf = pfh->frame + 1;
             ascr = fh->score - pfh->score;
-        }
-        else {
+        } else {
             ascr = fh->score;
             sf = 0;
         }
@@ -1483,9 +1443,8 @@ fsg_search_lattice(search_module_t *search)
                  * matching node in the lattice and link to it.
                  */
                 if ((dest = find_node(dag, fsg, sf, link->wid, fsg_link_to_state(link))) != NULL)
-            	    lattice_link(dag, src, dest, ascr, fh->frame);
-            }
-            else {
+                    lattice_link(dag, src, dest, ascr, fh->frame);
+            } else {
                 /*
                  * Transitive closure on nulls has already been done, so we
                  * just need to look one link forward from them.
@@ -1508,17 +1467,15 @@ fsg_search_lattice(search_module_t *search)
         }
     }
 
-
     /* Figure out which nodes are the start and end nodes. */
     if ((dag->start = find_start_node(fsgs, dag)) == NULL) {
-	E_WARN("Failed to find the start node\n");
+        E_WARN("Failed to find the start node\n");
         goto error_out;
     }
     if ((dag->end = find_end_node(fsgs, dag)) == NULL) {
-	E_WARN("Failed to find the end node\n");
+        E_WARN("Failed to find the end node\n");
         goto error_out;
     }
-
 
     E_INFO("lattice start node %s.%d end node %s.%d\n",
            fsg_model_word_str(fsg, dag->start->wid), dag->start->sf,
@@ -1555,15 +1512,13 @@ fsg_search_lattice(search_module_t *search)
                           * fsg->lw)
             >> SENSCR_SHIFT;
 
-	lattice_penalize_fillers(dag, silpen, fillpen);
+        lattice_penalize_fillers(dag, silpen, fillpen);
     }
     search->dag = dag;
 
     return dag;
 
-
 error_out:
     lattice_free(dag);
     return NULL;
-
 }

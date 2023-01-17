@@ -139,9 +139,9 @@ extern "C" {
  *
  */
 #define s3_rand_seed(s) genrand_seed(s);
-#define s3_rand_int31()  genrand_int31()
+#define s3_rand_int31() genrand_int31()
 #define s3_rand_real() genrand_real3()
-#define s3_rand_res53()  genrand_res53()
+#define s3_rand_res53() genrand_res53()
 
 /**
  *Initialize the seed of the random generator.

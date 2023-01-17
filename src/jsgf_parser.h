@@ -36,10 +36,10 @@
    private implementation details that can be changed or removed.  */
 
 #ifndef YY_YY_JSGF_PARSER_H_INCLUDED
-# define YY_YY_JSGF_PARSER_H_INCLUDED
+#define YY_YY_JSGF_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
-# define YYDEBUG 0
+#define YYDEBUG 0
 #endif
 #if YYDEBUG
 extern int yydebug;
@@ -47,49 +47,42 @@ extern int yydebug;
 
 /* Token kinds.  */
 #ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
-  {
+#define YYTOKENTYPE
+enum yytokentype {
     YYEMPTY = -2,
-    YYEOF = 0,                     /* "end of file"  */
-    YYerror = 256,                 /* error  */
-    YYUNDEF = 257,                 /* "invalid token"  */
-    HEADER = 258,                  /* HEADER  */
-    GRAMMAR = 259,                 /* GRAMMAR  */
-    IMPORT = 260,                  /* IMPORT  */
-    PUBLIC = 261,                  /* PUBLIC  */
-    TOKEN = 262,                   /* TOKEN  */
-    RULENAME = 263,                /* RULENAME  */
-    TAG = 264,                     /* TAG  */
-    WEIGHT = 265                   /* WEIGHT  */
-  };
-  typedef enum yytokentype yytoken_kind_t;
+    YYEOF = 0, /* "end of file"  */
+    YYerror = 256, /* error  */
+    YYUNDEF = 257, /* "invalid token"  */
+    HEADER = 258, /* HEADER  */
+    GRAMMAR = 259, /* GRAMMAR  */
+    IMPORT = 260, /* IMPORT  */
+    PUBLIC = 261, /* PUBLIC  */
+    TOKEN = 262, /* TOKEN  */
+    RULENAME = 263, /* RULENAME  */
+    TAG = 264, /* TAG  */
+    WEIGHT = 265 /* WEIGHT  */
+};
+typedef enum yytokentype yytoken_kind_t;
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
-{
+#if !defined YYSTYPE && !defined YYSTYPE_IS_DECLARED
+union YYSTYPE {
 #line 66 "jsgf_parser.y"
 
-       char *name;
-       float weight;
-       jsgf_rule_t *rule;
-       jsgf_rhs_t *rhs;
-       jsgf_atom_t *atom;
+    char *name;
+    float weight;
+    jsgf_rule_t *rule;
+    jsgf_rhs_t *rhs;
+    jsgf_atom_t *atom;
 
 #line 82 "jsgf_parser.h"
-
 };
 typedef union YYSTYPE YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+#define YYSTYPE_IS_TRIVIAL 1
+#define YYSTYPE_IS_DECLARED 1
 #endif
 
-
-
-
-int yyparse (void* yyscanner, jsgf_t *jsgf);
-
+int yyparse(void *yyscanner, jsgf_t *jsgf);
 
 #endif /* !YY_YY_JSGF_PARSER_H_INCLUDED  */

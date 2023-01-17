@@ -8,7 +8,6 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-
 /*
  * This file contains the resampling functions between 48, 44, 32 and 24 kHz.
  * The description headers can be found in signal_processing_library.h
@@ -19,21 +18,21 @@
 
 // interpolation coefficients
 static const int16_t kCoefficients48To32[2][8] = {
-        {778, -2050, 1087, 23285, 12903, -3783, 441, 222},
-        {222, 441, -3783, 12903, 23285, 1087, -2050, 778}
+    { 778, -2050, 1087, 23285, 12903, -3783, 441, 222 },
+    { 222, 441, -3783, 12903, 23285, 1087, -2050, 778 }
 };
 
 static const int16_t kCoefficients32To24[3][8] = {
-        {767, -2362, 2434, 24406, 10620, -3838, 721, 90},
-        {386, -381, -2646, 19062, 19062, -2646, -381, 386},
-        {90, 721, -3838, 10620, 24406, 2434, -2362, 767}
+    { 767, -2362, 2434, 24406, 10620, -3838, 721, 90 },
+    { 386, -381, -2646, 19062, 19062, -2646, -381, 386 },
+    { 90, 721, -3838, 10620, 24406, 2434, -2362, 767 }
 };
 
 static const int16_t kCoefficients44To32[4][9] = {
-        {117, -669, 2245, -6183, 26267, 13529, -3245, 845, -138},
-        {-101, 612, -2283, 8532, 29790, -5138, 1789, -524, 91},
-        {50, -292, 1016, -3064, 32010, 3933, -1147, 315, -53},
-        {-156, 974, -3863, 18603, 21691, -6246, 2353, -712, 126}
+    { 117, -669, 2245, -6183, 26267, 13529, -3245, 845, -138 },
+    { -101, 612, -2283, 8532, 29790, -5138, 1789, -524, 91 },
+    { 50, -292, 1016, -3064, 32010, 3933, -1147, 315, -53 },
+    { -156, 974, -3863, 18603, 21691, -6246, 2353, -712, 126 }
 };
 
 //   Resampling ratio: 2/3
@@ -41,7 +40,8 @@ static const int16_t kCoefficients44To32[4][9] = {
 // output: int32_t (shifted 15 positions to the left, + offset 16384) :: size 2 * K
 //      K: number of blocks
 
-void WebRtcSpl_Resample48khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
+void
+WebRtcSpl_Resample48khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
 {
     /////////////////////////////////////////////////////////////
     // Filter operation:
@@ -51,8 +51,7 @@ void WebRtcSpl_Resample48khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
     int32_t tmp;
     size_t m;
 
-    for (m = 0; m < K; m++)
-    {
+    for (m = 0; m < K; m++) {
         tmp = 1 << 14;
         tmp += kCoefficients48To32[0][0] * In[0];
         tmp += kCoefficients48To32[0][1] * In[1];
@@ -86,7 +85,8 @@ void WebRtcSpl_Resample48khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
 // output: int32_t (shifted 15 positions to the left, + offset 16384) :: size 3 * K
 //      K: number of blocks
 
-void WebRtcSpl_Resample32khzTo24khz(const int32_t *In, int32_t *Out, size_t K)
+void
+WebRtcSpl_Resample32khzTo24khz(const int32_t *In, int32_t *Out, size_t K)
 {
     /////////////////////////////////////////////////////////////
     // Filter operation:
@@ -96,8 +96,7 @@ void WebRtcSpl_Resample32khzTo24khz(const int32_t *In, int32_t *Out, size_t K)
     size_t m;
     int32_t tmp;
 
-    for (m = 0; m < K; m++)
-    {
+    for (m = 0; m < K; m++) {
         tmp = 1 << 14;
         tmp += kCoefficients32To24[0][0] * In[0];
         tmp += kCoefficients32To24[0][1] * In[1];
@@ -144,9 +143,10 @@ void WebRtcSpl_Resample32khzTo24khz(const int32_t *In, int32_t *Out, size_t K)
 //
 
 // compute two inner-products and store them to output array
-static void WebRtcSpl_ResampDotProduct(const int32_t *in1, const int32_t *in2,
-                                       const int16_t *coef_ptr, int32_t *out1,
-                                       int32_t *out2)
+static void
+WebRtcSpl_ResampDotProduct(const int32_t *in1, const int32_t *in2,
+                           const int16_t *coef_ptr, int32_t *out1,
+                           int32_t *out2)
 {
     int32_t tmp1 = 16384;
     int32_t tmp2 = 16384;
@@ -194,7 +194,8 @@ static void WebRtcSpl_ResampDotProduct(const int32_t *in1, const int32_t *in2,
 // output: int32_t (shifted 15 positions to the left, + offset 16384) :: size  8 * K
 //      K: number of blocks
 
-void WebRtcSpl_Resample44khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
+void
+WebRtcSpl_Resample44khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
 {
     /////////////////////////////////////////////////////////////
     // Filter operation:
@@ -204,8 +205,7 @@ void WebRtcSpl_Resample44khzTo32khz(const int32_t *In, int32_t *Out, size_t K)
     int32_t tmp;
     size_t m;
 
-    for (m = 0; m < K; m++)
-    {
+    for (m = 0; m < K; m++) {
         tmp = 1 << 14;
 
         // first output sample

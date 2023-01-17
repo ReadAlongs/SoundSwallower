@@ -58,7 +58,7 @@ static void
 renormalize_hmms(state_align_search_t *sas, int frame_idx, int32 norm)
 {
     int i;
-    (void) frame_idx;
+    (void)frame_idx;
     for (i = 0; i < sas->n_phones; ++i)
         hmm_normalize(sas->hmms + i, norm);
 }
@@ -140,7 +140,7 @@ extend_tokenstack(state_align_search_t *sas, int frame_idx)
         sas->n_fr_alloc = frame_idx + TOKEN_STEP + 1;
         sas->tokens = ckd_realloc(sas->tokens,
                                   sas->n_emit_state * sas->n_fr_alloc
-                                  * sizeof(*sas->tokens));
+                                      * sizeof(*sas->tokens));
     }
     memset(sas->tokens + frame_idx * sas->n_emit_state, 0xff,
            sas->n_emit_state * sizeof(*sas->tokens));
@@ -234,7 +234,7 @@ state_align_search_finish(search_module_t *search)
     last_frame = sas->frame;
     /* Look at frame - 2 because we track transitions, I think */
     for (cur_frame = sas->frame - 2; cur_frame >= 0; --cur_frame) {
-	cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
+        cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
         if (cur.id == -1) {
             E_ERROR("Alignment failed in frame %d\n", cur_frame);
             return -1;
@@ -246,10 +246,10 @@ state_align_search_finish(search_module_t *search)
             ent = alignment_iter_get(itor);
             ent->start = cur_frame + 1;
             ent->duration = last_frame - ent->start;
-            ent->score =  last.score - cur.score;
+            ent->score = last.score - cur.score;
             E_DEBUG("state %d start %d end %d\n", last.id,
                     ent->start, last_frame);
-    	    last = cur;
+            last = cur;
             last_frame = cur_frame + 1;
         }
     }
@@ -271,9 +271,9 @@ static int
 state_align_search_reinit(search_module_t *search, dict_t *dict, dict2pid_t *d2p)
 {
     /* This does nothing, you need to make a new search for each utterance. */
-    (void) search;
-    (void) dict;
-    (void) d2p;
+    (void)search;
+    (void)dict;
+    (void)d2p;
     return 0;
 }
 
@@ -298,7 +298,7 @@ struct state_align_seg_s {
 typedef struct state_align_seg_s state_align_seg_t;
 
 static void
-state_align_search_seg_free(seg_iter_t * seg)
+state_align_search_seg_free(seg_iter_t *seg)
 {
     state_align_seg_t *itor = (state_align_seg_t *)seg;
     if (itor->itor != NULL) {
@@ -322,7 +322,7 @@ state_align_search_fill_iter(seg_iter_t *seg)
 }
 
 static seg_iter_t *
-state_align_search_seg_next(seg_iter_t * seg)
+state_align_search_seg_next(seg_iter_t *seg)
 {
     state_align_seg_t *itor = (state_align_seg_t *)seg;
 
@@ -340,11 +340,10 @@ static ps_segfuncs_t state_align_segfuncs = {
     /* seg_free */ state_align_search_seg_free
 };
 
-
 static seg_iter_t *
-state_align_search_seg_iter(search_module_t * search)
+state_align_search_seg_iter(search_module_t *search)
 {
-    state_align_search_t *sas = (state_align_search_t *) search;
+    state_align_search_t *sas = (state_align_search_t *)search;
     state_align_seg_t *seg;
     alignment_iter_t *itor;
 
@@ -416,14 +415,14 @@ state_align_search_hyp(search_module_t *search, int32 *out_score)
 }
 
 static searchfuncs_t state_align_search_funcs = {
-    /* start: */  state_align_search_start,
-    /* step: */   state_align_search_step,
+    /* start: */ state_align_search_start,
+    /* step: */ state_align_search_step,
     /* finish: */ state_align_search_finish,
     /* reinit: */ state_align_search_reinit,
-    /* free: */   state_align_search_free,
-    /* lattice: */  NULL,
-    /* hyp: */      state_align_search_hyp,
-    /* prob: */     NULL,
+    /* free: */ state_align_search_free,
+    /* lattice: */ NULL,
+    /* hyp: */ state_align_search_hyp,
+    /* prob: */ NULL,
     /* seg_iter: */ state_align_search_seg_iter,
 };
 
@@ -439,8 +438,8 @@ state_align_search_init(const char *name,
 
     sas = ckd_calloc(1, sizeof(*sas));
     search_module_init(search_module_base(sas), &state_align_search_funcs,
-		   PS_SEARCH_TYPE_STATE_ALIGN, name,
-                   config, acmod, al->d2p->dict, al->d2p);
+                       PS_SEARCH_TYPE_STATE_ALIGN, name,
+                       config, acmod, al->d2p->dict, al->d2p);
     sas->hmmctx = hmm_context_init(bin_mdef_n_emit_state(acmod->mdef),
                                    acmod->tmat->tp, NULL, acmod->mdef->sseq);
     if (sas->hmmctx == NULL) {
@@ -462,7 +461,7 @@ state_align_search_init(const char *name,
         alignment_entry_t *ent = alignment_iter_get(itor);
         hmm_init(sas->hmmctx, &sas->hmms[i], FALSE,
                  ent->id.pid.ssid, ent->id.pid.tmatid);
-        if (ent-> start > 0)
+        if (ent->start > 0)
             sas->sf[i] = ent->start;
         else
             sas->sf[i] = 0; /* Always active */

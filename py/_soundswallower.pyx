@@ -8,10 +8,13 @@
 #
 # Author: David Huggins-Daines <dhdaines@gmail.com>
 
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport free, malloc
+
 import itertools
 import logging
+
 import soundswallower
+
 cimport _soundswallower
 
 LOGGER = logging.getLogger("soundswallower")

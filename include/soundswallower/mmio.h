@@ -83,5 +83,4 @@ void mmio_file_unmap(mmio_file_t *mf);
 }
 #endif
 
-
 #endif /* __MMIO_H__ */

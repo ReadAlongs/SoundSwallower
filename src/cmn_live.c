@@ -36,15 +36,15 @@
  */
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4244)
+#pragma warning(disable : 4244)
 #endif
 
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/err.h>
 #include <soundswallower/cmn.h>
+#include <soundswallower/err.h>
 
 void
-cmn_live_set(cmn_t *cmn, mfcc_t const * vec)
+cmn_live_set(cmn_t *cmn, mfcc_t const *vec)
 {
     int32 i;
 
@@ -112,14 +112,13 @@ cmn_live(cmn_t *cmn, mfcc_t **incep, int32 varnorm, int32 nfr)
         return;
 
     if (varnorm)
-        E_FATAL
-            ("Variance normalization not implemented in live mode decode\n");
+        E_FATAL("Variance normalization not implemented in live mode decode\n");
 
     for (i = 0; i < nfr; i++) {
 
-	/* Skip zero energy frames */
-	if (incep[i][0] < 0)
-	    continue;
+        /* Skip zero energy frames */
+        if (incep[i][0] < 0)
+            continue;
 
         for (j = 0; j < cmn->veclen; j++) {
             cmn->sum[j] += incep[i][j];

@@ -38,10 +38,10 @@
 #ifndef _LIBUTIL_ERR_H_
 #define _LIBUTIL_ERR_H_
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 /**
  * @file err.h
@@ -68,9 +68,11 @@ extern "C" {
 }
 #endif
 
-#define E_SYSCALL(stmt, ...)  if (stmt) E_FATAL_SYSTEM(__VA_ARGS__);
+#define E_SYSCALL(stmt, ...) \
+    if (stmt)                \
+        E_FATAL_SYSTEM(__VA_ARGS__);
 
-#define FILELINE  __FILE__ , __LINE__
+#define FILELINE __FILE__, __LINE__
 
 /**
  * Exit with non-zero status after error message
@@ -84,41 +86,41 @@ extern "C" {
 /**
  * Print error text; Call perror(""); exit(errno);
  */
-#define E_FATAL_SYSTEM(...)                                                  \
-    do {                                                                     \
-        err_msg_system(ERR_FATAL, FILELINE, __VA_ARGS__);		     \
-        exit(EXIT_FAILURE);                                                  \
+#define E_FATAL_SYSTEM(...)                               \
+    do {                                                  \
+        err_msg_system(ERR_FATAL, FILELINE, __VA_ARGS__); \
+        exit(EXIT_FAILURE);                               \
     } while (0)
 
 /**
  * Print error text; Call perror("");
  */
-#define E_ERROR_SYSTEM(...)     err_msg_system(ERR_ERROR, FILELINE, __VA_ARGS__)
+#define E_ERROR_SYSTEM(...) err_msg_system(ERR_ERROR, FILELINE, __VA_ARGS__)
 
 /**
  * Print error message to error log
  */
-#define E_ERROR(...)     err_msg(ERR_ERROR, FILELINE, __VA_ARGS__)
+#define E_ERROR(...) err_msg(ERR_ERROR, FILELINE, __VA_ARGS__)
 
 /**
  * Print warning message to error log
  */
-#define E_WARN(...)      err_msg(ERR_WARN, FILELINE, __VA_ARGS__)
+#define E_WARN(...) err_msg(ERR_WARN, FILELINE, __VA_ARGS__)
 
 /**
  * Print logging information to standard error stream
  */
-#define E_INFO(...)      err_msg(ERR_INFO, FILELINE, __VA_ARGS__)
+#define E_INFO(...) err_msg(ERR_INFO, FILELINE, __VA_ARGS__)
 
 /**
  * Continue printing the information to standard error stream
  */
-#define E_INFOCONT(...)  err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
+#define E_INFOCONT(...) err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
 
 /**
  * Print logging information without filename.
  */
-#define E_INFO_NOFN(...)  err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
+#define E_INFO_NOFN(...) err_msg(ERR_INFO, NULL, 0, __VA_ARGS__)
 
 /**
  * Debug messages are disabled by default
@@ -148,7 +150,7 @@ void err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, .
  * callback will NOT be called for messages of lower priority than the
  * current log level.
  */
-typedef void (*err_cb_f)(void* user_data, err_lvl_t lvl, const char *msg);
+typedef void (*err_cb_f)(void *user_data, err_lvl_t lvl, const char *msg);
 
 /**
  * Default logging callback using stderr.

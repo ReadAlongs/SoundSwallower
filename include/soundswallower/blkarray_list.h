@@ -61,10 +61,8 @@
  * 		Started.
  */
 
-
 #ifndef __S2_BLKARRAY_LIST_H__
 #define __S2_BLKARRAY_LIST_H__
-
 
 #include <soundswallower/prim_type.h>
 
@@ -83,22 +81,21 @@ extern "C" {
  * coarse grain.  An entire block is allocated or freed, as appropriate.
  */
 typedef struct blkarray_list_s {
-  void ***ptr;		/* ptr[][] is the user-supplied ptr */
-  int32 maxblks;	/* size of ptr (#rows) */
-  int32 blksize;	/* size of ptr[] (#cols, ie, size of each row) */
-  int32 n_valid;	/* # entries actually stored in the list */
-  int32 cur_row;	/* The current row being that has empty entry */
-  int32 cur_row_free;	/* First entry valid within the current row */
+    void ***ptr; /* ptr[][] is the user-supplied ptr */
+    int32 maxblks; /* size of ptr (#rows) */
+    int32 blksize; /* size of ptr[] (#cols, ie, size of each row) */
+    int32 n_valid; /* # entries actually stored in the list */
+    int32 cur_row; /* The current row being that has empty entry */
+    int32 cur_row_free; /* First entry valid within the current row */
 } blkarray_list_t;
 
 /* Access macros */
-#define blkarray_list_ptr(l,r,c)	((l)->ptr[r][c])
-#define blkarray_list_maxblks(l)	((l)->maxblks)
-#define blkarray_list_blksize(l)	((l)->blksize)
-#define blkarray_list_n_valid(l)	((l)->n_valid)
-#define blkarray_list_cur_row(l)	((l)->cur_row)
-#define blkarray_list_cur_row_free(l)	((l)->cur_row_free)
-
+#define blkarray_list_ptr(l, r, c) ((l)->ptr[r][c])
+#define blkarray_list_maxblks(l) ((l)->maxblks)
+#define blkarray_list_blksize(l) ((l)->blksize)
+#define blkarray_list_n_valid(l) ((l)->n_valid)
+#define blkarray_list_cur_row(l) ((l)->cur_row)
+#define blkarray_list_cur_row_free(l) ((l)->cur_row_free)
 
 /*
  * Initialize and return a new blkarray_list containing an empty list
@@ -107,20 +104,18 @@ typedef struct blkarray_list_s {
  * checked.
  * Return the allocated entry if successful, NULL if any error.
  */
-blkarray_list_t *_blkarray_list_init (int32 maxblks, int32 blksize);
-
+blkarray_list_t *_blkarray_list_init(int32 maxblks, int32 blksize);
 
 /*
  * Like _blkarray_list_init() above, but for some default values of
  * maxblks and blksize.
  */
-blkarray_list_t *blkarray_list_init ( void );
+blkarray_list_t *blkarray_list_init(void);
 
 /**
  * Completely finalize a blkarray_list.
  */
 void blkarray_list_free(blkarray_list_t *bl);
-
 
 /*
  * Append the given new entry (data) to the end of the list.
@@ -129,18 +124,16 @@ void blkarray_list_free(blkarray_list_t *bl);
  * 0, 1, 2...) for successive append operations, until the list is reset,
  * when they resume from 0.
  */
-int32 blkarray_list_append (blkarray_list_t *, void *data);
-
+int32 blkarray_list_append(blkarray_list_t *, void *data);
 
 /*
  * Free all the entries in the list (using ckd_free) and reset the
  * list length to 0.
  */
-void blkarray_list_reset (blkarray_list_t *);
-
+void blkarray_list_reset(blkarray_list_t *);
 
 /* Gets n-th element of the array list */
-void * blkarray_list_get(blkarray_list_t *, int32 n);
+void *blkarray_list_get(blkarray_list_t *, int32 n);
 
 #ifdef __cplusplus
 } /* extern "C" */

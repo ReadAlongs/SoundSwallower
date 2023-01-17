@@ -2,11 +2,11 @@
 #include "config.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <soundswallower/hash_table.h>
 #include <soundswallower/err.h>
+#include <soundswallower/hash_table.h>
 
 /* Insert -hmmdump, -lm, -svq4svq, -beam, -lminmemory into a hash and display it. */
 int
@@ -14,7 +14,8 @@ main(int argc, char **argv)
 {
     hash_table_t *ht;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     ht = hash_table_new(75, 0);
 
     if (hash_table_enter(ht, "-hmmdump", (void *)1) != (void *)1) {
@@ -43,7 +44,6 @@ main(int argc, char **argv)
     ht = NULL;
     return 0;
 }
-
 
 #if 0
 E_INFO("Hash table in the command line\n");

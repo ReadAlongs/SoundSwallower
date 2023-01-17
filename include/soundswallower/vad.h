@@ -35,7 +35,6 @@
 #ifndef __VAD_H__
 #define __VAD_H__
 
-
 #include <soundswallower/prim_type.h>
 #include <stddef.h>
 

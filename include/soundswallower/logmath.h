@@ -72,9 +72,8 @@
 #ifndef __LOGMATH_H__
 #define __LOGMATH_H__
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/configuration.h>
-
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -213,6 +212,5 @@ float64 logmath_log_float_to_log10(logmath_t *lmath, float log_p);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /*  __LOGMATH_H__ */

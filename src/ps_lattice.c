@@ -40,25 +40,25 @@
  */
 
 #include <assert.h>
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/decoder.h>
+#include <soundswallower/dict.h>
+#include <soundswallower/err.h>
 #include <soundswallower/listelem_alloc.h>
 #include <soundswallower/strfuncs.h>
-#include <soundswallower/err.h>
-#include <soundswallower/dict.h>
-#include <soundswallower/decoder.h>
 
 /**
  * Segmentation "iterator" for backpointer table results.
  */
 typedef struct dag_seg_s {
-    seg_iter_t base;       /**< Base structure. */
-    latlink_t **links;   /**< Array of lattice links. */
-    int32 norm;     /**< Normalizer for posterior probabilities. */
-    int16 n_links;  /**< Number of lattice links. */
-    int16 cur;      /**< Current position in bpidx. */
+    seg_iter_t base; /**< Base structure. */
+    latlink_t **links; /**< Array of lattice links. */
+    int32 norm; /**< Normalizer for posterior probabilities. */
+    int16 n_links; /**< Number of lattice links. */
+    int16 cur; /**< Current position in bpidx. */
 } dag_seg_t;
 
 /**
@@ -77,7 +77,7 @@ typedef struct astar_seg_s {
  */
 void
 lattice_link(lattice_t *dag, latnode_t *from, latnode_t *to,
-                int32 score, int32 ef)
+             int32 score, int32 ef)
 {
     latlink_list_t *fwdlink;
 
@@ -106,8 +106,7 @@ lattice_link(lattice_t *dag, latnode_t *from, latnode_t *to,
         from->exits = fwdlink;
         revlink->next = to->entries;
         to->entries = revlink;
-    }
-    else {
+    } else {
         /* Link already exists; just retain the best ascr */
         if (score BETTER_THAN fwdlink->link->ascr) {
             fwdlink->link->ascr = score;
@@ -148,7 +147,6 @@ delete_node(lattice_t *dag, latnode_t *node)
     listelem_free(dag->latnode_alloc, node);
 }
 
-
 static void
 remove_dangling_links(lattice_t *dag, latnode_t *node)
 {
@@ -164,8 +162,7 @@ remove_dangling_links(lattice_t *dag, latnode_t *node)
                 node->exits = next_x;
             listelem_free(dag->latlink_alloc, x->link);
             listelem_free(dag->latlink_list_alloc, x);
-        }
-        else
+        } else
             prev_x = x;
     }
     prev_x = NULL;
@@ -178,8 +175,7 @@ remove_dangling_links(lattice_t *dag, latnode_t *node)
                 node->entries = next_x;
             listelem_free(dag->latlink_alloc, x->link);
             listelem_free(dag->latlink_list_alloc, x);
-        }
-        else
+        } else
             prev_x = x;
     }
 }
@@ -201,8 +197,7 @@ lattice_delete_unreachable(lattice_t *dag)
                 dag->nodes = next_node;
             /* Delete this node and NULLify links to it. */
             delete_node(dag, node);
-        }
-        else
+        } else
             prev_node = node;
     }
 
@@ -305,8 +300,10 @@ ps_latnode_iter_node(latnode_iter_t *itor)
 int
 latnode_times(latnode_t *node, int16 *out_fef, int16 *out_lef)
 {
-    if (out_fef) *out_fef = (int16)node->fef;
-    if (out_lef) *out_lef = (int16)node->lef;
+    if (out_fef)
+        *out_fef = (int16)node->fef;
+    if (out_lef)
+        *out_lef = (int16)node->lef;
     return node->sf;
 }
 
@@ -332,7 +329,8 @@ ps_latnode_prob(lattice_t *dag, latnode_t *node,
     for (links = node->exits; links; links = links->next) {
         int32 post = links->link->alpha + links->link->beta - dag->norm;
         if (post > bestpost) {
-            if (out_link) *out_link = links->link;
+            if (out_link)
+                *out_link = links->link;
             bestpost = post;
         }
     }
@@ -376,8 +374,7 @@ latlink_times(latlink_t *link, int16 *out_sf)
     if (out_sf) {
         if (link->from) {
             *out_sf = link->from->sf;
-        }
-        else {
+        } else {
             *out_sf = 0;
         }
     }
@@ -387,7 +384,8 @@ latlink_times(latlink_t *link, int16 *out_sf)
 latnode_t *
 ps_latlink_nodes(latlink_t *link, latnode_t **out_src)
 {
-    if (out_src) *out_src = link->from;
+    if (out_src)
+        *out_src = link->from;
     return link->to;
 }
 
@@ -417,7 +415,8 @@ int32
 ps_latlink_prob(lattice_t *dag, latlink_t *link, int32 *out_ascr)
 {
     int32 post = link->alpha + link->beta - dag->norm;
-    if (out_ascr) *out_ascr = link->ascr << SENSCR_SHIFT;
+    if (out_ascr)
+        *out_ascr = link->ascr << SENSCR_SHIFT;
     return post;
 }
 
@@ -432,46 +431,46 @@ lattice_hyp(lattice_t *dag, latlink_t *link)
     len = 0;
     /* FIXME: There may not be a search, but actually there should be a dict. */
     if (dict_real_word(dag->dict, link->to->basewid)) {
-	char *wstr = dict_wordstr(dag->dict, link->to->basewid);
-	if (wstr != NULL)
-	    len += strlen(wstr) + 1;
+        char *wstr = dict_wordstr(dag->dict, link->to->basewid);
+        if (wstr != NULL)
+            len += strlen(wstr) + 1;
     }
     for (l = link; l; l = l->best_prev) {
         if (dict_real_word(dag->dict, l->from->basewid)) {
-    	    char *wstr = dict_wordstr(dag->dict, l->from->basewid);
+            char *wstr = dict_wordstr(dag->dict, l->from->basewid);
             if (wstr != NULL)
-        	len += strlen(wstr) + 1;
+                len += strlen(wstr) + 1;
         }
     }
 
     /* Backtrace again to construct hypothesis string. */
     ckd_free(dag->hyp_str);
-    dag->hyp_str = ckd_calloc(1, len+1); /* extra one incase the hyp is empty */
+    dag->hyp_str = ckd_calloc(1, len + 1); /* extra one incase the hyp is empty */
     c = dag->hyp_str + len - 1;
     if (dict_real_word(dag->dict, link->to->basewid)) {
-	char *wstr = dict_wordstr(dag->dict, link->to->basewid);
-	if (wstr != NULL) {
-    	    len = strlen(wstr);
-	    c -= len;
-    	    memcpy(c, wstr, len);
-    	    if (c > dag->hyp_str) {
-        	--c;
-        	*c = ' ';
-	    }
+        char *wstr = dict_wordstr(dag->dict, link->to->basewid);
+        if (wstr != NULL) {
+            len = strlen(wstr);
+            c -= len;
+            memcpy(c, wstr, len);
+            if (c > dag->hyp_str) {
+                --c;
+                *c = ' ';
+            }
         }
     }
     for (l = link; l; l = l->best_prev) {
         if (dict_real_word(dag->dict, l->from->basewid)) {
-    	    char *wstr = dict_wordstr(dag->dict, l->from->basewid);
-    	    if (wstr != NULL) {
-	        len = strlen(wstr);
-    		c -= len;
-    		memcpy(c, wstr, len);
-        	if (c > dag->hyp_str) {
-            	    --c;
-            	    *c = ' ';
-        	}
-    	    }
+            char *wstr = dict_wordstr(dag->dict, l->from->basewid);
+            if (wstr != NULL) {
+                len = strlen(wstr);
+                c -= len;
+                memcpy(c, wstr, len);
+                if (c > dag->hyp_str) {
+                    --c;
+                    *c = ' ';
+                }
+            }
         }
     }
 
@@ -488,8 +487,7 @@ lattice_link2itor(seg_iter_t *seg, latlink_t *link, int to)
         node = link->to;
         seg->ef = node->lef;
         seg->prob = 0; /* norm + beta - norm */
-    }
-    else {
+    } else {
         latlink_list_t *x;
         latnode_t *n;
         logmath_t *lmath = search_module_acmod(seg->search)->lmath;
@@ -531,12 +529,10 @@ lattice_seg_next(seg_iter_t *seg)
     if (itor->cur == itor->n_links + 1) {
         lattice_seg_free(seg);
         return NULL;
-    }
-    else if (itor->cur == itor->n_links) {
+    } else if (itor->cur == itor->n_links) {
         /* Re-use the last link but with the "to" node. */
         lattice_link2itor(seg, itor->links[itor->cur - 1], TRUE);
-    }
-    else {
+    } else {
         lattice_link2itor(seg, itor->links[itor->cur], FALSE);
     }
 
@@ -604,7 +600,6 @@ lattice_pushq(lattice_t *dag, latlink_t *link)
         dag->q_tail->next = latlink_list_new(dag, link, NULL);
         dag->q_tail = dag->q_tail->next;
     }
-
 }
 
 latlink_t *
@@ -650,7 +645,8 @@ lattice_traverse_edges(lattice_t *dag, latnode_t *start, latnode_t *end)
     }
 
     /* Initialize agenda with all exits from start. */
-    if (start == NULL) start = dag->start;
+    if (start == NULL)
+        start = dag->start;
     for (x = start->exits; x; x = x->next)
         lattice_pushq(dag, x->link);
 
@@ -673,7 +669,8 @@ lattice_traverse_next(lattice_t *dag, latnode_t *end)
     if (next->to->info.fanin == 0) {
         latlink_list_t *x;
 
-        if (end == NULL) end = dag->end;
+        if (end == NULL)
+            end = dag->end;
         if (next->to == end) {
             /* If we have traversed all links entering the end node,
              * clear the queue, causing future calls to this function
@@ -706,7 +703,8 @@ lattice_reverse_edges(lattice_t *dag, latnode_t *start, latnode_t *end)
     }
 
     /* Initialize agenda with all entries from end. */
-    if (end == NULL) end = dag->end;
+    if (end == NULL)
+        end = dag->end;
     for (x = end->entries; x; x = x->next)
         lattice_pushq(dag, x->link);
 
@@ -729,7 +727,8 @@ lattice_reverse_next(lattice_t *dag, latnode_t *start)
     if (next->from->info.fanin == 0) {
         latlink_list_t *x;
 
-        if (start == NULL) start = dag->start;
+        if (start == NULL)
+            start = dag->start;
         if (next->from == start) {
             /* If we have traversed all links entering the start node,
              * clear the queue, causing future calls to this function
@@ -977,13 +976,12 @@ lattice_posterior(lattice_t *dag, float32 ascale)
             }
             /* Imaginary exit link from final node has beta = 1.0 */
             link->beta = bprob + (int32)((dag->final_node_ascr << SENSCR_SHIFT) * ascale);
-        }
-        else {
+        } else {
             /* Update beta from all outgoing betas. */
             for (x = link->to->exits; x; x = x->next) {
                 link->beta = logmath_add(lmath, link->beta,
                                          x->link->beta + bprob
-                                         + (int)((x->link->ascr << SENSCR_SHIFT) * ascale));
+                                             + (int)((x->link->ascr << SENSCR_SHIFT) * ascale));
             }
         }
     }
@@ -994,7 +992,7 @@ lattice_posterior(lattice_t *dag, float32 ascale)
 
 /* Mark every node that has a path to the argument dagnode as "reachable". */
 static void
-dag_mark_reachable(latnode_t * d)
+dag_mark_reachable(latnode_t *d)
 {
     latlink_list_t *l;
 
@@ -1020,8 +1018,7 @@ lattice_posterior_prune(lattice_t *dag, int32 beam)
                 next = x->next;
                 if (x->link == link) {
                     listelem_free(dag->latlink_list_alloc, x);
-                }
-                else {
+                } else {
                     x->next = tmp;
                     tmp = x;
                 }
@@ -1032,8 +1029,7 @@ lattice_posterior_prune(lattice_t *dag, int32 beam)
                 next = x->next;
                 if (x->link == link) {
                     listelem_free(dag->latlink_list_alloc, x);
-                }
-                else {
+                } else {
                     x->next = tmp;
                     tmp = x;
                 }
@@ -1048,10 +1044,9 @@ lattice_posterior_prune(lattice_t *dag, int32 beam)
     return npruned;
 }
 
-
 /* Parameters to prune n-best alternatives search */
-#define MAX_PATHS	500     /* Max allowed active paths at any time */
-#define MAX_HYP_TRIES	10000
+#define MAX_PATHS 500 /* Max allowed active paths at any time */
+#define MAX_HYP_TRIES 10000
 
 /*
  * For each node in any path between from and end of utt, find the
@@ -1060,7 +1055,7 @@ lattice_posterior_prune(lattice_t *dag, int32 beam)
  * this is the "heuristic score" used in A* search)
  */
 static int32
-best_rem_score(astar_search_t *nbest, latnode_t * from)
+best_rem_score(astar_search_t *nbest, latnode_t *from)
 {
     latlink_list_t *x;
     int32 bestscore, score;
@@ -1113,8 +1108,7 @@ path_insert(astar_search_t *nbest, latpath_t *newpath, int32 total_score)
         nbest->n_path++;
         nbest->n_hyp_insert++;
         nbest->insert_depth += i;
-    }
-    else {
+    } else {
         /* newpath score too low; reject it and also prune paths beyond MAX_PATHS */
         nbest->path_tail = prev;
         prev->next = NULL;
@@ -1132,7 +1126,7 @@ path_insert(astar_search_t *nbest, latpath_t *newpath, int32 total_score)
 
 /* Find all possible extensions to given partial path */
 static void
-path_extend(astar_search_t *nbest, latpath_t * path)
+path_extend(astar_search_t *nbest, latpath_t *path)
 {
     latlink_list_t *x;
     latpath_t *newpath;
@@ -1156,8 +1150,7 @@ path_extend(astar_search_t *nbest, latpath_t * path)
 
         /* First see if hyp would be worse than the worst */
         if (nbest->n_path >= MAX_PATHS) {
-            tail_score =
-                nbest->path_tail->score
+            tail_score = nbest->path_tail->score
                 + nbest->path_tail->node->info.rem_score;
             if (total_score < tail_score) {
                 listelem_free(nbest->latpath_alloc, newpath);
@@ -1172,8 +1165,8 @@ path_extend(astar_search_t *nbest, latpath_t * path)
 
 astar_search_t *
 astar_search_start(lattice_t *dag,
-               int sf, int ef,
-               int w1, int w2)
+                   int sf, int ef,
+                   int w1, int w2)
 {
     astar_search_t *nbest;
     latnode_t *node;
@@ -1196,7 +1189,7 @@ astar_search_start(lattice_t *dag,
         else if (node->exits == NULL)
             node->info.rem_score = WORST_SCORE;
         else
-            node->info.rem_score = 1;   /* +ve => unknown value */
+            node->info.rem_score = 1; /* +ve => unknown value */
     }
 
     /* Create initial partial hypotheses list consisting of nodes starting at sf */
@@ -1234,14 +1227,12 @@ astar_next(astar_search_t *nbest)
 
         /* Complete hypothesis? */
         if ((nbest->top->node->sf >= nbest->ef)
-            || ((nbest->top->node == dag->end) &&
-                (nbest->ef > dag->end->sf))) {
+            || ((nbest->top->node == dag->end) && (nbest->ef > dag->end->sf))) {
             /* FIXME: Verify that it is non-empty.  Also we may want
              * to verify that it is actually distinct from other
              * paths, since often this is not the case*/
             return nbest->top;
-        }
-        else {
+        } else {
             if (nbest->top->node->fef < nbest->ef)
                 path_extend(nbest, nbest->top);
         }
@@ -1266,14 +1257,14 @@ astar_hyp(astar_search_t *nbest, latpath_t *path)
     len = 0;
     for (p = path; p; p = p->parent) {
         if (dict_real_word(search_module_dict(search), p->node->basewid)) {
-    	    char *wstr = dict_wordstr(search_module_dict(search), p->node->basewid);
-    	    if (wstr != NULL)
-    	        len += strlen(wstr) + 1;
+            char *wstr = dict_wordstr(search_module_dict(search), p->node->basewid);
+            if (wstr != NULL)
+                len += strlen(wstr) + 1;
         }
     }
 
     if (len == 0) {
-	return NULL;
+        return NULL;
     }
 
     /* Backtrace again to construct hypothesis string. */
@@ -1281,16 +1272,16 @@ astar_hyp(astar_search_t *nbest, latpath_t *path)
     c = hyp + len - 1;
     for (p = path; p; p = p->parent) {
         if (dict_real_word(search_module_dict(search), p->node->basewid)) {
-    	    char *wstr = dict_wordstr(search_module_dict(search), p->node->basewid);
-    	    if (wstr != NULL) {
-	        len = strlen(wstr);
-    		c -= len;
-        	memcpy(c, wstr, len);
-    		if (c > hyp) {
-            	    --c;
-        	    *c = ' ';
-    		}
-    	    }
+            char *wstr = dict_wordstr(search_module_dict(search), p->node->basewid);
+            if (wstr != NULL) {
+                len = strlen(wstr);
+                c -= len;
+                memcpy(c, wstr, len);
+                if (c > hyp) {
+                    --c;
+                    *c = ' ';
+                }
+            }
         }
     }
 
@@ -1332,8 +1323,7 @@ astar_search_seg_next(seg_iter_t *seg)
     if (itor->cur == itor->n_nodes) {
         astar_search_seg_free(seg);
         return NULL;
-    }
-    else {
+    } else {
         astar_node2itor(itor);
     }
 

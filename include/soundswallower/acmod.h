@@ -46,17 +46,17 @@
 /* System headers. */
 #include <stdio.h>
 
+#include <soundswallower/bin_mdef.h>
+#include <soundswallower/bitvec.h>
 #include <soundswallower/configuration.h>
-#include <soundswallower/logmath.h>
+#include <soundswallower/err.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/feat.h>
-#include <soundswallower/bitvec.h>
-#include <soundswallower/err.h>
-#include <soundswallower/prim_type.h>
-#include <soundswallower/mllr.h>
-#include <soundswallower/bin_mdef.h>
-#include <soundswallower/tmat.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/mllr.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/tmat.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,10 +69,10 @@ extern "C" {
  * States in utterance processing.
  */
 typedef enum acmod_state_e {
-    ACMOD_IDLE,		/**< Not in an utterance. */
-    ACMOD_STARTED,      /**< Utterance started, no data yet. */
-    ACMOD_PROCESSING,   /**< Utterance in progress. */
-    ACMOD_ENDED         /**< Utterance ended, still buffering. */
+    ACMOD_IDLE, /**< Not in an utterance. */
+    ACMOD_STARTED, /**< Utterance started, no data yet. */
+    ACMOD_PROCESSING, /**< Utterance in progress. */
+    ACMOD_ENDED /**< Utterance ended, still buffering. */
 } acmod_state_t;
 
 /**
@@ -84,7 +84,6 @@ typedef enum acmod_state_e {
  * Dummy senone score value for unintentionally active states.
  */
 #define SENSCR_DUMMY 0x7fff
-
 
 /**
  * Acoustic model parameter structure.
@@ -98,7 +97,7 @@ typedef struct mgaufuncs_s {
                       int16 *senscr,
                       uint8 *senone_active,
                       int32 n_senone_active,
-                      mfcc_t ** feat,
+                      mfcc_t **feat,
                       int32 frame,
                       int32 compallsen);
     int (*transform)(mgau_t *mgau,
@@ -107,17 +106,16 @@ typedef struct mgaufuncs_s {
 } mgaufuncs_t;
 
 struct mgau_s {
-    mgaufuncs_t *vt;  /**< vtable of mgau functions. */
-    int frame_idx;       /**< frame counter. */
+    mgaufuncs_t *vt; /**< vtable of mgau functions. */
+    int frame_idx; /**< frame counter. */
 };
 
 #define ps_mgau_base(mg) ((mgau_t *)(mg))
-#define ps_mgau_frame_eval(mg,senscr,senone_active,n_senone_active,feat,frame,compallsen) \
-    (*ps_mgau_base(mg)->vt->frame_eval)                                 \
-    (mg, senscr, senone_active, n_senone_active, feat, frame, compallsen)
-#define mgau_transform(mg, mllr)                                  \
+#define ps_mgau_frame_eval(mg, senscr, senone_active, n_senone_active, feat, frame, compallsen) \
+    (*ps_mgau_base(mg)->vt->frame_eval)(mg, senscr, senone_active, n_senone_active, feat, frame, compallsen)
+#define mgau_transform(mg, mllr) \
     (*ps_mgau_base(mg)->vt->transform)(mg, mllr)
-#define ps_mgau_free(mg)                                  \
+#define ps_mgau_free(mg) \
     (*ps_mgau_base(mg)->vt->free)(mg)
 
 /**
@@ -139,46 +137,46 @@ struct mgau_s {
  */
 struct acmod_s {
     /* Global objects, not retained. */
-    config_t *config;          /**< Configuration. */
-    logmath_t *lmath;          /**< Log-math computation. */
-    glist_t strings;           /**< Temporary acoustic model filenames. */
+    config_t *config; /**< Configuration. */
+    logmath_t *lmath; /**< Log-math computation. */
+    glist_t strings; /**< Temporary acoustic model filenames. */
 
     /* Feature computation: */
-    fe_t *fe;                  /**< Acoustic feature computation. */
-    feat_t *fcb;               /**< Dynamic feature computation. */
+    fe_t *fe; /**< Acoustic feature computation. */
+    feat_t *fcb; /**< Dynamic feature computation. */
 
     /* Model parameters: */
-    bin_mdef_t *mdef;          /**< Model definition. */
-    tmat_t *tmat;              /**< Transition matrices. */
-    mgau_t *mgau;           /**< Model parameters. */
-    mllr_t *mllr;           /**< Speaker transformation. */
+    bin_mdef_t *mdef; /**< Model definition. */
+    tmat_t *tmat; /**< Transition matrices. */
+    mgau_t *mgau; /**< Model parameters. */
+    mllr_t *mllr; /**< Speaker transformation. */
 
     /* Senone scoring: */
-    int16 *senone_scores;      /**< GMM scores for current frame. */
+    int16 *senone_scores; /**< GMM scores for current frame. */
     bitvec_t *senone_active_vec; /**< Active GMMs in current frame. */
-    uint8 *senone_active;      /**< Array of deltas to active GMMs. */
-    int senscr_frame;          /**< Frame index for senone_scores. */
-    int n_senone_active;       /**< Number of active GMMs. */
-    int log_zero;              /**< Zero log-probability value. */
+    uint8 *senone_active; /**< Array of deltas to active GMMs. */
+    int senscr_frame; /**< Frame index for senone_scores. */
+    int n_senone_active; /**< Number of active GMMs. */
+    int log_zero; /**< Zero log-probability value. */
 
     /* Utterance processing: */
-    mfcc_t **mfc_buf;   /**< Temporary buffer of acoustic features. */
+    mfcc_t **mfc_buf; /**< Temporary buffer of acoustic features. */
     mfcc_t ***feat_buf; /**< Temporary buffer of dynamic features. */
-    long *framepos;     /**< File positions of recent frames in senone file. */
+    long *framepos; /**< File positions of recent frames in senone file. */
 
     /* A whole bunch of flags and counters: */
-    uint8 state;        /**< State of utterance processing. */
-    uint8 compallsen;   /**< Compute all senones? */
-    uint8 grow_feat;    /**< Whether to grow feat_buf. */
-    uint8 insen_swap;   /**< Whether to swap input senone score. */
+    uint8 state; /**< State of utterance processing. */
+    uint8 compallsen; /**< Compute all senones? */
+    uint8 grow_feat; /**< Whether to grow feat_buf. */
+    uint8 insen_swap; /**< Whether to swap input senone score. */
 
     frame_idx_t output_frame; /**< Index of next frame of dynamic features. */
-    frame_idx_t n_mfc_alloc;  /**< Number of frames allocated in mfc_buf */
-    frame_idx_t n_mfc_frame;  /**< Number of frames active in mfc_buf */
-    frame_idx_t mfc_outidx;   /**< Start of active frames in mfc_buf */
+    frame_idx_t n_mfc_alloc; /**< Number of frames allocated in mfc_buf */
+    frame_idx_t n_mfc_frame; /**< Number of frames active in mfc_buf */
+    frame_idx_t mfc_outidx; /**< Start of active frames in mfc_buf */
     frame_idx_t n_feat_alloc; /**< Number of frames allocated in feat_buf */
     frame_idx_t n_feat_frame; /**< Number of frames active in feat_buf */
-    frame_idx_t feat_outidx;  /**< Start of active frames in feat_buf */
+    frame_idx_t feat_outidx; /**< Start of active frames in feat_buf */
 };
 typedef struct acmod_s acmod_t;
 
@@ -225,7 +223,7 @@ int acmod_init_senscr(acmod_t *acmod);
  * Verify that feature extraction parameters are compatible with
  * acoustic model.
  *
-  * @param fe acoustic feature extraction module to verify.
+ * @param fe acoustic feature extraction module to verify.
  * @return TRUE if compatible, FALSE otherwise
  */
 int acmod_fe_mismatch(acmod_t *acmod, fe_t *fe);

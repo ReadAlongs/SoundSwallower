@@ -92,15 +92,14 @@
  * base. This is likely to change in the future.
  */
 
-
 #ifndef _LIBFBS_MS_CONT_MGAU_H_
 #define _LIBFBS_MS_CONT_MGAU_H_
 
-#include <soundswallower/configuration.h>
-#include <soundswallower/logmath.h>
-#include <soundswallower/feat.h>
 #include <soundswallower/acmod.h>
 #include <soundswallower/bin_mdef.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/feat.h>
+#include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
 #include <soundswallower/ms_senone.h>
 
@@ -117,9 +116,9 @@ extern "C" {
 
 typedef struct ms_mgau_model_s {
     mgau_t base;
-    gauden_t* g;   /**< The codebook */
-    senone_t* s;   /**< The senone */
-    int topn;      /**< Top-n gaussian will be computed */
+    gauden_t *g; /**< The codebook */
+    senone_t *s; /**< The senone */
+    int topn; /**< Top-n gaussian will be computed */
 
     /**< Intermediate used in computation */
     gauden_dist_t ***dist;
@@ -133,14 +132,14 @@ typedef struct ms_mgau_model_s {
 
 mgau_t *ms_mgau_init(acmod_t *acmod);
 mgau_t *ms_mgau_init_s3file(acmod_t *acmod,
-                               s3file_t *means, s3file_t *vars, s3file_t *mixw,
-                               s3file_t *senmgau);
+                            s3file_t *means, s3file_t *vars, s3file_t *mixw,
+                            s3file_t *senmgau);
 void ms_mgau_free(mgau_t *g);
-int32 ms_cont_mgau_frame_eval(mgau_t * msg,
+int32 ms_cont_mgau_frame_eval(mgau_t *msg,
                               int16 *senscr,
                               uint8 *senone_active,
                               int32 n_senone_active,
-                              mfcc_t ** feat,
+                              mfcc_t **feat,
                               int32 frame,
                               int32 compallsen);
 int32 ms_mgau_mllr_transform(mgau_t *s,

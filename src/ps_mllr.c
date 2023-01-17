@@ -41,8 +41,8 @@
 
 #include <stdio.h>
 
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/acmod.h>
+#include <soundswallower/ckd_alloc.h>
 
 mllr_t *
 mllr_read(const char *regmatfile)
@@ -57,8 +57,7 @@ mllr_read(const char *regmatfile)
     if ((fp = fopen(regmatfile, "r")) == NULL) {
         E_ERROR_SYSTEM("Failed to open MLLR file '%s' for reading", regmatfile);
         goto error_out;
-    }
-    else
+    } else
         E_INFO("Reading MLLR transformation file '%s'\n", regmatfile);
 
     if ((fscanf(fp, "%d", &n) != 1) || (n < 1)) {
@@ -74,9 +73,9 @@ mllr_read(const char *regmatfile)
     mllr->n_feat = n;
     mllr->veclen = ckd_calloc(mllr->n_feat, sizeof(*mllr->veclen));
 
-    mllr->A = (float32 ****) ckd_calloc(mllr->n_feat, sizeof(float32 **));
-    mllr->b = (float32 ***) ckd_calloc(mllr->n_feat, sizeof(float32 *));
-    mllr->h = (float32 ***) ckd_calloc(mllr->n_feat, sizeof(float32 *));
+    mllr->A = (float32 ****)ckd_calloc(mllr->n_feat, sizeof(float32 **));
+    mllr->b = (float32 ***)ckd_calloc(mllr->n_feat, sizeof(float32 *));
+    mllr->h = (float32 ***)ckd_calloc(mllr->n_feat, sizeof(float32 *));
 
     for (i = 0; i < mllr->n_feat; ++i) {
         if (fscanf(fp, "%d", &n) != 1) {
@@ -84,15 +83,12 @@ mllr_read(const char *regmatfile)
             goto error_out;
         }
         mllr->veclen[i] = n;
-        mllr->A[i] =
-            (float32 ***) ckd_calloc_3d(mllr->n_class, mllr->veclen[i],
-                                        mllr->veclen[i], sizeof(float32));
-        mllr->b[i] =
-            (float32 **) ckd_calloc_2d(mllr->n_class, mllr->veclen[i],
-                                       sizeof(float32));
-        mllr->h[i] =
-            (float32 **) ckd_calloc_2d(mllr->n_class, mllr->veclen[i],
-                                       sizeof(float32));
+        mllr->A[i] = (float32 ***)ckd_calloc_3d(mllr->n_class, mllr->veclen[i],
+                                                mllr->veclen[i], sizeof(float32));
+        mllr->b[i] = (float32 **)ckd_calloc_2d(mllr->n_class, mllr->veclen[i],
+                                               sizeof(float32));
+        mllr->h[i] = (float32 **)ckd_calloc_2d(mllr->n_class, mllr->veclen[i],
+                                               sizeof(float32));
 
         for (m = 0; m < mllr->n_class; ++m) {
             for (j = 0; j < mllr->veclen[i]; ++j) {

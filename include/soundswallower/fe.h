@@ -57,8 +57,8 @@
 #define _NEW_FE_H_
 
 #include <soundswallower/configuration.h>
-#include <soundswallower/fe_type.h>
 #include <soundswallower/fe_noise.h>
+#include <soundswallower/fe_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,8 +75,8 @@ typedef float32 mfcc_t;
 /** Convert a mfcc_t value to floating-point. */
 #define MFCC2FLOAT(x) (x)
 /** Multiply two mfcc_t values. */
-#define MFCCMUL(a,b) ((a)*(b))
-#define MFCCLN(x,in,out) log(x)
+#define MFCCMUL(a, b) ((a) * (b))
+#define MFCCLN(x, in, out) log(x)
 
 /**
  * Structure for the front-end computation.
@@ -87,18 +87,18 @@ typedef struct fe_s fe_t;
  * Error codes returned by stuff.
  */
 enum fe_error_e {
-	FE_SUCCESS = 0,
-	FE_OUTPUT_FILE_SUCCESS  = 0,
-	FE_CONTROL_FILE_ERROR = -1,
-	FE_START_ERROR = -2,
-	FE_UNKNOWN_SINGLE_OR_BATCH = -3,
-	FE_INPUT_FILE_OPEN_ERROR = -4,
-	FE_INPUT_FILE_READ_ERROR = -5,
-	FE_MEM_ALLOC_ERROR = -6,
-	FE_OUTPUT_FILE_WRITE_ERROR = -7,
-	FE_OUTPUT_FILE_OPEN_ERROR = -8,
-	FE_ZERO_ENERGY_ERROR = -9,
-	FE_INVALID_PARAM_ERROR =  -10
+    FE_SUCCESS = 0,
+    FE_OUTPUT_FILE_SUCCESS = 0,
+    FE_CONTROL_FILE_ERROR = -1,
+    FE_START_ERROR = -2,
+    FE_UNKNOWN_SINGLE_OR_BATCH = -3,
+    FE_INPUT_FILE_OPEN_ERROR = -4,
+    FE_INPUT_FILE_READ_ERROR = -5,
+    FE_MEM_ALLOC_ERROR = -6,
+    FE_OUTPUT_FILE_WRITE_ERROR = -7,
+    FE_OUTPUT_FILE_OPEN_ERROR = -8,
+    FE_ZERO_ENERGY_ERROR = -9,
+    FE_INVALID_PARAM_ERROR = -10
 };
 
 /**
@@ -255,7 +255,6 @@ int fe_process_float32(fe_t *fe,
  */
 int fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes);
 
-
 /**
  * Process one frame of log spectra into MFCC using discrete cosine
  * transform.
@@ -279,10 +278,10 @@ int fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes);
  *
  * Also, it normalizes by 1/nfilt rather than 2/nfilt, for some reason.
  **/
-int fe_logspec_to_mfcc(fe_t *fe,  /**< A fe structure */
+int fe_logspec_to_mfcc(fe_t *fe, /**< A fe structure */
                        const mfcc_t *fr_spec, /**< One frame of spectrum */
                        mfcc_t *fr_cep /**< One frame of cepstrum */
-        );
+);
 
 /**
  * Convert log spectra to MFCC using DCT-II.
@@ -292,10 +291,10 @@ int fe_logspec_to_mfcc(fe_t *fe,  /**< A fe structure */
  * cos(0) basis vector (i.e. the one corresponding to the DC
  * coefficient in the output).
  **/
-int fe_logspec_dct2(fe_t *fe,  /**< A fe structure */
+int fe_logspec_dct2(fe_t *fe, /**< A fe structure */
                     const mfcc_t *fr_spec, /**< One frame of spectrum */
                     mfcc_t *fr_cep /**< One frame of cepstrum */
-        );
+);
 
 /**
  * Convert MFCC to log spectra using DCT-III.
@@ -305,23 +304,22 @@ int fe_logspec_dct2(fe_t *fe,  /**< A fe structure */
  * cos(0) basis vector (i.e. the one corresponding to the DC
  * coefficient in the input).
  **/
-int fe_mfcc_dct3(fe_t *fe,  /**< A fe structure */
+int fe_mfcc_dct3(fe_t *fe, /**< A fe structure */
                  const mfcc_t *fr_cep, /**< One frame of cepstrum */
                  mfcc_t *fr_spec /**< One frame of spectrum */
-        );
-
+);
 
 /* Values for the 'logspec' field. */
 enum {
-	RAW_LOG_SPEC = 1,
-	SMOOTH_LOG_SPEC = 2
+    RAW_LOG_SPEC = 1,
+    SMOOTH_LOG_SPEC = 2
 };
 
 /* Values for the 'transform' field. */
 enum {
-	LEGACY_DCT = 0,
-	DCT_II = 1,
-        DCT_HTK = 2
+    LEGACY_DCT = 0,
+    DCT_II = 1,
+    DCT_HTK = 2
 };
 
 /**
@@ -443,13 +441,12 @@ void fe_create_hamming(window_t *in, int32 in_len);
 void fe_create_twiddle(fe_t *fe);
 
 /* Miscellaneous processing functions. */
-void fe_spec2cep(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep);
+void fe_spec2cep(fe_t *fe, const powspec_t *mflogspec, mfcc_t *mfcep);
 void fe_dct2(fe_t *fe, const powspec_t *mflogspec, mfcc_t *mfcep, int htk);
 void fe_dct3(fe_t *fe, const mfcc_t *mfcep, powspec_t *mflogspec);
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

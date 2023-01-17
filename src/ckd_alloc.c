@@ -61,7 +61,6 @@
  * 		Created.
  */
 
-
 /*********************************************************************
  *
  * $Header: /cvsroot/cmusphinx/sphinx3/src/libutil/ckd_alloc.c,v 1.6 2005/06/22 02:59:25 arthchan2003 Exp $
@@ -83,15 +82,14 @@
  *
  *********************************************************************/
 
-
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <stdarg.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4996)
+#pragma warning(disable : 4996)
 #endif
 
 #include <soundswallower/ckd_alloc.h>
@@ -126,12 +124,11 @@ __ckd_calloc__(size_t n_elem, size_t elem_size,
 
     if ((mem = calloc(n_elem, elem_size)) == NULL) {
         ckd_fail("calloc(%d,%d) failed from %s(%d)\n", n_elem,
-                elem_size, caller_file, caller_line);
-	}
+                 elem_size, caller_file, caller_line);
+    }
 
     return mem;
 }
-
 
 void *
 __ckd_malloc__(size_t size, const char *caller_file, int caller_line)
@@ -145,7 +142,6 @@ __ckd_malloc__(size_t size, const char *caller_file, int caller_line)
     return mem;
 }
 
-
 void *
 __ckd_realloc__(void *ptr, size_t new_size,
                 const char *caller_file, int caller_line)
@@ -153,12 +149,11 @@ __ckd_realloc__(void *ptr, size_t new_size,
     void *mem;
     if ((mem = realloc(ptr, new_size)) == NULL) {
         ckd_fail("malloc(%d) failed from %s(%d)\n", new_size,
-                caller_file, caller_line);
+                 caller_file, caller_line);
     }
 
     return mem;
 }
-
 
 char *
 __ckd_salloc__(const char *orig, const char *caller_file,
@@ -171,12 +166,11 @@ __ckd_salloc__(const char *orig, const char *caller_file,
         return NULL;
 
     len = strlen(orig) + 1;
-    buf = (char *) __ckd_malloc__(len, caller_file, caller_line);
+    buf = (char *)__ckd_malloc__(len, caller_file, caller_line);
 
     strcpy(buf, orig);
     return (buf);
 }
-
 
 void *
 __ckd_calloc_2d__(size_t d1, size_t d2, size_t elemsize,
@@ -185,19 +179,16 @@ __ckd_calloc_2d__(size_t d1, size_t d2, size_t elemsize,
     char **ref, *mem;
     size_t i, offset;
 
-    mem =
-        (char *) __ckd_calloc__(d1 * d2, elemsize, caller_file,
-                                caller_line);
-    ref =
-        (char **) __ckd_malloc__(d1 * sizeof(void *), caller_file,
+    mem = (char *)__ckd_calloc__(d1 * d2, elemsize, caller_file,
                                  caller_line);
+    ref = (char **)__ckd_malloc__(d1 * sizeof(void *), caller_file,
+                                  caller_line);
 
     for (i = 0, offset = 0; i < d1; i++, offset += d2 * elemsize)
         ref[i] = mem + offset;
 
     return ref;
 }
-
 
 void
 ckd_free(void *ptr)
@@ -214,7 +205,6 @@ ckd_free_2d(void *tmpptr)
     ckd_free(ptr);
 }
 
-
 void *
 __ckd_calloc_3d__(size_t d1, size_t d2, size_t d3, size_t elemsize,
                   const char *caller_file, int caller_line)
@@ -222,15 +212,12 @@ __ckd_calloc_3d__(size_t d1, size_t d2, size_t d3, size_t elemsize,
     char ***ref1, **ref2, *mem;
     size_t i, j, offset;
 
-    mem =
-        (char *) __ckd_calloc__(d1 * d2 * d3, elemsize, caller_file,
-                                caller_line);
-    ref1 =
-        (char ***) __ckd_malloc__(d1 * sizeof(void **), caller_file,
-                                  caller_line);
-    ref2 =
-        (char **) __ckd_malloc__(d1 * d2 * sizeof(void *), caller_file,
+    mem = (char *)__ckd_calloc__(d1 * d2 * d3, elemsize, caller_file,
                                  caller_line);
+    ref1 = (char ***)__ckd_malloc__(d1 * sizeof(void **), caller_file,
+                                    caller_line);
+    ref2 = (char **)__ckd_malloc__(d1 * d2 * sizeof(void *), caller_file,
+                                   caller_line);
 
     for (i = 0, offset = 0; i < d1; i++, offset += d2)
         ref1[i] = ref2 + offset;
@@ -246,7 +233,6 @@ __ckd_calloc_3d__(size_t d1, size_t d2, size_t d3, size_t elemsize,
     return ref1;
 }
 
-
 void
 ckd_free_3d(void *inptr)
 {
@@ -259,15 +245,14 @@ ckd_free_3d(void *inptr)
     ckd_free(ptr);
 }
 
-
 void ****
 __ckd_calloc_4d__(size_t d1,
-		  size_t d2,
-		  size_t d3,
-		  size_t d4,
-		  size_t elem_size,
-		  char *file,
-		  int line)
+                  size_t d2,
+                  size_t d3,
+                  size_t d4,
+                  size_t elem_size,
+                  char *file,
+                  int line)
 {
     void *store;
     void **tmp1;
@@ -277,38 +262,38 @@ __ckd_calloc_4d__(size_t d1,
 
     store = calloc(d1 * d2 * d3 * d4, elem_size);
     if (store == NULL) {
-	E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
-		file, line, __FILE__, __LINE__);
+        E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
+                file, line, __FILE__, __LINE__);
     }
 
     tmp1 = calloc(d1 * d2 * d3, sizeof(void *));
     if (tmp1 == NULL) {
-	E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
-		file, line, __FILE__, __LINE__);
+        E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
+                file, line, __FILE__, __LINE__);
     }
 
     tmp2 = ckd_calloc(d1 * d2, sizeof(void **));
     if (tmp2 == NULL) {
-	E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
-		file, line, __FILE__, __LINE__);
+        E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
+                file, line, __FILE__, __LINE__);
     }
 
     out = ckd_calloc(d1, sizeof(void ***));
     if (out == NULL) {
-	E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
-		file, line, __FILE__, __LINE__);
+        E_FATAL("ckd_calloc_4d failed for caller at %s(%d) at %s(%d)\n",
+                file, line, __FILE__, __LINE__);
     }
 
-    for (i = 0, j = 0; i < d1*d2*d3; i++, j += d4) {
-	tmp1[i] = &((char *)store)[j*elem_size];
+    for (i = 0, j = 0; i < d1 * d2 * d3; i++, j += d4) {
+        tmp1[i] = &((char *)store)[j * elem_size];
     }
 
-    for (i = 0, j = 0; i < d1*d2; i++, j += d3) {
-	tmp2[i] = &tmp1[j];
+    for (i = 0, j = 0; i < d1 * d2; i++, j += d3) {
+        tmp2[i] = &tmp1[j];
     }
 
     for (i = 0, j = 0; i < d1; i++, j += d2) {
-	out[i] = &tmp2[j];
+        out[i] = &tmp2[j];
     }
 
     return out;
@@ -319,7 +304,7 @@ ckd_free_4d(void *inptr)
 {
     void ****ptr = (void ****)inptr;
     if (ptr == NULL)
-	return;
+        return;
     /* free the underlying store */
     ckd_free(ptr[0][0][0]);
 
@@ -332,12 +317,12 @@ ckd_free_4d(void *inptr)
 /* Layers a 3d array access structure over a preallocated storage area */
 void *
 __ckd_alloc_3d_ptr(size_t d1,
-		   size_t d2,
-		   size_t d3,
-		   void *store,
-		   size_t elem_size,
-		   char *file,
-		   int line)
+                   size_t d2,
+                   size_t d3,
+                   void *store,
+                   size_t elem_size,
+                   char *file,
+                   int line)
 {
     void **tmp1;
     void ***out;
@@ -345,14 +330,14 @@ __ckd_alloc_3d_ptr(size_t d1,
 
     tmp1 = __ckd_calloc__(d1 * d2, sizeof(void *), file, line);
 
-    out  = __ckd_calloc__(d1, sizeof(void **), file, line);
+    out = __ckd_calloc__(d1, sizeof(void **), file, line);
 
-    for (i = 0, j = 0; i < d1*d2; i++, j += d3) {
-	tmp1[i] = &((char *)store)[j*elem_size];
+    for (i = 0, j = 0; i < d1 * d2; i++, j += d3) {
+        tmp1[i] = &((char *)store)[j * elem_size];
     }
 
     for (i = 0, j = 0; i < d1; i++, j += d2) {
-	out[i] = &tmp1[j];
+        out[i] = &tmp1[j];
     }
 
     return out;
@@ -360,11 +345,11 @@ __ckd_alloc_3d_ptr(size_t d1,
 
 void *
 __ckd_alloc_2d_ptr(size_t d1,
-		   size_t d2,
-		   void *store,
-		   size_t elem_size,
-		   char *file,
-		   int line)
+                   size_t d2,
+                   void *store,
+                   size_t elem_size,
+                   char *file,
+                   int line)
 {
     void **out;
     size_t i, j;
@@ -372,7 +357,7 @@ __ckd_alloc_2d_ptr(size_t d1,
     out = __ckd_calloc__(d1, sizeof(void *), file, line);
 
     for (i = 0, j = 0; i < d1; i++, j += d2) {
-	out[i] = &((char *)store)[j*elem_size];
+        out[i] = &((char *)store)[j * elem_size];
     }
 
     return out;

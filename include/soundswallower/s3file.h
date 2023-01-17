@@ -47,14 +47,12 @@
  * **********************************************
  */
 
-
 #ifndef _S3FILE_H_
 #define _S3FILE_H_
 
-
-#include <soundswallower/prim_type.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/mmio.h>
+#include <soundswallower/prim_type.h>
 
 #include <stddef.h>
 
@@ -184,11 +182,10 @@ char *s3file_copy_nextword(s3file_t *s, const char **ptr);
 /**
  * Extract values with byteswapping and checksum.
  */
-size_t s3file_get(void *buf,        /**< In: adddress to write values to. */
-                  size_t el_sz,		/**< In: element size */
-                  size_t n_el,		/**< In: number of elements */
-                  s3file_t *s
-                  );
+size_t s3file_get(void *buf, /**< In: adddress to write values to. */
+                  size_t el_sz, /**< In: element size */
+                  size_t n_el, /**< In: number of elements */
+                  s3file_t *s);
 
 /**
  * Read a 1-d array (fashioned after fread):
@@ -199,12 +196,11 @@ size_t s3file_get(void *buf,        /**< In: adddress to write values to. */
  * Byteswapping and checksum accumulation performed as necessary.
  * @return number of array elements allocated and read; -1 if error.
  */
-long s3file_get_1d(void **buf,		/**< Out: contains array data; allocated by this
-                                           function; can be freed using ckd_free */
-                   size_t el_sz,	/**< In: Array element size */
-                   uint32 *n_el,	/**< Out: Number of array elements allocated/read */
-                   s3file_t *s
-                   );
+long s3file_get_1d(void **buf, /**< Out: contains array data; allocated by this
+                                  function; can be freed using ckd_free */
+                   size_t el_sz, /**< In: Array element size */
+                   uint32 *n_el, /**< Out: Number of array elements allocated/read */
+                   s3file_t *s);
 
 /**
  * Read a 2-d matrix:

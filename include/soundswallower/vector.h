@@ -45,12 +45,11 @@
  * **********************************************
  */
 
-
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
-#include <stdio.h>
 #include <soundswallower/prim_type.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,14 +65,11 @@ typedef float32 *vector_t;
  * at some point.
  */
 
-
 /* Floor all elements of v[0..dim-1] to min value of f */
 void vector_floor(vector_t v, int32 dim, float64 f);
 
-
 /* Floor all non-0 elements of v[0..dim-1] to min value of f */
 void vector_nz_floor(vector_t v, int32 dim, float64 f);
-
 
 /*
  * Normalize the elements of the given vector so that they sum to 1.0.  If the sum is 0.0
@@ -81,10 +77,9 @@ void vector_nz_floor(vector_t v, int32 dim, float64 f);
  */
 float64 vector_sum_norm(vector_t v, int32 dim);
 
-
 /* Return TRUE iff given vector is all 0.0 */
-int32 vector_is_zero (float32 *vec,	/* In: Vector to be checked */
-		      int32 len);	/* In: Length of above vector */
+int32 vector_is_zero(float32 *vec, /* In: Vector to be checked */
+                     int32 len); /* In: Length of above vector */
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -79,12 +79,11 @@
  * 		Copied from previous version.
  */
 
-
 #ifndef _S3_CMN_H_
 #define _S3_CMN_H_
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/fe.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -122,40 +121,40 @@ cmn_type_t cmn_type_from_str(const char *str);
  */
 
 typedef struct {
-    mfcc_t *cmn_mean;   /**< Current means */
-    mfcc_t *cmn_var;    /**< Stored cmn variance */
-    mfcc_t *sum;        /**< Accumulated cepstra for computing mean */
-    int32 nframe;	/**< Number of frames */
-    int32 veclen;	/**< Length of cepstral vector */
-    char *repr;         /**< String representation of current means */
+    mfcc_t *cmn_mean; /**< Current means */
+    mfcc_t *cmn_var; /**< Stored cmn variance */
+    mfcc_t *sum; /**< Accumulated cepstra for computing mean */
+    int32 nframe; /**< Number of frames */
+    int32 veclen; /**< Length of cepstral vector */
+    char *repr; /**< String representation of current means */
     int refcount;
 } cmn_t;
 
-cmn_t* cmn_init(int32 veclen);
+cmn_t *cmn_init(int32 veclen);
 
 /**
  * CMN for the whole sentence
-*/
-void cmn (cmn_t *cmn,   /**< In/Out: cmn normalization, which contains the cmn_mean and cmn_var) */
-          mfcc_t **mfc,	/**< In/Out: mfc[f] = mfc vector in frame f */
-	  int32 varnorm,/**< In: if not FALSE, variance normalize the input vectors
-			   to have unit variance (along each dimension independently);
-			   Irrelevant if no cmn is performed */
-	  int32 n_frame /**< In: Number of frames of mfc vectors */
-	);
+ */
+void cmn(cmn_t *cmn, /**< In/Out: cmn normalization, which contains the cmn_mean and cmn_var) */
+         mfcc_t **mfc, /**< In/Out: mfc[f] = mfc vector in frame f */
+         int32 varnorm, /**< In: if not FALSE, variance normalize the input vectors
+                           to have unit variance (along each dimension independently);
+                           Irrelevant if no cmn is performed */
+         int32 n_frame /**< In: Number of frames of mfc vectors */
+);
 
-#define CMN_WIN_HWM     800     /* #frames after which window shifted */
-#define CMN_WIN         500
+#define CMN_WIN_HWM 800 /* #frames after which window shifted */
+#define CMN_WIN 500
 
 /**
  * CMN for one block of data, using live mean
  */
-void cmn_live(cmn_t *cmn,        /**< In/Out: cmn normalization, which contains
-                                    the cmn_mean and cmn_var) */
-               mfcc_t **incep,  /**< In/Out: mfc[f] = mfc vector in frame f*/
-	       int32 varnorm,    /**< This flag should always be 0 for live */
-	       int32 nfr         /**< Number of incoming frames */
-    );
+void cmn_live(cmn_t *cmn, /**< In/Out: cmn normalization, which contains
+                             the cmn_mean and cmn_var) */
+              mfcc_t **incep, /**< In/Out: mfc[f] = mfc vector in frame f*/
+              int32 varnorm, /**< This flag should always be 0 for live */
+              int32 nfr /**< Number of incoming frames */
+);
 
 /**
  * Update live mean based on observed data
@@ -165,7 +164,7 @@ void cmn_live_update(cmn_t *cmn);
 /**
  * Set live mean from a vector of length cmn->veclen
  */
-void cmn_live_set(cmn_t *cmn, mfcc_t const * vec);
+void cmn_live_set(cmn_t *cmn, mfcc_t const *vec);
 
 /**
  * Get the string representation of the live mean.
@@ -190,7 +189,7 @@ cmn_t *cmn_retain(cmn_t *cmn);
 /**
  * Release a CMN, possibly freeing it.
  */
-int cmn_free (cmn_t *cmn);
+int cmn_free(cmn_t *cmn);
 
 #ifdef __cplusplus
 }

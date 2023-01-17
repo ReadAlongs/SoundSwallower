@@ -53,13 +53,12 @@
 
 #include <math.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
-#include <soundswallower/fe_noise.h>
 #include <soundswallower/fe.h>
-
+#include <soundswallower/fe_noise.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/strfuncs.h>
 
 /* Noise supression constants */
 #define SMOOTH_WINDOW 4
@@ -116,19 +115,15 @@ fe_lower_envelope(noise_stats_t *noise_stats, const powspec_t *buf, powspec_t *f
     for (i = 0; i < num_filt; i++) {
 #ifndef FIXED_POINT
         if (buf[i] >= floor_buf[i]) {
-            floor_buf[i] =
-                noise_stats->lambda_a * floor_buf[i] + noise_stats->comp_lambda_a * buf[i];
-        }
-        else {
-            floor_buf[i] =
-                noise_stats->lambda_b * floor_buf[i] + noise_stats->comp_lambda_b * buf[i];
+            floor_buf[i] = noise_stats->lambda_a * floor_buf[i] + noise_stats->comp_lambda_a * buf[i];
+        } else {
+            floor_buf[i] = noise_stats->lambda_b * floor_buf[i] + noise_stats->comp_lambda_b * buf[i];
         }
 #else
         if (buf[i] >= floor_buf[i]) {
             floor_buf[i] = fe_log_add(noise_stats->lambda_a + floor_buf[i],
                                       noise_stats->comp_lambda_a + buf[i]);
-        }
-        else {
+        } else {
             floor_buf[i] = fe_log_add(noise_stats->lambda_b + floor_buf[i],
                                       noise_stats->comp_lambda_b + buf[i]);
         }
@@ -138,7 +133,7 @@ fe_lower_envelope(noise_stats_t *noise_stats, const powspec_t *buf, powspec_t *f
 
 /* temporal masking */
 static void
-fe_temp_masking(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * peak, int32 num_filt)
+fe_temp_masking(noise_stats_t *noise_stats, powspec_t *buf, powspec_t *peak, int32 num_filt)
 {
     powspec_t cur_in;
     int i;
@@ -163,7 +158,7 @@ fe_temp_masking(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * peak, i
 
 /* spectral weight smoothing */
 static void
-fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs, int32 num_filt)
+fe_weight_smooth(noise_stats_t *noise_stats, powspec_t *buf, powspec_t *coefs, int32 num_filt)
 {
     int i, j;
     int l1, l2;
@@ -171,8 +166,7 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
 
     for (i = 0; i < num_filt; i++) {
         l1 = ((i - SMOOTH_WINDOW) > 0) ? (i - SMOOTH_WINDOW) : 0;
-        l2 = ((i + SMOOTH_WINDOW) <
-              (num_filt - 1)) ? (i + SMOOTH_WINDOW) : (num_filt - 1);
+        l2 = ((i + SMOOTH_WINDOW) < (num_filt - 1)) ? (i + SMOOTH_WINDOW) : (num_filt - 1);
 
 #ifndef FIXED_POINT
         (void)noise_stats;
@@ -188,7 +182,6 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
         }
         buf[i] = buf[i] + coef - noise_stats->smooth_scaling[l2 - l1 + 1];
 #endif
-
     }
 }
 
@@ -198,16 +191,12 @@ fe_init_noisestats(int num_filters)
     int i;
     noise_stats_t *noise_stats;
 
-    noise_stats = (noise_stats_t *) ckd_calloc(1, sizeof(noise_stats_t));
+    noise_stats = (noise_stats_t *)ckd_calloc(1, sizeof(noise_stats_t));
 
-    noise_stats->power =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->noise =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->floor =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->peak =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->power = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->noise = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->floor = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->peak = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
 
     noise_stats->undefined = TRUE;
     noise_stats->num_filters = num_filters;
@@ -244,21 +233,21 @@ fe_init_noisestats(int num_filters)
     }
 #endif
 
-    noise_stats->signal = (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->gain = (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->signal = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->gain = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
 
     return noise_stats;
 }
 
 void
-fe_reset_noisestats(noise_stats_t * noise_stats)
+fe_reset_noisestats(noise_stats_t *noise_stats)
 {
     if (noise_stats)
         noise_stats->undefined = TRUE;
 }
 
 void
-fe_free_noisestats(noise_stats_t * noise_stats)
+fe_free_noisestats(noise_stats_t *noise_stats)
 {
     ckd_free(noise_stats->signal);
     ckd_free(noise_stats->gain);
@@ -274,7 +263,7 @@ fe_free_noisestats(noise_stats_t * noise_stats)
  * so we have to add many processing cases.
  */
 void
-fe_remove_noise(fe_t * fe)
+fe_remove_noise(fe_t *fe)
 {
     noise_stats_t *noise_stats;
     powspec_t *mfspec;
@@ -300,8 +289,7 @@ fe_remove_noise(fe_t * fe)
 
     /* Calculate smoothed power */
     for (i = 0; i < num_filts; i++) {
-        noise_stats->power[i] =
-            noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];
+        noise_stats->power[i] = noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];
     }
 
     /* Update noise spectrum estimate */

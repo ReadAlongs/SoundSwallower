@@ -106,7 +106,6 @@
  * 		Created.
  */
 
-
 /*
  * This module encapsulates different feature streams used by the Sphinx group.  New
  * stream types can be added by augmenting feat_init() and providing an accompanying
@@ -121,19 +120,19 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4244 4996)
+#pragma warning(disable : 4244 4996)
 #endif
 
-#include <soundswallower/fe.h>
-#include <soundswallower/feat.h>
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/cmn.h>
 #include <soundswallower/err.h>
-#include <soundswallower/ckd_alloc.h>
-#include <soundswallower/prim_type.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/feat.h>
 #include <soundswallower/glist.h>
+#include <soundswallower/prim_type.h>
 
-#define FEAT_VERSION	"1.0"
-#define FEAT_DCEP_WIN		2
+#define FEAT_VERSION "1.0"
+#define FEAT_DCEP_WIN 2
 
 #ifdef DUMP_FEATURES
 static void
@@ -150,7 +149,7 @@ cep_dump_dbg(feat_t *fcb, mfcc_t **mfc, int32 nfr, const char *text)
     }
 }
 static void
-feat_print(feat_t * fcb, mfcc_t *** feat, int32 nfr, FILE * fp)
+feat_print(feat_t *fcb, mfcc_t ***feat, int32 nfr, FILE *fp)
 {
     uint32 i, j, k;
 
@@ -175,8 +174,8 @@ feat_print_dbg(feat_t *fcb, mfcc_t ***feat, int32 nfr, const char *text)
     feat_print(fcb, feat, nfr, stderr);
 }
 #else /* !DUMP_FEATURES */
-#define cep_dump_dbg(fcb,mfc,nfr,text)
-#define feat_print_dbg(fcb,mfc,nfr,text)
+#define cep_dump_dbg(fcb, mfc, nfr, text)
+#define feat_print_dbg(fcb, mfc, nfr, text)
 #endif
 
 int32 **
@@ -184,8 +183,8 @@ parse_subvecs(const char *str)
 {
     const char *strp;
     int32 n, n2, l;
-    glist_t dimlist;            /* List of dimensions in one subvector */
-    glist_t veclist;            /* List of dimlists (subvectors) */
+    glist_t dimlist; /* List of dimensions in one subvector */
+    glist_t veclist; /* List of dimlists (subvectors) */
     int32 **subvec;
     gnode_t *gn, *gn2;
 
@@ -208,8 +207,7 @@ parse_subvecs(const char *str)
                     E_FATAL("'%s': Couldn't read int32 @pos %d\n", str,
                             strp - str);
                 strp += l;
-            }
-            else
+            } else
                 n2 = n;
 
             if ((n < 0) || (n > n2))
@@ -217,11 +215,11 @@ parse_subvecs(const char *str)
                         strp - str);
 
             for (; n <= n2; n++) {
-		gnode_t *gn;
-		for (gn = dimlist; gn; gn = gnode_next(gn))
-		    if (gnode_int32(gn) == n)
-			break;
-		if (gn != NULL)
+                gnode_t *gn;
+                for (gn = dimlist; gn; gn = gnode_next(gn))
+                    if (gnode_int32(gn) == n)
+                        break;
+                if (gn != NULL)
                     E_FATAL("'%s': Duplicate dimension ending @pos %d\n",
                             str, strp - str);
 
@@ -237,7 +235,7 @@ parse_subvecs(const char *str)
             strp++;
         }
 
-        veclist = glist_add_ptr(veclist, (void *) dimlist);
+        veclist = glist_add_ptr(veclist, (void *)dimlist);
 
         if (*strp == '\0')
             break;
@@ -247,19 +245,19 @@ parse_subvecs(const char *str)
     }
 
     /* Convert the glists to arrays; remember the glists are in reverse order of the input! */
-    n = glist_count(veclist);   /* #Subvectors */
-    subvec = (int32 **) ckd_calloc(n + 1, sizeof(int32 *));     /* +1 for sentinel */
-    subvec[n] = NULL;           /* sentinel */
+    n = glist_count(veclist); /* #Subvectors */
+    subvec = (int32 **)ckd_calloc(n + 1, sizeof(int32 *)); /* +1 for sentinel */
+    subvec[n] = NULL; /* sentinel */
 
     for (--n, gn = veclist; (n >= 0) && gn; gn = gnode_next(gn), --n) {
-        gn2 = (glist_t) gnode_ptr(gn);
+        gn2 = (glist_t)gnode_ptr(gn);
 
-        n2 = glist_count(gn2);  /* Length of this subvector */
+        n2 = glist_count(gn2); /* Length of this subvector */
         if (n2 <= 0)
             E_FATAL("'%s': 0-length subvector\n", str);
 
-        subvec[n] = (int32 *) ckd_calloc(n2 + 1, sizeof(int32));        /* +1 for sentinel */
-        subvec[n][n2] = -1;     /* sentinel */
+        subvec[n] = (int32 *)ckd_calloc(n2 + 1, sizeof(int32)); /* +1 for sentinel */
+        subvec[n][n2] = -1; /* sentinel */
 
         for (--n2; (n2 >= 0) && gn2; gn2 = gnode_next(gn2), --n2)
             subvec[n][n2] = gnode_int32(gn2);
@@ -269,7 +267,7 @@ parse_subvecs(const char *str)
 
     /* Free the glists */
     for (gn = veclist; gn; gn = gnode_next(gn)) {
-        gn2 = (glist_t) gnode_ptr(gn);
+        gn2 = (glist_t)gnode_ptr(gn);
         glist_free(gn2);
     }
     glist_free(veclist);
@@ -322,7 +320,8 @@ feat_set_subvecs(feat_t *fcb, int32 **subvecs)
     }
     if (n_dim > feat_dimension(fcb)) {
         E_ERROR("Total dimensionality of subvector specification %d "
-                "> feature dimensionality %d\n", n_dim, feat_dimension(fcb));
+                "> feature dimensionality %d\n",
+                n_dim, feat_dimension(fcb));
         return -1;
     }
 
@@ -367,7 +366,7 @@ feat_subvec_project(feat_t *fcb, mfcc_t ***inout_feat, uint32 nfr)
 }
 
 mfcc_t ***
-feat_array_alloc(feat_t * fcb, int32 nfr)
+feat_array_alloc(feat_t *fcb, int32 nfr)
 {
     int32 i, j, k;
     mfcc_t *data, *d, ***feat;
@@ -384,9 +383,8 @@ feat_array_alloc(feat_t * fcb, int32 nfr)
     assert((uint32)k >= feat_dimension(fcb));
     assert(k >= fcb->sv_dim);
 
-    feat =
-        (mfcc_t ***) ckd_calloc_2d(nfr, feat_dimension1(fcb), sizeof(mfcc_t *));
-    data = (mfcc_t *) ckd_calloc(nfr * k, sizeof(mfcc_t));
+    feat = (mfcc_t ***)ckd_calloc_2d(nfr, feat_dimension1(fcb), sizeof(mfcc_t *));
+    data = (mfcc_t *)ckd_calloc(nfr * k, sizeof(mfcc_t));
 
     for (i = 0; i < nfr; i++) {
         d = data + i * k;
@@ -403,7 +401,7 @@ mfcc_t ***
 feat_array_realloc(feat_t *fcb, mfcc_t ***old_feat, int32 ofr, int32 nfr)
 {
     int32 i, k, cf;
-    mfcc_t*** new_feat;
+    mfcc_t ***new_feat;
 
     assert(fcb);
     assert(nfr > 0);
@@ -436,7 +434,7 @@ feat_array_free(mfcc_t ***feat)
 }
 
 static void
-feat_s2_4x_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_s2_4x_cep2feat(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     mfcc_t *f;
     mfcc_t *w, *_w;
@@ -460,21 +458,21 @@ feat_s2_4x_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
      * DCEP(SHORT): mfc[2] - mfc[-2]
      * DCEP(LONG):  mfc[4] - mfc[-4]
      */
-    w = mfc[2] + 1;             /* +1 to skip C0 */
+    w = mfc[2] + 1; /* +1 to skip C0 */
     _w = mfc[-2] + 1;
 
     f = feat[1];
     for (i = 0; i < feat_cepsize(fcb) - 1; i++) /* Short-term */
         f[i] = w[i] - _w[i];
 
-    w = mfc[4] + 1;             /* +1 to skip C0 */
+    w = mfc[4] + 1; /* +1 to skip C0 */
     _w = mfc[-4] + 1;
 
-    for (j = 0; j < feat_cepsize(fcb) - 1; i++, j++)    /* Long-term */
+    for (j = 0; j < feat_cepsize(fcb) - 1; i++, j++) /* Long-term */
         f[i] = w[j] - _w[j];
 
     /* D2CEP: (mfc[3] - mfc[-1]) - (mfc[1] - mfc[-3]) */
-    w1 = mfc[3] + 1;            /* Final +1 to skip C0 */
+    w1 = mfc[3] + 1; /* Final +1 to skip C0 */
     _w1 = mfc[-1] + 1;
     w_1 = mfc[1] + 1;
     _w_1 = mfc[-3] + 1;
@@ -497,9 +495,8 @@ feat_s2_4x_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
     f[2] = d1 - d2;
 }
 
-
 static void
-feat_s3_1x39_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_s3_1x39_cep2feat(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     mfcc_t *f;
     mfcc_t *w, *_w;
@@ -519,7 +516,7 @@ feat_s3_1x39_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
      * DCEP: mfc[2] - mfc[-2];
      */
     f = feat[0] + feat_cepsize(fcb) - 1;
-    w = mfc[2] + 1;             /* +1 to skip C0 */
+    w = mfc[2] + 1; /* +1 to skip C0 */
     _w = mfc[-2] + 1;
 
     for (i = 0; i < feat_cepsize(fcb) - 1; i++)
@@ -538,7 +535,7 @@ feat_s3_1x39_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
     /* D2CEP: (mfc[3] - mfc[-1]) - (mfc[1] - mfc[-3]) */
     f += 3;
 
-    w1 = mfc[3] + 1;            /* Final +1 to skip C0 */
+    w1 = mfc[3] + 1; /* Final +1 to skip C0 */
     _w1 = mfc[-1] + 1;
     w_1 = mfc[1] + 1;
     _w_1 = mfc[-3] + 1;
@@ -551,9 +548,8 @@ feat_s3_1x39_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
     }
 }
 
-
 static void
-feat_s3_cep(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_s3_cep(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     assert(fcb);
     assert(feat_n_stream(fcb) == 1);
@@ -564,7 +560,7 @@ feat_s3_cep(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 static void
-feat_s3_cep_dcep(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_s3_cep_dcep(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     mfcc_t *f;
     mfcc_t *w, *_w;
@@ -590,7 +586,7 @@ feat_s3_cep_dcep(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 static void
-feat_1s_c_d_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_1s_c_d_dd_cep2feat(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     mfcc_t *f;
     mfcc_t *w, *_w;
@@ -636,7 +632,7 @@ feat_1s_c_d_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 static void
-feat_1s_c_d_ld_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_1s_c_d_ld_dd_cep2feat(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     mfcc_t *f;
     mfcc_t *w, *_w;
@@ -692,7 +688,7 @@ feat_1s_c_d_ld_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
 }
 
 static void
-feat_copy(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
+feat_copy(feat_t *fcb, mfcc_t **mfc, mfcc_t **feat)
 {
     int32 win, i, j;
 
@@ -738,19 +734,18 @@ feat_init_s3file(config_t *config, s3file_t *lda)
 {
     feat_t *fcb;
     const char *type = config_str(config, "feat");
-    cmn_type_t cmn = cmn_type_from_str(config_str(config,"cmn"));
+    cmn_type_t cmn = cmn_type_from_str(config_str(config, "cmn"));
     int varnorm = config_bool(config, "varnorm");
     int cepsize = config_int(config, "ceplen");
 
     if (cepsize == 0)
         cepsize = 13;
-    E_INFO
-        ("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='none'\n",
-         type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no");
+    E_INFO("Initializing feature stream to type: '%s', ceplen=%d, CMN='%s', VARNORM='%s', AGC='none'\n",
+           type, cepsize, cmn_type_str[cmn], varnorm ? "yes" : "no");
 
-    fcb = (feat_t *) ckd_calloc(1, sizeof(feat_t));
+    fcb = (feat_t *)ckd_calloc(1, sizeof(feat_t));
     fcb->refcount = 1;
-    fcb->name = (char *) ckd_salloc(type);
+    fcb->name = (char *)ckd_salloc(type);
     if (strcmp(type, "s2_4x") == 0) {
         /* Sphinx-II format 4-stream feature (Hack!! hardwired constants below) */
         if (cepsize != 13) {
@@ -760,7 +755,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         }
         fcb->cepsize = 13;
         fcb->n_stream = 4;
-        fcb->stream_len = (uint32 *) ckd_calloc(4, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(4, sizeof(uint32));
         fcb->stream_len[0] = 12;
         fcb->stream_len[1] = 24;
         fcb->stream_len[2] = 3;
@@ -768,8 +763,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         fcb->out_dim = 51;
         fcb->window_size = 4;
         fcb->compute_feat = feat_s2_4x_cep2feat;
-    }
-    else if ((strcmp(type, "s3_1x39") == 0) || (strcmp(type, "1s_12c_12d_3p_12dd") == 0)) {
+    } else if ((strcmp(type, "s3_1x39") == 0) || (strcmp(type, "1s_12c_12d_3p_12dd") == 0)) {
         /* 1-stream cep/dcep/pow/ddcep (Hack!! hardwired constants below) */
         if (cepsize != 13) {
             E_ERROR("s2_4x features require cepsize == 13\n");
@@ -778,65 +772,59 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         }
         fcb->cepsize = 13;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = 39;
         fcb->out_dim = 39;
         fcb->window_size = 3;
         fcb->compute_feat = feat_s3_1x39_cep2feat;
-    }
-    else if (strncmp(type, "1s_c_d_dd", 9) == 0) {
+    } else if (strncmp(type, "1s_c_d_dd", 9) == 0) {
         fcb->cepsize = cepsize;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = cepsize * 3;
         fcb->out_dim = cepsize * 3;
         fcb->window_size = FEAT_DCEP_WIN + 1; /* ddcep needs the extra 1 */
         fcb->compute_feat = feat_1s_c_d_dd_cep2feat;
-    }
-    else if (strncmp(type, "1s_c_d_ld_dd", 12) == 0) {
+    } else if (strncmp(type, "1s_c_d_ld_dd", 12) == 0) {
         fcb->cepsize = cepsize;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = cepsize * 4;
         fcb->out_dim = cepsize * 4;
         fcb->window_size = FEAT_DCEP_WIN * 2;
         fcb->compute_feat = feat_1s_c_d_ld_dd_cep2feat;
-    }
-    else if (strncmp(type, "cep_dcep", 8) == 0 || strncmp(type, "1s_c_d", 6) == 0) {
+    } else if (strncmp(type, "cep_dcep", 8) == 0 || strncmp(type, "1s_c_d", 6) == 0) {
         /* 1-stream cep/dcep */
         fcb->cepsize = cepsize;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = feat_cepsize(fcb) * 2;
         fcb->out_dim = fcb->stream_len[0];
         fcb->window_size = 2;
         fcb->compute_feat = feat_s3_cep_dcep;
-    }
-    else if (strncmp(type, "cep", 3) == 0 || strncmp(type, "1s_c", 4) == 0) {
+    } else if (strncmp(type, "cep", 3) == 0 || strncmp(type, "1s_c", 4) == 0) {
         /* 1-stream cep */
         fcb->cepsize = cepsize;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = feat_cepsize(fcb);
         fcb->out_dim = fcb->stream_len[0];
         fcb->window_size = 0;
         fcb->compute_feat = feat_s3_cep;
-    }
-    else if (strncmp(type, "1s_3c", 5) == 0 || strncmp(type, "1s_4c", 5) == 0) {
-	/* 1-stream cep with frames concatenated, so called cepwin features */
+    } else if (strncmp(type, "1s_3c", 5) == 0 || strncmp(type, "1s_4c", 5) == 0) {
+        /* 1-stream cep with frames concatenated, so called cepwin features */
         if (strncmp(type, "1s_3c", 5) == 0)
             fcb->window_size = 3;
         else
-    	    fcb->window_size = 4;
+            fcb->window_size = 4;
 
         fcb->cepsize = cepsize;
         fcb->n_stream = 1;
-        fcb->stream_len = (uint32 *) ckd_calloc(1, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(1, sizeof(uint32));
         fcb->stream_len[0] = feat_cepsize(fcb) * (2 * fcb->window_size + 1);
         fcb->out_dim = fcb->stream_len[0];
         fcb->compute_feat = feat_copy;
-    }
-    else {
+    } else {
         int32 i, k, l;
         size_t len;
         char *strp;
@@ -855,16 +843,15 @@ feat_init_s3file(config_t *config, s3file_t *lda)
             if (mtype[i] == ',') {
                 mtype[i] = ' ';
                 k++;
-            }
-            else if (mtype[i] == ':') {
+            } else if (mtype[i] == ':') {
                 mtype[i] = '\0';
                 fcb->window_size = atoi(mtype + i + 1);
                 break;
             }
         }
-        k++;                    /* Presumably there are (#commas+1) streams */
+        k++; /* Presumably there are (#commas+1) streams */
         fcb->n_stream = k;
-        fcb->stream_len = (uint32 *) ckd_calloc(k, sizeof(uint32));
+        fcb->stream_len = (uint32 *)ckd_calloc(k, sizeof(uint32));
 
         /* Scan individual feature stream lengths */
         strp = mtype;
@@ -888,7 +875,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
         if (i != fcb->n_stream)
             E_FATAL("Bad feature type argument\n");
         if (fcb->cepsize != cepsize)
-    	    E_FATAL("Bad feature type argument\n");
+            E_FATAL("Bad feature type argument\n");
 
         /* Input is already the feature stream */
         fcb->compute_feat = feat_copy;
@@ -908,18 +895,19 @@ feat_init_s3file(config_t *config, s3file_t *lda)
     /*
      * Make sure this buffer is large enough to be used in feat_s2mfc2feat_block_utt()
      */
-    fcb->cepbuf = (mfcc_t **) ckd_calloc_2d((LIVEBUFBLOCKSIZE < feat_window_size(fcb) * 2) ? feat_window_size(fcb) * 2 : LIVEBUFBLOCKSIZE,
-                                            feat_cepsize(fcb),
-                                            sizeof(mfcc_t));
+    fcb->cepbuf = (mfcc_t **)ckd_calloc_2d((LIVEBUFBLOCKSIZE < feat_window_size(fcb) * 2) ? feat_window_size(fcb) * 2 : LIVEBUFBLOCKSIZE,
+                                           feat_cepsize(fcb),
+                                           sizeof(mfcc_t));
     /* This one is actually just an array of pointers to "flatten out"
      * wraparounds. */
-    fcb->tmpcepbuf = (mfcc_t** )ckd_calloc(2 * feat_window_size(fcb) + 1,
-                                sizeof(*fcb->tmpcepbuf));
+    fcb->tmpcepbuf = (mfcc_t **)ckd_calloc(2 * feat_window_size(fcb) + 1,
+                                           sizeof(*fcb->tmpcepbuf));
 
     /* Load LDA. */
     if (lda) {
         if (feat_read_lda_s3file(fcb, lda,
-                                 config_int(config, "ldadim")) < 0)
+                                 config_int(config, "ldadim"))
+            < 0)
             goto error_out;
     }
     /* Set up subvector specification */
@@ -933,7 +921,7 @@ feat_init_s3file(config_t *config, s3file_t *lda)
             goto error_out;
     }
     return fcb;
- error_out:
+error_out:
     feat_free(fcb);
     return NULL;
 }
@@ -956,8 +944,7 @@ feat_cmn(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 beginutt, int32 endutt)
         if (endutt)
             cmn_live_update(fcb->cmn_struct);
         break;
-    default:
-        ;
+    default:;
     }
     cep_dump_dbg(fcb, mfc, nfr, "After CMN");
 }
@@ -988,8 +975,8 @@ feat_compute_utt(feat_t *fcb, mfcc_t **mfc, int32 nfr, int32 win, mfcc_t ***feat
 }
 
 static int32
-feat_s2mfc2feat_block_utt(feat_t * fcb, mfcc_t ** uttcep,
-			  int32 nfr, mfcc_t *** ofeat)
+feat_s2mfc2feat_block_utt(feat_t *fcb, mfcc_t **uttcep,
+                          int32 nfr, mfcc_t ***ofeat)
 {
     mfcc_t **cepbuf;
     int32 i, win, cepsize;
@@ -1020,15 +1007,16 @@ feat_s2mfc2feat_block_utt(feat_t * fcb, mfcc_t ** uttcep,
 }
 
 int32
-feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
-		     int32 beginutt, int32 endutt, mfcc_t *** ofeat)
+feat_s2mfc2feat_live(feat_t *fcb, mfcc_t **uttcep, int32 *inout_ncep,
+                     int32 beginutt, int32 endutt, mfcc_t ***ofeat)
 {
     int32 win, cepsize, nbufcep;
     int32 i, j, nfeatvec;
     int32 zero = 0;
 
     /* Avoid having to check this everywhere. */
-    if (inout_ncep == NULL) inout_ncep = &zero;
+    if (inout_ncep == NULL)
+        inout_ncep = &zero;
 
     /* Special case for entire utterances. */
     if (beginutt && endutt && *inout_ncep > 0)
@@ -1044,7 +1032,7 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
     /* Calculate how much data is in the buffer already. */
     nbufcep = fcb->bufpos - fcb->curpos;
     if (nbufcep < 0)
-	nbufcep = fcb->bufpos + LIVEBUFBLOCKSIZE - fcb->curpos;
+        nbufcep = fcb->bufpos + LIVEBUFBLOCKSIZE - fcb->curpos;
     /* Add any data that we have to replicate. */
     if (beginutt && *inout_ncep > 0)
         nbufcep += win;
@@ -1082,7 +1070,7 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
         memcpy(fcb->cepbuf[fcb->bufpos++], uttcep[i],
                cepsize * sizeof(mfcc_t));
         fcb->bufpos %= LIVEBUFBLOCKSIZE;
-	++nbufcep;
+        ++nbufcep;
     }
 
     /* Replicate last frame into the last win frames if we're at the
@@ -1111,16 +1099,14 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
         if (fcb->curpos - win < 0 || fcb->curpos + win >= LIVEBUFBLOCKSIZE) {
             /* Use tmpcepbuf for this case.  Actually, we just need the pointers. */
             for (j = -win; j <= win; ++j) {
-                int32 tmppos =
-                    (fcb->curpos + j + LIVEBUFBLOCKSIZE) % LIVEBUFBLOCKSIZE;
-		fcb->tmpcepbuf[win + j] = fcb->cepbuf[tmppos];
+                int32 tmppos = (fcb->curpos + j + LIVEBUFBLOCKSIZE) % LIVEBUFBLOCKSIZE;
+                fcb->tmpcepbuf[win + j] = fcb->cepbuf[tmppos];
             }
             fcb->compute_feat(fcb, fcb->tmpcepbuf + win, ofeat[i]);
-        }
-        else {
+        } else {
             fcb->compute_feat(fcb, fcb->cepbuf + fcb->curpos, ofeat[i]);
         }
-	/* Move the read pointer forward. */
+        /* Move the read pointer forward. */
         ++fcb->curpos;
         fcb->curpos %= LIVEBUFBLOCKSIZE;
     }
@@ -1152,7 +1138,7 @@ feat_retain(feat_t *f)
 }
 
 int
-feat_free(feat_t * f)
+feat_free(feat_t *f)
 {
     if (f == NULL)
         return 0;
@@ -1160,14 +1146,14 @@ feat_free(feat_t * f)
         return f->refcount;
 
     if (f->cepbuf)
-        ckd_free_2d((void **) f->cepbuf);
+        ckd_free_2d((void **)f->cepbuf);
     ckd_free(f->tmpcepbuf);
 
     if (f->name) {
-        ckd_free((void *) f->name);
+        ckd_free((void *)f->name);
     }
     if (f->lda)
-        ckd_free_3d((void ***) f->lda);
+        ckd_free_3d((void ***)f->lda);
 
     if (f->stream_len)
         ckd_free(f->stream_len);
@@ -1182,9 +1168,8 @@ feat_free(feat_t * f)
     return 0;
 }
 
-
 void
-feat_report(feat_t * f)
+feat_report(feat_t *f)
 {
     int i;
     E_INFO_NOFN("Initialization of feat_t, report:\n");
