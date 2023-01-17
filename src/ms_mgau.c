@@ -74,8 +74,8 @@
 static mgaufuncs_t ms_mgau_funcs = {
     "ms",
     ms_cont_mgau_frame_eval, /* frame_eval */
-    ms_mgau_mllr_transform,  /* transform */
-    ms_mgau_free             /* free */
+    ms_mgau_mllr_transform, /* transform */
+    ms_mgau_free /* free */
 };
 
 mgau_t *
@@ -93,16 +93,17 @@ ms_mgau_init_s3file(acmod_t *acmod,
     bin_mdef_t *mdef = acmod->mdef;
     int i;
 
-    msg = (ms_mgau_model_t *) ckd_calloc(1, sizeof(ms_mgau_model_t));
+    msg = (ms_mgau_model_t *)ckd_calloc(1, sizeof(ms_mgau_model_t));
     msg->config = config;
     msg->g = NULL;
     msg->s = NULL;
 
     if ((g = msg->g = gauden_init_s3file(means, vars,
                                          config_float(config, "varfloor"),
-                                         lmath)) == NULL) {
-	E_ERROR("Failed to read means and variances\n");
-	goto error_out;
+                                         lmath))
+        == NULL) {
+        E_ERROR("Failed to read means and variances\n");
+        goto error_out;
     }
 
     /* Verify n_feat and veclen, against acmod. */
@@ -143,9 +144,8 @@ ms_mgau_init_s3file(acmod_t *acmod,
     msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
-        E_WARN
-            ("-topn argument (%d) invalid or > #density codewords (%d); set to latter\n",
-             msg->topn, msg->g->n_density);
+        E_WARN("-topn argument (%d) invalid or > #density codewords (%d); set to latter\n",
+               msg->topn, msg->g->n_density);
         msg->topn = msg->g->n_density;
     }
 
@@ -177,17 +177,18 @@ ms_mgau_init(acmod_t *acmod)
 
     config = acmod->config;
 
-    msg = (ms_mgau_model_t *) ckd_calloc(1, sizeof(ms_mgau_model_t));
+    msg = (ms_mgau_model_t *)ckd_calloc(1, sizeof(ms_mgau_model_t));
     msg->config = config;
     msg->g = NULL;
     msg->s = NULL;
 
     if ((g = msg->g = gauden_init(config_str(config, "mean"),
-                             config_str(config, "var"),
-                             config_float(config, "varfloor"),
-                             lmath)) == NULL) {
-	E_ERROR("Failed to read means and variances\n");
-	goto error_out;
+                                  config_str(config, "var"),
+                                  config_float(config, "varfloor"),
+                                  lmath))
+        == NULL) {
+        E_ERROR("Failed to read means and variances\n");
+        goto error_out;
     }
 
     /* Verify n_feat and veclen, against acmod. */
@@ -229,9 +230,8 @@ ms_mgau_init(acmod_t *acmod)
     msg->topn = config_int(config, "topn");
     E_INFO("The value of topn: %d\n", msg->topn);
     if (msg->topn == 0 || msg->topn > msg->g->n_density) {
-        E_WARN
-            ("-topn argument (%d) invalid or > #density codewords (%d); set to latter\n",
-             msg->topn, msg->g->n_density);
+        E_WARN("-topn argument (%d) invalid or > #density codewords (%d); set to latter\n",
+               msg->topn, msg->g->n_density);
         msg->topn = msg->g->n_density;
     }
 
@@ -249,18 +249,18 @@ error_out:
 }
 
 void
-ms_mgau_free(mgau_t * mg)
+ms_mgau_free(mgau_t *mg)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)mg;
     if (msg == NULL)
         return;
 
     if (msg->g)
-	gauden_free(msg->g);
+        gauden_free(msg->g);
     if (msg->s)
         senone_free(msg->s);
     if (msg->dist)
-        ckd_free_3d((void *) msg->dist);
+        ckd_free_3d((void *)msg->dist);
     if (msg->mgau_active)
         ckd_free(msg->mgau_active);
 
@@ -269,20 +269,20 @@ ms_mgau_free(mgau_t * mg)
 
 int
 ms_mgau_mllr_transform(mgau_t *s,
-		       mllr_t *mllr)
+                       mllr_t *mllr)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)s;
     return gauden_mllr_transform(msg->g, mllr, msg->config);
 }
 
 int32
-ms_cont_mgau_frame_eval(mgau_t * mg,
-			int16 *senscr,
-			uint8 *senone_active,
-			int32 n_senone_active,
-                        mfcc_t ** feat,
-			int32 frame,
-			int32 compallsen)
+ms_cont_mgau_frame_eval(mgau_t *mg,
+                        int16 *senscr,
+                        uint8 *senone_active,
+                        int32 n_senone_active,
+                        mfcc_t **feat,
+                        int32 frame,
+                        int32 compallsen)
 {
     ms_mgau_model_t *msg = (ms_mgau_model_t *)mg;
     int32 gid;
@@ -297,72 +297,71 @@ ms_cont_mgau_frame_eval(mgau_t * mg,
     sen = ms_mgau_senone(msg);
 
     if (compallsen) {
-	int32 s;
+        int32 s;
 
-	for (gid = 0; gid < g->n_mgau; gid++)
-	    gauden_dist(g, gid, topn, feat, msg->dist[gid]);
+        for (gid = 0; gid < g->n_mgau; gid++)
+            gauden_dist(g, gid, topn, feat, msg->dist[gid]);
 
-	best = MAX_INT32;
-	for (s = 0; (uint32)s < sen->n_sen; s++) {
-	    senscr[s] = senone_eval(sen, s, msg->dist[sen->mgau[s]], topn);
-	    if (best > senscr[s]) {
-		best = senscr[s];
-	    }
-	}
+        best = MAX_INT32;
+        for (s = 0; (uint32)s < sen->n_sen; s++) {
+            senscr[s] = senone_eval(sen, s, msg->dist[sen->mgau[s]], topn);
+            if (best > senscr[s]) {
+                best = senscr[s];
+            }
+        }
 
-	/* Normalize senone scores */
-	for (s = 0; (uint32)s < sen->n_sen; s++) {
-	    int32 bs = senscr[s] - best;
-	    if (bs > 32767)
-		bs = 32767;
-	    if (bs < -32768)
-		bs = -32768;
-	    senscr[s] = bs;
-	}
-    }
-    else {
-	int32 i, n;
-	/* Flag all active mixture-gaussian codebooks */
-	for (gid = 0; gid < g->n_mgau; gid++)
-	    msg->mgau_active[gid] = 0;
+        /* Normalize senone scores */
+        for (s = 0; (uint32)s < sen->n_sen; s++) {
+            int32 bs = senscr[s] - best;
+            if (bs > 32767)
+                bs = 32767;
+            if (bs < -32768)
+                bs = -32768;
+            senscr[s] = bs;
+        }
+    } else {
+        int32 i, n;
+        /* Flag all active mixture-gaussian codebooks */
+        for (gid = 0; gid < g->n_mgau; gid++)
+            msg->mgau_active[gid] = 0;
 
-	n = 0;
-	for (i = 0; i < n_senone_active; i++) {
-	    /* senone_active consists of deltas. */
-	    int32 s = senone_active[i] + n;
-	    msg->mgau_active[sen->mgau[s]] = 1;
-	    n = s;
-	}
+        n = 0;
+        for (i = 0; i < n_senone_active; i++) {
+            /* senone_active consists of deltas. */
+            int32 s = senone_active[i] + n;
+            msg->mgau_active[sen->mgau[s]] = 1;
+            n = s;
+        }
 
-	/* Compute topn gaussian density values (for active codebooks) */
-	for (gid = 0; gid < g->n_mgau; gid++) {
-	    if (msg->mgau_active[gid])
-		gauden_dist(g, gid, topn, feat, msg->dist[gid]);
-	}
+        /* Compute topn gaussian density values (for active codebooks) */
+        for (gid = 0; gid < g->n_mgau; gid++) {
+            if (msg->mgau_active[gid])
+                gauden_dist(g, gid, topn, feat, msg->dist[gid]);
+        }
 
-	best = MAX_INT32;
-	n = 0;
-	for (i = 0; i < n_senone_active; i++) {
-	    int32 s = senone_active[i] + n;
-	    senscr[s] = senone_eval(sen, s, msg->dist[sen->mgau[s]], topn);
-	    if (best > senscr[s]) {
-		best = senscr[s];
-	    }
-	    n = s;
-	}
+        best = MAX_INT32;
+        n = 0;
+        for (i = 0; i < n_senone_active; i++) {
+            int32 s = senone_active[i] + n;
+            senscr[s] = senone_eval(sen, s, msg->dist[sen->mgau[s]], topn);
+            if (best > senscr[s]) {
+                best = senscr[s];
+            }
+            n = s;
+        }
 
-	/* Normalize senone scores */
-	n = 0;
-	for (i = 0; i < n_senone_active; i++) {
-	    int32 s = senone_active[i] + n;
-	    int32 bs = senscr[s] - best;
-	    if (bs > 32767)
-		bs = 32767;
-	    if (bs < -32768)
-		bs = -32768;
-	    senscr[s] = bs;
-	    n = s;
-	}
+        /* Normalize senone scores */
+        n = 0;
+        for (i = 0; i < n_senone_active; i++) {
+            int32 s = senone_active[i] + n;
+            int32 bs = senscr[s] - best;
+            if (bs > 32767)
+                bs = 32767;
+            if (bs < -32768)
+                bs = -32768;
+            senscr[s] = bs;
+            n = s;
+        }
     }
 
     return 0;

@@ -47,17 +47,17 @@
  *********************************************************************/
 
 #include "config.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
-#include <soundswallower/prim_type.h>
-#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/bin_mdef.h>
 #include <soundswallower/byteorder.h>
 #include <soundswallower/case.h>
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/mdef.h>
-#include <soundswallower/bin_mdef.h>
+#include <soundswallower/prim_type.h>
 
 static cd_tree_t *
 build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
@@ -75,19 +75,19 @@ build_cd_tree_from_mdef(bin_mdef_t *bmdef, mdef_t *mdef)
             for (lc = mdef->wpos_ci_lclist[i][j]; lc; lc = lc->next) {
                 ph_rc_t *rc;
                 for (rc = lc->rclist; rc; rc = rc->next) {
-                    ++nodes;    /* RC node */
+                    ++nodes; /* RC node */
                 }
-                ++nodes;        /* LC node */
-                ++rc_idx;       /* Start of RC nodes (after LC nodes) */
+                ++nodes; /* LC node */
+                ++rc_idx; /* Start of RC nodes (after LC nodes) */
             }
-            ++nodes;            /* CI node */
-            ++lc_idx;           /* Start of LC nodes (after CI nodes) */
-            ++rc_idx;           /* Start of RC nodes (after CI and LC nodes) */
+            ++nodes; /* CI node */
+            ++lc_idx; /* Start of LC nodes (after CI nodes) */
+            ++rc_idx; /* Start of RC nodes (after CI and LC nodes) */
         }
-        ++nodes;                /* wpos node */
-        ++ci_idx;               /* Start of CI nodes (after wpos nodes) */
-        ++lc_idx;               /* Start of LC nodes (after CI nodes) */
-        ++rc_idx;               /* STart of RC nodes (after wpos, CI, and LC nodes) */
+        ++nodes; /* wpos node */
+        ++ci_idx; /* Start of CI nodes (after wpos nodes) */
+        ++lc_idx; /* Start of LC nodes (after CI nodes) */
+        ++rc_idx; /* STart of RC nodes (after wpos, CI, and LC nodes) */
     }
     E_INFO("Allocating %d * %d bytes (%d KiB) for CD tree\n",
            nodes, sizeof(*bmdef->cd_tree),
@@ -172,7 +172,7 @@ bin_mdef_read_text(config_t *config, const char *filename)
     (void)config;
 
     cionly = (config == NULL) ? FALSE : config_bool(config, "cionly");
-    if ((mdef = mdef_init((char *) filename, cionly)) == NULL)
+    if ((mdef = mdef_init((char *)filename, cionly)) == NULL)
         return NULL;
 
     /* Enforce some limits.  */
@@ -210,11 +210,11 @@ bin_mdef_read_text(config_t *config, const char *filename)
     bmdef->sseq = mdef->sseq;
     bmdef->cd2cisen = mdef->cd2cisen;
     bmdef->sen2cimap = mdef->sen2cimap;
-    bmdef->n_ctx = 3;           /* Triphones only. */
+    bmdef->n_ctx = 3; /* Triphones only. */
     bmdef->sil = mdef->sil;
-    mdef->sseq = NULL;          /* We are taking over this one. */
-    mdef->cd2cisen = NULL;      /* And this one. */
-    mdef->sen2cimap = NULL;     /* And this one. */
+    mdef->sseq = NULL; /* We are taking over this one. */
+    mdef->cd2cisen = NULL; /* And this one. */
+    mdef->sen2cimap = NULL; /* And this one. */
 
     /* Get the phone names.  If they are not sorted
      * ASCII-betically then we are in a world of hurt and
@@ -227,8 +227,7 @@ bin_mdef_read_text(config_t *config, const char *filename)
     strcpy(bmdef->ciname[0], mdef->ciphone[0].name);
     for (i = 1; i < bmdef->n_ciphone; ++i) {
         assert(i > 0); /* No reason to imagine it wouldn't be, but... */
-        bmdef->ciname[i] =
-            bmdef->ciname[i - 1] + strlen(bmdef->ciname[i - 1]) + 1;
+        bmdef->ciname[i] = bmdef->ciname[i - 1] + strlen(bmdef->ciname[i - 1]) + 1;
         strcpy(bmdef->ciname[i], mdef->ciphone[i].name);
         if (strcmp(bmdef->ciname[i - 1], bmdef->ciname[i]) > 0) {
             /* FIXME: there should be a solution to this, actually. */
@@ -246,8 +245,7 @@ bin_mdef_read_text(config_t *config, const char *filename)
         bmdef->phone[i].tmat = mdef->phone[i].tmat;
         if (i < bmdef->n_ciphone) {
             bmdef->phone[i].info.ci.filler = mdef->ciphone[i].filler;
-        }
-        else {
+        } else {
             bmdef->phone[i].info.cd.wpos = mdef->phone[i].wpos;
             bmdef->phone[i].info.cd.ctx[0] = (uint8)mdef->phone[i].ci;
             bmdef->phone[i].info.cd.ctx[1] = (uint8)mdef->phone[i].lc;
@@ -259,8 +257,7 @@ bin_mdef_read_text(config_t *config, const char *filename)
     if (mdef->n_phone == mdef->n_ciphone) {
         E_INFO("No CD phones found, will not build CD tree\n");
         bmdef->cd_tree = NULL;
-    }
-    else {
+    } else {
         build_cd_tree_from_mdef(bmdef, mdef);
     }
     mdef_free(mdef);
@@ -279,7 +276,7 @@ bin_mdef_retain(bin_mdef_t *m)
 }
 
 int
-bin_mdef_free(bin_mdef_t * m)
+bin_mdef_free(bin_mdef_t *m)
 {
     if (m == NULL)
         return 0;
@@ -347,8 +344,7 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     if (val == BIN_MDEF_OTHER_ENDIAN) {
         E_INFO("Must byte-swap\n");
         s->do_swap = 1;
-    }
-    else if (val != BIN_MDEF_NATIVE_ENDIAN) {
+    } else if (val != BIN_MDEF_NATIVE_ENDIAN) {
         E_INFO("Is not a binary mdef file, cannot read in memory\n");
         goto error_out;
     }
@@ -376,10 +372,10 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     m = ckd_calloc(1, sizeof(*m));
     m->refcnt = 1;
 
-#define FREAD_SWAP32_CHK(dest)                  \
-    if (s3file_get((dest), 4, 1, s) != 1) {     \
-        E_ERROR("Failed to read %s\n", #dest);  \
-        goto error_out;                         \
+#define FREAD_SWAP32_CHK(dest)                 \
+    if (s3file_get((dest), 4, 1, s) != 1) {    \
+        E_ERROR("Failed to read %s\n", #dest); \
+        goto error_out;                        \
     }
     FREAD_SWAP32_CHK(&m->n_ciphone);
     FREAD_SWAP32_CHK(&m->n_phone);
@@ -407,8 +403,7 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
                     mdef_data_size, rv);
             goto error_out;
         }
-    }
-    else {
+    } else {
         /* Get the base pointer from the memory map. */
         m->ciname[0] = (char *)s->ptr; /* discard const, we know what we're doing */
         /* Success! */
@@ -426,10 +421,9 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     }
 
     /* Skip past the padding. */
-    tree_start =
-        m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1 - m->ciname[0];
+    tree_start = m->ciname[i - 1] + strlen(m->ciname[i - 1]) + 1 - m->ciname[0];
     tree_start = (tree_start + 3) & ~3;
-    m->cd_tree = (cd_tree_t *) (m->ciname[0] + tree_start);
+    m->cd_tree = (cd_tree_t *)(m->ciname[0] + tree_start);
     if (m->alloc_mode == BIN_MDEF_ON_DISK
         && (m->cd_tree + m->n_cd_tree) > (cd_tree_t *)s->end) {
         E_ERROR("cd_tree truncated!\n");
@@ -442,7 +436,7 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
             SWAP_INT32(&m->cd_tree[i].c.down);
         }
     }
-    m->phone = (mdef_entry_t *) (m->cd_tree + m->n_cd_tree);
+    m->phone = (mdef_entry_t *)(m->cd_tree + m->n_cd_tree);
     if (m->alloc_mode == BIN_MDEF_ON_DISK
         && (m->phone + m->n_phone) > (mdef_entry_t *)s->end) {
         E_ERROR("phone truncated!\n");
@@ -454,7 +448,7 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
             SWAP_INT32(&m->phone[i].tmat);
         }
     }
-    sseq_size = (int32 *) (m->phone + m->n_phone);
+    sseq_size = (int32 *)(m->phone + m->n_phone);
     if (m->alloc_mode == BIN_MDEF_ON_DISK
         && (sseq_size + 1) > (int32 *)s->end) {
         E_ERROR("sseq_size truncated!\n");
@@ -463,7 +457,7 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     if (s->do_swap)
         SWAP_INT32(sseq_size);
     m->sseq = ckd_calloc(m->n_sseq, sizeof(*m->sseq));
-    m->sseq[0] = (uint16 *) (sseq_size + 1);
+    m->sseq[0] = (uint16 *)(sseq_size + 1);
     if (m->alloc_mode == BIN_MDEF_ON_DISK
         && (m->sseq[0] + *sseq_size) > (uint16 *)s->end) {
         E_ERROR("sseq truncated!\n");
@@ -476,9 +470,8 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
     if (m->n_emit_state) {
         for (i = 1; i < m->n_sseq; ++i)
             m->sseq[i] = m->sseq[0] + i * m->n_emit_state;
-    }
-    else {
-        m->sseq_len = (uint8 *) (m->sseq[0] + *sseq_size);
+    } else {
+        m->sseq_len = (uint8 *)(m->sseq[0] + *sseq_size);
         if (m->alloc_mode == BIN_MDEF_ON_DISK
             && (m->sseq_len + m->n_sseq) > (uint8 *)s->end) {
             E_ERROR("sseq_len truncated!\n");
@@ -492,8 +485,8 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
      * This is the only really accurate way to do it, though it is
      * still inaccurate in the case of heterogeneous topologies or
      * cross-state tying. */
-    m->cd2cisen = (int16 *) ckd_malloc(m->n_sen * sizeof(*m->cd2cisen));
-    m->sen2cimap = (int16 *) ckd_malloc(m->n_sen * sizeof(*m->sen2cimap));
+    m->cd2cisen = (int16 *)ckd_malloc(m->n_sen * sizeof(*m->cd2cisen));
+    m->sen2cimap = (int16 *)ckd_malloc(m->n_sen * sizeof(*m->sen2cimap));
 
     /* Default mappings (identity, none) */
     for (i = 0; i < m->n_ci_sen; ++i)
@@ -512,16 +505,14 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
             if (m->sen2cimap[s] == -1)
                 m->sen2cimap[s] = ci;
             if (m->sen2cimap[s] != ci)
-                E_WARN
-                    ("Senone %d is shared between multiple base phones\n",
-                     s);
+                E_WARN("Senone %d is shared between multiple base phones\n",
+                       s);
 
             if (j > bin_mdef_n_emit_state_phone(m, ci))
                 E_WARN("CD phone %d has fewer states than CI phone %d\n",
                        i, ci);
             else
-                m->cd2cisen[s] =
-                    bin_mdef_sseq2sen(m, m->phone[ci].ssid, j);
+                m->cd2cisen[s] = bin_mdef_sseq2sen(m, m->phone[ci].ssid, j);
         }
     }
 
@@ -533,26 +524,23 @@ bin_mdef_read_s3file(s3file_t *s, int cionly)
      * scanning and byteswapping of senone sequences but that's ok) */
     if (cionly) {
         m->cd_tree = NULL;
-        E_INFO
-            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
-             m->n_ciphone, 0, m->n_emit_state,
-             m->n_ci_sen, m->n_ci_sen, m->n_ciphone);
-    }
-    else {
-        E_INFO
-            ("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
-             m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
-             m->n_ci_sen, m->n_sen, m->n_sseq);
+        E_INFO("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+               m->n_ciphone, 0, m->n_emit_state,
+               m->n_ci_sen, m->n_ci_sen, m->n_ciphone);
+    } else {
+        E_INFO("%d CI-phone, %d CD-phone, %d emitstate/phone, %d CI-sen, %d Sen, %d Sen-Seq\n",
+               m->n_ciphone, m->n_phone - m->n_ciphone, m->n_emit_state,
+               m->n_ci_sen, m->n_sen, m->n_sseq);
     }
 
     return m;
- error_out:
+error_out:
     bin_mdef_free(m);
     return NULL;
 }
 
 int
-bin_mdef_ciphone_id(bin_mdef_t * m, const char *ciphone)
+bin_mdef_ciphone_id(bin_mdef_t *m, const char *ciphone)
 {
     int low, mid, high;
 
@@ -575,7 +563,7 @@ bin_mdef_ciphone_id(bin_mdef_t * m, const char *ciphone)
 }
 
 int
-bin_mdef_ciphone_id_nocase(bin_mdef_t * m, const char *ciphone)
+bin_mdef_ciphone_id_nocase(bin_mdef_t *m, const char *ciphone)
 {
     int low, mid, high;
 
@@ -598,7 +586,7 @@ bin_mdef_ciphone_id_nocase(bin_mdef_t * m, const char *ciphone)
 }
 
 const char *
-bin_mdef_ciphone_str(bin_mdef_t * m, int32 ci)
+bin_mdef_ciphone_str(bin_mdef_t *m, int32 ci)
 {
     assert(m != NULL);
     assert(ci < m->n_ciphone);
@@ -606,7 +594,7 @@ bin_mdef_ciphone_str(bin_mdef_t * m, int32 ci)
 }
 
 int
-bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, word_posn_t wpos)
+bin_mdef_phone_id(bin_mdef_t *m, int32 ci, int32 lc, int32 rc, word_posn_t wpos)
 {
     cd_tree_t *cd_tree;
     int level, max;
@@ -631,14 +619,18 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, word_posn_t wpos
     ctx[0] = wpos;
     ctx[1] = ci;
     ctx[2] = (m->sil >= 0
-              && m->phone[lc].info.ci.filler) ? m->sil : lc;
+              && m->phone[lc].info.ci.filler)
+        ? m->sil
+        : lc;
     ctx[3] = (m->sil >= 0
-              && m->phone[rc].info.ci.filler) ? m->sil : rc;
+              && m->phone[rc].info.ci.filler)
+        ? m->sil
+        : rc;
 
     /* Walk down the cd_tree. */
     cd_tree = m->cd_tree;
-    level = 0;                  /* What level we are on. */
-    max = N_WORD_POSN;          /* Number of nodes on this level. */
+    level = 0; /* What level we are on. */
+    max = N_WORD_POSN; /* Number of nodes on this level. */
     while (level < 4) {
         int i;
 
@@ -672,7 +664,7 @@ bin_mdef_phone_id(bin_mdef_t * m, int32 ci, int32 lc, int32 rc, word_posn_t wpos
 }
 
 int
-bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, word_posn_t pos)
+bin_mdef_phone_id_nearest(bin_mdef_t *m, int32 b, int32 l, int32 r, word_posn_t pos)
 {
     word_posn_t tmppos;
     int p;
@@ -725,7 +717,7 @@ bin_mdef_phone_id_nearest(bin_mdef_t * m, int32 b, int32 l, int32 r, word_posn_t
 }
 
 int
-bin_mdef_phone_str(bin_mdef_t * m, int pid, char *buf)
+bin_mdef_phone_str(bin_mdef_t *m, int pid, char *buf)
 {
     char *wpos_name;
 

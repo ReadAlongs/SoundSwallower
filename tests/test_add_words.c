@@ -21,7 +21,8 @@ main(int argc, char *argv[])
     int16 buf[2048];
     size_t nread;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     TEST_ASSERT(config = config_init(NULL));
     config_set_str(config, "hmm", MODELDIR "/en-us");
     config_set_str(config, "dict", TESTDATADIR "/turtle.dic");
@@ -44,7 +45,7 @@ main(int argc, char *argv[])
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/goforward.raw", "rb"));
     decoder_start_utt(ps);
     while (!feof(rawfh)) {
-	nread = fread(buf, sizeof(*buf), sizeof(buf)/sizeof(*buf), rawfh);
+        nread = fread(buf, sizeof(*buf), sizeof(buf) / sizeof(*buf), rawfh);
         decoder_process_int16(ps, buf, nread, FALSE, FALSE);
     }
     fclose(rawfh);

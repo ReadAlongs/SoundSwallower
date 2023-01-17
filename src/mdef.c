@@ -74,7 +74,6 @@
  * 		Created.
  */
 
-
 /*
  * Major assumptions:
  *   All phones have same #states, same topology.
@@ -85,53 +84,52 @@
    is not used otherwise, it should be merged with bin_mdef.c at this
    point. */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/mdef.h>
 
-
-#define MODEL_DEF_VERSION	"0.3"
+#define MODEL_DEF_VERSION "0.3"
 
 static void
-ciphone_add(mdef_t * m, char *ci, int p)
+ciphone_add(mdef_t *m, char *ci, int p)
 {
     assert(p < m->n_ciphone);
 
-    m->ciphone[p].name = (char *) ckd_salloc(ci);       /* freed in mdef_free */
+    m->ciphone[p].name = (char *)ckd_salloc(ci); /* freed in mdef_free */
     if (hash_table_enter(m->ciphone_ht, m->ciphone[p].name,
-                         (void *)(size_t)p) != (void *)(size_t)p)
+                         (void *)(size_t)p)
+        != (void *)(size_t)p)
         E_FATAL("hash_table_enter(%s) failed; duplicate CIphone?\n",
                 m->ciphone[p].name);
 }
 
-
 static ph_lc_t *
-find_ph_lc(ph_lc_t * lclist, int lc)
+find_ph_lc(ph_lc_t *lclist, int lc)
 {
     ph_lc_t *lcptr;
 
-    for (lcptr = lclist; lcptr && (lcptr->lc != lc); lcptr = lcptr->next);
+    for (lcptr = lclist; lcptr && (lcptr->lc != lc); lcptr = lcptr->next)
+        ;
     return lcptr;
 }
 
-
 static ph_rc_t *
-find_ph_rc(ph_rc_t * rclist, int rc)
+find_ph_rc(ph_rc_t *rclist, int rc)
 {
     ph_rc_t *rcptr;
 
-    for (rcptr = rclist; rcptr && (rcptr->rc != rc); rcptr = rcptr->next);
+    for (rcptr = rclist; rcptr && (rcptr->rc != rc); rcptr = rcptr->next)
+        ;
     return rcptr;
 }
 
-
 static void
-triphone_add(mdef_t * m,
+triphone_add(mdef_t *m,
              int ci, int lc, int rc, word_posn_t wpos,
              int p)
 {
@@ -148,12 +146,12 @@ triphone_add(mdef_t * m,
 
     /* Create <ci,lc,rc,wpos> -> p mapping if not a CI phone */
     if (p >= m->n_ciphone) {
-        if ((lcptr = find_ph_lc(m->wpos_ci_lclist[wpos][(int) ci], lc))
+        if ((lcptr = find_ph_lc(m->wpos_ci_lclist[wpos][(int)ci], lc))
             == NULL) {
-            lcptr = (ph_lc_t *) ckd_calloc(1, sizeof(ph_lc_t)); /* freed at mdef_free, I believe */
+            lcptr = (ph_lc_t *)ckd_calloc(1, sizeof(ph_lc_t)); /* freed at mdef_free, I believe */
             lcptr->lc = lc;
-            lcptr->next = m->wpos_ci_lclist[wpos][(int) ci];
-            m->wpos_ci_lclist[wpos][(int) ci] = lcptr;  /* This is what needs to be freed */
+            lcptr->next = m->wpos_ci_lclist[wpos][(int)ci];
+            m->wpos_ci_lclist[wpos][(int)ci] = lcptr; /* This is what needs to be freed */
         }
         if ((rcptr = find_ph_rc(lcptr->rclist, rc)) != NULL) {
             char buf[4096];
@@ -162,7 +160,7 @@ triphone_add(mdef_t * m,
             E_FATAL("Duplicate triphone: %s\n", buf);
         }
 
-        rcptr = (ph_rc_t *) ckd_calloc(1, sizeof(ph_rc_t));     /* freed in mdef_free, I believe */
+        rcptr = (ph_rc_t *)ckd_calloc(1, sizeof(ph_rc_t)); /* freed in mdef_free, I believe */
         rcptr->rc = rc;
         rcptr->pid = p;
         rcptr->next = lcptr->rclist;
@@ -170,9 +168,8 @@ triphone_add(mdef_t * m,
     }
 }
 
-
 int
-mdef_ciphone_id(mdef_t * m, char *ci)
+mdef_ciphone_id(mdef_t *m, char *ci)
 {
     int32 id;
     if (hash_table_lookup_int32(m->ciphone_ht, ci, &id) < 0)
@@ -180,9 +177,8 @@ mdef_ciphone_id(mdef_t * m, char *ci)
     return id;
 }
 
-
 const char *
-mdef_ciphone_str(mdef_t * m, int id)
+mdef_ciphone_str(mdef_t *m, int id)
 {
     assert(m);
     assert((id >= 0) && (id < m->n_ciphone));
@@ -190,9 +186,8 @@ mdef_ciphone_str(mdef_t * m, int id)
     return (m->ciphone[id].name);
 }
 
-
 int
-mdef_phone_str(mdef_t * m, int pid, char *buf)
+mdef_phone_str(mdef_t *m, int pid, char *buf)
 {
     char *wpos_name;
 
@@ -213,9 +208,8 @@ mdef_phone_str(mdef_t * m, int pid, char *buf)
     return 0;
 }
 
-
 int
-mdef_phone_id(mdef_t * m,
+mdef_phone_id(mdef_t *m,
               int ci, int lc, int rc, word_posn_t wpos)
 {
     ph_lc_t *lcptr;
@@ -228,15 +222,14 @@ mdef_phone_id(mdef_t * m,
     assert((rc >= 0) && (rc < m->n_ciphone));
     assert((wpos >= 0) && (wpos < N_WORD_POSN));
 
-    if (((lcptr =
-          find_ph_lc(m->wpos_ci_lclist[wpos][(int) ci], lc)) == NULL)
+    if (((lcptr = find_ph_lc(m->wpos_ci_lclist[wpos][(int)ci], lc)) == NULL)
         || ((rcptr = find_ph_rc(lcptr->rclist, rc)) == NULL)) {
         /* Not found; backoff to silence context if non-silence filler context */
         if (m->sil < 0)
             return -1;
 
-        newl = m->ciphone[(int) lc].filler ? m->sil : lc;
-        newr = m->ciphone[(int) rc].filler ? m->sil : rc;
+        newl = m->ciphone[(int)lc].filler ? m->sil : lc;
+        newr = m->ciphone[(int)rc].filler ? m->sil : rc;
         if ((newl == lc) && (newr == rc))
             return -1;
 
@@ -247,7 +240,7 @@ mdef_phone_id(mdef_t * m,
 }
 
 int
-mdef_is_ciphone(mdef_t * m, int p)
+mdef_is_ciphone(mdef_t *m, int p)
 {
     assert(m);
     assert((p >= 0) && (p < m->n_phone));
@@ -256,7 +249,7 @@ mdef_is_ciphone(mdef_t * m, int p)
 }
 
 int
-mdef_is_cisenone(mdef_t * m, int s)
+mdef_is_cisenone(mdef_t *m, int s)
 {
     assert(m);
     if (s >= m->n_sen) {
@@ -266,10 +259,9 @@ mdef_is_cisenone(mdef_t * m, int s)
     return ((s == m->cd2cisen[s]) ? 1 : 0);
 }
 
-
 /* Parse tmat and state->senone mappings for phone p and fill in structure */
 static void
-parse_tmat_senmap(mdef_t * m, char *line, long off, int p)
+parse_tmat_senmap(mdef_t *m, char *line, long off, int p)
 {
     int32 wlen, n, s;
     char *lp;
@@ -313,9 +305,8 @@ parse_tmat_senmap(mdef_t * m, char *line, long off, int p)
         E_FATAL("Non-empty beyond non-emitting final state: %s\n", line);
 }
 
-
 static void
-parse_base_line(mdef_t * m, char *line, int p)
+parse_base_line(mdef_t *m, char *line, int p)
 {
     int32 wlen, n;
     char word[1024], *lp;
@@ -335,7 +326,7 @@ parse_base_line(mdef_t * m, char *line, int p)
 
     /* Add ciphone to ciphone table with id p */
     ciphone_add(m, word, p);
-    ci = (int) p;
+    ci = (int)p;
 
     /* Read and skip "-" for lc, rc, wpos */
     for (n = 0; n < 3; n++) {
@@ -350,9 +341,9 @@ parse_base_line(mdef_t * m, char *line, int p)
         E_FATAL("Missing filler attribute field: %s\n", line);
     lp += wlen;
     if (strcmp(word, "filler") == 0)
-        m->ciphone[(int) ci].filler = 1;
+        m->ciphone[(int)ci].filler = 1;
     else if (strcmp(word, "n/a") == 0)
-        m->ciphone[(int) ci].filler = 0;
+        m->ciphone[(int)ci].filler = 0;
     else
         E_FATAL("Bad filler attribute field: %s\n", line);
 
@@ -362,9 +353,8 @@ parse_base_line(mdef_t * m, char *line, int p)
     parse_tmat_senmap(m, line, lp - line, p);
 }
 
-
 static void
-parse_tri_line(mdef_t * m, char *line, int p)
+parse_tri_line(mdef_t *m, char *line, int p)
 {
     int32 wlen;
     char word[1024], *lp;
@@ -423,11 +413,9 @@ parse_tri_line(mdef_t * m, char *line, int p)
     if (sscanf(lp, "%s%n", word, &wlen) != 1)
         E_FATAL("Missing filler attribute field: %s\n", line);
     lp += wlen;
-    if (((strcmp(word, "filler") == 0) && (m->ciphone[(int) ci].filler)) ||
-        ((strcmp(word, "n/a") == 0) && (!m->ciphone[(int) ci].filler))) {
+    if (((strcmp(word, "filler") == 0) && (m->ciphone[(int)ci].filler)) || ((strcmp(word, "n/a") == 0) && (!m->ciphone[(int)ci].filler))) {
         /* Everything is fine */
-    }
-    else
+    } else
         E_FATAL("Bad filler attribute field: %s\n", line);
 
     triphone_add(m, ci, lc, rc, wpos, p);
@@ -436,9 +424,8 @@ parse_tri_line(mdef_t * m, char *line, int p)
     parse_tmat_senmap(m, line, lp - line, p);
 }
 
-
 static void
-sseq_compress(mdef_t * m)
+sseq_compress(mdef_t *m)
 {
     hash_table_t *h;
     uint16 **sseq;
@@ -456,7 +443,7 @@ sseq_compress(mdef_t * m)
     /* Identify unique senone-sequence IDs.  BUG: tmat-id not being considered!! */
     for (p = 0; p < m->n_phone; p++) {
         /* Add senone sequence to hash table */
-	if (n_sseq
+        if (n_sseq
             == (j = hash_table_enter_bkey_int32(h, (char *)m->sseq[p], k, n_sseq)))
             n_sseq++;
 
@@ -470,7 +457,7 @@ sseq_compress(mdef_t * m)
     assert(j == n_sseq);
 
     for (gn = g; gn; gn = gnode_next(gn)) {
-        he = (hash_entry_t *) gnode_ptr(gn);
+        he = (hash_entry_t *)gnode_ptr(gn);
         j = (int32)(size_t)hash_entry_val(he);
         memcpy(sseq[j], hash_entry_key(he), k);
     }
@@ -484,9 +471,8 @@ sseq_compress(mdef_t * m)
     hash_table_free(h);
 }
 
-
 static int32
-noncomment_line(char *line, int32 size, FILE * fp)
+noncomment_line(char *line, int32 size, FILE *fp)
 {
     while (fgets(line, size, fp) != NULL) {
         if (line[0] != '#')
@@ -494,7 +480,6 @@ noncomment_line(char *line, int32 size, FILE * fp)
     }
     return -1;
 }
-
 
 /*
  * Initialize phones (ci and triphones) and state->senone mappings from .mdef file.
@@ -515,7 +500,7 @@ mdef_init(char *mdeffile, int cionly)
 
     E_INFO("Reading model definition: %s\n", mdeffile);
 
-    m = (mdef_t *) ckd_calloc(1, sizeof(mdef_t));       /* freed in mdef_free */
+    m = (mdef_t *)ckd_calloc(1, sizeof(mdef_t)); /* freed in mdef_free */
 
     if ((fp = fopen(mdeffile, "r")) == NULL)
         E_FATAL_SYSTEM("Failed to open mdef file '%s' for reading", mdeffile);
@@ -524,9 +509,8 @@ mdef_init(char *mdeffile, int cionly)
         E_FATAL("Empty file: %s\n", mdeffile);
 
     if (strncmp(buf, "BMDF", 4) == 0 || strncmp(buf, "FDMB", 4) == 0) {
-        E_INFO
-            ("Found byte-order mark %.4s, assuming this is a binary mdef file\n",
-             buf);
+        E_INFO("Found byte-order mark %.4s, assuming this is a binary mdef file\n",
+               buf);
         fclose(fp);
         ckd_free(m);
         return NULL;
@@ -563,8 +547,7 @@ mdef_init(char *mdeffile, int cionly)
             m->n_tmat = n;
         else
             E_FATAL("Unknown header line: %s\n", buf);
-    } while ((n_ci < 0) || (n_tri < 0) || (n_map < 0) ||
-             (m->n_ci_sen < 0) || (m->n_sen < 0) || (m->n_tmat < 0));
+    } while ((n_ci < 0) || (n_tri < 0) || (n_map < 0) || (m->n_ci_sen < 0) || (m->n_sen < 0) || (m->n_tmat < 0));
 
     if ((n_ci == 0) || (m->n_ci_sen == 0) || (m->n_tmat == 0)
         || (m->n_ci_sen > m->n_sen))
@@ -574,8 +557,7 @@ mdef_init(char *mdeffile, int cionly)
      * checking that it divides with no remainder. */
     m->n_emit_state = (n_map / (n_ci + n_tri)) - 1;
     if ((m->n_emit_state + 1) * (n_ci + n_tri) != n_map)
-        E_FATAL
-            ("Header error: n_state_map not a multiple of n_ci*n_tri\n");
+        E_FATAL("Header error: n_state_map not a multiple of n_ci*n_tri\n");
 
     /* Truncate the mdef if requested */
     if (cionly) {
@@ -598,22 +580,21 @@ mdef_init(char *mdeffile, int cionly)
         E_FATAL("%s: #tmats (%d) exceeds limit (%d)\n", mdeffile,
                 m->n_tmat, MAX_INT32);
 
-
     /* Initialize ciphone info */
     m->n_ciphone = n_ci;
-    m->ciphone_ht = hash_table_new(n_ci, HASH_CASE_YES);  /* With case-insensitive string names *//* freed in mdef_free */
-    m->ciphone = (ciphone_t *) ckd_calloc(n_ci, sizeof(ciphone_t));     /* freed in mdef_free */
+    m->ciphone_ht = hash_table_new(n_ci, HASH_CASE_YES); /* With case-insensitive string names */ /* freed in mdef_free */
+    m->ciphone = (ciphone_t *)ckd_calloc(n_ci, sizeof(ciphone_t)); /* freed in mdef_free */
 
     /* Initialize phones info (ciphones + triphones) */
     m->n_phone = n_ci + n_tri;
-    m->phone = (phone_t *) ckd_calloc(m->n_phone, sizeof(phone_t));     /* freed in mdef_free */
+    m->phone = (phone_t *)ckd_calloc(m->n_phone, sizeof(phone_t)); /* freed in mdef_free */
 
     /* Allocate space for state->senone map for each phone */
-    senmap = ckd_calloc_2d(m->n_phone, m->n_emit_state, sizeof(**senmap));      /* freed in mdef_free */
-    m->sseq = senmap;           /* TEMPORARY; until it is compressed into just the unique ones */
+    senmap = ckd_calloc_2d(m->n_phone, m->n_emit_state, sizeof(**senmap)); /* freed in mdef_free */
+    m->sseq = senmap; /* TEMPORARY; until it is compressed into just the unique ones */
 
     /* Allocate initial space for <ci,lc,rc,wpos> -> pid mapping */
-    m->wpos_ci_lclist = (ph_lc_t ***) ckd_calloc_2d(N_WORD_POSN, m->n_ciphone, sizeof(ph_lc_t *));      /* freed in mdef_free */
+    m->wpos_ci_lclist = (ph_lc_t ***)ckd_calloc_2d(N_WORD_POSN, m->n_ciphone, sizeof(ph_lc_t *)); /* freed in mdef_free */
 
     /*
      * Read base phones and triphones.  They'll simply be assigned a running sequence
@@ -647,12 +628,11 @@ mdef_init(char *mdeffile, int cionly)
 
     /* Build CD senones to CI senones map */
     if (m->n_ciphone * m->n_emit_state != m->n_ci_sen)
-        E_FATAL
-            ("#CI-senones(%d) != #CI-phone(%d) x #emitting-states(%d)\n",
-             m->n_ci_sen, m->n_ciphone, m->n_emit_state);
-    m->cd2cisen = (int16 *) ckd_calloc(m->n_sen, sizeof(*m->cd2cisen)); /* freed in mdef_free */
+        E_FATAL("#CI-senones(%d) != #CI-phone(%d) x #emitting-states(%d)\n",
+                m->n_ci_sen, m->n_ciphone, m->n_emit_state);
+    m->cd2cisen = (int16 *)ckd_calloc(m->n_sen, sizeof(*m->cd2cisen)); /* freed in mdef_free */
 
-    m->sen2cimap = (int16 *) ckd_calloc(m->n_sen, sizeof(*m->sen2cimap)); /* freed in mdef_free */
+    m->sen2cimap = (int16 *)ckd_calloc(m->n_sen, sizeof(*m->sen2cimap)); /* freed in mdef_free */
 
     for (s = 0; s < m->n_sen; s++)
         m->sen2cimap[s] = -1;
@@ -660,7 +640,7 @@ mdef_init(char *mdeffile, int cionly)
         m->cd2cisen[s] = s;
         m->sen2cimap[s] = s / m->n_emit_state;
     }
-    for (p = n_ci; p < m->n_phone; p++) {       /* CD senones */
+    for (p = n_ci; p < m->n_phone; p++) { /* CD senones */
         for (s = 0; s < m->n_emit_state; s++) {
             cd = m->sseq[p][s];
             ci = m->sseq[m->phone[p].ci][s];
@@ -687,7 +667,7 @@ mdef_init(char *mdeffile, int cionly)
    RAH 4.24.01 - verified that all memory is released.
  */
 void
-mdef_free_recursive_lc(ph_lc_t * lc)
+mdef_free_recursive_lc(ph_lc_t *lc)
 {
     if (lc == NULL)
         return;
@@ -698,11 +678,11 @@ mdef_free_recursive_lc(ph_lc_t * lc)
     if (lc->next)
         mdef_free_recursive_lc(lc->next);
 
-    ckd_free((void *) lc);
+    ckd_free((void *)lc);
 }
 
 void
-mdef_free_recursive_rc(ph_rc_t * rc)
+mdef_free_recursive_rc(ph_rc_t *rc)
 {
     if (rc == NULL)
         return;
@@ -710,59 +690,55 @@ mdef_free_recursive_rc(ph_rc_t * rc)
     if (rc->next)
         mdef_free_recursive_rc(rc->next);
 
-    ckd_free((void *) rc);
+    ckd_free((void *)rc);
 }
-
 
 /* RAH, Free memory that was allocated in mdef_init
    Rational purify shows that no leaks exist
  */
 
 void
-mdef_free(mdef_t * m)
+mdef_free(mdef_t *m)
 {
     int i, j;
 
     if (m) {
         if (m->sen2cimap)
-            ckd_free((void *) m->sen2cimap);
+            ckd_free((void *)m->sen2cimap);
         if (m->cd2cisen)
-            ckd_free((void *) m->cd2cisen);
+            ckd_free((void *)m->cd2cisen);
 
         /* RAH, go down the ->next list and delete all the pieces */
         for (i = 0; i < N_WORD_POSN; i++)
             for (j = 0; j < m->n_ciphone; j++)
                 if (m->wpos_ci_lclist[i][j]) {
                     mdef_free_recursive_lc(m->wpos_ci_lclist[i][j]->next);
-                    mdef_free_recursive_rc(m->wpos_ci_lclist[i][j]->
-                                           rclist);
+                    mdef_free_recursive_rc(m->wpos_ci_lclist[i][j]->rclist);
                 }
 
         for (i = 0; i < N_WORD_POSN; i++)
             for (j = 0; j < m->n_ciphone; j++)
                 if (m->wpos_ci_lclist[i][j])
-                    ckd_free((void *) m->wpos_ci_lclist[i][j]);
-
+                    ckd_free((void *)m->wpos_ci_lclist[i][j]);
 
         if (m->wpos_ci_lclist)
-            ckd_free_2d((void *) m->wpos_ci_lclist);
+            ckd_free_2d((void *)m->wpos_ci_lclist);
         if (m->sseq)
-            ckd_free_2d((void *) m->sseq);
+            ckd_free_2d((void *)m->sseq);
         /* Free phone context */
         if (m->phone)
-            ckd_free((void *) m->phone);
+            ckd_free((void *)m->phone);
         if (m->ciphone_ht)
             hash_table_free(m->ciphone_ht);
 
         for (i = 0; i < m->n_ciphone; i++) {
             if (m->ciphone[i].name)
-                ckd_free((void *) m->ciphone[i].name);
+                ckd_free((void *)m->ciphone[i].name);
         }
 
-
         if (m->ciphone)
-            ckd_free((void *) m->ciphone);
+            ckd_free((void *)m->ciphone);
 
-        ckd_free((void *) m);
+        ckd_free((void *)m);
     }
 }

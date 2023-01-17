@@ -41,11 +41,11 @@
 /* System headers. */
 #include <stdio.h>
 
-#include <soundswallower/logmath.h>
-#include <soundswallower/bitvec.h>
-#include <soundswallower/s3types.h>
 #include <soundswallower/bin_mdef.h>
+#include <soundswallower/bitvec.h>
 #include <soundswallower/dict.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/s3types.h>
 
 /** \file dict2pid.h
  * \brief Building triphones for a dictionary.
@@ -71,9 +71,9 @@ extern "C" {
  */
 
 typedef struct xwdssid_s {
-    s3ssid_t  *ssid;	/**< Senone Sequence ID list for all context ciphones */
-    s3cipid_t *cimap;	/**< Index into ssid[] above for each ci phone */
-    int32     n_ssid;	/**< #Unique ssid in above, compressed ssid list */
+    s3ssid_t *ssid; /**< Senone Sequence ID list for all context ciphones */
+    s3cipid_t *cimap; /**< Index into ssid[] above for each ci phone */
+    int32 n_ssid; /**< #Unique ssid in above, compressed ssid list */
 } xwdssid_t;
 
 /**
@@ -84,44 +84,42 @@ typedef struct xwdssid_s {
 typedef struct dict2pid_s {
     int refcount;
 
-    bin_mdef_t *mdef;           /**< Model definition, used to generate
-                                   internal ssids on the fly. */
-    dict_t *dict;               /**< Dictionary this table refers to. */
+    bin_mdef_t *mdef; /**< Model definition, used to generate
+                         internal ssids on the fly. */
+    dict_t *dict; /**< Dictionary this table refers to. */
 
     /*Notice the order of the arguments */
     /* FIXME: This is crying out for compression - in Mandarin we have
      * 180 context independent phones, which makes this an 11MB
      * array. */
-    s3ssid_t ***ldiph_lc;	/**< For multi-phone words, [base][rc][lc] -> ssid; filled out for
-				   word-initial base x rc combinations in current vocabulary */
+    s3ssid_t ***ldiph_lc; /**< For multi-phone words, [base][rc][lc] -> ssid; filled out for
+                             word-initial base x rc combinations in current vocabulary */
 
+    xwdssid_t **rssid; /**< Right context state sequence id table
+                          First dimension: base phone,
+                          Second dimension: left context.
+                       */
 
-    xwdssid_t **rssid;          /**< Right context state sequence id table
-                                   First dimension: base phone,
-                                   Second dimension: left context.
-                                */
+    s3ssid_t ***lrdiph_rc; /**< For single-phone words, [base][lc][rc] -> ssid; filled out for
+                              single-phone base x lc combinations in current vocabulary */
 
-
-    s3ssid_t ***lrdiph_rc;      /**< For single-phone words, [base][lc][rc] -> ssid; filled out for
-                                   single-phone base x lc combinations in current vocabulary */
-
-    xwdssid_t **lrssid;          /**< Left-Right context state sequence id table
-                                    First dimension: base phone,
-                                    Second dimension: left context.
-                                 */
+    xwdssid_t **lrssid; /**< Left-Right context state sequence id table
+                           First dimension: base phone,
+                           Second dimension: left context.
+                        */
 } dict2pid_t;
 
 /** Access macros; not designed for arbitrary use */
-#define dict2pid_rssid(d,ci,lc)  (&(d)->rssid[ci][lc])
-#define dict2pid_ldiph_lc(d,b,r,l) ((d)->ldiph_lc[b][r][l])
-#define dict2pid_lrdiph_rc(d,b,l,r) ((d)->lrdiph_rc[b][l][r])
+#define dict2pid_rssid(d, ci, lc) (&(d)->rssid[ci][lc])
+#define dict2pid_ldiph_lc(d, b, r, l) ((d)->ldiph_lc[b][r][l])
+#define dict2pid_lrdiph_rc(d, b, l, r) ((d)->lrdiph_rc[b][l][r])
 
 /**
  * Build the dict2pid structure for the given model/dictionary
  */
-dict2pid_t *dict2pid_build(bin_mdef_t *mdef,   /**< A  model definition*/
-                           dict_t *dict        /**< An initialized dictionary */
-    );
+dict2pid_t *dict2pid_build(bin_mdef_t *mdef, /**< A  model definition*/
+                           dict_t *dict /**< An initialized dictionary */
+);
 
 /**
  * Retain a pointer to dict2pid
@@ -132,7 +130,7 @@ dict2pid_t *dict2pid_retain(dict2pid_t *d2p);
  * Free the memory dict2pid structure
  */
 int dict2pid_free(dict2pid_t *d2p /**< In: the d2p */
-    );
+);
 
 /**
  * Return the senone sequence ID for the given word position.
@@ -150,23 +148,23 @@ int dict2pid_add_word(dict2pid_t *d2p,
 /**
  * For debugging
  */
-void dict2pid_dump(FILE *fp,        /**< In: a file pointer */
+void dict2pid_dump(FILE *fp, /**< In: a file pointer */
                    dict2pid_t *d2p /**< In: a dict2pid_t structure */
-    );
+);
 
 /**
  * Get number of rc
  */
-int32 get_rc_nssid(dict2pid_t *d2p,  /**< In: a dict2pid */
-		   s3wid_t w         /**< In: a wid */
-    );
+int32 get_rc_nssid(dict2pid_t *d2p, /**< In: a dict2pid */
+                   s3wid_t w /**< In: a wid */
+);
 
 /**
  * Get RC map
  */
-s3cipid_t* dict2pid_get_rcmap(dict2pid_t *d2p,  /**< In: a dict2pid */
-			      s3wid_t w        /**< In: a wid */
-    );
+s3cipid_t *dict2pid_get_rcmap(dict2pid_t *d2p, /**< In: a dict2pid */
+                              s3wid_t w /**< In: a wid */
+);
 
 #ifdef __cplusplus
 } /* extern "C" */

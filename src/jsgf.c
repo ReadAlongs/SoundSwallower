@@ -35,19 +35,19 @@
  *
  */
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/strfuncs.h>
-#include <soundswallower/hash_table.h>
 #include <soundswallower/err.h>
+#include <soundswallower/hash_table.h>
 #include <soundswallower/jsgf.h>
+#include <soundswallower/strfuncs.h>
 
 #include "jsgf_parser.h"
 #include "jsgf_scanner.h"
 
-extern int yyparse(void *scanner, jsgf_t * jsgf);
+extern int yyparse(void *scanner, jsgf_t *jsgf);
 
 /**
  * \file jsgf.c
@@ -64,9 +64,11 @@ path2dirname(const char *path, char *dir)
 
     l = strlen(path);
 #if defined(_WIN32) || defined(__CYGWIN__)
-    for (i = l - 1; (i > 0) && !(path[i] == '/' || path[i] == '\\'); --i);
+    for (i = l - 1; (i > 0) && !(path[i] == '/' || path[i] == '\\'); --i)
+        ;
 #else
-    for (i = l - 1; (i > 0) && !(path[i] == '/'); --i);
+    for (i = l - 1; (i > 0) && !(path[i] == '/'); --i)
+        ;
 #endif
     if (i == 0) {
         dir[0] = '.';
@@ -89,7 +91,7 @@ jsgf_atom_new(char *name, float weight)
 }
 
 int
-jsgf_atom_free(jsgf_atom_t * atom)
+jsgf_atom_free(jsgf_atom_t *atom)
 {
     if (atom == NULL)
         return 0;
@@ -99,7 +101,7 @@ jsgf_atom_free(jsgf_atom_t * atom)
 }
 
 jsgf_t *
-jsgf_grammar_new(jsgf_t * parent)
+jsgf_grammar_new(jsgf_t *parent)
 {
     jsgf_t *grammar;
 
@@ -111,8 +113,7 @@ jsgf_grammar_new(jsgf_t * parent)
         grammar->imports = parent->imports;
         grammar->searchpath = parent->searchpath;
         grammar->parent = parent;
-    }
-    else {
+    } else {
         grammar->rules = hash_table_new(64, 0);
         grammar->imports = hash_table_new(16, 0);
     }
@@ -121,7 +122,7 @@ jsgf_grammar_new(jsgf_t * parent)
 }
 
 void
-jsgf_grammar_free(jsgf_t * jsgf)
+jsgf_grammar_free(jsgf_t *jsgf)
 {
     /* FIXME: Probably should just use refcounting instead. */
     if (jsgf->parent == NULL) {
@@ -130,14 +131,14 @@ jsgf_grammar_free(jsgf_t * jsgf)
 
         for (itor = hash_table_iter(jsgf->rules); itor;
              itor = hash_table_iter_next(itor)) {
-            ckd_free((char *) itor->ent->key);
-            jsgf_rule_free((jsgf_rule_t *) itor->ent->val);
+            ckd_free((char *)itor->ent->key);
+            jsgf_rule_free((jsgf_rule_t *)itor->ent->val);
         }
         hash_table_free(jsgf->rules);
         for (itor = hash_table_iter(jsgf->imports); itor;
              itor = hash_table_iter_next(itor)) {
-            ckd_free((char *) itor->ent->key);
-            jsgf_grammar_free((jsgf_t *) itor->ent->val);
+            ckd_free((char *)itor->ent->key);
+            jsgf_grammar_free((jsgf_t *)itor->ent->val);
         }
         hash_table_free(jsgf->imports);
         for (gn = jsgf->searchpath; gn; gn = gnode_next(gn))
@@ -155,7 +156,7 @@ jsgf_grammar_free(jsgf_t * jsgf)
 }
 
 static void
-jsgf_rhs_free(jsgf_rhs_t * rhs)
+jsgf_rhs_free(jsgf_rhs_t *rhs)
 {
     gnode_t *gn;
 
@@ -170,7 +171,7 @@ jsgf_rhs_free(jsgf_rhs_t * rhs)
 }
 
 jsgf_atom_t *
-jsgf_kleene_new(jsgf_t * jsgf, jsgf_atom_t * atom, int plus)
+jsgf_kleene_new(jsgf_t *jsgf, jsgf_atom_t *atom, int plus)
 {
     jsgf_rule_t *rule;
     jsgf_atom_t *rule_atom;
@@ -194,7 +195,7 @@ jsgf_kleene_new(jsgf_t * jsgf, jsgf_atom_t * atom, int plus)
 }
 
 jsgf_rule_t *
-jsgf_optional_new(jsgf_t * jsgf, jsgf_rhs_t * exp)
+jsgf_optional_new(jsgf_t *jsgf, jsgf_rhs_t *exp)
 {
     jsgf_rhs_t *rhs = ckd_calloc(1, sizeof(*rhs));
     jsgf_atom_t *atom = jsgf_atom_new("<NULL>", 1.0);
@@ -204,7 +205,7 @@ jsgf_optional_new(jsgf_t * jsgf, jsgf_rhs_t * exp)
 }
 
 void
-jsgf_add_link(jsgf_t * grammar, jsgf_atom_t * atom, int from, int to)
+jsgf_add_link(jsgf_t *grammar, jsgf_atom_t *atom, int from, int to)
 {
     jsgf_link_t *link;
 
@@ -229,13 +230,13 @@ extract_grammar_name(char *rule_name)
 }
 
 const char *
-jsgf_grammar_name(jsgf_t * jsgf)
+jsgf_grammar_name(jsgf_t *jsgf)
 {
     return jsgf->name;
 }
 
 static char *
-jsgf_fullname(jsgf_t * jsgf, const char *name)
+jsgf_fullname(jsgf_t *jsgf, const char *name)
 {
     char *fullname;
 
@@ -250,7 +251,7 @@ jsgf_fullname(jsgf_t * jsgf, const char *name)
 }
 
 static char *
-jsgf_fullname_from_rule(jsgf_rule_t * rule, const char *name)
+jsgf_fullname_from_rule(jsgf_rule_t *rule, const char *name)
 {
     char *fullname, *grammar_name;
 
@@ -285,13 +286,11 @@ importname2rulename(char *importname)
             secondlast_dotpos = ckd_salloc(secondlast_dotpos);
             ckd_free(rulename);
             return secondlast_dotpos;
-        }
-        else {
+        } else {
             *last_dotpos = '.';
             return rulename;
         }
-    }
-    else {
+    } else {
         return rulename;
     }
 }
@@ -318,15 +317,14 @@ expand_rhs(jsgf_t *grammar, jsgf_rule_t *rule, jsgf_rhs_t *rhs)
             void *val;
 
             /* Special case for <NULL> and <VOID> pseudo-rules */
-	    if (0 == strcmp(atom->name, "<NULL>")) {
+            if (0 == strcmp(atom->name, "<NULL>")) {
                 /* Emit a NULL transition */
                 jsgf_add_link(grammar, atom,
                               lastnode, grammar->nstate);
                 lastnode = grammar->nstate;
                 ++grammar->nstate;
                 continue;
-            }
-            else if (0 == strcmp(atom->name, "<VOID>")) {
+            } else if (0 == strcmp(atom->name, "<VOID>")) {
                 /* Make this entire RHS unspeakable */
                 return -1;
             }
@@ -349,9 +347,8 @@ expand_rhs(jsgf_t *grammar, jsgf_rule_t *rule, jsgf_rhs_t *rhs)
             if (subnode != NULL) {
                 /* Allow right-recursion only. */
                 if (gnode_next(gn) != NULL) {
-                    E_ERROR
-                        ("Only right-recursion is permitted (in %s.%s)\n",
-                         grammar->name, rule->name);
+                    E_ERROR("Only right-recursion is permitted (in %s.%s)\n",
+                            grammar->name, rule->name);
                     return -1;
                 }
                 /* Add a link back to the beginning of this rule instance */
@@ -359,18 +356,16 @@ expand_rhs(jsgf_t *grammar, jsgf_rule_t *rule, jsgf_rhs_t *rhs)
                        subrule->entry);
                 jsgf_add_link(grammar, atom, lastnode, subrule->entry);
                 return RECURSION;
-            }
-            else {
+            } else {
                 /* Expand the subrule */
                 if (expand_rule(grammar, subrule) == -1)
                     return -1;
                 /* Add a link into the subrule. */
                 jsgf_add_link(grammar, atom,
-                         lastnode, subrule->entry);
+                              lastnode, subrule->entry);
                 lastnode = subrule->exit;
             }
-        }
-        else {
+        } else {
             /* Add a link for this token and create a new exit node. */
             jsgf_add_link(grammar, atom, lastnode, grammar->nstate);
             lastnode = grammar->nstate;
@@ -382,7 +377,7 @@ expand_rhs(jsgf_t *grammar, jsgf_rule_t *rule, jsgf_rhs_t *rhs)
 }
 
 static int
-expand_rule(jsgf_t * grammar, jsgf_rule_t * rule)
+expand_rule(jsgf_t *grammar, jsgf_rule_t *rule)
 {
     jsgf_rhs_t *rhs;
     float norm;
@@ -401,22 +396,21 @@ expand_rule(jsgf_t * grammar, jsgf_rule_t * rule)
 
     rule->entry = grammar->nstate++;
     rule->exit = grammar->nstate++;
-    if (norm == 0) norm = 1;
+    if (norm == 0)
+        norm = 1;
     for (rhs = rule->rhs; rhs; rhs = rhs->alt) {
         int lastnode;
 
         if (rhs->atoms) {
             jsgf_atom_t *atom = gnode_ptr(rhs->atoms);
-	    atom->weight /= norm;
+            atom->weight /= norm;
         }
         lastnode = expand_rhs(grammar, rule, rhs);
         if (lastnode == -1) {
             return -1;
-        }
-        else if (lastnode == RECURSION) {
+        } else if (lastnode == RECURSION) {
             /* Do nothing. */
-        }
-        else {
+        } else {
             jsgf_add_link(grammar, NULL, lastnode, rule->exit);
         }
     }
@@ -427,13 +421,13 @@ expand_rule(jsgf_t * grammar, jsgf_rule_t * rule)
 }
 
 jsgf_rule_iter_t *
-jsgf_rule_iter(jsgf_t * grammar)
+jsgf_rule_iter(jsgf_t *grammar)
 {
     return hash_table_iter(grammar->rules);
 }
 
 jsgf_rule_t *
-jsgf_get_rule(jsgf_t * grammar, const char *name)
+jsgf_get_rule(jsgf_t *grammar, const char *name)
 {
     void *val;
     char *fullname;
@@ -444,11 +438,11 @@ jsgf_get_rule(jsgf_t * grammar, const char *name)
         return NULL;
     }
     ckd_free(fullname);
-    return (jsgf_rule_t *) val;
+    return (jsgf_rule_t *)val;
 }
 
 jsgf_rule_t *
-jsgf_get_public_rule(jsgf_t * grammar)
+jsgf_get_public_rule(jsgf_t *grammar)
 {
     jsgf_rule_iter_t *itor;
     jsgf_rule_t *public_rule = NULL;
@@ -464,9 +458,7 @@ jsgf_get_public_rule(jsgf_t * grammar)
                 jsgf_rule_iter_free(itor);
                 break;
             }
-            if (0 ==
-                strncmp(rule_name + 1, jsgf_grammar_name(grammar),
-                        dot_pos - rule_name - 1)) {
+            if (0 == strncmp(rule_name + 1, jsgf_grammar_name(grammar), dot_pos - rule_name - 1)) {
                 public_rule = rule;
                 jsgf_rule_iter_free(itor);
                 break;
@@ -477,27 +469,27 @@ jsgf_get_public_rule(jsgf_t * grammar)
 }
 
 const char *
-jsgf_rule_name(jsgf_rule_t * rule)
+jsgf_rule_name(jsgf_rule_t *rule)
 {
     return rule->name;
 }
 
 int
-jsgf_rule_public(jsgf_rule_t * rule)
+jsgf_rule_public(jsgf_rule_t *rule)
 {
     return rule->is_public;
 }
 
 static fsg_model_t *
-jsgf_build_fsg_internal(jsgf_t * grammar, jsgf_rule_t * rule,
-                        logmath_t * lmath, float32 lw, int do_closure)
+jsgf_build_fsg_internal(jsgf_t *grammar, jsgf_rule_t *rule,
+                        logmath_t *lmath, float32 lw, int do_closure)
 {
     fsg_model_t *fsg;
     glist_t nulls;
     gnode_t *gn;
 
     if (grammar == NULL || rule == NULL)
-	return NULL;
+        return NULL;
 
     /* Clear previous links */
     for (gn = grammar->links; gn; gn = gnode_next(gn)) {
@@ -521,15 +513,13 @@ jsgf_build_fsg_internal(jsgf_t * grammar, jsgf_rule_t * rule,
                 fsg_model_null_trans_add(fsg, link->from, link->to,
                                          logmath_log(lmath,
                                                      link->atom->weight));
-            }
-            else {
+            } else {
                 int wid = fsg_model_word_add(fsg, link->atom->name);
                 fsg_model_trans_add(fsg, link->from, link->to,
                                     logmath_log(lmath, link->atom->weight),
                                     wid);
             }
-        }
-        else {
+        } else {
             fsg_model_null_trans_add(fsg, link->from, link->to, 0);
         }
     }
@@ -542,21 +532,21 @@ jsgf_build_fsg_internal(jsgf_t * grammar, jsgf_rule_t * rule,
 }
 
 fsg_model_t *
-jsgf_build_fsg(jsgf_t * grammar, jsgf_rule_t * rule,
-               logmath_t * lmath, float32 lw)
+jsgf_build_fsg(jsgf_t *grammar, jsgf_rule_t *rule,
+               logmath_t *lmath, float32 lw)
 {
     return jsgf_build_fsg_internal(grammar, rule, lmath, lw, TRUE);
 }
 
 fsg_model_t *
-jsgf_build_fsg_raw(jsgf_t * grammar, jsgf_rule_t * rule,
-                   logmath_t * lmath, float32 lw)
+jsgf_build_fsg_raw(jsgf_t *grammar, jsgf_rule_t *rule,
+                   logmath_t *lmath, float32 lw)
 {
     return jsgf_build_fsg_internal(grammar, rule, lmath, lw, FALSE);
 }
 
 fsg_model_t *
-jsgf_read_file(const char *file, logmath_t * lmath, float32 lw)
+jsgf_read_file(const char *file, logmath_t *lmath, float32 lw)
 {
     fsg_model_t *fsg;
     jsgf_rule_t *rule;
@@ -587,7 +577,7 @@ jsgf_read_file(const char *file, logmath_t * lmath, float32 lw)
 }
 
 fsg_model_t *
-jsgf_read_string(const char *string, logmath_t * lmath, float32 lw)
+jsgf_read_string(const char *string, logmath_t *lmath, float32 lw)
 {
     fsg_model_t *fsg;
     jsgf_rule_t *rule;
@@ -619,7 +609,7 @@ jsgf_read_string(const char *string, logmath_t * lmath, float32 lw)
 }
 
 jsgf_rule_t *
-jsgf_define_rule(jsgf_t * jsgf, char *name, jsgf_rhs_t * rhs,
+jsgf_define_rule(jsgf_t *jsgf, char *name, jsgf_rhs_t *rhs,
                  int is_public)
 {
     jsgf_rule_t *rule;
@@ -629,8 +619,7 @@ jsgf_define_rule(jsgf_t * jsgf, char *name, jsgf_rhs_t * rhs,
         name = ckd_malloc(strlen(jsgf->name) + 16);
         sprintf(name, "<%s.g%05d>", jsgf->name,
                 hash_table_inuse(jsgf->rules));
-    }
-    else {
+    } else {
         char *newname;
 
         newname = jsgf_fullname(jsgf, name);
@@ -646,14 +635,14 @@ jsgf_define_rule(jsgf_t * jsgf, char *name, jsgf_rhs_t * rhs,
     E_INFO("Defined rule: %s%s\n",
            rule->is_public ? "PUBLIC " : "", rule->name);
     val = hash_table_enter(jsgf->rules, name, rule);
-    if (val != (void *) rule) {
+    if (val != (void *)rule) {
         E_WARN("Multiply defined symbol: %s\n", name);
     }
     return rule;
 }
 
 jsgf_rule_t *
-jsgf_rule_retain(jsgf_rule_t * rule)
+jsgf_rule_retain(jsgf_rule_t *rule)
 {
     if (rule == NULL)
         return NULL;
@@ -662,7 +651,7 @@ jsgf_rule_retain(jsgf_rule_t * rule)
 }
 
 int
-jsgf_rule_free(jsgf_rule_t * rule)
+jsgf_rule_free(jsgf_rule_t *rule)
 {
     if (rule == NULL)
         return 0;
@@ -673,7 +662,6 @@ jsgf_rule_free(jsgf_rule_t * rule)
     ckd_free(rule);
     return 0;
 }
-
 
 /* FIXME: This should go in libsphinxutil */
 static char *
@@ -690,8 +678,7 @@ path_list_search(glist_t paths, char *path)
         if (tmp != NULL) {
             fclose(tmp);
             return fullpath;
-        }
-        else {
+        } else {
             ckd_free(fullpath);
         }
     }
@@ -699,7 +686,7 @@ path_list_search(glist_t paths, char *path)
 }
 
 jsgf_rule_t *
-jsgf_import_rule(jsgf_t * jsgf, char *name)
+jsgf_import_rule(jsgf_t *jsgf, char *name)
 {
     char *c, *path, *newpath;
     size_t namelen, packlen;
@@ -748,12 +735,11 @@ jsgf_import_rule(jsgf_t * jsgf, char *name)
         E_INFO("Already imported %s\n", path);
         imp = val;
         ckd_free(path);
-    }
-    else {
+    } else {
         /* If not, parse it. */
         imp = jsgf_parse_file(path, jsgf);
         val = hash_table_enter(jsgf->imports, path, imp);
-        if (val != (void *) imp) {
+        if (val != (void *)imp) {
             E_WARN("Multiply imported file: %s\n", path);
         }
     }
@@ -769,10 +755,8 @@ jsgf_import_rule(jsgf_t * jsgf, char *name)
 
             if (import_all) {
                 /* Match package name (symbol table is shared) */
-                rule_matches =
-                    !strncmp(rule_name, rule->name, packlen + 1);
-            }
-            else {
+                rule_matches = !strncmp(rule_name, rule->name, packlen + 1);
+            } else {
                 /* Exact match */
                 rule_matches = !strcmp(rule_name, rule->name);
             }
@@ -789,7 +773,7 @@ jsgf_import_rule(jsgf_t * jsgf, char *name)
                 E_INFO("Imported %s\n", newname);
                 val = hash_table_enter(jsgf->rules, newname,
                                        jsgf_rule_retain(rule));
-                if (val != (void *) rule) {
+                if (val != (void *)rule) {
                     E_WARN("Multiply defined symbol: %s\n", newname);
                 }
                 if (!import_all) {
@@ -804,7 +788,7 @@ jsgf_import_rule(jsgf_t * jsgf, char *name)
 }
 
 static void
-jsgf_set_search_path(jsgf_t * jsgf, const char *filename)
+jsgf_set_search_path(jsgf_t *jsgf, const char *filename)
 {
     char *jsgf_path;
 
@@ -824,8 +808,7 @@ jsgf_set_search_path(jsgf_t * jsgf, const char *filename)
 #endif
 
     if (!filename) {
-        jsgf->searchpath =
-            glist_add_ptr(jsgf->searchpath, ckd_salloc("."));
+        jsgf->searchpath = glist_add_ptr(jsgf->searchpath, ckd_salloc("."));
         return;
     }
 
@@ -835,7 +818,7 @@ jsgf_set_search_path(jsgf_t * jsgf, const char *filename)
 }
 
 jsgf_t *
-jsgf_parse_file(const char *filename, jsgf_t * parent)
+jsgf_parse_file(const char *filename, jsgf_t *parent)
 {
     yyscan_t yyscanner;
     jsgf_t *jsgf;
@@ -845,8 +828,7 @@ jsgf_parse_file(const char *filename, jsgf_t * parent)
     yylex_init(&yyscanner);
     if (filename == NULL) {
         yyset_in(stdin, yyscanner);
-    }
-    else {
+    } else {
         in = fopen(filename, "r");
         if (in == NULL) {
             E_ERROR_SYSTEM("Failed to open %s for parsing", filename);
@@ -876,7 +858,7 @@ jsgf_parse_file(const char *filename, jsgf_t * parent)
 }
 
 jsgf_t *
-jsgf_parse_string(const char *string, jsgf_t * parent)
+jsgf_parse_string(const char *string, jsgf_t *parent)
 {
     yyscan_t yyscanner;
     jsgf_t *jsgf;

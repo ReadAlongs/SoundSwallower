@@ -113,7 +113,7 @@ alignment_vector_empty(alignment_vector_t *vec)
 
 int
 alignment_add_word(alignment_t *al,
-                      int32 wid, int start, int duration)
+                   int32 wid, int start, int duration)
 {
     alignment_entry_t *ent;
 
@@ -154,7 +154,7 @@ alignment_populate(alignment_t *al)
         int j, rc;
 
         if (i < al->word.n_ent - 1)
-            rc = dict_first_phone(dict, al->word.seq[i+1].id.wid);
+            rc = dict_first_phone(dict, al->word.seq[i + 1].id.wid);
         else
             rc = bin_mdef_silphone(mdef);
 
@@ -414,12 +414,10 @@ alignment_iter_name(alignment_iter_t *itor)
     if (itor->vec == &itor->al->word) {
         return dict_wordstr(itor->al->d2p->dict,
                             ent->id.wid);
-    }
-    else if (itor->vec == &itor->al->sseq) {
+    } else if (itor->vec == &itor->al->sseq) {
         return bin_mdef_ciphone_str(itor->al->d2p->mdef,
                                     ent->id.pid.cipid);
-    }
-    else if (itor->vec == &itor->al->state) {
+    } else if (itor->vec == &itor->al->state) {
         int len = snprintf(NULL, 0, "%u", ent->id.senid);
         if (len == 0) {
             E_ERROR_SYSTEM("snprintf() failed");
@@ -433,8 +431,7 @@ alignment_iter_name(alignment_iter_t *itor)
             return NULL;
         }
         return itor->name;
-    }
-    else
+    } else
         return NULL;
 }
 

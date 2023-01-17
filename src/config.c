@@ -57,14 +57,13 @@
  *        functions into one, eliminated validation, and simplified the interface.
  */
 
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4996 4018)
+#pragma warning(disable : 4996 4018)
 #endif
 
 #include "config.h"
@@ -73,11 +72,11 @@
 #include <unistd.h>
 #endif
 
-#include <soundswallower/configuration.h>
-#include <soundswallower/config_defs.h>
-#include <soundswallower/err.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/case.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/config_defs.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
 #include <soundswallower/strfuncs.h>
 
 #include "jsmn.h"
@@ -92,7 +91,7 @@ static const config_param_t ps_args_def[] = {
  * Return #items in defn array.
  */
 static size_t
-arg_strlen(const config_param_t * defn, size_t * namelen, size_t * deflen)
+arg_strlen(const config_param_t *defn, size_t *namelen, size_t *deflen)
 {
     size_t i, l;
 
@@ -117,18 +116,17 @@ arg_strlen(const config_param_t * defn, size_t * namelen, size_t * deflen)
 static int32
 cmp_name(const void *a, const void *b)
 {
-    return (strcmp_nocase
-            ((* (config_param_t**) a)->name,
-             (* (config_param_t**) b)->name));
+    return (strcmp_nocase((*(config_param_t **)a)->name,
+                          (*(config_param_t **)b)->name));
 }
 
 static config_param_t const **
-arg_sort(const config_param_t * defn, size_t n)
+arg_sort(const config_param_t *defn, size_t n)
 {
-    const config_param_t ** pos;
+    const config_param_t **pos;
     size_t i;
 
-    pos = (config_param_t const **) ckd_calloc(n, sizeof(config_param_t *));
+    pos = (config_param_t const **)ckd_calloc(n, sizeof(config_param_t *));
     for (i = 0; i < n; ++i)
         pos[i] = &defn[i];
     qsort((void *)pos, n, sizeof(config_param_t *), cmp_name);
@@ -137,7 +135,7 @@ arg_sort(const config_param_t * defn, size_t n)
 }
 
 static void
-arg_log_r(config_t *cmdln, const config_param_t * defn, int32 doc, int32 lineno)
+arg_log_r(config_t *cmdln, const config_param_t *defn, int32 doc, int32 lineno)
 {
     config_param_t const **pos;
     size_t i, n;
@@ -159,8 +157,7 @@ arg_log_r(config_t *cmdln, const config_param_t * defn, int32 doc, int32 lineno)
     E_INFOCONT("%-*s", deflen, "[DEFLT]");
     if (doc) {
         E_INFOCONT("     [DESCR]\n");
-    }
-    else {
+    } else {
         E_INFOCONT("    [VALUE]\n");
     }
 
@@ -178,8 +175,7 @@ arg_log_r(config_t *cmdln, const config_param_t * defn, int32 doc, int32 lineno)
         if (doc) {
             if (pos[i]->doc)
                 E_INFOCONT("    %s", pos[i]->doc);
-        }
-        else {
+        } else {
             vp = config_access(cmdln, pos[i]->name);
             if (vp) {
                 switch (pos[i]->type) {
@@ -220,8 +216,7 @@ config_log_help(config_t *cmdln)
         cmdln = config_init(NULL);
         arg_log_r(cmdln, cmdln->defn, TRUE, FALSE);
         config_free(cmdln);
-    }
-    else
+    } else
         arg_log_r(cmdln, cmdln->defn, TRUE, FALSE);
 }
 
@@ -286,10 +281,10 @@ config_init(const config_param_t *defn)
         config_val_t *val;
         if ((val = config_val_init(config->defn[i].type,
                                    config->defn[i].name,
-                                   config->defn[i].deflt)) == NULL) {
-            E_ERROR
-                ("Bad default argument value for %s: %s\n",
-                 config->defn[i].name, config->defn[i].deflt);
+                                   config->defn[i].deflt))
+            == NULL) {
+            E_ERROR("Bad default argument value for %s: %s\n",
+                    config->defn[i].name, config->defn[i].deflt);
             continue;
         }
         hash_table_enter(config->ht, val->name, (void *)val);
@@ -338,7 +333,7 @@ static const char *searches[] = {
     "jsgf",
     "fsg",
 };
-static const int nsearches = sizeof(searches)/sizeof(searches[0]);
+static const int nsearches = sizeof(searches) / sizeof(searches[0]);
 
 int
 config_validate(config_t *config)
@@ -395,31 +390,51 @@ json_error(int err)
 size_t
 unescape(char *out, const char *in, size_t len)
 {
-   char *ptr = out;
-   size_t i;
+    char *ptr = out;
+    size_t i;
 
-   for (i = 0; i < len; ++i) {
-      int c = in[i];
-      if (c == '\\') {
-          switch (in[i+1]) {
-          case '"':  *ptr++ = '"'; i++; break;
-          case '\\': *ptr++ = '\\'; i++; break;
-          case 'b':  *ptr++ = '\b'; i++; break;
-          case 'f':  *ptr++ = '\f'; i++; break;
-          case 'n': *ptr++ = '\n'; i++; break;
-          case 'r': *ptr++ = '\r'; i++; break;
-          case 't': *ptr++ = '\t'; i++; break;
-          default:
-              E_WARN("Unsupported escape sequence \\%c\n", in[i+1]);
-              *ptr++ = c;
-          }
-      }
-      else {
-          *ptr++ = c;
-      }
-   }
-   *ptr = '\0';
-   return ptr - out;
+    for (i = 0; i < len; ++i) {
+        int c = in[i];
+        if (c == '\\') {
+            switch (in[i + 1]) {
+            case '"':
+                *ptr++ = '"';
+                i++;
+                break;
+            case '\\':
+                *ptr++ = '\\';
+                i++;
+                break;
+            case 'b':
+                *ptr++ = '\b';
+                i++;
+                break;
+            case 'f':
+                *ptr++ = '\f';
+                i++;
+                break;
+            case 'n':
+                *ptr++ = '\n';
+                i++;
+                break;
+            case 'r':
+                *ptr++ = '\r';
+                i++;
+                break;
+            case 't':
+                *ptr++ = '\t';
+                i++;
+                break;
+            default:
+                E_WARN("Unsupported escape sequence \\%c\n", in[i + 1]);
+                *ptr++ = c;
+            }
+        } else {
+            *ptr++ = c;
+        }
+    }
+    *ptr = '\0';
+    return ptr - out;
 }
 
 config_t *
@@ -523,73 +538,86 @@ error_out:
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-static size_t measure_string (unsigned int length,
-                              const char *str)
+static size_t
+measure_string(unsigned int length,
+               const char *str)
 {
-   unsigned int i;
-   size_t measured_length = 0;
+    unsigned int i;
+    size_t measured_length = 0;
 
-   for(i = 0; i < length; ++ i)
-   {
-      int c = str[i];
+    for (i = 0; i < length; ++i) {
+        int c = str[i];
 
-      switch (c)
-      {
-      case '"':
-      case '\\':
-      case '\b':
-      case '\f':
-      case '\n':
-      case '\r':
-      case '\t':
+        switch (c) {
+        case '"':
+        case '\\':
+        case '\b':
+        case '\f':
+        case '\n':
+        case '\r':
+        case '\t':
 
-         measured_length += 2;
-         break;
+            measured_length += 2;
+            break;
 
-      default:
+        default:
 
-         ++ measured_length;
-         break;
-      };
-   };
+            ++measured_length;
+            break;
+        };
+    };
 
-   return measured_length;
+    return measured_length;
 }
 
-#define PRINT_ESCAPED(c) do {  \
-   *buf ++ = '\\';             \
-   *buf ++ = (c);              \
-} while(0);                    \
+#define PRINT_ESCAPED(c) \
+    do {                 \
+        *buf++ = '\\';   \
+        *buf++ = (c);    \
+    } while (0);
 
-static size_t serialize_string(char *buf,
-                               unsigned int length,
-                               const char *str)
+static size_t
+serialize_string(char *buf,
+                 unsigned int length,
+                 const char *str)
 {
-   char *orig_buf = buf;
-   unsigned int i;
+    char *orig_buf = buf;
+    unsigned int i;
 
-   for(i = 0; i < length; ++ i)
-   {
-      int c = str [i];
+    for (i = 0; i < length; ++i) {
+        int c = str[i];
 
-      switch (c)
-      {
-      case '"':   PRINT_ESCAPED ('\"');  continue;
-      case '\\':  PRINT_ESCAPED ('\\');  continue;
-      case '\b':  PRINT_ESCAPED ('b');   continue;
-      case '\f':  PRINT_ESCAPED ('f');   continue;
-      case '\n':  PRINT_ESCAPED ('n');   continue;
-      case '\r':  PRINT_ESCAPED ('r');   continue;
-      case '\t':  PRINT_ESCAPED ('t');   continue;
+        switch (c) {
+        case '"':
+            PRINT_ESCAPED('\"');
+            continue;
+        case '\\':
+            PRINT_ESCAPED('\\');
+            continue;
+        case '\b':
+            PRINT_ESCAPED('b');
+            continue;
+        case '\f':
+            PRINT_ESCAPED('f');
+            continue;
+        case '\n':
+            PRINT_ESCAPED('n');
+            continue;
+        case '\r':
+            PRINT_ESCAPED('r');
+            continue;
+        case '\t':
+            PRINT_ESCAPED('t');
+            continue;
 
-      default:
+        default:
 
-         *buf ++ = c;
-         break;
-      };
-   };
+            *buf++ = c;
+            break;
+        };
+    };
 
-   return buf - orig_buf;
+    return buf - orig_buf;
 }
 /* End code from json-builder */
 
@@ -608,8 +636,7 @@ serialize_key(char *ptr, int maxlen, const char *key)
         slen = serialize_string(ptr, strlen(key), key);
         ptr += slen;
         maxlen -= slen;
-    }
-    else {
+    } else {
         slen = measure_string(strlen(key), key);
     }
     len += slen;
@@ -639,8 +666,7 @@ serialize_value(char *ptr, int maxlen, const char *val)
         slen = serialize_string(ptr, strlen(val), val);
         ptr += slen;
         maxlen -= slen;
-    }
-    else {
+    } else {
         slen = measure_string(strlen(val), val);
     }
     len += slen;
@@ -685,25 +711,25 @@ build_json(config_t *config, char *json, int len)
         }
         if (cval->type & ARG_STRING) {
             if ((l = serialize_value(ptr, len,
-                                     (char *)cval->val.ptr)) < 0)
+                                     (char *)cval->val.ptr))
+                < 0)
                 return -1;
-        }
-        else if (cval->type & ARG_INTEGER) {
+        } else if (cval->type & ARG_INTEGER) {
             if ((l = snprintf(ptr, len, "%ld,\n",
-                              cval->val.i)) < 0)
+                              cval->val.i))
+                < 0)
                 return -1;
-        }
-        else if (cval->type & ARG_BOOLEAN) {
+        } else if (cval->type & ARG_BOOLEAN) {
             if ((l = snprintf(ptr, len, "%s,\n",
-                              cval->val.i ? "true" : "false")) < 0)
+                              cval->val.i ? "true" : "false"))
+                < 0)
                 return -1;
-        }
-        else if (cval->type & ARG_FLOATING) {
+        } else if (cval->type & ARG_FLOATING) {
             if ((l = snprintf(ptr, len, "%g,\n",
-                              cval->val.fl)) < 0)
+                              cval->val.fl))
+                < 0)
                 return -1;
-        }
-        else {
+        } else {
             E_ERROR("Unknown type %d for parameter %s\n",
                     cval->type, key);
         }
@@ -845,8 +871,7 @@ config_set(config_t *config, const char *name, const anytype_t *val, config_type
     if (val == NULL) {
         /* Restore default parameter */
         return config_unset(config, name);
-    }
-    else if (t & ARG_STRING)
+    } else if (t & ARG_STRING)
         return config_set_str(config, name, val->ptr);
     else if (t & ARG_INTEGER)
         return config_set_int(config, name, val->i);
@@ -885,16 +910,11 @@ anytype_from_str(anytype_t *val, int t, const char *str)
         break;
     case ARG_BOOLEAN:
     case REQARG_BOOLEAN:
-        if ((str[0] == 'y') || (str[0] == 't') ||
-            (str[0] == 'Y') || (str[0] == 'T') || (str[0] == '1')) {
+        if ((str[0] == 'y') || (str[0] == 't') || (str[0] == 'Y') || (str[0] == 'T') || (str[0] == '1')) {
             val->i = TRUE;
-        }
-        else if ((str[0] == 'n') || (str[0] == 'f') ||
-                 (str[0] == 'N') || (str[0] == 'F') |
-                 (str[0] == '0')) {
+        } else if ((str[0] == 'n') || (str[0] == 'f') || (str[0] == 'N') || (str[0] == 'F') | (str[0] == '0')) {
             val->i = FALSE;
-        }
-        else {
+        } else {
             E_ERROR("Unparsed boolean value '%s'\n", str);
             return NULL;
         }

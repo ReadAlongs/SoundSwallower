@@ -66,7 +66,6 @@
  * 		Created from earlier Sphinx-3 version.
  */
 
-
 #ifndef _LIBUTIL_PROFILE_H_
 #define _LIBUTIL_PROFILE_H_
 
@@ -88,7 +87,6 @@ extern "C" {
 
 #include <soundswallower/prim_type.h>
 
-
 /**
  * \struct pctr_t
  *
@@ -96,10 +94,10 @@ extern "C" {
  * of the desired number.  There should be a sentinel with name = NULL.
  */
 typedef struct {
-	char *name;		/**< Counter print name; NULL
-				   terminates array of counters
-				   Used by pctr_print_all */
-	int32 count;		/**< Counter value */
+    char *name; /**< Counter print name; NULL
+                   terminates array of counters
+                   Used by pctr_print_all */
+    int32 count; /**< Counter value */
 } pctr_t;
 
 /**
@@ -110,31 +108,29 @@ typedef struct {
  * Initialize a counter
  * @return an initialized counter
  */
-pctr_t* pctr_new (
-	char *name   /**< The name of the counter */
-	);
+pctr_t *pctr_new(
+    char *name /**< The name of the counter */
+);
 
 /**
  * Reset a counter
  */
 
-void pctr_reset (pctr_t *ctr  /**< A pointer of a counter */
-	);
-
+void pctr_reset(pctr_t *ctr /**< A pointer of a counter */
+);
 
 /**
  * Increment a counter
  */
-void pctr_increment (pctr_t *ctr, /**< A pointer of a counter */
-		     int32 inc   /**< The increment of the counter */
-	);
+void pctr_increment(pctr_t *ctr, /**< A pointer of a counter */
+                    int32 inc /**< The increment of the counter */
+);
 
 /**
    Free the counter
 */
-void pctr_free(pctr_t* ctr /**< A pointer of a counter */
-	);
-
+void pctr_free(pctr_t *ctr /**< A pointer of a counter */
+);
 
 /**
  * \struct ptmr_t
@@ -142,42 +138,39 @@ void pctr_free(pctr_t* ctr /**< A pointer of a counter */
  * using standard system calls.
  */
 typedef struct {
-	const char *name;		/**< Timer print name; NULL terminates an array of timers.
-					   Used by ptmr_print_all */
-	float64 t_cpu;		/**< CPU time accumulated since most recent reset op */
-	float64 t_elapsed;		/**< Elapsed time accumulated since most recent reset */
-	float64 t_tot_cpu;		/**< Total CPU time since creation */
-	float64 t_tot_elapsed;	/**< Total elapsed time since creation */
-	float64 start_cpu;		/**< ---- FOR INTERNAL USE ONLY ---- */
-	float64 start_elapsed;	/**< ---- FOR INTERNAL USE ONLY ---- */
+    const char *name; /**< Timer print name; NULL terminates an array of timers.
+                         Used by ptmr_print_all */
+    float64 t_cpu; /**< CPU time accumulated since most recent reset op */
+    float64 t_elapsed; /**< Elapsed time accumulated since most recent reset */
+    float64 t_tot_cpu; /**< Total CPU time since creation */
+    float64 t_tot_elapsed; /**< Total elapsed time since creation */
+    float64 start_cpu; /**< ---- FOR INTERNAL USE ONLY ---- */
+    float64 start_elapsed; /**< ---- FOR INTERNAL USE ONLY ---- */
 } ptmr_t;
 
-
-
 /** Start timing using tmr */
-void ptmr_start (ptmr_t *tmr /**< The timer*/
-	);
+void ptmr_start(ptmr_t *tmr /**< The timer*/
+);
 
 /** Stop timing and accumulate tmr->{t_cpu, t_elapsed, t_tot_cpu, t_tot_elapsed} */
-void ptmr_stop (ptmr_t *tmr  /**< The timer*/
-	);
+void ptmr_stop(ptmr_t *tmr /**< The timer*/
+);
 
 /** Reset tmr->{t_cpu, t_elapsed} to 0.0 */
-void ptmr_reset (ptmr_t *tmr  /**< The timer*/
-	);
+void ptmr_reset(ptmr_t *tmr /**< The timer*/
+);
 
 /** Reset tmr->{t_cpu, t_elapsed, t_tot_cpu, t_tot_elapsed} to 0.0
  */
-void ptmr_init (ptmr_t *tmr /**< The timer*/
-	);
-
+void ptmr_init(ptmr_t *tmr /**< The timer*/
+);
 
 /**
  * Reset t_cpu, t_elapsed of all timer modules in array tmr[] to 0.0.
  * The array should be terminated with a sentinel with .name = NULL.
  */
-void ptmr_reset_all (ptmr_t *tmr /**< The timer*/
-	);
+void ptmr_reset_all(ptmr_t *tmr /**< The timer*/
+);
 
 #ifdef __cplusplus
 }

@@ -40,8 +40,8 @@
 
 #include <string.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/prim_type.h>
 
 /**
  * @file bitvec.h
@@ -64,23 +64,23 @@ typedef uint32 bitvec_t;
 /**
  * Number of bitvec_t in a bit vector
  */
-#define bitvec_size(n)	        (((n)+BITVEC_BITS-1)/BITVEC_BITS)
+#define bitvec_size(n) (((n) + BITVEC_BITS - 1) / BITVEC_BITS)
 
 /**
  * Allocate a bit vector, all bits are clear
  */
-#define bitvec_alloc(n)		ckd_calloc(bitvec_size(n), sizeof(bitvec_t))
+#define bitvec_alloc(n) ckd_calloc(bitvec_size(n), sizeof(bitvec_t))
 
 /**
  * Resize a bit vector, clear the remaining bits
  */
-bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
-			 size_t old_len, /* In: Old length */
+bitvec_t *bitvec_realloc(bitvec_t *vec, /* In: Bit vector to search */
+                         size_t old_len, /* In: Old length */
                          size_t new_len); /* In: New lenght of above bit vector */
 /**
  * Free a bit vector.
  */
-#define bitvec_free(v)		ckd_free(v)
+#define bitvec_free(v) ckd_free(v)
 
 /**
  * Set the b-th bit of bit vector v
@@ -88,7 +88,7 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param b is the bit which will be set
  */
 
-#define bitvec_set(v,b)		(v[(b)/BITVEC_BITS] |= (1UL << ((b) & (BITVEC_BITS-1))))
+#define bitvec_set(v, b) (v[(b) / BITVEC_BITS] |= (1UL << ((b) & (BITVEC_BITS - 1))))
 
 /**
  * Set all n bits in bit vector v
@@ -96,16 +96,15 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param n is the number of bits
  */
 
-#define bitvec_set_all(v,n)	memset(v, (bitvec_t)-1, \
-                                       (((n)+BITVEC_BITS-1)/BITVEC_BITS) * \
-                                       sizeof(bitvec_t))
+#define bitvec_set_all(v, n) memset(v, (bitvec_t)-1, \
+                                    (((n) + BITVEC_BITS - 1) / BITVEC_BITS) * sizeof(bitvec_t))
 /**
  * Clear the b-th bit of bit vector v
  * @param v is a vector
  * @param b is the bit which will be set
  */
 
-#define bitvec_clear(v,b)	(v[(b)/BITVEC_BITS] &= ~(1UL << ((b) & (BITVEC_BITS-1))))
+#define bitvec_clear(v, b) (v[(b) / BITVEC_BITS] &= ~(1UL << ((b) & (BITVEC_BITS - 1))))
 
 /**
  * Clear all n bits in bit vector v
@@ -113,8 +112,7 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param n is the number of bits
  */
 
-#define bitvec_clear_all(v,n)	memset(v, 0, (((n)+BITVEC_BITS-1)/BITVEC_BITS) * \
-                                       sizeof(bitvec_t))
+#define bitvec_clear_all(v, n) memset(v, 0, (((n) + BITVEC_BITS - 1) / BITVEC_BITS) * sizeof(bitvec_t))
 
 /**
  * Check whether the b-th bit is set in vector v
@@ -122,7 +120,7 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param b is the bit which will be checked
  */
 
-#define bitvec_is_set(v,b)	(v[(b)/BITVEC_BITS] & (1UL << ((b) & (BITVEC_BITS-1))))
+#define bitvec_is_set(v, b) (v[(b) / BITVEC_BITS] & (1UL << ((b) & (BITVEC_BITS - 1))))
 
 /**
  * Check whether the b-th bit is cleared in vector v
@@ -130,8 +128,7 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param b is the bit which will be checked
  */
 
-#define bitvec_is_clear(v,b)	(! (bitvec_is_set(v,b)))
-
+#define bitvec_is_clear(v, b) (!(bitvec_is_set(v, b)))
 
 /**
  * Return the number of bits set in the given bitvector.
@@ -140,8 +137,8 @@ bitvec_t *bitvec_realloc(bitvec_t *vec,	/* In: Bit vector to search */
  * @param len is the length of bit vector <code>vec</code>
  * @return the number of bits being set in vector <code>vec</code>
  */
-size_t bitvec_count_set(bitvec_t *vec,	/* In: Bit vector to search */
-                        size_t len);	/* In: Lenght of above bit vector */
+size_t bitvec_count_set(bitvec_t *vec, /* In: Bit vector to search */
+                        size_t len); /* In: Lenght of above bit vector */
 
 #ifdef __cplusplus
 }

@@ -39,7 +39,6 @@
 
 #include <soundswallower/fe.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -72,6 +71,5 @@ fe_warp_inverse_linear_print(const char *label);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* FE_WARP_inverse_linear_H */

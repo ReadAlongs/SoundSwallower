@@ -36,14 +36,14 @@
  */
 
 /* System headers. */
-#include <string.h>
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <soundswallower/ms_senone.h>
 
-#define MIXW_PARAM_VERSION	"1.0"
-#define SPDEF_PARAM_VERSION	"1.2"
+#define MIXW_PARAM_VERSION "1.0"
+#define SPDEF_PARAM_VERSION "1.2"
 
 static int
 senone_mgau_map_read(senone_t *s, s3file_t *s3f)
@@ -70,8 +70,7 @@ senone_mgau_map_read(senone_t *s, s3file_t *s3f)
     /* Read #gauden (if version matches) */
     if (n_gauden_present) {
         E_INFO("Reading number of codebooks\n");
-        if (s3file_get
-            (&(s->n_gauden), sizeof(int32), 1, s3f) != 1)
+        if (s3file_get(&(s->n_gauden), sizeof(int32), 1, s3f) != 1)
             E_ERROR("read (#gauden) failed\n");
         return -1;
     }
@@ -101,7 +100,6 @@ senone_mgau_map_read(senone_t *s, s3file_t *s3f)
     return 0;
 }
 
-
 static int
 senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
 {
@@ -113,11 +111,9 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
         return -1;
 
     /* Read #senones, #features, #codewords, arraysize */
-    if ((s3file_get(&(s->n_sen), sizeof(int32), 1, s3f) !=
-         1)
-        ||
-        (s3file_get(&(s->n_feat), sizeof(int32), 1, s3f)
-         != 1)
+    if ((s3file_get(&(s->n_sen), sizeof(int32), 1, s3f) != 1)
+        || (s3file_get(&(s->n_feat), sizeof(int32), 1, s3f)
+            != 1)
         || (s3file_get(&(s->n_cw), sizeof(int32), 1, s3f)
             != 1)
         || (s3file_get(&i, sizeof(int32), 1, s3f) != 1)) {
@@ -125,9 +121,8 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
         return -1;
     }
     if ((uint32)i != s->n_sen * s->n_feat * s->n_cw) {
-        E_ERROR
-            ("#float32s(%d) doesn't match dimensions: %d x %d x %d\n",
-             i, s->n_sen, s->n_feat, s->n_cw);
+        E_ERROR("#float32s(%d) doesn't match dimensions: %d x %d x %d\n",
+                i, s->n_sen, s->n_feat, s->n_cw);
         return -1;
     }
 
@@ -148,27 +143,23 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
      * s->n_gauden.
      */
     if (s->n_gauden > 1) {
-	E_INFO("Not transposing mixture weights in memory\n");
-        s->pdf =
-            (senprob_t ***) ckd_calloc_3d(s->n_sen, s->n_feat, s->n_cw,
-                                          sizeof(senprob_t));
-    }
-    else {
-	E_INFO("Transposing mixture weights in memory\n");
-        s->pdf =
-            (senprob_t ***) ckd_calloc_3d(s->n_feat, s->n_cw, s->n_sen,
-                                          sizeof(senprob_t));
+        E_INFO("Not transposing mixture weights in memory\n");
+        s->pdf = (senprob_t ***)ckd_calloc_3d(s->n_sen, s->n_feat, s->n_cw,
+                                              sizeof(senprob_t));
+    } else {
+        E_INFO("Transposing mixture weights in memory\n");
+        s->pdf = (senprob_t ***)ckd_calloc_3d(s->n_feat, s->n_cw, s->n_sen,
+                                              sizeof(senprob_t));
     }
 
     /* Temporary structure to read in floats */
-    pdf = (float32 *) ckd_calloc(s->n_cw, sizeof(float32));
+    pdf = (float32 *)ckd_calloc(s->n_cw, sizeof(float32));
 
     /* Read senone probs data, normalize, floor, convert to logs3, truncate to 8 bits */
     n_err = 0;
     for (i = 0; (uint32)i < s->n_sen; i++) {
         for (f = 0; (uint32)f < s->n_feat; f++) {
-            if (s3file_get
-                ((void *) pdf, sizeof(float32), s->n_cw, s3f)
+            if (s3file_get((void *)pdf, sizeof(float32), s->n_cw, s3f)
                 != (size_t)s->n_cw) {
                 E_ERROR("s3file_get (arraydata) failed\n");
                 return -1;
@@ -186,11 +177,9 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
                 p += (1 << (SENSCR_SHIFT - 1)) - 1; /* Rounding before truncation */
 
                 if (s->n_gauden > 1)
-                    s->pdf[i][f][c] =
-                        (p < (255 << SENSCR_SHIFT)) ? (p >> SENSCR_SHIFT) : 255;
+                    s->pdf[i][f][c] = (p < (255 << SENSCR_SHIFT)) ? (p >> SENSCR_SHIFT) : 255;
                 else
-                    s->pdf[f][c][i] =
-                        (p < (255 << SENSCR_SHIFT)) ? (p >> SENSCR_SHIFT) : 255;
+                    s->pdf[f][c][i] = (p < (255 << SENSCR_SHIFT)) ? (p >> SENSCR_SHIFT) : 255;
             }
         }
     }
@@ -198,17 +187,15 @@ senone_mixw_read(senone_t *s, s3file_t *s3f, logmath_t *lmath)
         E_WARN("Weight normalization failed for %d mixture weights components\n", n_err);
     if (s3file_verify_chksum(s3f) < 0)
         goto error_out;
-    E_INFO
-        ("Read mixture weights for %d senones: %d features x %d codewords\n",
-         s->n_sen, s->n_feat, s->n_cw);
+    E_INFO("Read mixture weights for %d senones: %d features x %d codewords\n",
+           s->n_sen, s->n_feat, s->n_cw);
     return 0;
 
- error_out:
+error_out:
     if (pdf)
         ckd_free(pdf);
     return -1;
 }
-
 
 senone_t *
 senone_init_s3file(gauden_t *g,
@@ -221,7 +208,7 @@ senone_init_s3file(gauden_t *g,
     senone_t *s;
     int32 i;
 
-    s = (senone_t *) ckd_calloc(1, sizeof(senone_t));
+    s = (senone_t *)ckd_calloc(1, sizeof(senone_t));
     s->lmath = logmath_init(logmath_get_base(lmath), SENSCR_SHIFT, TRUE);
     s->mixwfloor = mixwfloor;
 
@@ -236,28 +223,26 @@ senone_init_s3file(gauden_t *g,
         goto error_out;
 
     if (!mgau_mapfile) {
-	if (s->n_gauden == 1) {
-	    /* sen2mgau_map_file = ".semi."; */
+        if (s->n_gauden == 1) {
+            /* sen2mgau_map_file = ".semi."; */
             /* All-to-1 senones-codebook mapping */
             E_INFO("Mapping all senones to one codebook\n");
-            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
-        }
-	else if (s->n_gauden == (uint32)bin_mdef_n_ciphone(mdef)) {
-	    /* sen2mgau_map_file = ".ptm."; */
+            s->mgau = (uint32 *)ckd_calloc(s->n_sen, sizeof(*s->mgau));
+        } else if (s->n_gauden == (uint32)bin_mdef_n_ciphone(mdef)) {
+            /* sen2mgau_map_file = ".ptm."; */
             /* All-to-ciphone-id senones-codebook mapping */
             E_INFO("Mapping senones to context-independent phone codebooks\n");
-            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
+            s->mgau = (uint32 *)ckd_calloc(s->n_sen, sizeof(*s->mgau));
             for (i = 0; (uint32)i < s->n_sen; i++)
                 s->mgau[i] = bin_mdef_sen2cimap(mdef, i);
-        }
-	else {
-	    /* sen2mgau_map_file = ".cont."; */
+        } else {
+            /* sen2mgau_map_file = ".cont."; */
             /* 1-to-1 senone-codebook mapping */
             E_INFO("Mapping senones to individual codebooks\n");
             if (s->n_sen <= 1)
                 E_FATAL("#senone=%d; must be >1\n", s->n_sen);
 
-            s->mgau = (uint32 *) ckd_calloc(s->n_sen, sizeof(*s->mgau));
+            s->mgau = (uint32 *)ckd_calloc(s->n_sen, sizeof(*s->mgau));
             for (i = 0; (uint32)i < s->n_sen; i++)
                 s->mgau[i] = i;
             /* Not sure why this is here, it probably does nothing. */
@@ -268,23 +253,23 @@ senone_init_s3file(gauden_t *g,
     s->featscr = NULL;
     return s;
 
- error_out:
+error_out:
     senone_free(s);
     return NULL;
 }
 
 senone_t *
 senone_init(gauden_t *g, const char *mixwfile, const char *sen2mgau_map_file,
-	    float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
+            float32 mixwfloor, logmath_t *lmath, bin_mdef_t *mdef)
 {
     s3file_t *senmgau = NULL;
     s3file_t *mixw = NULL;
     senone_t *s = NULL;
 
     if (sen2mgau_map_file) {
- 	if (!(strcmp(sen2mgau_map_file, ".semi.") == 0
-	      || strcmp(sen2mgau_map_file, ".ptm.") == 0
-	      || strcmp(sen2mgau_map_file, ".cont.") == 0)) {
+        if (!(strcmp(sen2mgau_map_file, ".semi.") == 0
+              || strcmp(sen2mgau_map_file, ".ptm.") == 0
+              || strcmp(sen2mgau_map_file, ".cont.") == 0)) {
             E_INFO("Reading senone to gmm mapping: %s\n", sen2mgau_map_file);
             if ((senmgau = s3file_map_file(sen2mgau_map_file)) == NULL) {
                 E_ERROR_SYSTEM("Failed to open senmgau '%s' for reading",
@@ -300,19 +285,19 @@ senone_init(gauden_t *g, const char *mixwfile, const char *sen2mgau_map_file,
         goto error_out;
     }
     s = senone_init_s3file(g, mixw, senmgau, mixwfloor, lmath, mdef);
- error_out:
+error_out:
     s3file_free(senmgau);
     s3file_free(mixw);
     return s;
 }
 
 void
-senone_free(senone_t * s)
+senone_free(senone_t *s)
 {
     if (s == NULL)
         return;
     if (s->pdf)
-        ckd_free_3d((void *) s->pdf);
+        ckd_free_3d((void *)s->pdf);
     if (s->mgau)
         ckd_free(s->mgau);
     if (s->featscr)
@@ -321,19 +306,18 @@ senone_free(senone_t * s)
     ckd_free(s);
 }
 
-
 /*
  * Compute senone score for one senone.
  * NOTE:  Remember that senone PDF tables contain SCALED, NEGATED logs3 values.
  * NOTE:  Remember also that PDF data may be transposed or not depending on s->n_gauden.
  */
 int32
-senone_eval(senone_t * s, int id, gauden_dist_t ** dist, int32 n_top)
+senone_eval(senone_t *s, int id, gauden_dist_t **dist, int32 n_top)
 {
-    int32 scr;                  /* total senone score */
-    int32 fden;                 /* Gaussian density */
-    int32 fscr;                 /* senone score for one feature */
-    int32 fwscr;                /* senone score for one feature, one codeword */
+    int32 scr; /* total senone score */
+    int32 fden; /* Gaussian density */
+    int32 fscr; /* senone score for one feature */
+    int32 fwscr; /* senone score for one feature, one codeword */
     int32 f, t;
     gauden_dist_t *fdist;
 
@@ -348,24 +332,22 @@ senone_eval(senone_t * s, int id, gauden_dist_t ** dist, int32 n_top)
         if (fdist[0].dist < (mfcc_t)MAX_NEG_INT32)
             fden = MAX_NEG_INT32 >> SENSCR_SHIFT;
         else
-            fden = ((int32)fdist[0].dist + ((1<<SENSCR_SHIFT) - 1)) >> SENSCR_SHIFT;
+            fden = ((int32)fdist[0].dist + ((1 << SENSCR_SHIFT) - 1)) >> SENSCR_SHIFT;
         fscr = (s->n_gauden > 1)
-	    ? (fden + -s->pdf[id][f][fdist[0].id])  /* untransposed */
-	    : (fden + -s->pdf[f][fdist[0].id][id]); /* transposed */
+            ? (fden + -s->pdf[id][f][fdist[0].id]) /* untransposed */
+            : (fden + -s->pdf[f][fdist[0].id][id]); /* transposed */
         /* Remaining of n_top codewords for feature f */
         for (t = 1; t < n_top; t++) {
             if (fdist[t].dist < (mfcc_t)MAX_NEG_INT32)
                 fden = MAX_NEG_INT32 >> SENSCR_SHIFT;
             else
-                fden = ((int32)fdist[t].dist + ((1<<SENSCR_SHIFT) - 1)) >> SENSCR_SHIFT;
+                fden = ((int32)fdist[t].dist + ((1 << SENSCR_SHIFT) - 1)) >> SENSCR_SHIFT;
 
-            fwscr = (s->n_gauden > 1) ?
-                (fden + -s->pdf[id][f][fdist[t].id]) :
-                (fden + -s->pdf[f][fdist[t].id][id]);
+            fwscr = (s->n_gauden > 1) ? (fden + -s->pdf[id][f][fdist[t].id]) : (fden + -s->pdf[f][fdist[t].id][id]);
             fscr = logmath_add(s->lmath, fscr, fwscr);
         }
-	/* Senone scores are also scaled, negated logs3 values.  Hence
-	 * we have to negate the stuff we calculated above. */
+        /* Senone scores are also scaled, negated logs3 values.  Hence
+         * we have to negate the stuff we calculated above. */
         scr -= fscr;
     }
     /* Downscale scores. */
@@ -373,8 +355,8 @@ senone_eval(senone_t * s, int id, gauden_dist_t ** dist, int32 n_top)
 
     /* Avoid overflowing int16 */
     if (scr > 32767)
-      scr = 32767;
+        scr = 32767;
     if (scr < -32768)
-      scr = -32768;
+        scr = -32768;
     return scr;
 }

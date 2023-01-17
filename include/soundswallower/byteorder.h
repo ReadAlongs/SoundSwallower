@@ -59,28 +59,37 @@
  */
 
 #ifndef __S2_BYTEORDER_H__
-#define __S2_BYTEORDER_H__	1
+#define __S2_BYTEORDER_H__ 1
 
 /* Macro to byteswap an int16 variable.  x = ptr to variable */
-#define SWAP_INT16(x)	*(x) = ((0x00ff & (*(x))>>8) | (0xff00 & (*(x))<<8))
+#define SWAP_INT16(x) *(x) = ((0x00ff & (*(x)) >> 8) | (0xff00 & (*(x)) << 8))
 
 /* Macro to byteswap an int32 variable.  x = ptr to variable */
-#define SWAP_INT32(x)	*(x) = ((0x000000ff & (*(x))>>24) | \
-				(0x0000ff00 & (*(x))>>8) | \
-				(0x00ff0000 & (*(x))<<8) | \
-				(0xff000000 & (*(x))<<24))
+#define SWAP_INT32(x) *(x) = ((0x000000ff & (*(x)) >> 24) | (0x0000ff00 & (*(x)) >> 8) | (0x00ff0000 & (*(x)) << 8) | (0xff000000 & (*(x)) << 24))
 
 /* Macro to byteswap a float32 variable.  x = ptr to variable */
-#define SWAP_FLOAT32(x)	{ uint8 tmp, *ux = (uint8 *)x;    \
-    tmp = ux[3]; ux[3] = ux[0]; ux[0] = tmp; \
-    tmp = ux[2]; ux[2] = ux[1]; ux[1] = tmp; \
-}
+#define SWAP_FLOAT32(x)              \
+    {                                \
+        uint8 tmp, *ux = (uint8 *)x; \
+        tmp = ux[3];                 \
+        ux[3] = ux[0];               \
+        ux[0] = tmp;                 \
+        tmp = ux[2];                 \
+        ux[2] = ux[1];               \
+        ux[1] = tmp;                 \
+    }
 
 /* Macro to byteswap a float64 variable.  x = ptr to variable */
-#define SWAP_FLOAT64(x)	{ int32 *low = (int32 *) (x), *high = (int32 *) (x) + 1,\
-			      temp;\
-			  SWAP_INT32(low);  SWAP_INT32(high);\
-			  temp = *low; *low = *high; *high = temp;}
+#define SWAP_FLOAT64(x)                                      \
+    {                                                        \
+        int32 *low = (int32 *)(x), *high = (int32 *)(x) + 1, \
+              temp;                                          \
+        SWAP_INT32(low);                                     \
+        SWAP_INT32(high);                                    \
+        temp = *low;                                         \
+        *low = *high;                                        \
+        *high = temp;                                        \
+    }
 
 #if WORDS_BIGENDIAN
 #define SWAP_BE_64(x)

@@ -55,24 +55,24 @@
 
 /* static char rcsid[] = "@(#)$Id: fe_warp_piecewise_linear.c,v 1.2 2006/02/17 00:31:34 egouvea Exp $"; */
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4996)
+#pragma warning(disable : 4996)
 #endif
 
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
+#include <soundswallower/strfuncs.h>
 
 #include <soundswallower/fe_warp.h>
 #include <soundswallower/fe_warp_piecewise_linear.h>
 
-#define N_PARAM		2
-#define YES             1
-#define NO              0
+#define N_PARAM 2
+#define YES 1
+#define NO 0
 
 /*
  * params[0] : a
@@ -83,7 +83,6 @@ static float final_piece[2];
 static int32 is_neutral = YES;
 static char p_str[256] = "";
 static float nyquist_frequency = 0.0f;
-
 
 const char *
 fe_warp_piecewise_linear_doc()
@@ -129,16 +128,15 @@ fe_warp_piecewise_linear_set_parameters(const char *param_str,
     /* FIXME: strtok() is not re-entrant... */
     tok = strtok(temp_param_str, seps);
     while (tok != NULL) {
-        params[param_index++] = (float) atof(tok);
+        params[param_index++] = (float)atof(tok);
         tok = strtok(NULL, seps);
         if (param_index >= N_PARAM) {
             break;
         }
     }
     if (tok != NULL) {
-        E_INFO
-            ("Piecewise linear warping takes up to two arguments, %s ignored.\n",
-             tok);
+        E_INFO("Piecewise linear warping takes up to two arguments, %s ignored.\n",
+               tok);
     }
     if (params[1] < sampling_rate) {
         /* Precompute these. These are the coefficients of a
@@ -149,21 +147,14 @@ fe_warp_piecewise_linear_set_parameters(const char *param_str,
         if (params[1] == 0) {
             params[1] = sampling_rate * 0.85f;
         }
-        final_piece[0] =
-            (nyquist_frequency -
-             params[0] * params[1]) / (nyquist_frequency - params[1]);
-        final_piece[1] =
-            nyquist_frequency * params[1] * (params[0] -
-                                         1.0f) / (nyquist_frequency -
-                                                  params[1]);
-    }
-    else {
+        final_piece[0] = (nyquist_frequency - params[0] * params[1]) / (nyquist_frequency - params[1]);
+        final_piece[1] = nyquist_frequency * params[1] * (params[0] - 1.0f) / (nyquist_frequency - params[1]);
+    } else {
         memset(final_piece, 0, 2 * sizeof(float));
     }
     if (params[0] == 0) {
         is_neutral = YES;
-        E_INFO
-            ("Piecewise linear warping cannot have slope zero, warping not applied.\n");
+        E_INFO("Piecewise linear warping cannot have slope zero, warping not applied.\n");
     }
 }
 
@@ -172,21 +163,18 @@ fe_warp_piecewise_linear_warped_to_unwarped(float nonlinear)
 {
     if (is_neutral) {
         return nonlinear;
-    }
-    else {
+    } else {
         /* linear = (nonlinear - b) / a */
         float temp;
         if (nonlinear < params[0] * params[1]) {
             temp = nonlinear / params[0];
-        }
-        else {
+        } else {
             temp = nonlinear - final_piece[1];
             temp /= final_piece[0];
         }
         if (temp > nyquist_frequency) {
-            E_WARN
-                ("Warp factor %g results in frequency (%.1f) higher than Nyquist (%.1f)\n",
-                 params[0], temp, nyquist_frequency);
+            E_WARN("Warp factor %g results in frequency (%.1f) higher than Nyquist (%.1f)\n",
+                   params[0], temp, nyquist_frequency);
         }
         return temp;
     }
@@ -197,14 +185,12 @@ fe_warp_piecewise_linear_unwarped_to_warped(float linear)
 {
     if (is_neutral) {
         return linear;
-    }
-    else {
+    } else {
         float temp;
         /* nonlinear = a * linear - b */
         if (linear < params[1]) {
             temp = linear * params[0];
-        }
-        else {
+        } else {
             temp = final_piece[0] * linear + final_piece[1];
         }
         return temp;

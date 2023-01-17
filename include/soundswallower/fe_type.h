@@ -42,6 +42,8 @@
 typedef float64 frame_t;
 typedef float64 powspec_t;
 typedef float64 window_t;
-typedef struct { float64 r, i; } complex;
+typedef struct {
+    float64 r, i;
+} complex;
 
 #endif /* FE_TYPE_H */

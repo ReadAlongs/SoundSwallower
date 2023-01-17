@@ -57,12 +57,11 @@
  * 		Started.
  */
 
-
 #include <soundswallower/bitvec.h>
 
 bitvec_t *
 bitvec_realloc(bitvec_t *vec,
-	       size_t old_len,
+               size_t old_len,
                size_t new_len)
 {
     bitvec_t *new_vec;
@@ -71,7 +70,7 @@ bitvec_realloc(bitvec_t *vec,
 
     new_vec = ckd_realloc(vec, new_size * sizeof(bitvec_t));
     if (new_size > old_size)
-	memset(new_vec + old_size, 0, (new_size - old_size) * sizeof(bitvec_t));
+        memset(new_vec + old_size, 0, (new_size - old_size) * sizeof(bitvec_t));
 
     return new_vec;
 }
@@ -90,11 +89,11 @@ bitvec_count_set(bitvec_t *vec, size_t len)
         if (*v == 0)
             continue;
         for (b = 0; b < BITVEC_BITS; ++b)
-            if (*v & (1<<b))
+            if (*v & (1 << b))
                 ++n;
     }
     for (b = 0; b < bits; ++b)
-        if (*v & (1<<b))
+        if (*v & (1 << b))
             ++n;
 
     return n;

@@ -44,15 +44,13 @@
 #include "config.h"
 #include <assert.h>
 
-#include <soundswallower/prim_type.h>
-#include <soundswallower/err.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/blkarray_list.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/prim_type.h>
 
-
-#define BLKARRAY_DEFAULT_MAXBLKS	16380
-#define BLKARRAY_DEFAULT_BLKSIZE	16380
-
+#define BLKARRAY_DEFAULT_MAXBLKS 16380
+#define BLKARRAY_DEFAULT_BLKSIZE 16380
 
 blkarray_list_t *
 _blkarray_list_init(int32 maxblks, int32 blksize)
@@ -64,17 +62,16 @@ _blkarray_list_init(int32 maxblks, int32 blksize)
         return NULL;
     }
 
-    bl = (blkarray_list_t *) ckd_calloc(1, sizeof(blkarray_list_t));
-    bl->ptr = (void ***) ckd_calloc(maxblks, sizeof(void **));
+    bl = (blkarray_list_t *)ckd_calloc(1, sizeof(blkarray_list_t));
+    bl->ptr = (void ***)ckd_calloc(maxblks, sizeof(void **));
     bl->maxblks = maxblks;
     bl->blksize = blksize;
     bl->n_valid = 0;
-    bl->cur_row = -1;           /* No row is allocated (dummy) */
+    bl->cur_row = -1; /* No row is allocated (dummy) */
     bl->cur_row_free = blksize; /* The dummy row is full */
 
     return bl;
 }
-
 
 blkarray_list_t *
 blkarray_list_init(void)
@@ -91,9 +88,8 @@ blkarray_list_free(blkarray_list_t *bl)
     ckd_free(bl);
 }
 
-
 int32
-blkarray_list_append(blkarray_list_t * bl, void *data)
+blkarray_list_append(blkarray_list_t *bl, void *data)
 {
     int32 id;
 
@@ -112,8 +108,7 @@ blkarray_list_append(blkarray_list_t * bl, void *data)
 
         /* Allocate the new row */
         assert(bl->ptr[bl->cur_row] == NULL);
-        bl->ptr[bl->cur_row] = (void **) ckd_malloc(bl->blksize *
-                                                    sizeof(void *));
+        bl->ptr[bl->cur_row] = (void **)ckd_malloc(bl->blksize * sizeof(void *));
 
         bl->cur_row_free = 0;
     }
@@ -127,9 +122,8 @@ blkarray_list_append(blkarray_list_t * bl, void *data)
     return id;
 }
 
-
 void
-blkarray_list_reset(blkarray_list_t * bl)
+blkarray_list_reset(blkarray_list_t *bl)
 {
     int32 i, j;
 
@@ -141,7 +135,7 @@ blkarray_list_reset(blkarray_list_t * bl)
         ckd_free(bl->ptr[i]);
         bl->ptr[i] = NULL;
     }
-    if (i == bl->cur_row) {     /* NEED THIS! (in case cur_row < 0) */
+    if (i == bl->cur_row) { /* NEED THIS! (in case cur_row < 0) */
         for (j = 0; j < bl->cur_row_free; j++)
             ckd_free(bl->ptr[i][j]);
 

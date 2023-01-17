@@ -41,13 +41,12 @@
 #ifndef _MS_SENONE_H_
 #define _MS_SENONE_H_
 
-
-#include <soundswallower/err.h>
+#include <soundswallower/bin_mdef.h>
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
-#include <soundswallower/bin_mdef.h>
 #include <soundswallower/s3file.h>
 
 /** \file ms_senone.h
@@ -65,7 +64,7 @@ extern "C" {
 }
 #endif
 
-typedef uint8 senprob_t;	/**< Senone logs3-probs, truncated to 8 bits */
+typedef uint8 senprob_t; /**< Senone logs3-probs, truncated to 8 bits */
 
 /**
  * \struct senone_t
@@ -75,24 +74,23 @@ typedef uint8 senprob_t;	/**< Senone logs3-probs, truncated to 8 bits */
  * logs3 domain, and finally truncated to 8 bits precision to conserve memory space.
  */
 typedef struct senone_s {
-    senprob_t ***pdf;		/**< gaussian density mixture weights, organized two possible
-                                   ways depending on n_gauden:
-                                   if (n_gauden > 1): pdf[sen][feat][codeword].  Not an
-                                   efficient representation--memory access-wise--but
-                                   evaluating the many codebooks will be more costly.
-                                   if (n_gauden == 1): pdf[feat][codeword][sen].  Optimized
-                                   for the shared-distribution semi-continuous case. */
-    logmath_t *lmath;           /**< log math computation */
-    uint32 n_sen;		/**< Number senones in this set */
-    uint32 n_feat;		/**< Number feature streams */
-    uint32 n_cw;		/**< Number codewords per codebook,stream */
-    uint32 n_gauden;		/**< Number gaussian density codebooks referred to by senones */
-    float32 mixwfloor;		/**< floor applied to each PDF entry */
-    uint32 *mgau;		/**< senone-id -> mgau-id mapping for senones in this set */
-    int32 *featscr;              /**< The feature score for every senone, will be initialized inside senone_eval_all */
-    int32 aw;			/**< Inverse acoustic weight */
+    senprob_t ***pdf; /**< gaussian density mixture weights, organized two possible
+                         ways depending on n_gauden:
+                         if (n_gauden > 1): pdf[sen][feat][codeword].  Not an
+                         efficient representation--memory access-wise--but
+                         evaluating the many codebooks will be more costly.
+                         if (n_gauden == 1): pdf[feat][codeword][sen].  Optimized
+                         for the shared-distribution semi-continuous case. */
+    logmath_t *lmath; /**< log math computation */
+    uint32 n_sen; /**< Number senones in this set */
+    uint32 n_feat; /**< Number feature streams */
+    uint32 n_cw; /**< Number codewords per codebook,stream */
+    uint32 n_gauden; /**< Number gaussian density codebooks referred to by senones */
+    float32 mixwfloor; /**< floor applied to each PDF entry */
+    uint32 *mgau; /**< senone-id -> mgau-id mapping for senones in this set */
+    int32 *featscr; /**< The feature score for every senone, will be initialized inside senone_eval_all */
+    int32 aw; /**< Inverse acoustic weight */
 } senone_t;
-
 
 /**
  * Load a set of senones (mixing weights and mixture gaussian codebook mappings) from
@@ -100,30 +98,30 @@ typedef struct senone_s {
  * PDF values to logs3 domain and quantize to 8-bits.
  * @return pointer to senone structure created.  Caller MUST NOT change its contents.
  */
-senone_t *senone_init(gauden_t *g,             /**< In: codebooks */
-                      const char *mixwfile,	/**< In: mixing weights file */
-                      const char *mgau_mapfile,/**< In: file or magic string specifying
-                                                  mapping from each senone to mixture
-                                                  gaussian codebook.
-                                                  If NULL divine it from gauden_t */
-                      float32 mixwfloor,	/**< In: Floor value for senone weights */
-                      logmath_t *lmath,        /**< In: log math computation */
-                      bin_mdef_t *mdef         /**< In: model definition */
-                      );
+senone_t *senone_init(gauden_t *g, /**< In: codebooks */
+                      const char *mixwfile, /**< In: mixing weights file */
+                      const char *mgau_mapfile, /**< In: file or magic string specifying
+                                                   mapping from each senone to mixture
+                                                   gaussian codebook.
+                                                   If NULL divine it from gauden_t */
+                      float32 mixwfloor, /**< In: Floor value for senone weights */
+                      logmath_t *lmath, /**< In: log math computation */
+                      bin_mdef_t *mdef /**< In: model definition */
+);
 
 /**
  * Load a set of senones from s3file_t.
  * @return pointer to senone structure created.  Caller MUST NOT change its contents.
  */
-senone_t *senone_init_s3file(gauden_t *g,             /**< In: codebooks */
-                             s3file_t *mixwfile,	/**< In: mixing weights file */
-                             s3file_t *mgau_mapfile,/**< In: file specifying mapping from each
-                                                         senone to mixture gaussian codebook.
-                                                         If NULL divine it from gauden_t */
-                             float32 mixwfloor,	/**< In: Floor value for senone weights */
-                             logmath_t *lmath,        /**< In: log math computation */
-                             bin_mdef_t *mdef         /**< In: model definition */
-                             );
+senone_t *senone_init_s3file(gauden_t *g, /**< In: codebooks */
+                             s3file_t *mixwfile, /**< In: mixing weights file */
+                             s3file_t *mgau_mapfile, /**< In: file specifying mapping from each
+                                                          senone to mixture gaussian codebook.
+                                                          If NULL divine it from gauden_t */
+                             float32 mixwfloor, /**< In: Floor value for senone weights */
+                             logmath_t *lmath, /**< In: log math computation */
+                             bin_mdef_t *mdef /**< In: model definition */
+);
 
 /** Release memory allocated by senone_init. */
 void senone_free(senone_t *s); /**< In: The senone_t to free */
@@ -132,13 +130,13 @@ void senone_free(senone_t *s); /**< In: The senone_t to free */
  * Evaluate the score for the given senone wrt to the given top N gaussian codewords.
  * @return senone score (in logs3 domain).
  */
-int32 senone_eval (senone_t *s, int id,		/**< In: senone for which score desired */
-		   gauden_dist_t **dist,	/**< In: top N codewords and densities for
-						   all features, to be combined into
-						   senone score.  IE, dist[f][i] = i-th
-						   best <codeword,density> for feaure f */
-		   int n_top		/**< In: Length of dist[f], for each f */
-    );
+int32 senone_eval(senone_t *s, int id, /**< In: senone for which score desired */
+                  gauden_dist_t **dist, /**< In: top N codewords and densities for
+                                           all features, to be combined into
+                                           senone score.  IE, dist[f][i] = i-th
+                                           best <codeword,density> for feaure f */
+                  int n_top /**< In: Length of dist[f], for each f */
+);
 
 #ifdef __cplusplus
 } /* extern "C" */

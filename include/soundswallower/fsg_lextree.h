@@ -40,10 +40,10 @@
 #define __S2_FSG_LEXTREE_H__
 
 #include <soundswallower/configuration.h>
-#include <soundswallower/fsg_model.h>
-#include <soundswallower/hmm.h>
 #include <soundswallower/dict.h>
 #include <soundswallower/dict2pid.h>
+#include <soundswallower/fsg_model.h>
+#include <soundswallower/hmm.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,12 +59,11 @@ extern "C" {
  * Make it smaller (2) to save memory if your phoneset has less than
  * 64 phones.
  */
-#define FSG_PNODE_CTXT_BVSZ	4
+#define FSG_PNODE_CTXT_BVSZ 4
 
 typedef struct fsg_pnode_ctxt_s {
     uint32 bv[FSG_PNODE_CTXT_BVSZ];
 } fsg_pnode_ctxt_t;
-
 
 /*
  * All transitions (words) out of any given FSG state represented are by a
@@ -129,9 +128,9 @@ typedef struct fsg_pnode_s {
      */
     fsg_pnode_ctxt_t ctxt;
 
-    uint16 ci_ext;	/* This node's CIphone as viewed externally (context) */
-    uint8 ppos;	/* Phoneme position in pronunciation */
-    uint8 leaf;	/* Whether this is a leaf node */
+    uint16 ci_ext; /* This node's CIphone as viewed externally (context) */
+    uint8 ppos; /* Phoneme position in pronunciation */
+    uint8 leaf; /* Whether this is a leaf node */
 
     /* HMM-state-level stuff here */
     hmm_context_t *ctx;
@@ -139,18 +138,18 @@ typedef struct fsg_pnode_s {
 } fsg_pnode_t;
 
 /* Access macros */
-#define fsg_pnode_leaf(p)	((p)->leaf)
-#define fsg_pnode_logs2prob(p)	((p)->logs2prob)
-#define fsg_pnode_succ(p)	((p)->next.succ)
-#define fsg_pnode_fsglink(p)	((p)->next.fsglink)
-#define fsg_pnode_sibling(p)	((p)->sibling)
-#define fsg_pnode_hmmptr(p)	(&((p)->hmm))
-#define fsg_pnode_ci_ext(p)	((p)->ci_ext)
-#define fsg_pnode_ppos(p)	((p)->ppos)
-#define fsg_pnode_leaf(p)	((p)->leaf)
-#define fsg_pnode_ctxt(p)	((p)->ctxt)
+#define fsg_pnode_leaf(p) ((p)->leaf)
+#define fsg_pnode_logs2prob(p) ((p)->logs2prob)
+#define fsg_pnode_succ(p) ((p)->next.succ)
+#define fsg_pnode_fsglink(p) ((p)->next.fsglink)
+#define fsg_pnode_sibling(p) ((p)->sibling)
+#define fsg_pnode_hmmptr(p) (&((p)->hmm))
+#define fsg_pnode_ci_ext(p) ((p)->ci_ext)
+#define fsg_pnode_ppos(p) ((p)->ppos)
+#define fsg_pnode_leaf(p) ((p)->leaf)
+#define fsg_pnode_ctxt(p) ((p)->ctxt)
 
-#define fsg_pnode_add_ctxt(p,c)	((p)->ctxt.bv[(c)>>5] |= (1 << ((c)&0x001f)))
+#define fsg_pnode_add_ctxt(p, c) ((p)->ctxt.bv[(c) >> 5] |= (1 << ((c)&0x001f)))
 
 /*
  * The following is macroized because its called very frequently
@@ -162,31 +161,27 @@ typedef struct fsg_pnode_s {
  */
 
 #if (FSG_PNODE_CTXT_BVSZ == 1)
-    #define FSG_PNODE_CTXT_SUB(src,sub) \
+#define FSG_PNODE_CTXT_SUB(src, sub) \
     ((src)->bv[0] = (~((sub)->bv[0]) & (src)->bv[0]))
 #elif (FSG_PNODE_CTXT_BVSZ == 2)
-    #define FSG_PNODE_CTXT_SUB(src,sub) \
-    (((src)->bv[0] = (~((sub)->bv[0]) & (src)->bv[0])) | \
-     ((src)->bv[1] = (~((sub)->bv[1]) & (src)->bv[1])))
+#define FSG_PNODE_CTXT_SUB(src, sub) \
+    (((src)->bv[0] = (~((sub)->bv[0]) & (src)->bv[0])) | ((src)->bv[1] = (~((sub)->bv[1]) & (src)->bv[1])))
 #elif (FSG_PNODE_CTXT_BVSZ == 4)
-    #define FSG_PNODE_CTXT_SUB(src,sub) \
-    (((src)->bv[0] = (~((sub)->bv[0]) & (src)->bv[0]))  | \
-     ((src)->bv[1] = (~((sub)->bv[1]) & (src)->bv[1]))  | \
-     ((src)->bv[2] = (~((sub)->bv[2]) & (src)->bv[2]))  | \
-     ((src)->bv[3] = (~((sub)->bv[3]) & (src)->bv[3])))
+#define FSG_PNODE_CTXT_SUB(src, sub) \
+    (((src)->bv[0] = (~((sub)->bv[0]) & (src)->bv[0])) | ((src)->bv[1] = (~((sub)->bv[1]) & (src)->bv[1])) | ((src)->bv[2] = (~((sub)->bv[2]) & (src)->bv[2])) | ((src)->bv[3] = (~((sub)->bv[3]) & (src)->bv[3])))
 #else
-    #define FSG_PNODE_CTXT_SUB(src,sub) fsg_pnode_ctxt_sub_generic((src),(sub))
+#define FSG_PNODE_CTXT_SUB(src, sub) fsg_pnode_ctxt_sub_generic((src), (sub))
 #endif
 
 /**
  * Collection of lextrees for an FSG.
  */
 typedef struct fsg_lextree_s {
-    fsg_model_t *fsg;	/**< The fsg for which this lextree is built. */
+    fsg_model_t *fsg; /**< The fsg for which this lextree is built. */
     hmm_context_t *ctx; /**< HMM context structure. */
-    dict_t *dict;     /**< Pronunciation dictionary for this FSG. */
-    dict2pid_t *d2p;    /**< Context-dependent phone mappings for this FSG. */
-    bin_mdef_t *mdef;   /**< Model definition (triphone mappings). */
+    dict_t *dict; /**< Pronunciation dictionary for this FSG. */
+    dict2pid_t *d2p; /**< Context-dependent phone mappings for this FSG. */
+    bin_mdef_t *mdef; /**< Model definition (triphone mappings). */
 
     /*
      * Left and right CIphone sets for each state.
@@ -205,31 +200,31 @@ typedef struct fsg_lextree_s {
      *   words don't use context, and present the SILENCE phone as context to
      *   adjacent words.
      */
-    int16 **lc;         /**< Left context triphone mappings for FSG. */
-    int16 **rc;         /**< Right context triphone mappings for FSG. */
+    int16 **lc; /**< Left context triphone mappings for FSG. */
+    int16 **rc; /**< Right context triphone mappings for FSG. */
 
-    fsg_pnode_t **root;	/* root[s] = lextree representing all transitions
-			   out of state s.  Note that the "tree" for each
-			   state is actually a collection of trees, linked
-			   via fsg_pnode_t.sibling (root[s]->sibling) */
-    fsg_pnode_t **alloc_head;	/* alloc_head[s] = head of linear list of all
-				   pnodes allocated for state s */
-    int32 n_pnode;	/* #HMM nodes in search structure */
+    fsg_pnode_t **root; /* root[s] = lextree representing all transitions
+                           out of state s.  Note that the "tree" for each
+                           state is actually a collection of trees, linked
+                           via fsg_pnode_t.sibling (root[s]->sibling) */
+    fsg_pnode_t **alloc_head; /* alloc_head[s] = head of linear list of all
+                                 pnodes allocated for state s */
+    int32 n_pnode; /* #HMM nodes in search structure */
     int32 wip;
     int32 pip;
 } fsg_lextree_t;
 
 /* Access macros */
-#define fsg_lextree_root(lt,s)	((lt)->root[s])
-#define fsg_lextree_n_pnode(lt)	((lt)->n_pnode)
+#define fsg_lextree_root(lt, s) ((lt)->root[s])
+#define fsg_lextree_n_pnode(lt) ((lt)->n_pnode)
 
 /**
  * Create, initialize, and return a new phonetic lextree for the given FSG.
  */
 fsg_lextree_t *fsg_lextree_init(fsg_model_t *fsg, dict_t *dict,
                                 dict2pid_t *d2p,
-				bin_mdef_t *mdef, hmm_context_t *ctx,
-				int32 wip, int32 pip);
+                                bin_mdef_t *mdef, hmm_context_t *ctx,
+                                int32 wip, int32 pip);
 
 /**
  * Free lextrees for an FSG.

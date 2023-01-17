@@ -37,9 +37,9 @@
 #ifndef _S3_TMAT_H_
 #define _S3_TMAT_H_
 
-#include <stdio.h>
 #include <soundswallower/logmath.h>
 #include <soundswallower/s3file.h>
+#include <stdio.h>
 
 /** \file tmat.h
  *  \brief Transition matrix data structure.
@@ -57,32 +57,31 @@ extern "C" {
  * topology.
  */
 typedef struct tmat_s {
-    uint8 ***tp;	/**< The transition matrices; kept in the same scale as acoustic scores;
-			   tp[tmatid][from-state][to-state] */
-    int16 n_tmat;	/**< Number matrices */
-    int16 n_state;	/**< Number source states in matrix (only the emitting states);
-			   Number destination states = n_state+1, it includes the exit state */
+    uint8 ***tp; /**< The transition matrices; kept in the same scale as acoustic scores;
+                    tp[tmatid][from-state][to-state] */
+    int16 n_tmat; /**< Number matrices */
+    int16 n_state; /**< Number source states in matrix (only the emitting states);
+                      Number destination states = n_state+1, it includes the exit state */
 } tmat_t;
-
 
 /** Initialize transition matrix */
 
-tmat_t *tmat_init(const char *tmatfile,/**< In: input file */
-		  logmath_t *lmath,    /**< In: log math parameters */
-		  float64 tpfloor	/**< In: floor value for each non-zero transition probability */
-    );
+tmat_t *tmat_init(const char *tmatfile, /**< In: input file */
+                  logmath_t *lmath, /**< In: log math parameters */
+                  float64 tpfloor /**< In: floor value for each non-zero transition probability */
+);
 
 /**
  * Initialize transition matrix from existing s3file_t.
  */
-tmat_t * tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor);
+tmat_t *tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor);
 
 /**
  * RAH, add code to remove memory allocated by tmat_init
  */
 
-void tmat_free (tmat_t *t /**< In: transition matrix */
-    );
+void tmat_free(tmat_t *t /**< In: transition matrix */
+);
 
 #ifdef __cplusplus
 } /* extern "C" */

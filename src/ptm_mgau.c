@@ -35,38 +35,37 @@
  *
  */
 
-
 #include "config.h"
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include <limits.h>
 #include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <soundswallower/configuration.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-#include <soundswallower/tied_mgau_common.h>
 #include <soundswallower/ptm_mgau.h>
+#include <soundswallower/tied_mgau_common.h>
 
 static mgaufuncs_t ptm_mgau_funcs = {
     "ptm",
-    ptm_mgau_frame_eval,      /* frame_eval */
-    ptm_mgau_mllr_transform,  /* transform */
-    ptm_mgau_free             /* free */
+    ptm_mgau_frame_eval, /* frame_eval */
+    ptm_mgau_mllr_transform, /* transform */
+    ptm_mgau_free /* free */
 };
 
-#define COMPUTE_GMM_MAP(_idx)                           \
-    diff[_idx] = obs[_idx] - mean[_idx];                \
-    sqdiff[_idx] = MFCCMUL(diff[_idx], diff[_idx]);     \
-    compl[_idx] = MFCCMUL(sqdiff[_idx], var[_idx]);
-#define COMPUTE_GMM_REDUCE(_idx)                \
-    d = GMMSUB(d, compl[_idx]);
+#define COMPUTE_GMM_MAP(_idx)                       \
+    diff[_idx] = obs[_idx] - mean[_idx];            \
+    sqdiff[_idx] = MFCCMUL(diff[_idx], diff[_idx]); \
+    compl [_idx] = MFCCMUL(sqdiff[_idx], var[_idx]);
+#define COMPUTE_GMM_REDUCE(_idx) \
+    d = GMMSUB(d, compl [_idx]);
 
 static void
 insertion_sort_topn(ptm_topn_t *topn, int i, int32 d)
@@ -94,7 +93,7 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (i = 0; i < s->max_topn; i++) {
-        mfcc_t *mean, diff[4], sqdiff[4], compl[4]; /* diff, diff^2, component likelihood */
+        mfcc_t *mean, diff[4], sqdiff[4], compl [4]; /* diff, diff^2, component likelihood */
         mfcc_t *var, d;
         mfcc_t *obs;
         int32 cw, j;
@@ -107,13 +106,13 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         for (j = 0; j < ceplen % 4; ++j) {
             diff[0] = *obs++ - *mean++;
             sqdiff[0] = MFCCMUL(diff[0], diff[0]);
-            compl[0] = MFCCMUL(sqdiff[0], *var);
-            d = GMMSUB(d, compl[0]);
+            compl [0] = MFCCMUL(sqdiff[0], *var);
+            d = GMMSUB(d, compl [0]);
             ++var;
         }
         /* We could vectorize this but it's unlikely to make much
          * difference as the outer loop here isn't very big. */
-        for (;j < ceplen; j += 4) {
+        for (; j < ceplen; j += 4) {
             COMPUTE_GMM_MAP(0);
             COMPUTE_GMM_MAP(1);
             COMPUTE_GMM_MAP(2);
@@ -165,14 +164,14 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (detP = det; detP < detE; ++detP) {
-        mfcc_t diff[4], sqdiff[4], compl[4]; /* diff, diff^2, component likelihood */
+        mfcc_t diff[4], sqdiff[4], compl [4]; /* diff, diff^2, component likelihood */
         mfcc_t d, thresh;
         mfcc_t *obs;
         ptm_topn_t *cur;
         int32 cw, j;
 
         d = *detP;
-        thresh = (mfcc_t) worst->score; /* Avoid int-to-float conversions */
+        thresh = (mfcc_t)worst->score; /* Avoid int-to-float conversions */
         obs = z;
         cw = (int)(detP - det);
 
@@ -182,8 +181,8 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         for (j = 0; (j < ceplen % 4) && (d >= thresh); ++j) {
             diff[0] = *obs++ - *mean++;
             sqdiff[0] = MFCCMUL(diff[0], diff[0]);
-            compl[0] = MFCCMUL(sqdiff[0], *var++);
-            d = GMMSUB(d, compl[0]);
+            compl [0] = MFCCMUL(sqdiff[0], *var++);
+            d = GMMSUB(d, compl [0]);
         }
         /* Now do 4 dimensions at a time.  You'd think that GCC would
          * vectorize this?  Apparently not.  And it's right, because
@@ -215,7 +214,7 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
                 break;
         }
         if (i < s->max_topn)
-            continue;       /* already there.  Don't insert */
+            continue; /* already there.  Don't insert */
         if (d < (mfcc_t)MAX_NEG_INT32)
             insertion_sort_cb(&cur, worst, best, cw, MAX_NEG_INT32);
         else
@@ -374,24 +373,24 @@ ptm_mgau_senone_eval(ptm_mgau_t *s, int16 *senone_scores,
                 int mixw;
                 /* Find mixture weight for this codeword. */
                 if (s->mixw_cb) {
-                    int dcw = s->mixw[f][topn[j].cw][sen/2];
+                    int dcw = s->mixw[f][topn[j].cw][sen / 2];
                     dcw = (dcw & 1) ? dcw >> 4 : dcw & 0x0f;
                     mixw = s->mixw_cb[dcw];
-                }
-                else {
+                } else {
                     mixw = s->mixw[f][topn[j].cw][sen];
                 }
                 if (j == 0)
                     fden = mixw + topn[j].score;
                 else
                     fden = fast_logmath_add(s->lmath_8b, fden,
-                                       mixw + topn[j].score);
+                                            mixw + topn[j].score);
                 E_DEBUG("fden[%d][%d] l+= %d + %d = %d\n",
                         sen, f, mixw, topn[j].score, fden);
             }
             ascore += fden;
         }
-        if (ascore < bestscore) bestscore = ascore;
+        if (ascore < bestscore)
+            bestscore = ascore;
         senone_scores[sen] = ascore;
     }
     /* Normalize the scores again (finishing the job we started above
@@ -411,7 +410,7 @@ ptm_mgau_frame_eval(mgau_t *ps,
                     int16 *senone_scores,
                     uint8 *senone_active,
                     int32 n_senone_active,
-                    mfcc_t ** featbuf, int32 frame,
+                    mfcc_t **featbuf, int32 frame,
                     int32 compallsen)
 {
     ptm_mgau_t *s = (ptm_mgau_t *)ps;
@@ -484,7 +483,7 @@ read_sendump(s3file_t *s3f, gauden_t *g,
         E_ERROR("Title truncated, cannot read %d bytes", n);
         return -1;
     }
-    if (s3f->ptr[n-1] != '\0') {
+    if (s3f->ptr[n - 1] != '\0') {
         E_ERROR("Bad title in dump file\n");
         return -1;
     }
@@ -500,7 +499,7 @@ read_sendump(s3file_t *s3f, gauden_t *g,
         E_ERROR("Header truncated, cannot read %d bytes", n);
         return -1;
     }
-    if (s3f->ptr[n-1] != '\0') {
+    if (s3f->ptr[n - 1] != '\0') {
         E_ERROR("Bad header in dump file\n");
         return -1;
     }
@@ -639,9 +638,8 @@ read_mixw(s3file_t *s3f, gauden_t *g, logmath_t *lmath,
         return -1;
     }
     if (n != n_sen * n_feat * n_comp) {
-        E_ERROR
-            ("#float32s(%d) doesn't match header dimensions: %d x %d x %d\n",
-             n, n_sen, n_feat, n_comp);
+        E_ERROR("#float32s(%d) doesn't match header dimensions: %d x %d x %d\n",
+                n, n_sen, n_feat, n_comp);
         return -1;
     }
 
@@ -747,7 +745,8 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     /* Read means and variances. */
     if ((s->g = gauden_init_s3file(means, vars,
                                    config_float(s->config, "varfloor"),
-                                   s->lmath)) == NULL) {
+                                   s->lmath))
+        == NULL) {
         E_ERROR("Failed to read means and variances\n");
         goto error_out;
     }
@@ -780,11 +779,11 @@ ptm_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
     if (sendump) {
         s->n_sen = bin_mdef_n_sen(acmod->mdef);
         if (read_sendump(sendump, s->g, s->n_sen,
-                         &s->mixw_cb, &s->mixw) < 0)
+                         &s->mixw_cb, &s->mixw)
+            < 0)
             goto error_out;
         s->sendump_mmap = s3file_retain(sendump);
-    }
-    else {
+    } else {
         float32 mixw_floor = config_float(s->config, "mixwfloor");
         if (read_mixw(mixw, s->g, s->lmath_8b, &s->n_sen, &s->mixw, mixw_floor) < 0)
             goto error_out;
@@ -844,8 +843,7 @@ ptm_mgau_init(acmod_t *acmod)
             E_ERROR_SYSTEM("Failed to open sendump '%s' for reading", path);
             goto error_out;
         }
-    }
-    else {
+    } else {
         path = config_str(acmod->config, "mixw");
         E_INFO("Reading senone mixture weights: %s\n", path);
         if ((mixw = s3file_map_file(path)) == NULL) {
@@ -866,7 +864,7 @@ error_out:
 
 int
 ptm_mgau_mllr_transform(mgau_t *ps,
-                            mllr_t *mllr)
+                        mllr_t *mllr)
 {
     ptm_mgau_t *s = (ptm_mgau_t *)ps;
     return gauden_mllr_transform(s->g, mllr, s->config);
@@ -883,15 +881,14 @@ ptm_mgau_free(mgau_t *ps)
     if (s->sendump_mmap) {
         ckd_free_2d(s->mixw);
         s3file_free(s->sendump_mmap);
-    }
-    else {
+    } else {
         ckd_free_3d(s->mixw);
     }
     ckd_free(s->sen2cb);
 
     for (i = 0; i < s->n_fast_hist; i++) {
-	ckd_free_3d(s->hist[i].topn);
-	bitvec_free(s->hist[i].mgau_active);
+        ckd_free_3d(s->hist[i].topn);
+        bitvec_free(s->hist[i].mgau_active);
     }
     ckd_free(s->hist);
 

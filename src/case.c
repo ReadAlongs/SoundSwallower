@@ -60,13 +60,11 @@
  * 		Created.
  */
 
-
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #include <soundswallower/case.h>
 #include <soundswallower/err.h>
-
 
 void
 lcase(register char *cp)
@@ -108,8 +106,7 @@ strcmp_nocase(const char *str1, const char *str2)
             if (c1 == '\0')
                 return 0;
         }
-    }
-    else
+    } else
         return (str1 == NULL) ? -1 : 1;
 
     return 0;
@@ -133,8 +130,7 @@ strncmp_nocase(const char *str1, const char *str2, size_t len)
             if (c1 == '\0')
                 return 0;
         }
-    }
-    else
+    } else
         return (str1 == NULL) ? -1 : 1;
 
     return 0;

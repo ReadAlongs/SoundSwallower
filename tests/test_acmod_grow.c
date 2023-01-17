@@ -3,26 +3,26 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <soundswallower/acmod.h>
 #include <soundswallower/decoder.h>
 #include <soundswallower/logmath.h>
-#include <soundswallower/acmod.h>
 
 #include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
-	FLOAT2MFCC(41.00),
-	FLOAT2MFCC(-5.29),
-	FLOAT2MFCC(-0.12),
-	FLOAT2MFCC(5.09),
-	FLOAT2MFCC(2.48),
-	FLOAT2MFCC(-4.07),
-	FLOAT2MFCC(-1.37),
-	FLOAT2MFCC(-1.78),
-	FLOAT2MFCC(-5.08),
-	FLOAT2MFCC(-2.05),
-	FLOAT2MFCC(-6.45),
-	FLOAT2MFCC(-1.42),
-	FLOAT2MFCC(1.17)
+    FLOAT2MFCC(41.00),
+    FLOAT2MFCC(-5.29),
+    FLOAT2MFCC(-0.12),
+    FLOAT2MFCC(5.09),
+    FLOAT2MFCC(2.48),
+    FLOAT2MFCC(-4.07),
+    FLOAT2MFCC(-1.37),
+    FLOAT2MFCC(-1.78),
+    FLOAT2MFCC(-5.08),
+    FLOAT2MFCC(-2.05),
+    FLOAT2MFCC(-6.45),
+    FLOAT2MFCC(-1.42),
+    FLOAT2MFCC(1.17)
 };
 
 #define NUM_BEST_SEN 270
@@ -43,7 +43,8 @@ main(int argc, char *argv[])
     int frame_counter;
     int bestsen1[NUM_BEST_SEN];
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     lmath = logmath_init(1.0001, 0, 0);
     config = config_parse_json(
         NULL,

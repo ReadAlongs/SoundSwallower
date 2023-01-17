@@ -38,12 +38,11 @@
  * strfuncs.c -- String functions
  */
 
-
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
-#include <stdarg.h>
 
 #include <soundswallower/ckd_alloc.h>
 #include <soundswallower/strfuncs.h>
@@ -103,11 +102,10 @@ string_trim(char *string, enum string_edge_e which)
         if (sub == -1)
             string[0] = '\0';
         else
-            string[sub+1] = '\0';
+            string[sub + 1] = '\0';
     }
     return string;
 }
-
 
 int32
 nextword(char *line, const char *delim, char **word, char *delimfound)
@@ -117,18 +115,20 @@ nextword(char *line, const char *delim, char **word, char *delimfound)
 
     /* Skip past any preceding delimiters */
     for (w = line; *w; w++) {
-        for (d = delim; *d && (*d != *w); d++);
+        for (d = delim; *d && (*d != *w); d++)
+            ;
         if (!*d)
             break;
     }
     if (!*w)
         return -1;
 
-    *word = w;                  /* Beginning of word */
+    *word = w; /* Beginning of word */
 
     /* Skip until first delimiter char */
     for (w++; *w; w++) {
-        for (d = delim; *d && (*d != *w); d++);
+        for (d = delim; *d && (*d != *w); d++)
+            ;
         if (*d)
             break;
     }

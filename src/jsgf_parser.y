@@ -1,4 +1,5 @@
 /* -*- c-basic-offset:4; indent-tabs-mode: nil -*- */
+// clang-format off
 /* ====================================================================
  * Copyright (c) 2007 Carnegie Mellon University.  All rights
  * reserved.

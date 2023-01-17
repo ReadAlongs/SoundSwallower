@@ -54,15 +54,14 @@
  *		functions into one, eliminated validation, and simplified the interface.
  */
 
-
 #ifndef _LIBUTIL_CMD_LN_H_
 #define _LIBUTIL_CMD_LN_H_
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/hash_table.h>
+#include <soundswallower/prim_type.h>
 
 /**
  * @file configuration.h
@@ -70,7 +69,6 @@
  *
  * Configuration parameters, optionally parsed from the command line.
  */
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,12 +82,12 @@ extern "C" {
  * @enum config_type_e
  * @brief Types of configuration parameters.
  */
-typedef enum config_type_e  {
-    ARG_REQUIRED =  (1<<0), /*<< Bit indicating required argument. */
-    ARG_INTEGER = (1<<1),   /*<< Integer up to 64 bits. */
-    ARG_FLOATING  = (1<<2), /*<< Double-precision floating point. */
-    ARG_STRING = (1<<3),    /*<< String. */
-    ARG_BOOLEAN = (1<<4),   /*<< Boolean (true/false). */
+typedef enum config_type_e {
+    ARG_REQUIRED = (1 << 0), /*<< Bit indicating required argument. */
+    ARG_INTEGER = (1 << 1), /*<< Integer up to 64 bits. */
+    ARG_FLOATING = (1 << 2), /*<< Double-precision floating point. */
+    ARG_STRING = (1 << 3), /*<< String. */
+    ARG_BOOLEAN = (1 << 4), /*<< Boolean (true/false). */
     REQARG_INTEGER = (ARG_INTEGER | ARG_REQUIRED),
     REQARG_FLOATING = (ARG_FLOATING | ARG_REQUIRED),
     REQARG_STRING = (ARG_STRING | ARG_REQUIRED),
@@ -105,10 +103,10 @@ typedef enum config_type_e  {
  * Argument definition structure.
  */
 typedef struct config_param_s {
-    const char *name;   /**< Name of the command line switch */
-    int type;           /**< Type of the argument in question */
-    const char *deflt;  /**< Default value (as a character string), or NULL if none */
-    const char *doc;    /**< Documentation/description string */
+    const char *name; /**< Name of the command line switch */
+    int type; /**< Type of the argument in question */
+    const char *deflt; /**< Default value (as a character string), or NULL if none */
+    const char *doc; /**< Documentation/description string */
 } config_param_t;
 
 /**
@@ -120,7 +118,6 @@ typedef struct config_val_s {
     int type;
     char *name;
 } config_val_t;
-
 
 /**
  * @struct config_t
@@ -395,7 +392,6 @@ void config_log_help(config_t *cmdln);
  * @param cmdln  command-line object
  */
 void config_log_values(config_t *cmdln);
-
 
 config_val_t *config_access(config_t *cmdln, const char *name);
 anytype_t *anytype_from_str(anytype_t *val, int t, const char *str);

@@ -6,11 +6,11 @@
 
 #include <soundswallower/fe.h>
 
-#include <soundswallower/err.h>
-#include <soundswallower/configuration.h>
-#include <soundswallower/config_defs.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/byteorder.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/config_defs.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
 
 #include "test_macros.h"
 
@@ -36,8 +36,7 @@ create_reference(fe_t *fe, float32 *data, size_t nsamp)
         printf("%lu extra samples, nfr = %d\n",
                nsamp - ((nfr_full - 1) * frame_shift + frame_size),
                nfr_output);
-    }
-    else {
+    } else {
         nfr_output = nfr_full;
     }
     ncep = fe_get_output_size(fe);
@@ -55,7 +54,7 @@ create_reference(fe_t *fe, float32 *data, size_t nsamp)
     if (nfr_output > nfr_full) {
         int last_frame_size = (int)(nsamp - nfr_full * frame_shift);
         float32 *last_frame = ckd_calloc(last_frame_size,
-                                       sizeof(*last_frame));
+                                         sizeof(*last_frame));
         printf("frame %d from %d to %lu (%d samples)\n",
                nfr_full, nfr_full * frame_shift, nsamp,
                last_frame_size);
@@ -72,7 +71,7 @@ create_reference(fe_t *fe, float32 *data, size_t nsamp)
         printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
             printf("%.2f ",
-                       MFCC2FLOAT(cepbuf[i][j]));
+                   MFCC2FLOAT(cepbuf[i][j]));
         }
         printf("\n");
     }
@@ -119,7 +118,7 @@ create_shifted(fe_t *fe, float32 *data, size_t nsamp)
         printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
             printf("%.2f ",
-                       MFCC2FLOAT(cepbuf[i][j]));
+                   MFCC2FLOAT(cepbuf[i][j]));
         }
         printf("\n");
     }
@@ -143,7 +142,8 @@ create_full(fe_t *fe, float32 *data, size_t nsamp)
     rv = fe_process_float32(fe, &inptr, &nsamp, cepbuf, nfr);
     nfr -= rv;
     printf("fe_process_float32 produced %d frames, "
-           " %lu samples remaining\n", rv, nsamp);
+           " %lu samples remaining\n",
+           rv, nsamp);
     TEST_EQUAL(rv, 4);
     TEST_EQUAL(nfr, 1);
     TEST_EQUAL(inptr - data, 1024);
@@ -175,14 +175,14 @@ create_process_frames(fe_t *fe, float32 *data, size_t nsamp)
     for (i = 0; i < 4; ++i) {
         rv = fe_process_float32(fe, &inptr, &nsamp, &cepbuf[i], 1);
         printf("frame %d updated inptr %lu remaining nsamp %lu "
-               "processed %d\n", i, inptr - data, nsamp, rv);
+               "processed %d\n",
+               i, inptr - data, nsamp, rv);
         TEST_EQUAL(rv, 1);
         if (i < 3) {
             /* Confusingly, it will read an extra frame_shift data
                in order to make the next frame... */
             TEST_EQUAL(inptr - data, frame_size + (i + 1) * frame_shift);
-        }
-        else {
+        } else {
             TEST_EQUAL(inptr - data, 1024);
         }
     }
@@ -194,7 +194,6 @@ create_process_frames(fe_t *fe, float32 *data, size_t nsamp)
 
     return cepbuf;
 }
-
 
 mfcc_t **
 create_fragments(fe_t *fe, float32 *data, size_t nsamp)
@@ -236,7 +235,6 @@ create_fragments(fe_t *fe, float32 *data, size_t nsamp)
     return cepbuf;
 }
 
-
 mfcc_t **
 create_mixed_fragments(fe_t *fe, float32 *data, int16 *idata, size_t nsamp, int odd)
 {
@@ -267,14 +265,14 @@ create_mixed_fragments(fe_t *fe, float32 *data, int16 *idata, size_t nsamp, int 
             rv = fe_process_float32(fe, &inptr, &fragment, cepptr, nfr);
             nfr -= rv;
             iinptr += (inptr - data) - (iinptr - idata);
-        }
-        else {
+        } else {
             rv = fe_process_int16(fe, &iinptr, &fragment, cepptr, nfr);
             nfr -= rv;
             inptr += (iinptr - idata) - (inptr - data);
         }
         printf("%s fragment %d updated inptr %lu %lu remaining nsamp %lu "
-               "processed %d remaining nfr %d\n", do_float ? "float" : "int",
+               "processed %d remaining nfr %d\n",
+               do_float ? "float" : "int",
                i, inptr - data, iinptr - idata, fragment, rv, nfr);
         TEST_EQUAL(0, fragment);
         cepptr += rv;
@@ -296,8 +294,8 @@ compare_cepstra(mfcc_t **c1, mfcc_t **c2, int nfr, int ncep)
         printf("%d: ", i);
         for (j = 0; j < ncep; ++j) {
             printf("%.2f,%.2f ",
-                       MFCC2FLOAT(c1[i][j]),
-                       MFCC2FLOAT(c2[i][j]));
+                   MFCC2FLOAT(c1[i][j]),
+                   MFCC2FLOAT(c2[i][j]));
             TEST_EQUAL_FLOAT(c1[i][j], c2[i][j]);
         }
         printf("\n");
@@ -320,7 +318,8 @@ main(int argc, char *argv[])
     mfcc_t **cepbuf, **cepbuf1;
     size_t i;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel_str("INFO");
     TEST_ASSERT(config = config_init(fe_args));
     /* Even though we make our own float32 data, we will ensure it's
@@ -332,18 +331,16 @@ main(int argc, char *argv[])
 
     fe_get_input_size(fe, &frame_shift, &frame_size);
     TEST_EQUAL(frame_shift, DEFAULT_FRAME_SHIFT);
-    TEST_EQUAL(frame_size, (int)(DEFAULT_WINDOW_LENGTH
-                                 * DEFAULT_SAMPLING_RATE));
-
+    TEST_EQUAL(frame_size, (int)(DEFAULT_WINDOW_LENGTH * DEFAULT_SAMPLING_RATE));
 
     TEST_ASSERT(raw = fopen(TESTDATADIR "/goforward.raw", "rb"));
     TEST_EQUAL(1024, fread(ibuf, sizeof(int16), 1024, raw));
     for (i = 0; i < 1024; ++i) {
-	int16 sample = ibuf[i];
-	SWAP_LE_16(&sample);
+        int16 sample = ibuf[i];
+        SWAP_LE_16(&sample);
         buf[i] = sample / FLOAT32_SCALE;
-	/* Ensure ibuf and buf are both little-endian as noted above */
-	SWAP_LE_32((int32 *)(char *)&buf[i]);
+        /* Ensure ibuf and buf are both little-endian as noted above */
+        SWAP_LE_32((int32 *)(char *)&buf[i]);
     }
 
     printf("Creating reference features\n");

@@ -1,4 +1,5 @@
-from typing import Union, Iterator, Tuple, Optional, Sequence, ClassVar
+from typing import ClassVar, Iterator, Optional, Sequence, Tuple, Union
+
 import soundswallower
 
 class Config:

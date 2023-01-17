@@ -46,7 +46,6 @@
 
 #include <soundswallower/prim_type.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -70,9 +69,9 @@ int isspace_c(char ch);
  * Which end of a string to operate on for string_trim().
  */
 enum string_edge_e {
-    STRING_START,	/**< Beginning of string. */
-    STRING_END,		/**< End of string. */
-    STRING_BOTH		/**< Both ends of string. */
+    STRING_START, /**< Beginning of string. */
+    STRING_END, /**< End of string. */
+    STRING_BOTH /**< Both ends of string. */
 };
 
 /**
@@ -88,10 +87,8 @@ char *string_trim(char *string, enum string_edge_e which);
  */
 int32 nextword(char *line, const char *delim, char **word, char *delimfound);
 
-
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __SB_STRFUNCS_H__ */

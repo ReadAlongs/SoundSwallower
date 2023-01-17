@@ -39,7 +39,6 @@
 
 #include <soundswallower/fe.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -45,24 +45,23 @@
  *********************************************************************/
 
 #include "config.h"
-#include <string.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #if defined(_WIN32)
-# include <windows.h>
+#include <windows.h>
 #else
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/stat.h>
-# include <sys/file.h>
-# include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/file.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
-#include <soundswallower/prim_type.h>
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/mmio.h>
-#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/prim_type.h>
 
 #if defined(_WIN32) && !defined(_WIN32_WP) /* !WINCE */
 struct mmio_file_s {
@@ -78,8 +77,9 @@ mmio_file_read(const char *filename)
     mmio_file_t *mf;
 
     if ((ffm = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ,
-                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-                         NULL)) == INVALID_HANDLE_VALUE) {
+                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+                          NULL))
+        == INVALID_HANDLE_VALUE) {
         E_ERROR("Failed to create file '%s': %08x\n",
                 filename, GetLastError());
         return NULL;
@@ -90,7 +90,8 @@ mmio_file_read(const char *filename)
         return NULL;
     }
     if ((fd = CreateFileMapping(ffm, NULL,
-                                PAGE_READONLY, 0, 0, NULL)) == NULL) {
+                                PAGE_READONLY, 0, 0, NULL))
+        == NULL) {
         E_ERROR("Failed to CreateFileMapping: %08x\n", GetLastError());
         CloseHandle(ffm);
         return NULL;

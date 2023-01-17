@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4 -*- */
-#include <soundswallower/err.h>
 #include <soundswallower/decoder.h>
+#include <soundswallower/err.h>
 
 #include "test_macros.h"
 
@@ -10,7 +10,8 @@ main(int argc, char *argv[])
     config_t *config;
     decoder_t *ps;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel(ERR_INFO);
     err_msg(ERR_INFO, "blah", 1, "hello world %d %d\n", 2, 3);
     config = config_init(NULL);

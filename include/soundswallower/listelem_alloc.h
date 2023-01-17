@@ -50,8 +50,8 @@ extern "C" {
 }
 #endif
 
-#include <stdlib.h>
 #include <soundswallower/prim_type.h>
+#include <stdlib.h>
 
 /**
  * List element allocator object.
@@ -61,20 +61,19 @@ typedef struct listelem_alloc_s listelem_alloc_t;
 /**
  * Initialize and return a list element allocator.
  */
-listelem_alloc_t * listelem_alloc_init(size_t elemsize);
+listelem_alloc_t *listelem_alloc_init(size_t elemsize);
 
 /**
  * Finalize and release all memory associated with a list element allocator.
  */
 void listelem_alloc_free(listelem_alloc_t *le);
 
-
 void *__listelem_malloc__(listelem_alloc_t *le, char *file, int line);
 
 /**
  * Allocate a list element and return pointer to it.
  */
-#define listelem_malloc(le)	__listelem_malloc__((le),__FILE__,__LINE__)
+#define listelem_malloc(le) __listelem_malloc__((le), __FILE__, __LINE__)
 
 void *__listelem_malloc_id__(listelem_alloc_t *le, char *file, int line,
                              int32 *out_id);
@@ -82,7 +81,7 @@ void *__listelem_malloc_id__(listelem_alloc_t *le, char *file, int line,
 /**
  * Allocate a list element, returning a unique identifier.
  */
-#define listelem_malloc_id(le, oid)	__listelem_malloc_id__((le),__FILE__,__LINE__,(oid))
+#define listelem_malloc_id(le, oid) __listelem_malloc_id__((le), __FILE__, __LINE__, (oid))
 
 /**
  * Retrieve a list element by its identifier.
@@ -97,13 +96,12 @@ void __listelem_free__(listelem_alloc_t *le, void *elem, char *file, int line);
 /**
  * Macro of __listelem_free__
  */
-#define listelem_free(le,el)	__listelem_free__((le),(el),__FILE__,__LINE__)
+#define listelem_free(le, el) __listelem_free__((le), (el), __FILE__, __LINE__)
 
 /**
    Print number of allocation, numer of free operation stats
 */
 void listelem_stats(listelem_alloc_t *le);
-
 
 #ifdef __cplusplus
 }

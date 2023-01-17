@@ -42,13 +42,13 @@
 #ifndef __S2_SEMI_MGAU_H__
 #define __S2_SEMI_MGAU_H__
 
-#include <soundswallower/fe.h>
-#include <soundswallower/logmath.h>
-#include <soundswallower/s3file.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/hmm.h>
 #include <soundswallower/bin_mdef.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/hmm.h>
+#include <soundswallower/logmath.h>
 #include <soundswallower/ms_gauden.h>
+#include <soundswallower/s3file.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,24 +61,24 @@ typedef struct vqFeature_s vqFeature_t;
 
 typedef struct s2_semi_mgau_s s2_semi_mgau_t;
 struct s2_semi_mgau_s {
-    mgau_t base;     /**< base structure. */
-    config_t *config;   /* configuration parameters */
+    mgau_t base; /**< base structure. */
+    config_t *config; /* configuration parameters */
 
-    gauden_t *g;        /* Set of Gaussians (pointers below point in here and will go away soon) */
+    gauden_t *g; /* Set of Gaussians (pointers below point in here and will go away soon) */
 
-    uint8 ***mixw;     /* mixture weight distributions */
-    s3file_t *sendump_mmap;/* memory map for mixw (or NULL if not mmap) */
+    uint8 ***mixw; /* mixture weight distributions */
+    s3file_t *sendump_mmap; /* memory map for mixw (or NULL if not mmap) */
 
-    uint8 *mixw_cb;    /* mixture weight codebook, if any (assume it contains 16 values) */
-    int32 n_sen;	/* Number of senones */
-    uint8 *topn_beam;   /* Beam for determining per-frame top-N densities */
+    uint8 *mixw_cb; /* mixture weight codebook, if any (assume it contains 16 values) */
+    int32 n_sen; /* Number of senones */
+    uint8 *topn_beam; /* Beam for determining per-frame top-N densities */
     int16 max_topn;
     int16 ds_ratio;
 
     vqFeature_t ***topn_hist; /**< Top-N scores and codewords for past frames. */
-    uint8 **topn_hist_n;      /**< Variable top-N for past frames. */
-    vqFeature_t **f;          /**< Topn-N for currently scoring frame. */
-    int n_topn_hist;          /**< Number of past frames tracked. */
+    uint8 **topn_hist_n; /**< Variable top-N for past frames. */
+    vqFeature_t **f; /**< Topn-N for currently scoring frame. */
+    int n_topn_hist; /**< Number of past frames tracked. */
 
     /* Log-add table for compressed values. */
     logmath_t *lmath_8b;
@@ -88,7 +88,7 @@ struct s2_semi_mgau_s {
 
 mgau_t *s2_semi_mgau_init(acmod_t *acmod);
 mgau_t *s2_semi_mgau_init_s3file(acmod_t *acmod, s3file_t *means, s3file_t *vars,
-                                    s3file_t *mixw, s3file_t *sendump);
+                                 s3file_t *mixw, s3file_t *sendump);
 void s2_semi_mgau_free(mgau_t *s);
 int s2_semi_mgau_frame_eval(mgau_t *s,
                             int16 *senone_scores,
