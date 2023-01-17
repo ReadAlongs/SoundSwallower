@@ -10,7 +10,7 @@ import socketserver
 
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
-Handler.extensions_map['.wasm'] = 'application/wasm'
+Handler.extensions_map[".wasm"] = "application/wasm"
 socketserver.TCPServer.allow_reuse_address = True
 httpd = socketserver.TCPServer(("", PORT), Handler)
 print("serving at port {}".format(PORT))
