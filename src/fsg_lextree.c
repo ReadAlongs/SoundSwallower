@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -158,7 +158,7 @@ fsg_lextree_lc_rc(fsg_lextree_t *lextree)
      * null transitions closure, no need to worry about a chain of successive
      * null transitions.  Right??)
      *
-     * This can't be joined with the previous loop because we first calculate 
+     * This can't be joined with the previous loop because we first calculate
      * contexts and only then we can propagate them.
      */
     for (s = 0; s < fsg->n_state; s++) {
@@ -334,7 +334,7 @@ uint32 fsg_pnode_ctxt_sub_generic(fsg_pnode_ctxt_t *src, fsg_pnode_ctxt_t *sub)
 {
     int32 i;
     uint32 res = 0;
-    
+
     for (i = 0; i < FSG_PNODE_CTXT_BVSZ; i++)
         res |= (src->bv[i] = ~(sub->bv[i]) & src->bv[i]);
     return res;
@@ -343,7 +343,7 @@ uint32 fsg_pnode_ctxt_sub_generic(fsg_pnode_ctxt_t *src, fsg_pnode_ctxt_t *sub)
 
 /*
  * fsg_pnode_ctxt_sub(fsg_pnode_ctxt_t * src, fsg_pnode_ctxt_t * sub)
- * This has been moved into a macro in fsg_psubtree.h 
+ * This has been moved into a macro in fsg_psubtree.h
  * because it is called so frequently!
  */
 
@@ -358,7 +358,7 @@ uint32 fsg_pnode_ctxt_sub_generic(fsg_pnode_ctxt_t *src, fsg_pnode_ctxt_t *sub)
  * FSG state, kept elsewhere and updated by this routine.
  */
 static fsg_pnode_t *
-psubtree_add_trans(fsg_lextree_t *lextree, 
+psubtree_add_trans(fsg_lextree_t *lextree,
                    fsg_pnode_t * root,
                    fsg_glist_linklist_t **curglist,
                    fsg_link_t * fsglink,
@@ -662,7 +662,7 @@ psubtree_add_trans(fsg_lextree_t *lextree,
                             succ->sibling = (fsg_pnode_t*) gnode_ptr(rc_pnodelist);
                             /* Since all entries of lc_pnodelist point
                                to the same array, sufficient to update it once */
-                            break; 
+                            break;
                         }
                     }
                 }
@@ -715,7 +715,7 @@ fsg_psubtree_init(fsg_lextree_t *lextree,
     }
 
     n_arc = 0;
-    for (itor = fsg_model_arcs(fsg, from_state); itor; 
+    for (itor = fsg_model_arcs(fsg, from_state); itor;
          itor = fsg_arciter_next(itor)) {
         int32 dst;
         fsglink = fsg_arciter_get(itor);
@@ -754,7 +754,7 @@ fsg_psubtree_free(fsg_pnode_t * head)
 }
 
 void fsg_psubtree_dump_node(fsg_lextree_t *tree, fsg_pnode_t *node, FILE *fp)
-{    
+{
     int32 i;
     fsg_link_t *tl;
 
@@ -787,7 +787,7 @@ void fsg_psubtree_dump_node(fsg_lextree_t *tree, fsg_pnode_t *node, FILE *fp)
     return;
 }
 
-void 
+void
 fsg_psubtree_dump(fsg_lextree_t *tree, fsg_pnode_t *root, FILE * fp)
 {
     fsg_pnode_t *succ;
@@ -800,7 +800,7 @@ fsg_psubtree_dump(fsg_lextree_t *tree, fsg_pnode_t *root, FILE * fp)
         }
         fflush(fp);
     }
-    
+
     fsg_psubtree_dump_node(tree, root, fp);
 
     if (root->leaf) {

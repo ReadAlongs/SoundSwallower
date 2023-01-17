@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -160,7 +160,7 @@ fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls)
     E_INFO("Computing transitive closure for null transitions\n");
 
     /* If our caller didn't give us a list of null-transitions,
-       make such a list. Just loop through all the FSG states, 
+       make such a list. Just loop through all the FSG states,
        and all the null-transitions in that state (which are kept in
        their own hash table). */
     if (nulls == NULL) {
@@ -535,14 +535,14 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     fsgname = NULL;
     fsg = NULL;
 
-    if ((fsgname = copy_header_value(s3f, &lineno, FSG_MODEL_BEGIN_DECL, NULL)) == NULL) { 
+    if ((fsgname = copy_header_value(s3f, &lineno, FSG_MODEL_BEGIN_DECL, NULL)) == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_BEGIN_DECL);
         goto parse_error;
     }
 
     if ((val = copy_header_value(s3f, &lineno,
                                      FSG_MODEL_NUM_STATES_DECL,
-                                     FSG_MODEL_N_DECL)) == NULL) { 
+                                     FSG_MODEL_N_DECL)) == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_NUM_STATES_DECL);
         goto parse_error;
     }
@@ -561,7 +561,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
 
     if ((val = copy_header_value(s3f, &lineno,
                                      FSG_MODEL_START_STATE_DECL,
-                                     FSG_MODEL_S_DECL)) == NULL) { 
+                                     FSG_MODEL_S_DECL)) == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_START_STATE_DECL);
         goto parse_error;
     }
@@ -575,7 +575,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
 
     if ((val = copy_header_value(s3f, &lineno,
                                      FSG_MODEL_FINAL_STATE_DECL,
-                                     FSG_MODEL_F_DECL)) == NULL) { 
+                                     FSG_MODEL_F_DECL)) == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_FINAL_STATE_DECL);
         goto parse_error;
     }
@@ -607,7 +607,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
             int i, j;
             int32 tprob;
             float32 p;
-            
+
             if ((word = s3file_nextword(s3f, &ptr)) == NULL) {
                 E_ERROR("Line[%d]: from-state missing\n", lineno);
                 goto parse_error;

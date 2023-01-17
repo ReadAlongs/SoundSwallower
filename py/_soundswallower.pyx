@@ -226,7 +226,7 @@ cdef class Config:
             arg = arg + 1
             yield soundswallower.Arg(name=name, default=default, doc=doc,
                                      type=arg_type, required=required)
-    
+
 cdef class FsgModel:
     """Finite-state recognition grammar.
 
@@ -321,7 +321,7 @@ cdef class Decoder:
         if self._ps == NULL:
             raise RuntimeError("Failed to create decoder")
         return self
-            
+
     def __dealloc__(self):
         decoder_free(self._ps)
 
@@ -465,7 +465,7 @@ cdef class Decoder:
     @property
     def hyp(self):
         """Current recognition hypothesis.
-        
+
         Returns:
             Hyp: Current recognition output.
 
@@ -616,7 +616,7 @@ cdef class Decoder:
             start_state(int): Index of starting state.
             final_state(int): Index of end state.
             transitions(list): List of transitions, each of which is a 3-
-                               or 4-tuple of (from, to, probability[, word]). 
+                               or 4-tuple of (from, to, probability[, word]).
                                If the word is not specified, this is an
                                epsilon (null) transition that will always be
                                followed.
@@ -650,7 +650,7 @@ cdef class Decoder:
                 fsg_model_null_trans_add(fsg.fsg, source, dest,
                                          logmath_log(lmath, prob))
         return fsg
-        
+
     def parse_jsgf(self, jsgf_string, toprule=None):
         """Parse a JSGF grammar from bytes or string.
 

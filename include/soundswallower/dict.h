@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -39,7 +39,7 @@
 #define _S3_DICT_H_
 
 /** \file dict.h
- * \brief Operations on dictionary. 
+ * \brief Operations on dictionary.
  */
 
 #include <soundswallower/hash_table.h>
@@ -55,9 +55,9 @@ extern "C" {
 }
 #endif
 
-/** 
+/**
     \struct dictword_t
-    \brief a structure for one dictionary word. 
+    \brief a structure for one dictionary word.
 */
 typedef struct dictword_s {
     char *word;		/**< Ascii word string */
@@ -67,9 +67,9 @@ typedef struct dictword_s {
     s3wid_t basewid;	/**< Base pronunciation id */
 } dictword_t;
 
-/** 
+/**
     \struct dict_t
-    \brief a structure for a dictionary. 
+    \brief a structure for a dictionary.
 */
 
 typedef struct dict_s {
@@ -162,7 +162,7 @@ const char *dict_ciphone_str(dict_t *d,	/**< In: Dictionary to look up */
 #define dict_wordstr(d,w)	((w) < 0 ? NULL : (d)->word[w].word)
 #define dict_basestr(d,w)	((d)->word[dict_basewid(d,w)].word)
 #define dict_nextalt(d,w)	((d)->word[w].alt)
-#define dict_pronlen(d,w)	((d)->word[w].pronlen) 
+#define dict_pronlen(d,w)	((d)->word[w].pronlen)
 #define dict_pron(d,w,p)	((d)->word[w].ciphone[p]) /**< The CI phones of the word w at position p */
 #define dict_filler_start(d)	((d)->filler_start)
 #define dict_filler_end(d)	((d)->filler_end)

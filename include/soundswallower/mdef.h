@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -62,7 +62,7 @@ extern "C" {
 #endif
 
 /** \file mdef.h
- * \brief Model definition 
+ * \brief Model definition
  */
 
 /** \enum word_posn_t
@@ -82,7 +82,7 @@ typedef enum {
 
 /**
    \struct ciphone_t
-   \brief CI phone information 
+   \brief CI phone information
 */
 typedef struct ciphone_s {
     char *name;                 /**< The name of the CI phone */
@@ -101,7 +101,7 @@ typedef struct phone_s {
     int32 tmat;			/**< Transition matrix id */
     int16 ci, lc, rc;		/**< Base, left, right context ciphones */
     word_posn_t wpos;		/**< Word position */
-    
+
 } phone_t;
 
 /**
@@ -117,7 +117,7 @@ typedef struct ph_rc_s {
 
 /**
  * \struct ph_lc_t
- * \brief Structures for storing the left context. 
+ * \brief Structures for storing the left context.
  */
 
 typedef struct ph_lc_s {
@@ -130,7 +130,7 @@ typedef struct ph_lc_s {
 /** The main model definition structure */
 /**
    \struct mdef_t
-   \brief structure for storing the model definition. 
+   \brief structure for storing the model definition.
 */
 typedef struct mdef_s {
     int32 n_ciphone;		/**< number basephones actually present */
@@ -139,21 +139,21 @@ typedef struct mdef_s {
     int32 n_ci_sen;		/**< number CI senones; these are the first */
     int32 n_sen;		/**< number senones (CI+CD) */
     int32 n_tmat;		/**< number transition matrices */
-    
+
     hash_table_t *ciphone_ht;	/**< Hash table for mapping ciphone strings to ids */
     ciphone_t *ciphone;		/**< CI-phone information for all ciphones */
     phone_t *phone;		/**< Information for all ciphones and triphones */
     uint16 **sseq;		/**< Unique state (or senone) sequences in this model, shared
                                    among all phones/triphones */
     int32 n_sseq;		/**< No. of unique senone sequences in this model */
-    
+
     int16 *cd2cisen;		/**< Parent CI-senone id for each senone; the first
 				   n_ci_sen are identity mappings; the CD-senones are
 				   contiguous for each parent CI-phone */
     int16 *sen2cimap;		/**< Parent CI-phone for each senone (CI or CD) */
-    
+
     int16 sil;			/**< SILENCE_CIPHONE id */
-    
+
     ph_lc_t ***wpos_ci_lclist;	/**< wpos_ci_lclist[wpos][ci] = list of lc for <wpos,ci>.
                                    wpos_ci_lclist[wpos][ci][lc].rclist = list of rc for
                                    <wpos,ci,lc>.  Only entries for the known triphones
@@ -186,25 +186,25 @@ mdef_t *mdef_init (char *mdeffile, /**< In: Model definition file */
                    int cionly);    /**< In: Read only context-independent phones */
 
 
-/** 
+/**
     Get the ciphone id given a string name
-    @return ciphone id for the given ciphone string name 
+    @return ciphone id for the given ciphone string name
 */
 int mdef_ciphone_id(mdef_t *m,		/**< In: Model structure being queried */
                     char *ciphone	/**< In: ciphone for which id wanted */
     );
 
-/** 
+/**
     Get the phone string given the ci phone id.
-    @return: READ-ONLY ciphone string name for the given ciphone id 
+    @return: READ-ONLY ciphone string name for the given ciphone id
 */
 const char *mdef_ciphone_str(mdef_t *m,	/**< In: Model structure being queried */
                              int ci	/**< In: ciphone id for which name wanted */
     );
 
-/** 
+/**
     Decide whether the phone is ci phone.
-    @return 1 if given triphone argument is a ciphone, 0 if not, -1 if error 
+    @return 1 if given triphone argument is a ciphone, 0 if not, -1 if error
 */
 int mdef_is_ciphone (mdef_t *m,		/**< In: Model structure being queried */
                      int p		/**< In: triphone id being queried */
@@ -213,14 +213,14 @@ int mdef_is_ciphone (mdef_t *m,		/**< In: Model structure being queried */
 /**
    Decide whether the senone is a senone for a ci phone, or a ci senone
    @return 1 if a given senone is a ci senone
-*/  
+*/
 int mdef_is_cisenone(mdef_t *m,               /**< In: Model structure being queried */
                      int s		        /**< In: senone id being queried */
     );
 
-/** 
-    Decide the phone id given the left, right and base phones. 
-    @return: phone id for the given constituents if found, else BAD_S3PID 
+/**
+    Decide the phone id given the left, right and base phones.
+    @return: phone id for the given constituents if found, else BAD_S3PID
 */
 int mdef_phone_id (mdef_t *m,		/**< In: Model structure being queried */
                    int b,		/**< In: base ciphone id */

@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 1996-2004 Carnegie Mellon University.  All rights 
+ * Copyright (c) 1996-2004 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -93,7 +93,7 @@ fe_parse_general_params(config_t *config, fe_t * fe)
         E_INFO("Sampling rate automatically set to %d\n",
                fe->sampling_rate);
     }
-    
+
     frate = config_int(config, "frate");
     if (frate > MAX_INT16 || frate > fe->sampling_rate || frate < 1) {
         E_ERROR
@@ -110,7 +110,7 @@ fe_parse_general_params(config_t *config, fe_t * fe)
 #if WORDS_BIGENDIAN
     /* i.e. if input_endian is *not* "big", then fe->swap is true. */
     fe->swap = strcmp("big", config_str(config, "input_endian"));
-#else        
+#else
     /* and vice versa */
     fe->swap = strcmp("little", config_str(config, "input_endian"));
 #endif
@@ -300,14 +300,14 @@ fe_init(config_t *config)
 
     /* transfer params to mel fb */
     fe_parse_melfb_params(config, fe, fe->mel_fb);
-    
+
     if (fe->mel_fb->upper_filt_freq > fe->sampling_rate / 2 + 1.0) {
-	E_ERROR("Upper frequency %.1f is higher than samprate/2 (%.1f)\n", 
+	E_ERROR("Upper frequency %.1f is higher than samprate/2 (%.1f)\n",
 		fe->mel_fb->upper_filt_freq, fe->sampling_rate / 2);
 	fe_free(fe);
 	return NULL;
     }
-    
+
     fe_build_melfilters(fe->mel_fb);
     fe_compute_melcosine(fe->mel_fb);
     if (config_bool(config, "remove_noise"))
@@ -437,7 +437,7 @@ overflow_append(fe_t *fe,
 }
 
 static int
-read_overflow_frame(fe_t *fe, 
+read_overflow_frame(fe_t *fe,
                     void *inout_spch,
                     size_t *inout_nsamps,
                     fe_encoding_t encoding)
@@ -476,7 +476,7 @@ read_overflow_frame(fe_t *fe,
 }
 
 static int
-create_overflow_frame(fe_t *fe, 
+create_overflow_frame(fe_t *fe,
                       void *inout_spch,
                       size_t *inout_nsamps,
                       fe_encoding_t encoding)
@@ -491,7 +491,7 @@ create_overflow_frame(fe_t *fe,
                               + n_overflow);
     if (fe->num_overflow_samps > 0) {
         if (encoding == FE_PCM16) {
-            const int16 **spch = (const int16 **)inout_spch; 
+            const int16 **spch = (const int16 **)inout_spch;
             const int16 *inptr = *spch - (fe->frame_size
                                           - fe->frame_shift);
             int i;
@@ -523,7 +523,7 @@ create_overflow_frame(fe_t *fe,
 }
 
 static int
-append_overflow_frame(fe_t *fe, 
+append_overflow_frame(fe_t *fe,
                       void *inout_spch,
                       const void *orig_spch,
                       size_t *inout_nsamps,
@@ -708,7 +708,7 @@ int
 fe_end(fe_t *fe, mfcc_t **buf_cep, int nframes)
 {
     int nfr = 0;
-    
+
     /* Process any remaining data if possible. */
     if (buf_cep
         && nframes > 0

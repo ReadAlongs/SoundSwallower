@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,12 +43,12 @@
  * Copyright (c) 1996 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
  * $Log$
  * Revision 1.22  2006/02/23  03:59:40  arthchan2003
  * Merged from branch SPHINX3_5_2_RCI_IRII_BRANCH: a, Free buffers correctly. b, Fixed dox-doc.
- * 
+ *
  * Revision 1.21.4.3  2005/10/17 04:45:57  arthchan2003
  * Free stuffs in cmn and feat corectly.
  *
@@ -67,7 +67,7 @@
  * Revision 1.3  2005/03/30 01:22:46  archan
  * Fixed mistakes in last updates. Add
  *
- * 
+ *
  * 20.Apr.2001  RAH (rhoughton@mediasite.com, ricky.houghton@cs.cmu.edu)
  *              Adding feat_free() to free allocated memory
  *
@@ -84,24 +84,24 @@
  * 		feat_read(), moved various cep2feat functions from other files into
  *		this one.  Also, made this module object-oriented with the feat_t type.
  * 		Changed definition of s2mfc_read to let the caller manage MFC buffers.
- * 
+ *
  * 03-Oct-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added unistd.h include.
- * 
+ *
  * 02-Oct-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added check for sf argument to s2mfc_read being within file size.
- * 
+ *
  * 18-Sep-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added sf, ef parameters to s2mfc_read().
- * 
+ *
  * 10-Jan-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added feat_cepsize().
  * 		Added different feature-handling (s2_4x, s3_1x39 at this point).
  * 		Moved feature-dependent functions to feature-dependent files.
- * 
+ *
  * 09-Jan-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Moved constant declarations from feat.h into here.
- * 
+ *
  * 04-Nov-95	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Created.
  */
@@ -417,14 +417,14 @@ feat_array_realloc(feat_t *fcb, mfcc_t ***old_feat, int32 ofr, int32 nfr)
         k += fcb->stream_len[i];
     assert((uint32)k >= feat_dimension(fcb));
     assert(k >= fcb->sv_dim);
-    
+
     new_feat = feat_array_alloc(fcb, nfr);
 
     cf = (nfr < ofr) ? nfr : ofr;
     memcpy(new_feat[0][0], old_feat[0][0], cf * k * sizeof(mfcc_t));
 
     feat_array_free(old_feat);
-    
+
     return new_feat;
 }
 
@@ -616,9 +616,9 @@ feat_1s_c_d_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
     for (i = 0; i < feat_cepsize(fcb); i++)
         f[i] = w[i] - _w[i];
 
-    /* 
-     * D2CEP: (mfc[w+1] - mfc[-w+1]) - (mfc[w-1] - mfc[-w-1]), 
-     * where w = FEAT_DCEP_WIN 
+    /*
+     * D2CEP: (mfc[w+1] - mfc[-w+1]) - (mfc[w-1] - mfc[-w-1]),
+     * where w = FEAT_DCEP_WIN
      */
     f += feat_cepsize(fcb);
 
@@ -672,9 +672,9 @@ feat_1s_c_d_ld_dd_cep2feat(feat_t * fcb, mfcc_t ** mfc, mfcc_t ** feat)
     for (i = 0; i < feat_cepsize(fcb); i++)
         f[i] = w[i] - _w[i];
 
-    /* 
-     * D2CEP: (mfc[w+1] - mfc[-w+1]) - (mfc[w-1] - mfc[-w-1]), 
-     * where w = FEAT_DCEP_WIN 
+    /*
+     * D2CEP: (mfc[w+1] - mfc[-w+1]) - (mfc[w-1] - mfc[-w-1]),
+     * where w = FEAT_DCEP_WIN
      */
     f += feat_cepsize(fcb);
 
@@ -1003,10 +1003,10 @@ feat_s2mfc2feat_block_utt(feat_t * fcb, mfcc_t ** uttcep,
     cepbuf = (mfcc_t **)ckd_calloc(nfr + win * 2, sizeof(mfcc_t *));
     memcpy(cepbuf + win, uttcep, nfr * sizeof(mfcc_t *));
 
-    /* Do normalization before we interpolate on the boundary */    
+    /* Do normalization before we interpolate on the boundary */
     feat_cmn(fcb, cepbuf + win, nfr, 1, 1);
 
-    /* Now interpolate */    
+    /* Now interpolate */
     for (i = 0; i < win; ++i) {
         cepbuf[i] = fcb->cepbuf[i];
         memcpy(cepbuf[i], uttcep[0], cepsize * sizeof(mfcc_t));
@@ -1134,7 +1134,7 @@ feat_s2mfc2feat_live(feat_t * fcb, mfcc_t ** uttcep, int32 *inout_ncep,
     return nfeatvec;
 }
 
-void 
+void
 feat_update_stats(feat_t *fcb)
 {
     if (fcb->cmn == CMN_LIVE) {

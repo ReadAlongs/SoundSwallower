@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2013 Carnegie Mellon University.  All rights 
+ * Copyright (c) 2013 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -185,7 +185,7 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
         coef = MIN_FIXLOG;
         for (j = l1; j <= l2; j++) {
             coef = fe_log_add(coef, coefs[j]);
-        }        
+        }
         buf[i] = buf[i] + coef - noise_stats->smooth_scaling[l2 - l1 + 1];
 #endif
 
@@ -223,7 +223,7 @@ fe_init_noisestats(int num_filters)
     noise_stats->mu_t = MU_T;
     noise_stats->max_gain = MAX_GAIN;
     noise_stats->inv_max_gain = 1.0 / MAX_GAIN;
-    
+
     for (i = 1; i < 2 * SMOOTH_WINDOW + 1; i++) {
         noise_stats->smooth_scaling[i] = 1.0 / i;
     }
@@ -301,7 +301,7 @@ fe_remove_noise(fe_t * fe)
     /* Calculate smoothed power */
     for (i = 0; i < num_filts; i++) {
         noise_stats->power[i] =
-            noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];   
+            noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];
     }
 
     /* Update noise spectrum estimate */

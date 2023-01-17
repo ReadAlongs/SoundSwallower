@@ -186,7 +186,7 @@ err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
     va_end(args);
     if (msg == NULL)
         return;
-    
+
     if (path) {
         const char *fname = path2basename(path);
         char *longmsg = add_level_and_lineno(lvl, fname, ln, msg);
@@ -205,7 +205,7 @@ void
 err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
     int local_errno = errno;
-    
+
     char *msg, *msgsys;
     va_list args;
     int size;
@@ -247,7 +247,7 @@ err_stderr_cb(void *user_data, err_lvl_t lvl, const char *msg)
 {
     (void)user_data;
     (void)lvl;
-    
+
     fwrite(msg, 1, strlen(msg), stderr);
     fflush(stderr);
 }

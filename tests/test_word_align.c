@@ -11,7 +11,7 @@ do_decode(decoder_t *ps)
     short *data;
     long nsamp;
     int nfr;
-    
+
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/sense_and_sensibility_01_austen_64kb-0880.wav", "rb"));
     fseek(rawfh, 0, SEEK_END);
     nsamp = (ftell(rawfh) - 44) / 2;
@@ -157,7 +157,7 @@ main(int argc, char *argv[])
         TEST_EQUAL(start, last_ef);
         last_ef = start + duration;
     }
-    
+
     ckd_free(sfs);
     ckd_free(efs);
     decoder_free(ps);

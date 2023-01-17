@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -243,7 +243,7 @@ endpointer_end_stream(endpointer_t *ep,
                 ep->frame_size);
         return NULL;
     }
-    
+
     if (out_nsamp)
         *out_nsamp = 0;
     if (!ep->in_speech)

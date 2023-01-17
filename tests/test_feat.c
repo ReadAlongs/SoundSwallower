@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 	/* Verify that the deltas are correct. */
 	for (i = 2; i < 4; ++i) {
 		for (j = 0; j < 13; ++j) {
-			if (fabs(MFCC2FLOAT(out_feats[i][0][13+j] - 
+			if (fabs(MFCC2FLOAT(out_feats[i][0][13+j] -
 					    (out_feats[i+2][0][j]
 					     - out_feats[i-2][0][j]))) > 0.01) {
 				printf("Delta mismatch in [%d][%d]\n", i, j);

@@ -61,7 +61,7 @@ recursive-exclude build *
 recursive-exclude jsbuild *
 recursive-exclude * .gitignore
 recursive-exclude * *.py[co]
-recursive-exclude * *~ 
+recursive-exclude * *~
 recursive-exclude * *.orig
 recursive-exclude * *.DS_Store
 global-include *.pyi

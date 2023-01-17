@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,7 +36,7 @@
  */
 /*
  * ms_mgau.c -- Essentially a wrapper that wrap up gauden and
- * senone. It supports multi-stream. 
+ * senone. It supports multi-stream.
  *
  *
  * **********************************************
@@ -49,7 +49,7 @@
  * $Log$
  * Revision 1.2  2006/02/22  16:56:01  arthchan2003
  * Merged from SPHINX3_5_2_RCI_IRII_BRANCH: Added ms_mgau.[ch] into the trunk. It is a wrapper of ms_gauden and ms_senone
- * 
+ *
  * Revision 1.1.2.4  2005/09/25 18:55:19  arthchan2003
  * Added a flag to turn on and off precomputation.
  *
@@ -97,11 +97,11 @@ ms_mgau_init_s3file(acmod_t *acmod,
     msg->config = config;
     msg->g = NULL;
     msg->s = NULL;
-    
+
     if ((g = msg->g = gauden_init_s3file(means, vars,
                                          config_float(config, "varfloor"),
                                          lmath)) == NULL) {
-	E_ERROR("Failed to read means and variances\n");	
+	E_ERROR("Failed to read means and variances\n");
 	goto error_out;
     }
 
@@ -159,7 +159,7 @@ ms_mgau_init_s3file(acmod_t *acmod,
     return mg;
 error_out:
     ms_mgau_free(ps_mgau_base(msg));
-    return NULL;    
+    return NULL;
 }
 
 mgau_t *
@@ -181,12 +181,12 @@ ms_mgau_init(acmod_t *acmod)
     msg->config = config;
     msg->g = NULL;
     msg->s = NULL;
-    
+
     if ((g = msg->g = gauden_init(config_str(config, "mean"),
                              config_str(config, "var"),
                              config_float(config, "varfloor"),
                              lmath)) == NULL) {
-	E_ERROR("Failed to read means and variances\n");	
+	E_ERROR("Failed to read means and variances\n");
 	goto error_out;
     }
 
@@ -245,7 +245,7 @@ ms_mgau_init(acmod_t *acmod)
     return mg;
 error_out:
     ms_mgau_free(ps_mgau_base(msg));
-    return NULL;    
+    return NULL;
 }
 
 void
@@ -263,7 +263,7 @@ ms_mgau_free(mgau_t * mg)
         ckd_free_3d((void *) msg->dist);
     if (msg->mgau_active)
         ckd_free(msg->mgau_active);
-    
+
     ckd_free(msg);
 }
 

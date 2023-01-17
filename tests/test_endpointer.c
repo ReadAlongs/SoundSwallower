@@ -72,7 +72,7 @@ test_sample_rate(int sample_rate)
                 E_INFO("Speech start at %.2f (label %.2f)\n",
                        endpointer_speech_start(ep), labels[i]);
                 TEST_ASSERT(fabs(endpointer_speech_start(ep)
-                                 - labels[i++]) < 0.3); 
+                                 - labels[i++]) < 0.3);
             }
             if (!endpointer_in_speech(ep)) {
                 TEST_ASSERT(i < n_labels);
@@ -137,6 +137,6 @@ main(int argc, char *argv[])
     /* Test a variety of sample rates. */
     for (i = 0; i < n_sample_rates; ++i)
         test_sample_rate(sample_rates[i]);
-        
+
     return 0;
 }

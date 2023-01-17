@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -57,9 +57,9 @@ extern "C" {
 #endif
 
 /** \file feat.h
- * \brief compute the dynamic coefficients from the cepstral vector. 
+ * \brief compute the dynamic coefficients from the cepstral vector.
  */
-#define LIVEBUFBLOCKSIZE        256    /** Blocks of 256 vectors allocated 
+#define LIVEBUFBLOCKSIZE        256    /** Blocks of 256 vectors allocated
 					   for livemode decoder */
 #define S3_MAX_FRAMES		15000    /* RAH, I believe this is still too large, but better than before */
 
@@ -89,7 +89,7 @@ typedef struct feat_s {
                            Irrelevant if no CMN is performed */
 
     /**
-     * Feature computation function. 
+     * Feature computation function.
      * @param fcb the feat_t describing this feature type
      * @param input pointer into the input cepstra
      * @param feat a 2-d array of output features (n_stream x stream_len)
@@ -101,7 +101,7 @@ typedef struct feat_s {
      * speech input must be feature vector itself.
      **/
     void (*compute_feat)(struct feat_s *fcb, mfcc_t **input, mfcc_t **feat);
-    cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral 
+    cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral
                            means normalization*/
 
     mfcc_t **cepbuf;    /**< Circular buffer of MFCC frames for live feature computation. */
@@ -228,11 +228,11 @@ void feat_array_free(mfcc_t ***feat);
  * - "s2_4x":     s2mfc->Sphinx-II 4-feature stream,
  * - "1s_c_d_dd": s2mfc->Sphinx 3.x single feature stream,
  * - "s3_1x39":   s2mfc->Sphinx 3.0 single feature stream,
- * - "n1,n2,n3,...": Explicit feature vector layout spec. with comma-separated 
- *   feature stream lengths.  In this case, the input data is already in the 
+ * - "n1,n2,n3,...": Explicit feature vector layout spec. with comma-separated
+ *   feature stream lengths.  In this case, the input data is already in the
  *   feature format and there is no conversion necessary.
  *
- * @return (feat_t *) descriptor if successful, NULL if error.  Caller 
+ * @return (feat_t *) descriptor if successful, NULL if error.  Caller
  * must not directly modify the contents of the returned value.
  */
 feat_t *feat_init(config_t *config);
@@ -274,7 +274,7 @@ void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
  * After adding a subvector specification, the output of feature
  * computation will be split into multiple subvectors, and
  * feat_array_alloc() will allocate pointers accordingly.  The number
- * of <em>streams</em> will remain the 
+ * of <em>streams</em> will remain the
  *
  * @param fcb the feature descriptor.
  * @param subvecs subvector specification.  This pointer is retained
@@ -284,7 +284,7 @@ void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
  */
 int feat_set_subvecs(feat_t *fcb, int32 **subvecs);
 
-  
+
 /**
  * Feature computation routine for live mode decoder.
  *
@@ -348,7 +348,7 @@ int feat_free(feat_t *f /**< In: feat_t */
     );
 
 /**
- * Report the feat_t data structure 
+ * Report the feat_t data structure
  */
 void feat_report(feat_t *f /**< In: feat_t */
     );

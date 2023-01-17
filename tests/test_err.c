@@ -27,6 +27,6 @@ main(int argc, char *argv[])
     decoder_set_logfile(ps, "test2.log");
     E_INFO("HELLO\n");
     decoder_free(ps);
-    
+
     return 0;
 }

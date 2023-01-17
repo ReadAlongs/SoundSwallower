@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,7 +43,7 @@
  * Copyright (c) 1999 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
  * $Log: profile.h,v $
  * Revision 1.10  2005/06/22 03:10:59  arthchan2003
@@ -58,10 +58,10 @@
  * Revision 1.3  2005/03/30 01:22:48  archan
  * Fixed mistakes in last updates. Add
  *
- * 
+ *
  * 11-Mar-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added ptmr_init().
- * 
+ *
  * 19-Jun-97	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Created from earlier Sphinx-3 version.
  */
@@ -76,12 +76,12 @@ extern "C" {
 #if 0
 } /* Fool Emacs into not indenting things. */
 #endif
-  
+
 /** \file profile.h
  * \brief Implementation of profiling, include counting , timing, cpu clock checking
- *  
+ *
  * Currently, function host_endian is also in this function. It is
- * not documented.  
+ * not documented.
  */
 
 #include <stdio.h>
@@ -90,13 +90,13 @@ extern "C" {
 
 
 /**
- * \struct pctr_t 
+ * \struct pctr_t
  *
  * Generic event counter for profiling.  User is responsible for allocating an array
  * of the desired number.  There should be a sentinel with name = NULL.
  */
 typedef struct {
-	char *name;		/**< Counter print name; NULL 
+	char *name;		/**< Counter print name; NULL
 				   terminates array of counters
 				   Used by pctr_print_all */
 	int32 count;		/**< Counter value */
@@ -108,15 +108,15 @@ typedef struct {
 
 /**
  * Initialize a counter
- * @return an initialized counter 
- */ 
+ * @return an initialized counter
+ */
 pctr_t* pctr_new (
 	char *name   /**< The name of the counter */
 	);
 
 /**
  * Reset a counter
- */ 
+ */
 
 void pctr_reset (pctr_t *ctr  /**< A pointer of a counter */
 	);
@@ -124,15 +124,15 @@ void pctr_reset (pctr_t *ctr  /**< A pointer of a counter */
 
 /**
  * Increment a counter
- */ 
+ */
 void pctr_increment (pctr_t *ctr, /**< A pointer of a counter */
 		     int32 inc   /**< The increment of the counter */
 	);
 
 /**
-   Free the counter 
+   Free the counter
 */
-void pctr_free(pctr_t* ctr /**< A pointer of a counter */ 
+void pctr_free(pctr_t* ctr /**< A pointer of a counter */
 	);
 
 
@@ -166,7 +166,7 @@ void ptmr_stop (ptmr_t *tmr  /**< The timer*/
 void ptmr_reset (ptmr_t *tmr  /**< The timer*/
 	);
 
-/** Reset tmr->{t_cpu, t_elapsed, t_tot_cpu, t_tot_elapsed} to 0.0 
+/** Reset tmr->{t_cpu, t_elapsed, t_tot_cpu, t_tot_elapsed} to 0.0
  */
 void ptmr_init (ptmr_t *tmr /**< The timer*/
 	);

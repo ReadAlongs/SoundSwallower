@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -48,7 +48,7 @@
 #include <soundswallower/dict.h>
 
 /** \file dict2pid.h
- * \brief Building triphones for a dictionary. 
+ * \brief Building triphones for a dictionary.
  *
  * This is one of the more complicated parts of a cross-word
  * triphone model decoder.  The first and last phones of each word
@@ -67,7 +67,7 @@ extern "C" {
 
 /**
  * \struct xwdssid_t
- * \brief cross word triphone model structure 
+ * \brief cross word triphone model structure
  */
 
 typedef struct xwdssid_s {
@@ -78,7 +78,7 @@ typedef struct xwdssid_s {
 
 /**
    \struct dict2pid_t
-   \brief Building composite triphone (as well as word internal triphones) with the dictionary. 
+   \brief Building composite triphone (as well as word internal triphones) with the dictionary.
 */
 
 typedef struct dict2pid_s {
@@ -96,18 +96,18 @@ typedef struct dict2pid_s {
 				   word-initial base x rc combinations in current vocabulary */
 
 
-    xwdssid_t **rssid;          /**< Right context state sequence id table 
+    xwdssid_t **rssid;          /**< Right context state sequence id table
                                    First dimension: base phone,
-                                   Second dimension: left context. 
+                                   Second dimension: left context.
                                 */
 
 
     s3ssid_t ***lrdiph_rc;      /**< For single-phone words, [base][lc][rc] -> ssid; filled out for
                                    single-phone base x lc combinations in current vocabulary */
 
-    xwdssid_t **lrssid;          /**< Left-Right context state sequence id table 
+    xwdssid_t **lrssid;          /**< Left-Right context state sequence id table
                                     First dimension: base phone,
-                                    Second dimension: left context. 
+                                    Second dimension: left context.
                                  */
 } dict2pid_t;
 
@@ -126,7 +126,7 @@ dict2pid_t *dict2pid_build(bin_mdef_t *mdef,   /**< A  model definition*/
 /**
  * Retain a pointer to dict2pid
  */
-dict2pid_t *dict2pid_retain(dict2pid_t *d2p);  
+dict2pid_t *dict2pid_retain(dict2pid_t *d2p);
 
 /**
  * Free the memory dict2pid structure
@@ -155,14 +155,14 @@ void dict2pid_dump(FILE *fp,        /**< In: a file pointer */
     );
 
 /**
- * Get number of rc 
+ * Get number of rc
  */
 int32 get_rc_nssid(dict2pid_t *d2p,  /**< In: a dict2pid */
 		   s3wid_t w         /**< In: a wid */
     );
 
 /**
- * Get RC map 
+ * Get RC map
  */
 s3cipid_t* dict2pid_get_rcmap(dict2pid_t *d2p,  /**< In: a dict2pid */
 			      s3wid_t w        /**< In: a wid */

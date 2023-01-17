@@ -273,7 +273,7 @@ config_init(const config_param_t *defn)
 {
     config_t *config = ckd_calloc(1, sizeof(*config));
     int i, ndef;
-    
+
     config->refcount = 1;
     if (defn)
         config->defn = defn;
@@ -339,7 +339,7 @@ static const char *searches[] = {
     "fsg",
 };
 static const int nsearches = sizeof(searches)/sizeof(searches[0]);
-    
+
 int
 config_validate(config_t *config)
 {
@@ -613,7 +613,7 @@ serialize_key(char *ptr, int maxlen, const char *key)
         slen = measure_string(strlen(key), key);
     }
     len += slen;
-    
+
     if (ptr) {
         assert(maxlen > 0);
         *ptr++ = '"';
@@ -644,7 +644,7 @@ serialize_value(char *ptr, int maxlen, const char *val)
         slen = measure_string(strlen(val), val);
     }
     len += slen;
-    
+
     if (ptr) {
         assert(maxlen > 0);
         *ptr++ = '"';
@@ -727,7 +727,7 @@ build_json(config_t *config, char *json, int len)
     }
     return rv;
 }
-        
+
 const char *
 config_serialize_json(config_t *config)
 {
@@ -1037,4 +1037,3 @@ config_set_bool(config_t *config, const char *name, int val)
 {
     return config_set_int(config, name, val != 0);
 }
-

@@ -396,7 +396,7 @@ class Decoder {
    * Get the current recognition result as a word (and possibly phone) segmentation.
    * @param {Object} config
    * @param {number} config.start Start time to add to returned segment times.
-   * @param {number} config.align_level 0 for no word alignments only, 1 for wor 
+   * @param {number} config.align_level 0 for no word alignments only, 1 for wor
     and phone alignments, 2 for word, phone and state alignments.
    * @returns {Array<Segment>} Array of segments for the words recognized, each
    * with the keys `t`, `b` and `d`, for text, start time, and duration,

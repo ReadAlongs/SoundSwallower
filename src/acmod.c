@@ -207,7 +207,7 @@ acmod_t *
 acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
-    
+
     acmod = ckd_calloc(1, sizeof(*acmod));
     acmod->config = config_retain(config);
     acmod->lmath = logmath_retain(lmath);
