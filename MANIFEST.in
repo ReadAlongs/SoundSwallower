@@ -64,3 +64,5 @@ recursive-exclude * *.py[co]
 recursive-exclude * *~ 
 recursive-exclude * *.orig
 recursive-exclude * *.DS_Store
+global-include *.pyi
+global-include *.typed
