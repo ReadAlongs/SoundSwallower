@@ -23,59 +23,72 @@ To use a custom dictionary::
 
 """
 
-from soundswallower import Decoder, Config, get_model_path
-import logging
 import argparse
-import sys
+import logging
 import os
+import sys
+from typing import Optional, Sequence
+
+from soundswallower import Config, Decoder, get_model_path
 
 
-def make_argparse():
+def make_argparse() -> argparse.ArgumentParser:
     """Function to make the argument parser (for auto-documentation purposes)"""
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("inputs", nargs="*", help="Input files.")
-    parser.add_argument("--help-config", action="store_true",
-                        help="Print help for decoder configuration parameters.")
+    parser.add_argument(
+        "--help-config",
+        action="store_true",
+        help="Print help for decoder configuration parameters.",
+    )
     parser.add_argument("--dict", help="Custom dictionary file.")
-    parser.add_argument("--model",
-                        help="Specific model, built-in or from directory.",
-                        default='en-us')
+    parser.add_argument(
+        "--model", help="Specific model, built-in or from directory.", default="en-us"
+    )
     parser.add_argument("--config", help="JSON file with decoder configuration.")
-    parser.add_argument("-s", "--set", action="append",
-                        help="Set configuration parameter (KEY=VALUE).")
-    parser.add_argument("--write-config",
-                        help="Write full configuration as JSON to OUTPUT "
-                        "(or standard output if none given) and exit.")
-    parser.add_argument("-o", "--output",
-                        help="Filename for output (default is standard output)")
-    parser.add_argument("-v", "--verbose",
-                        action="store_true", help="Be verbose.")
-    parser.add_argument("--phone-align", help="Produce phone-level alignments",
-                        action="store_true")
+    parser.add_argument(
+        "-s", "--set", action="append", help="Set configuration parameter (KEY=VALUE)."
+    )
+    parser.add_argument(
+        "--write-config",
+        help="Write full configuration as JSON to OUTPUT "
+        "(or standard output if none given) and exit.",
+    )
+    parser.add_argument(
+        "-o", "--output", help="Filename for output (default is standard output)"
+    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Be verbose.")
+    parser.add_argument(
+        "--phone-align", help="Produce phone-level alignments", action="store_true"
+    )
     grammars = parser.add_mutually_exclusive_group()
     grammars.add_argument("-a", "--align", help="Input text file for force alignment.")
-    grammars.add_argument("-t", "--align-text",
-                          help="Input text for force alignment.")
+    grammars.add_argument("-t", "--align-text", help="Input text for force alignment.")
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     grammars.add_argument("-f", "--fsg", help="FSG file for recognition.")
     parser.add_argument_group(grammars)
     return parser
 
 
-def print_config_help(config):
+def print_config_help(config: Config) -> None:
     """Describe the decoder configuration parameters."""
     print("Configuration parameters:")
     for defn in config.describe():
-        print("\t%s (%s%s%s):\n\t\t%s"
-              % (defn.name,
-                 defn.type.__name__,
-                 ", required" if defn.required else "",
-                 (", default: %s" % defn.default) if defn.default else "",
-                 defn.doc))
+        print(
+            "\t%s (%s%s%s):\n\t\t%s"
+            % (
+                defn.name,
+                defn.type.__name__,
+                ", required" if defn.required else "",
+                (", default: %s" % defn.default) if defn.default else "",
+                defn.doc,
+            )
+        )
 
 
-def make_decoder_config(args):
+def make_decoder_config(args: argparse.Namespace) -> Config:
     """Make a decoder configuration from command-line arguments, possibly
     including a JSON configuration file."""
     config = Config()
@@ -107,12 +120,12 @@ def make_decoder_config(args):
 
     if args.set:
         for kv in args.set:
-            key, value = kv.split('=')
+            key, value = kv.split("=")
             config[key] = value
     return config
 
 
-def write_config(config, output=None):
+def write_config(config: Config, output: Optional[str] = None) -> None:
     """Write the full configuraiton as JSON to output file or standard output."""
     if output is not None:
         outfh = open(output, "wt")
@@ -123,7 +136,7 @@ def write_config(config, output=None):
         outfh.close()
 
 
-def main(argv=None):
+def main(argv: Optional[Sequence[str]] = None) -> None:
     """Main entry point for SoundSwallower."""
     logging.basicConfig(level=logging.INFO)
     parser = make_argparse()
@@ -150,7 +163,7 @@ def main(argv=None):
         decoder.decode_file(input_file)
         results.append(decoder.dumps(align_level=args.phone_align))
     if args.output is not None:
-        with open(args.output, 'w') as outfh:
+        with open(args.output, "w") as outfh:
             for json_line in results:
                 outfh.write(json_line)
     else:

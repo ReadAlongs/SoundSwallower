@@ -15,18 +15,19 @@ align text to audio.  Most of the functionality is contained in the
       print("Word %s from %.3f to %.3f" % (word, start, end))
 
 """
-import wave
 import collections
 import os
+import wave
+from typing import Optional, Tuple
 
 from ._soundswallower import Config  # noqa: F401
 from ._soundswallower import Decoder  # noqa: F401
+from ._soundswallower import Endpointer  # noqa: F401
 from ._soundswallower import FsgModel  # noqa: F401
 from ._soundswallower import Vad  # noqa: F401
-from ._soundswallower import Endpointer  # noqa: F401
 
 
-def get_model_path(subpath=None):
+def get_model_path(subpath: Optional[str] = None) -> str:
     """Return path to the model directory, or optionally, a specific file
     or directory within it.
 
@@ -35,14 +36,14 @@ def get_model_path(subpath=None):
 
     Returns:
         The requested path within the model directory."""
-    model_path = os.path.join(os.path.dirname(__file__), 'model')
+    model_path = os.path.join(os.path.dirname(__file__), "model")
     if subpath is not None:
         return os.path.join(model_path, subpath)
     else:
         return model_path
 
 
-def get_audio_data(input_file):
+def get_audio_data(input_file: str) -> Tuple[bytes, Optional[int]]:
     """Try to get single-channel audio data in the most portable way
     possible.
 
@@ -87,3 +88,16 @@ Hyp.__doc__ = "Recognition hypothesis."
 Hyp.text.__doc__ = "Recognized text."
 Hyp.score.__doc__ = "Best path score."
 Hyp.prob.__doc__ = "Posterior probability of hypothesis (often 1.0, sorry)."
+
+__all__ = [
+    "Config",
+    "Decoder",
+    "FsgModel",
+    "Vad",
+    "Endpointer",
+    "Arg",
+    "Seg",
+    "Hyp",
+    "get_model_path",
+    "get_audio_data",
+]

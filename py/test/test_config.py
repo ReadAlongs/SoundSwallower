@@ -30,13 +30,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import unittest
 import os
+import unittest
+
 from soundswallower import Config, Decoder, get_model_path
 
 
 class TestConfigHash(unittest.TestCase):
-    def test_config__getitem(self):
+    def test_config__getitem(self) -> None:
         config = Config()
         self.assertEqual(config['samprate'], 16000.)
         self.assertEqual(config['nfft'], 0)
@@ -44,7 +45,7 @@ class TestConfigHash(unittest.TestCase):
         self.assertEqual(config['backtrace'], False)
         self.assertEqual(config['feat'], '1s_c_d_dd')
 
-    def test_config_easyinit(self):
+    def test_config_easyinit(self) -> None:
         config = Config(samprate=11025.,
                         fsg=None,
                         backtrace=False,
@@ -55,7 +56,7 @@ class TestConfigHash(unittest.TestCase):
         self.assertEqual(config['backtrace'], False)
         self.assertEqual(config['feat'], '1s_c_d_dd')
 
-    def test_config_coercion(self):
+    def test_config_coercion(self) -> None:
         config = Config()
         config["samprate"] = 48000
         self.assertEqual(config['samprate'], 48000.)
@@ -68,7 +69,7 @@ DATADIR = os.path.join(os.path.dirname(__file__),
 
 
 class TestConfigIter(unittest.TestCase):
-    def test_config__iter(self):
+    def test_config__iter(self) -> None:
         config = Config()
         default_len = len(config)
         for key in config:
@@ -102,7 +103,7 @@ class TestConfigIter(unittest.TestCase):
 
 
 class TestConfigDefn(unittest.TestCase):
-    def test_config_describe(self):
+    def test_config_describe(self) -> None:
         config = Config()
         for defn in config.describe():
             if defn.name == 'hmm':

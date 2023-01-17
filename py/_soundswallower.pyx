@@ -886,7 +886,7 @@ cdef class Vad:
                         integers).  Must be of length `frame_bytes`
                         (in bytes).
         Returns:
-          boolean: Classification as speech or not speech.
+          bool: Classification as speech or not speech.
         Raises:
           IndexError: `buf` is of invalid size.
           ValueError: Other internal VAD error.
@@ -953,7 +953,7 @@ cdef class Endpointer:
 
     @property
     def frame_length(self):
-        """float: Length of a frame in secondsq (*may be different from the one
+        """float: Length of a frame in seconds (*may be different from the one
         requested in the constructor*!)"""
         return endpointer_frame_length(self._ep)
 

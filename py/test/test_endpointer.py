@@ -1,24 +1,23 @@
 #!/usr/bin/python3
 
 import os
-import numpy as np
 import unittest
+
+import numpy as np
 from soundswallower import Endpointer
 
-
-DATADIR = os.path.join(os.path.dirname(__file__),
-                       "..", "..", "tests", "data")
+DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
 
 
 class TestEndpointer(unittest.TestCase):
-    def test_endpointer(self):
+    def test_endpointer(self) -> None:
         ep = Endpointer(sample_rate=16000)
         nsamp = 0
         with open(os.path.join(DATADIR, "goforward-float32.raw"), "rb") as fh:
             while True:
-                frame = np.frombuffer(fh.read(ep.frame_bytes * 2), dtype=np.float32)
-                nsamp += len(frame)
-                frame = (frame * 32767).astype(np.int16).tobytes()
+                npframe = np.frombuffer(fh.read(ep.frame_bytes * 2), dtype=np.float32)
+                nsamp += len(npframe)
+                frame = (npframe * 32767).astype(np.int16).tobytes()
                 prev_in_speech = ep.in_speech
                 if len(frame) == 0:
                     break
@@ -34,6 +33,7 @@ class TestEndpointer(unittest.TestCase):
                         print("End speech at", ep.speech_end)
                         self.assertAlmostEqual(ep.speech_end, 3.39)
         print("Read", nsamp, "samples")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,22 +1,24 @@
 #!/usr/bin/python3
 
+import json
 import os
 import re
-import json
 import unittest
-from soundswallower import cli, get_model_path
 from tempfile import TemporaryDirectory
+from typing import Any, Mapping
+
+from soundswallower import cli, get_model_path
 
 DATADIR = os.path.join(os.path.dirname(__file__),
                        "..", "..", "tests", "data")
 
 
-def baseword(w):
+def baseword(w: Mapping[str, Any]) -> str:
     return re.sub(r"\(\d+\)$", "", w["t"])
 
 
 class TestCLI(unittest.TestCase):
-    def check_output(self, jpath, text="go forward ten meters"):
+    def check_output(self, jpath: str, text: str = "go forward ten meters") -> None:
         with open(jpath, "rt") as infh:
             for line in infh:
                 result = json.loads(line)
@@ -27,7 +29,7 @@ class TestCLI(unittest.TestCase):
                                      text.split()):
                     self.assertEqual(baseword(word), ref)
 
-    def test_cli_basic(self):
+    def test_cli_basic(self) -> None:
         with TemporaryDirectory() as tmpdir:
             jpath = os.path.join(tmpdir, "output.json")
             cli.main(("--grammar", os.path.join(DATADIR, "goforward.gram"),
@@ -36,7 +38,7 @@ class TestCLI(unittest.TestCase):
                       os.path.join(DATADIR, "goforward.raw")))
             self.check_output(jpath)
 
-    def test_cli_other_model(self):
+    def test_cli_other_model(self) -> None:
         with TemporaryDirectory() as tmpdir:
             jpath = os.path.join(tmpdir, "output.json")
             cli.main(["--grammar", os.path.join(DATADIR, "goforward_fr.gram"),
@@ -46,14 +48,14 @@ class TestCLI(unittest.TestCase):
                       os.path.join(DATADIR, "goforward_fr.raw")])
             self.check_output(jpath, "avance de dix mètres")
 
-    def test_cli_config(self):
+    def test_cli_config(self) -> None:
         with TemporaryDirectory() as tmpdir:
             jpath = os.path.join(tmpdir, "config.json")
             cli.main(["--write-config", jpath])
             with open(jpath, "rt") as infh:
                 self.assertTrue(json.load(infh))
 
-    def test_cli_align(self):
+    def test_cli_align(self) -> None:
         with TemporaryDirectory() as tmpdir:
             jpath = os.path.join(tmpdir, "output.json")
             cli.main(("--output", jpath,
