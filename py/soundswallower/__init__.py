@@ -19,6 +19,8 @@ import wave
 import collections
 import os
 
+from typing import Optional, Tuple
+
 from ._soundswallower import Config  # noqa: F401
 from ._soundswallower import Decoder  # noqa: F401
 from ._soundswallower import FsgModel  # noqa: F401
@@ -26,7 +28,7 @@ from ._soundswallower import Vad  # noqa: F401
 from ._soundswallower import Endpointer  # noqa: F401
 
 
-def get_model_path(subpath=None):
+def get_model_path(subpath: Optional[str] = None) -> str:
     """Return path to the model directory, or optionally, a specific file
     or directory within it.
 
@@ -42,7 +44,7 @@ def get_model_path(subpath=None):
         return model_path
 
 
-def get_audio_data(input_file):
+def get_audio_data(input_file: str) -> Tuple[bytes, Optional[int]]:
     """Try to get single-channel audio data in the most portable way
     possible.
 
