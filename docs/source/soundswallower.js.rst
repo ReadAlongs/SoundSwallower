@@ -45,9 +45,8 @@ and placed them under ``/model`` in your web server root:
                                       dict: "/model/br-pt.dic"});
     await decoder.initialize();
 
-For the moment, to use SoundSwallower with Webpack, various
-incantations are required in your `webpack.config.js`.  Sorry, I don't
-make the rules:
+For the moment, to use SoundSwallower with Webpack, an incantation is
+required in your `webpack.config.js`.  Sorry, I don't make the rules:
 
 .. code-block:: javascript
 
@@ -55,14 +54,10 @@ make the rules:
 
     // Then... in your `module_exports` or `config` or whatever:
     plugins: [
-        // Just copy the damn WASM because webpack can't recognize
-        // Emscripten modules.
         new CopyPlugin({
             patterns: [
-            { from: "node_modules/soundswallower/soundswallower.wasm*",
-              to: "[name][ext]"},
-            // And copy the model files too. (add any excludes you like)
-            { from: modelDir,
+            // Copy the model files (add any excludes you like)
+            { from: "node_modules/soundswallower/model",
               to: "model"},
         ],
 

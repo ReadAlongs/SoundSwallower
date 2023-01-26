@@ -76,6 +76,27 @@ If you use it from TypeScript, you might encounter problems unless you set
 `moduleResolution` to `"node16"` in your `tsconfig.json` [because
 Reasons](https://stackoverflow.com/questions/58990498/package-json-exports-field-not-working-with-typescript).
 
+Currently, because NPM, Webpack and friends are inscrutably complex and poorly
+documented, you will also need to add some stuff to your `webpack.config.js` to
+get the model files in your output, and if anyone can figure out how to make
+this happen automatically, please let me know:
+
+```js
+const CopyPlugin = require("copy-webpack-plugin");
+model.exports = {
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "node_modules/soundswallower/model",
+          to: "model",
+        },
+      ],
+    }),
+  ],
+};
+```
+
 For an "end-to-end" example of using SoundSwallower on the Web, look at the
 [SoundSwallower-Demo
 repository](https://github.com/dhdaines/soundswallower-demo).
@@ -89,9 +110,10 @@ GitHub](https://github.com/ReadAlongs/SoundSwallower) which also
 includes C and Python implementations.
 
 As of version 0.6.0, we _only_ provide an ES6 module. This means you must have
-Node.js 14 or higher. It also means that you might need to use a bleeding-edge
-version of `emcc` if you compile from source. Sorry about this, but the
-JavaScript "ecosystem" is a toxic waste dump.
+Node.js 14 or higher, and, as noted above, you might need to add
+`"moduleResolution": "node16"` to your `tsconfig.json`. It also means that you
+might need to use a bleeding-edge version of `emcc` if you compile from
+source. Sorry about this, but the JavaScript "ecosystem" is a toxic waste dump.
 
 It uses WebAssembly, so must be imported asynchronously. But... because, even
 though ES6 `import` is async, you can't directly `import` WebAssembly with it,
