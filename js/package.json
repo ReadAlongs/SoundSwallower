@@ -3,10 +3,14 @@
   "version": "0.6.0",
   "description": "An even smaller speech recognizer",
   "exports": {
-    "node": "./soundswallower.node.js",
-    "default": "./soundswallower.web.js"
+    ".": {
+      "types": "./soundswallower.d.ts",
+      "node": "./soundswallower.node.js",
+      "default": "./soundswallower.web.js"
+    }
   },
-  "type": "module",
+  "types": "./soundswallower.d.js",
+  "main": "./soundswallower.node.js",
   "scripts": {
     "test": "mocha soundswallower.spec",
     "tstest": "npx tsc && node test_typescript",

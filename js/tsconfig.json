@@ -2,7 +2,7 @@
   "files": ["test_typescript.ts"],
   "compilerOptions": {
     "target": "es6",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "lib": ["es2015", "dom"]
   }
 }

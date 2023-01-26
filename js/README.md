@@ -35,6 +35,47 @@ To run the tests, from the `jsbuild` directory:
     npm run tstest
     npm run webtest
 
+If you use it from TypeScript, you may encounter problems unless you set `moduleResolution` to `"node16"` in your `tsconfig.json` because Reasons: # SoundSwallower: an even smaller speech recognizer
+
+> "Time and change have a voice; eternity is silent. The human ear is
+> always searching for one or the other."<br>
+> Leena Krohn, _Datura, or a delusion we all see_
+
+SoundSwallower is a refactored version of PocketSphinx intended for embedding in
+web applications. The goal is not to provide a fast implementation of
+large-vocabulary continuous speech recognition, but rather to provide a _small_
+implementation of simple, useful speech technologies.
+
+With that in mind the current version is limited to finite-state
+grammar recognition.
+
+## Installation
+
+SoundSwallower can be installed in your NPM project:
+
+    # From the Internets
+    npm install soundswallower
+
+You can also build and install it from source, provided you have a _very_ recent
+version of Emscripten and CMake installed:
+
+    # From top-level soundswallower directory
+    emcmake cmake -S . -B jsbuild
+    cd jsbuild && make && npm install
+    # From your project's directory
+    cd /path/to/my/project
+    npm link /path/to/soundswallower/jsbuild
+
+To run the tests, from the `jsbuild` directory:
+
+    npm test
+    npm run tstest
+    npm run webtest
+
+If you use it from TypeScript, you might encounter problems unless you set
+`moduleResolution` to `"node16"` in your `tsconfig.json` [because
+Reasons](https://stackoverflow.com/questions/58990498/package-json-exports-field-not-working-with-typescript).
+
 For an "end-to-end" example of using SoundSwallower on the Web, look at the
 [SoundSwallower-Demo
 repository](https://github.com/dhdaines/soundswallower-demo).
