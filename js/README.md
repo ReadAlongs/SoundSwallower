@@ -19,71 +19,87 @@ SoundSwallower can be installed in your NPM project:
     # From the Internets
     npm install soundswallower
 
-You can also build and install it from source, provided you have
-Emscripten and CMake installed:
+You can also build and install it from source, provided you have a _very_ recent
+version of Emscripten and CMake installed:
 
     # From top-level soundswallower directory
     emcmake cmake -S . -B jsbuild
-    cmake --build jsbuild
+    cd jsbuild && make && npm install
     # From your project's directory
     cd /path/to/my/project
     npm link /path/to/soundswallower/jsbuild
 
-For use in Node.js, no other particular action is required on your
-part.
+To run the tests, from the `jsbuild` directory:
 
-Because Webpack is blissfully unaware of all things
-Emscripten-related, you will need a number of extra incantations in
-your `webpack.config.js` if you want to include SoundSwallower in an
-application that uses it, and there currently seems to be [no way
-around this problem](https://github.com/webpack/webpack/issues/7352).
-You will need to add this to the top of your `webpack.config.js`:
+    npm test
+    npm run tstest
+    npm run webtest
+
+If you use it from TypeScript, you may encounter problems unless you set `moduleResolution` to `"node16"` in your `tsconfig.json` because Reasons: # SoundSwallower: an even smaller speech recognizer
+
+> "Time and change have a voice; eternity is silent. The human ear is
+> always searching for one or the other."<br>
+> Leena Krohn, _Datura, or a delusion we all see_
+
+SoundSwallower is a refactored version of PocketSphinx intended for embedding in
+web applications. The goal is not to provide a fast implementation of
+large-vocabulary continuous speech recognition, but rather to provide a _small_
+implementation of simple, useful speech technologies.
+
+With that in mind the current version is limited to finite-state
+grammar recognition.
+
+## Installation
+
+SoundSwallower can be installed in your NPM project:
+
+    # From the Internets
+    npm install soundswallower
+
+You can also build and install it from source, provided you have a _very_ recent
+version of Emscripten and CMake installed:
+
+    # From top-level soundswallower directory
+    emcmake cmake -S . -B jsbuild
+    cd jsbuild && make && npm install
+    # From your project's directory
+    cd /path/to/my/project
+    npm link /path/to/soundswallower/jsbuild
+
+To run the tests, from the `jsbuild` directory:
+
+    npm test
+    npm run tstest
+    npm run webtest
+
+If you use it from TypeScript, you might encounter problems unless you set
+`moduleResolution` to `"node16"` in your `tsconfig.json` [because
+Reasons](https://stackoverflow.com/questions/58990498/package-json-exports-field-not-working-with-typescript).
+
+Currently, because NPM, Webpack and friends are inscrutably complex and poorly
+documented, you will also need to add some stuff to your `webpack.config.js` to
+get the model files in your output, and if anyone can figure out how to make
+this happen automatically, please let me know:
 
 ```js
 const CopyPlugin = require("copy-webpack-plugin");
-const modelDir = require("soundswallower/model");
+model.exports = {
+  plugins: [
+    new CopyPlugin({
+      patterns: [
+        {
+          from: "node_modules/soundswallower/model",
+          to: "model",
+        },
+      ],
+    }),
+  ],
+};
 ```
 
-Then to the `plugins` section in `config` or `module.exports`
-(depending on how your config is structured):
-
-```js
-new CopyPlugin({
-    patterns: [
-        { from: "node_modules/soundswallower/soundswallower.wasm*",
-          to: "[name][ext]"},
-        { from: modelDir,
-          to: "model"},
-   ],
-}),
-```
-
-Next to the `node` section, to prevent Webpack from mocking some
-Node.js global variables that will break WASM loading:
-
-```js
-    node: {
-	    global: false,
-	    __filename: false,
-	    __dirname: false,
-    },
-```
-
-And finally to the `resolve` section:
-
-```js
-resolve: {
-    fallback: {
-        crypto: false,
-        fs: false,
-        path: false,
-    }
-}
-```
-
-Look at the [SoundSwallower-Demo
-repository](https://github.com/dhdaines/soundswallower-demo) for an
-example.
+For an "end-to-end" example of using SoundSwallower on the Web, look at the
+[SoundSwallower-Demo
+repository](https://github.com/dhdaines/soundswallower-demo).
 
 ## Basic Usage
 
@@ -93,24 +109,27 @@ can rebuild it yourself using [the full source code from
 GitHub](https://github.com/ReadAlongs/SoundSwallower) which also
 includes C and Python implementations.
 
-It follows the usual conventions of Emscripten, meaning that you must
-require it as a CommonJS or Node.js module, which returns a function
-that returns a promise that is fulfilled with the actual module once
-the WASM code is fully loaded:
+As of version 0.6.0, we _only_ provide an ES6 module. This means you must have
+Node.js 14 or higher, and, as noted above, you might need to add
+`"moduleResolution": "node16"` to your `tsconfig.json`. It also means that you
+might need to use a bleeding-edge version of `emcc` if you compile from
+source. Sorry about this, but the JavaScript "ecosystem" is a toxic waste dump.
+
+It uses WebAssembly, so must be imported asynchronously. But... because, even
+though ES6 `import` is async, you can't directly `import` WebAssembly with it,
+you have to use this bogus incantation:
 
 ```js
-const ssjs = await require("soundswallower")();
+import createModule from "soundswallower"; // or whatever name you like
+const soundswallower = await createModule();
 ```
 
-Once you figure out how to get the module, you can try to initialize
-the recognizer and recognize some speech.
-
-Great, so let's initialize the recognizer. This possibly involves some long I/O
-operations so it's asynchronous. We follow the construct-then-initialize
-pattern. You can use `Promise`s too of course.
+Because it needs access to the compiled WebAssembly code, all of the actual API is
+contained within this object that you get back from `createModule`. Now you can
+try to initialize a recognizer and recognize some speech.
 
 ```js
-let decoder = new ssjs.Decoder({
+let decoder = new soundswallower.Decoder({
   loglevel: "INFO",
   backtrace: true,
 });
@@ -191,10 +210,11 @@ is also available, which you can load by default by setting the
 `defaultModel` property in the module object before loading:
 
 ```js
-const ssjs = {
+import createModule from "soundswallower";
+const soundswallower = {
   defaultModel: "fr-fr",
 };
-await require("soundswallower")(ssjs);
+await createModule(soundswallower);
 ```
 
 The default model is expected to live under the `model/` directory
@@ -203,11 +223,12 @@ module (in Node.js). You can modify this by setting the `modelBase`
 property in the module object when loading, e.g.:
 
 ```js
-const ssjs = {
+import createModule from "soundswallower";
+const soundswallower = {
   modelBase: "/assets/models/" /* Trailing slash is necessary */,
   defaultModel: "fr-fr",
 };
-await require("soundswallower")(ssjs);
+await createModule(soundswallower);
 ```
 
 This is simply concatenated to the model name, so you should make sure

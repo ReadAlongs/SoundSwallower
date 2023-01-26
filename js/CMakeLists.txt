@@ -1,34 +1,49 @@
-add_executable(ssjs soundswallower.c)
-set_property(TARGET ssjs PROPERTY OUTPUT_NAME soundswallower)
-set_property(TARGET ssjs PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set_property(TARGET ssjs PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-set_property(TARGET ssjs PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-# Have to use --whole-archive due to
-# https://github.com/emscripten-core/emscripten/issues/6233 (and see
-# also
-# https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#binding-libraries)
-target_link_libraries(ssjs -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
-target_compile_options(soundswallower PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
-target_compile_options(ssjs PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
+add_executable(soundswallower.web soundswallower.c)
+add_executable(soundswallower.node soundswallower.c)
+foreach(JSBUILD soundswallower.web soundswallower.node)
+  set_property(TARGET ${JSBUILD} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_property(TARGET ${JSBUILD} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  set_property(TARGET ${JSBUILD} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+  # Have to use --whole-archive due to
+  # https://github.com/emscripten-core/emscripten/issues/6233 (and see
+  # also
+  # https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html#binding-libraries)
+  target_link_libraries(${JSBUILD} -Wl,--whole-archive soundswallower -Wl,--no-whole-archive)
+  target_compile_options(soundswallower PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
+  target_compile_options(${JSBUILD} PRIVATE -Oz -sSUPPORT_LONGJMP=0 -sSTRICT=1)
+  target_include_directories(
+    ${JSBUILD} PRIVATE ${PYTHON_INCLUDE_DIR}
+    ${JSBUILD} PRIVATE ${PROJECT_SOURCE_DIR}/src
+    ${JSBUILD} PRIVATE ${PROJECT_SOURCE_DIR}/include
+    ${JSBUILD} PRIVATE ${CMAKE_BINARY_DIR} # for config.h
+    )
+endforeach()
 # Cannot, will not set lists of functions directly on the command line
 #
 # https://github.com/emscripten-core/emscripten/pull/17403
 # https://stackoverflow.com/questions/68775616/how-not-to-have-dollar-sign-in-target-link-options-mangled
 # https://discourse.cmake.org/t/how-not-to-have-dollar-sign-in-target-link-options-mangled/3939/3
-target_link_options(ssjs PRIVATE
+target_link_options(soundswallower.web PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
+  --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
+  -sENVIRONMENT=web
+  -sEXPORT_ES6=1
+  -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
+  -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
+# Sadly, it seems they cannot share the same wasm file, for no good reason
+target_link_options(soundswallower.node PRIVATE
+  @${CMAKE_SOURCE_DIR}/js/linker_options.txt
+  --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-node-pre.js
+  -sENVIRONMENT=node
+  -sEXPORT_ES6=1
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
-em_link_post_js(ssjs api.js)
-target_include_directories(
-  ssjs PRIVATE ${PYTHON_INCLUDE_DIR}
-  ssjs PRIVATE ${PROJECT_SOURCE_DIR}/src
-  ssjs PRIVATE ${PROJECT_SOURCE_DIR}/include
-  ssjs PRIVATE ${CMAKE_BINARY_DIR} # for config.h
-  )
+em_link_post_js(soundswallower.web api-web.js api.js)
+em_link_post_js(soundswallower.node api-node.js api.js)
+
 # Copy model into build directory
 add_custom_command(OUTPUT model
   COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -51,6 +66,7 @@ set(JSFILES
   test_web.html
   soundswallower.spec.js
   soundswallower.d.ts
+  tests.js
   tsconfig.json
   )
 list(TRANSFORM JSFILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)

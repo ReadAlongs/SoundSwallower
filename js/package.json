@@ -1,35 +1,45 @@
 {
-   "name": "soundswallower",
-   "version": "0.5.0",
-   "description": "An even smaller speech recognizer",
-   "main": "soundswallower.js",
-   "scripts": {
-       "test": "mocha soundswallower.spec",
-       "tstest": "npx tsc && node test_typescript",
-       "webtest": "xdg-open http://localhost:8000/test_web.html && python server.py"
-   },
-   "repository": {
-      "type": "git",
-      "url": "git+https://github.com/ReadAlongs/SoundSwallower.git"
-   },
-   "keywords": [
-      "speech",
-      "audio",
-      "nlp"
-   ],
-   "author": "David Huggins-Daines <dhdaines@gmail.com>",
-   "license": "MIT",
-   "bugs": {
-      "url": "https://github.com/ReadAlongs/SoundSwallower/issues"
-   },
-   "homepage": "https://github.com/ReadAlongs/SoundSwallower#readme",
-   "devDependencies": {
-      "@types/node": "^18.0.3",
-      "jsdoc": "^3.6.10",
-      "mocha": "^10.0.0",
-      "typescript": "^4.7.4"
-   },
-   "dependencies": {
-      "@types/emscripten": "^1.39.6"
-   }
+  "name": "soundswallower",
+  "version": "0.6.0",
+  "description": "An even smaller speech recognizer",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./soundswallower.d.ts",
+      "node": "./soundswallower.node.js",
+      "default": "./soundswallower.web.js"
+    }
+  },
+  "types": "./soundswallower.d.js",
+  "main": "./soundswallower.node.js",
+  "scripts": {
+    "test": "mocha soundswallower.spec",
+    "tstest": "npx tsc && node test_typescript",
+    "webtest": "xdg-open http://localhost:8000/test_web.html && python server.py"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ReadAlongs/SoundSwallower.git"
+  },
+  "keywords": [
+    "speech",
+    "audio",
+    "nlp"
+  ],
+  "author": "David Huggins-Daines <dhdaines@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ReadAlongs/SoundSwallower/issues"
+  },
+  "homepage": "https://github.com/ReadAlongs/SoundSwallower#readme",
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "chai": "^4.3.7",
+    "jsdoc": "^3.6.10",
+    "mocha": "^10.0.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@types/emscripten": "^1.39.6"
+  }
 }

@@ -1,8 +1,15 @@
-/* -*- javascript -*- */
-import soundswallower_factory from "./soundswallower.js";
-import { SoundSwallowerModule, Decoder, Segment } from "./soundswallower.js";
-import { promises as fs } from "fs";
-import * as assert from "assert";
+/* We have separate test code for TypeScript to make sure that type-checking
+ * works properly, but perhaps we should just put the main tests here and use
+ * tsc to transpile them as necessary, which could solve some problems and
+ * eliminate some profanity in the comments. */
+import {
+  default as soundswallower_factory,
+  SoundSwallowerModule,
+  Decoder,
+  Segment,
+} from "./soundswallower.node.js";
+import { promises as fs } from "node:fs";
+import * as assert from "node:assert";
 
 function check_alignment(hypseg: Segment, text: string) {
   let hypseg_words = [];
