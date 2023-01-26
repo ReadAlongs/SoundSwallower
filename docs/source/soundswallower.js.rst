@@ -25,26 +25,6 @@ returns in the usual manner.  If this means nothing to you, please
 consult
 https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous.
 
-By default, a narrow-bandwidth English acoustic model is loaded and
-made available.  If you want to use a different one, just put it where
-your web server can find it, then pass the relative URL to the
-directory containing the model files using the `hmm` configuration
-parameter and the URL of the dictionary using the `dict` parameter.
-Here is an example, presuming that you have downloaded and unpacked
-the Brazilian Portuguese model and dictionary from
-https://sourceforge.net/projects/cmusphinx/files/Acoustic%20and%20Language%20Models/Portuguese/
-and placed them under ``/model`` in your web server root:
-
-.. code-block:: javascript
-
-    import createModule from "soundswallower";
-    // Avoid loading the default model
-    const soundswallower = { defaultModel: null };
-    await createModule(soundswallower);
-    const decoder = new soundswallower.Decoder({hmm: "/model/cmusphinx-pt-br-5.2",
-                                      dict: "/model/br-pt.dic"});
-    await decoder.initialize();
-
 For the moment, to use SoundSwallower with Webpack, an incantation is
 required in your `webpack.config.js`.  Sorry, I don't make the rules:
 

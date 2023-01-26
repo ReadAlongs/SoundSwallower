@@ -87,9 +87,12 @@ import createModule from "soundswallower"; // or whatever name you like
 const soundswallower = await createModule();
 ```
 
-Because it needs access to the compiled WebAssembly code, all of the actual API is
-contained within this object that you get back from `createModule`. Now you can
-try to initialize a recognizer and recognize some speech.
+Because it needs access to the compiled WebAssembly code, all of the actual API
+is contained within this object that you get back from `createModule`. Now you
+can try to initialize a recognizer and recognize some speech. This is
+asynchronous, because it does a bunch of file loading and such, but the rest of
+the API isn't, because Javascript promises are not actually coroutines and thus
+will block your program even if they appear to be "asynchronous".
 
 ```js
 let decoder = new soundswallower.Decoder({
@@ -135,8 +138,7 @@ decoder.stop();
 ```
 
 The text result can be obtained with `get_text()` or in a more detailed format
-with time alignments using `get_alignment()`. These are not asynchronous
-methods, as they do not depend on or change the state of the decoder:
+with time alignments using `get_alignment()`.
 
 ```js
 console.log(decoder.get_text());
