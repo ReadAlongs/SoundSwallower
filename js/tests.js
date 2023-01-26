@@ -1,7 +1,6 @@
-/* We have to fucking pass "assert" here because fucking JavaScript won't let us
- * fucking import it from different places in the same fucking script depending
- * on which fucking environment we're fucking running in (fucking Node versus
- * the fucking Web) */
+/* We have to pass "assert" here because JavaScript won't let us import it from
+ *  different places in the same script depending on which environment we're
+ *  running in (Node versus the Web) */
 function check_alignment(hypseg, text, assert) {
   let hypseg_words = [];
   let prev = -1;
@@ -14,7 +13,7 @@ function check_alignment(hypseg, text, assert) {
   assert.equal(hypseg_words.join(" "), text);
 }
 
-/* Same fucking problem here with createModule and load_binary_file */
+/* Same problem here with createModule and load_binary_file */
 export function make_tests(createModule, load_binary_file, assert) {
   const soundswallower = {};
   before(async () => {
