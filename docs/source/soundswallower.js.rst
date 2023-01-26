@@ -37,10 +37,11 @@ and placed them under ``/model`` in your web server root:
 
 .. code-block:: javascript
 
+    import createModule from "soundswallower";
     // Avoid loading the default model
-    const ssjs = { defaultModel: null };
-    await require('soundswallower')(ssjs);
-    const decoder = new ssjs.Decoder({hmm: "/model/cmusphinx-pt-br-5.2",
+    const soundswallower = { defaultModel: null };
+    await createModule(soundswallower);
+    const decoder = new soundswallower.Decoder({hmm: "/model/cmusphinx-pt-br-5.2",
                                       dict: "/model/br-pt.dic"});
     await decoder.initialize();
 
@@ -64,19 +65,6 @@ make the rules:
             { from: modelDir,
               to: "model"},
         ],
-    // Eliminate webpack's node junk when using webpack
-    resolve: {
-        fallback: {
-            crypto: false,
-            fs: false,
-            path: false,
-        },
-    },
-    node: {
-        global: false,
-        __filename: false,
-        __dirname: false,
-    },
 
 For a more elaborate example, see [the soundswallower-demo
 code](https://github.com/dhdaines/soundswallower-demo).
@@ -98,10 +86,11 @@ Now run this with ``node``:
 
 .. code-block:: javascript
 
+    import createModule from "soundswallower";
+    import load_binary_file from "soundswallower";
     (async () => { // Wrap everything in an async function call
-	// Load the library and pre-load the default model
-	const ssjs = await require("soundswallower")();
-	const decoder = new ssjs.Decoder();
+	const soundswallower = createModule();
+	const decoder = new soundswallower.Decoder();
 	// Initialization is asynchronous
 	await decoder.initialize();
 	const grammar = decoder.set_jsgf(`#JSGF V1.0;
@@ -110,8 +99,7 @@ Now run this with ``node``:
     <digit> = one | two | three | four | five | six | seven | eight
 	| nine | ten | eleven;`); // It goes to eleven
 	// Default input is 16kHz, 32-bit floating-point PCM
-	const fs = require("fs/promises");
-	let pcm = await fs.readFile("digits.raw");
+	let pcm = await load_binary_file("digits.raw");
 	// Start speech processing
 	decoder.start();
 	// Takes a typed array, as returned by readFile
