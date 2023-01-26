@@ -77,7 +77,7 @@ export function make_tests(createModule, load_binary_file, assert) {
       await decoder.initialize();
       let pcm = await load_binary_file("testdata/goforward-float32.raw");
       decoder.start();
-      // 128-sample buffers, because fuck you, that's why
+      // 128-sample buffers to simulate bogus Web Audio API
       for (let pos = 0; pos < pcm.length; pos += 128) {
         let len = pcm.length - pos;
         if (len > 128) len = 128;
