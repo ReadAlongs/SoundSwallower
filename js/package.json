@@ -1,9 +1,12 @@
 {
   "name": "soundswallower",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "An even smaller speech recognizer",
-  "exports": {},
-  "main": "soundswallower.js",
+  "exports": {
+    "node": "./soundswallower.node.js",
+    "default": "./soundswallower.web.js"
+  },
+  "type": "module",
   "scripts": {
     "test": "mocha soundswallower.spec",
     "tstest": "npx tsc && node test_typescript",
@@ -26,6 +29,7 @@
   "homepage": "https://github.com/ReadAlongs/SoundSwallower#readme",
   "devDependencies": {
     "@types/node": "^18.0.3",
+    "chai": "^4.3.7",
     "jsdoc": "^3.6.10",
     "mocha": "^10.0.0",
     "typescript": "^4.7.4"
