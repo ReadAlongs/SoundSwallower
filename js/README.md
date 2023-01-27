@@ -168,7 +168,7 @@ borrowed from there. For example:
 
 ```js
 const result = decoder.get_alignment_json({ align_level: 1 });
-for (const { w, t, b, d } of result.w) {
+for (const { w, t, b, d, p } of result.w) {
   console.log(`word ${t} at ${b} has duration ${d} and probability ${p}`);
   for (const { t, b, d } of w) {
     console.log(`phone ${t} at ${b} has duration ${d}`);
