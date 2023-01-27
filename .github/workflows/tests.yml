@@ -59,7 +59,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Build Dependencies
-        uses: mymindstorm/setup-emsdk@v11
+        uses: mymindstorm/setup-emsdk@v12
       - name: Checkout
         uses: actions/checkout@v3
       - name: Build
