@@ -39,10 +39,11 @@ If you use it from TypeScript, you might encounter problems unless you set
 `moduleResolution` to `"node16"` in your `tsconfig.json` [because
 Reasons](https://stackoverflow.com/questions/58990498/package-json-exports-field-not-working-with-typescript).
 
-Currently, because NPM, Webpack and friends are inscrutably complex and poorly
-documented, you will also need to add some stuff to your `webpack.config.js` to
-get the model files in your output, and if anyone can figure out how to make
-this happen automatically, please let me know:
+Currently, because it's not really clear how to distribute data with JavaScript
+packages, if you are using this with webpack, you will also need to add some
+stuff to your `webpack.config.js` to get the model files in your output, and if
+anyone can figure out how to make this happen automatically, please let me know
+(possibly it involves `new URL(..., import.meta.url)`):
 
 ```js
 const CopyPlugin = require("copy-webpack-plugin");
@@ -57,6 +58,22 @@ model.exports = {
       ],
     }),
   ],
+};
+```
+
+NOTE also that with Angular you will find yourself in a world of pain unless you
+add a custom webpack config that _enables_ the parsing of `import.meta.url`
+which is disabled for some reason:
+
+```js
+module.exports = {
+  module: {
+    parser: {
+      javascript: {
+        url: true,
+      },
+    },
+  },
 };
 ```
 
@@ -159,9 +176,13 @@ for (const { w, t, b, d } of result.w) {
 }
 ```
 
-Finally, if your program is long-running and you think you might make
-multiple recognizers, you ought to delete them, because JavaScript is
-awful:
+Finally, if your program is long-running and you think you might make multiple
+recognizers, you ought to delete them, because JavaScript in its infinite wisdom
+doesn't really do destructors or finalizers (yes, I am Aware of the existence of
+[finalizer-like
+objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry)
+which are entirely inscrutable, not guaranteed to actually do anything at all,
+and probably not applicable to WASM bindings):
 
 ```js
 decoder.delete();
