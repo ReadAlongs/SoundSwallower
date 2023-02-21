@@ -87,4 +87,4 @@ add_custom_target(copy-js ALL
 # Copy types into subdirectory to satisfy broken typescript
 add_custom_target(copy-ts-bork-bork-bork ALL
   COMMAND ${CMAKE_COMMAND} -E copy
-  ${CMAKE_CURRENT_SOURCE_DIR}/index.d.ts ${CMAKE_BINARY_DIR}/jsonly.d.ts)
+  ${CMAKE_CURRENT_SOURCE_DIR}/index.d.ts ${CMAKE_BINARY_DIR}/jsonly/index.d.ts)
