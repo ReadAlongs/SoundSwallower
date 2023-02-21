@@ -19,12 +19,28 @@ SoundSwallower can be installed in your NPM project:
     # From the Internets
     npm install soundswallower
 
-You can also build and install it from source, provided you have a _very_ recent
-version of Emscripten and CMake installed:
+Or you can use it directly from
+[https://unpkg.com/soundswallower/bundle.js](https://unpkg.com/soundswallower/bundle.js)
+in your HTML:
+
+```html
+<script src="https://unpkg.com/soundswallower/bundle.js"></script>
+<script>
+decoder = soundswallower.Decoder();
+// etcetera
+</script>
+```
+
+In this case the `model` directory must be in the same location as
+your HTML, or alternately you can specify a URL to your model with the
+`url` parameter to `Decoder()`.
+
+You can also build and install it from source, provided you have recent
+versions of Emscripten and CMake installed:
 
     # From top-level soundswallower directory
     emcmake cmake -S . -B jsbuild
-    cd jsbuild && make && npm install
+    cd jsbuild && make && npm install && npm run bundle
     # From your project's directory
     cd /path/to/my/project
     npm link /path/to/soundswallower/jsbuild
@@ -89,27 +105,49 @@ can rebuild it yourself using [the full source code from
 GitHub](https://github.com/ReadAlongs/SoundSwallower) which also
 includes C and Python implementations.
 
-As of version 0.6.0, we _only_ provide an ES6 module. This means you must have
-Node.js 14 or higher, and, as noted above, you might need to add
-`"moduleResolution": "node16"` to your `tsconfig.json`. It also means that you
-might need to use a bleeding-edge version of `emcc` if you compile from
-source. Sorry about this, but the JavaScript "ecosystem" is a toxic waste dump.
+As of version 0.6.2, we _only_ provide ES6 and UMD modules as
+described above. This means you must have Node.js 14 or higher, and,
+as noted above, you might need to add `"moduleResolution": "node16"`
+to your `tsconfig.json`. It also means that you might need to use a
+bleeding-edge version of `emcc` if you compile from source. Sorry
+about this, but the JavaScript "ecosystem" is a toxic waste dump.
 
-It uses WebAssembly, so must be imported asynchronously. But... because, even
-though ES6 `import` is async, you can't directly `import` WebAssembly with it,
-you have to use this bogus incantation:
+Unless you are using the `unpkg` bundle mentioned above, it uses
+WebAssembly, so must be imported asynchronously. But... because, even
+though ES6 `import` is async, you can't directly `import` WebAssembly
+with it, you have to use this bogus incantation:
 
 ```js
 import createModule from "soundswallower"; // or whatever name you like
 const soundswallower = await createModule();
 ```
 
-Because it needs access to the compiled WebAssembly code, all of the actual API
-is contained within this object that you get back from `createModule`. Now you
-can try to initialize a recognizer and recognize some speech. This is
-asynchronous, because it does a bunch of file loading and such, but the rest of
-the API isn't, because Javascript promises are not actually coroutines and thus
-will block your program even if they appear to be "asynchronous".
+There is also a `jsonly` ES6 module which does not use WebAssembly, but
+again, because Reasons, it has the same API:
+
+```js
+import createModule from "soundswallower/jsonly";
+const soundswallower = await createModule();
+```
+
+Unfortunately, in this case, Emscripten's generated code currently has
+[a bug](https://github.com/emscripten-core/emscripten/issues/18811)
+where it still *tries* to access the non-existent WebAssembly file, so
+you must add this incantation to your Webpack config:
+
+```js
+new webpack.IgnorePlugin({
+    resourceRegExp: /\.wasm$/,
+}),
+```
+
+Because the module needs access to the compiled WebAssembly code, all
+of the actual API is contained within this object that you get back
+from `createModule`. Now you can try to initialize a recognizer and
+recognize some speech. This is asynchronous, because it does a bunch
+of file loading and such, but the rest of the API isn't, because
+Javascript promises are not actually coroutines and thus will block
+your program even if they appear to be "asynchronous".
 
 ```js
 let decoder = new soundswallower.Decoder({

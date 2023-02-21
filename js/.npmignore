@@ -19,3 +19,10 @@ test_*
 testdata
 tsconfig.json
 api.js
+api-*.js
+soundswallower.bundle.js
+webpack.config.cjs
+*.spec.js
+.ninja*
+tests.js
+build.ninja
