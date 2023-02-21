@@ -131,8 +131,9 @@ const soundswallower = await createModule();
 ```
 
 Unfortunately, in this case, Emscripten's generated code currently has
-a bug where it still *tries* to access the non-existent WebAssembly
-file, so you must add this incantation to your Webpack config:
+[a bug](https://github.com/emscripten-core/emscripten/issues/18811)
+where it still *tries* to access the non-existent WebAssembly file, so
+you must add this incantation to your Webpack config:
 
 ```js
 new webpack.IgnorePlugin({
