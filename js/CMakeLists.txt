@@ -40,7 +40,7 @@ target_link_options(soundswallower.node PRIVATE
 # -sWASM=2 does not seem to work so make an explicit standalone, JS-only version
 target_link_options(soundswallower.jsonly PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
-  --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-jsonly-pre.js
+  --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
   -sENVIRONMENT=web -sWASM=0
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
@@ -71,6 +71,7 @@ set(JSFILES
   server.py
   test_typescript.ts
   test_web.html
+  test_web_js.html
   soundswallower.spec.js
   soundswallower.d.ts
   tests.js
