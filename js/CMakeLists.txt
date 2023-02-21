@@ -63,6 +63,7 @@ target_link_options(soundswallower.bundle PRIVATE
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
+em_link_pre_js(soundswallower.jsonly api-jsonly-pre.js)
 em_link_post_js(soundswallower.jsonly api-web.js api.js)
 em_link_post_js(soundswallower.bundle api-web.js api.js)
 em_link_post_js(soundswallower.web api-web.js api.js)
