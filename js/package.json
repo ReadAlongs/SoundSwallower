@@ -1,6 +1,6 @@
 {
   "name": "soundswallower",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "An even smaller speech recognizer",
   "type": "module",
   "exports": {
@@ -21,7 +21,7 @@
     "test": "mocha soundswallower.spec",
     "tstest": "npx tsc && node test_typescript",
     "webtest": "xdg-open http://localhost:8000/test_web.html && python server.py",
-    "bundle": "webpack --config webpack.config.cjs"
+    "bundle": "webpack --config webpack.config.cjs --mode=production"
   },
   "repository": {
     "type": "git",
