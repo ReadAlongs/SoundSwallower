@@ -1,6 +1,6 @@
 {
   "name": "soundswallower",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "An even smaller speech recognizer",
   "type": "module",
   "exports": {
