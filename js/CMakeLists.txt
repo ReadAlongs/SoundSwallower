@@ -19,6 +19,8 @@ foreach(JSBUILD soundswallower.jsonly soundswallower.web soundswallower.node)
     ${JSBUILD} PRIVATE ${CMAKE_BINARY_DIR} # for config.h
     )
 endforeach()
+set_property(TARGET soundswallower.jsonly PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/jsonly)
+set_property(TARGET soundswallower.jsonly PROPERTY RUNTIME_OUTPUT_NAME index)
 # Cannot, will not set lists of functions directly on the command line
 #
 # https://github.com/emscripten-core/emscripten/pull/17403
@@ -73,10 +75,16 @@ set(JSFILES
   test_web.html
   test_web_js.html
   soundswallower.spec.js
-  soundswallower.d.ts
+  # DO NOT CALL THIS soundswallower.d.ts because otherwise
+  # jsonly/index.d.ts cannot be found by broken typescript
+  index.d.ts
   tests.js
   tsconfig.json
   )
 list(TRANSFORM JSFILES PREPEND ${CMAKE_CURRENT_SOURCE_DIR}/)
 add_custom_target(copy-js ALL
   COMMAND ${CMAKE_COMMAND} -E copy ${JSFILES} ${CMAKE_BINARY_DIR})
+# Copy types into subdirectory to satisfy broken typescript
+add_custom_target(copy-ts-bork-bork-bork ALL
+  COMMAND ${CMAKE_COMMAND} -E copy
+  ${CMAKE_CURRENT_SOURCE_DIR}/index.d.ts ${CMAKE_BINARY_DIR}/jsonly.d.ts)

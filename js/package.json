@@ -5,17 +5,17 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./soundswallower.d.ts",
+      "types": "./index.d.ts",
       "node": "./soundswallower.node.js",
       "default": "./soundswallower.web.js"
     },
     "./jsonly": {
-      "types": "./soundswallower.d.ts",
-      "default": "./soundswallower.jsonly.js"
+      "types": "./jsonly/index.d.ts",
+      "default": "./jsonly/index.js"
     }
   },
-  "types": "./soundswallower.d.js",
-  "main": "./soundswallower.node.js",
+  "types": "./index.d.js",
+  "main": "./soundswallower.web.js",
   "scripts": {
     "test": "mocha soundswallower.spec",
     "tstest": "npx tsc && node test_typescript",
