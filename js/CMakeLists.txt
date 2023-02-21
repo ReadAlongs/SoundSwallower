@@ -1,6 +1,7 @@
+add_executable(soundswallower.jsonly soundswallower.c)
 add_executable(soundswallower.web soundswallower.c)
 add_executable(soundswallower.node soundswallower.c)
-foreach(JSBUILD soundswallower.web soundswallower.node)
+foreach(JSBUILD soundswallower.jsonly soundswallower.web soundswallower.node)
   set_property(TARGET ${JSBUILD} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set_property(TARGET ${JSBUILD} PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
   set_property(TARGET ${JSBUILD} PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -26,21 +27,27 @@ endforeach()
 target_link_options(soundswallower.web PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
-  -sENVIRONMENT=web
-  -sEXPORT_ES6=1
+  -sENVIRONMENT=web -sWASM=1
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
 # Sadly, it seems they cannot share the same wasm file, for no good reason
 target_link_options(soundswallower.node PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-node-pre.js
-  -sENVIRONMENT=node
-  -sEXPORT_ES6=1
+  -sENVIRONMENT=node -sWASM=1
+  -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
+  -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
+# -sWASM=2 does not seem to work so make an explicit standalone, JS-only version
+target_link_options(soundswallower.jsonly PRIVATE
+  @${CMAKE_SOURCE_DIR}/js/linker_options.txt
+  --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-jsonly-pre.js
+  -sENVIRONMENT=web -sWASM=0
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
 # See
 # https://github.com/emscripten-core/emscripten/blob/main/cmake/Modules/Platform/Emscripten.cmake
 # ...sure would be nice if this were documented
+em_link_post_js(soundswallower.jsonly api-web.js api.js)
 em_link_post_js(soundswallower.web api-web.js api.js)
 em_link_post_js(soundswallower.node api-node.js api.js)
 
