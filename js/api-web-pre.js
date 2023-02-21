@@ -1,3 +1,5 @@
+import { Blob } from "blob-polyfill";
+
 /**
  * Async read some binary data
  */
