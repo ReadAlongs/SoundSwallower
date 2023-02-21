@@ -13,12 +13,8 @@ function check_alignment(hypseg, text, assert) {
   assert.equal(hypseg_words.join(" "), text);
 }
 
-/* Same problem here with createModule and load_binary_file */
-export function make_tests(createModule, load_binary_file, assert) {
-  const soundswallower = {};
-  before(async () => {
-    await createModule(soundswallower);
-  });
+/* Same problem here with soundswallower and load_binary_file */
+export function make_tests(soundswallower, load_binary_file, assert) {
   describe("Test initialization", () => {
     it("Should load the WASM module", () => {
       assert.ok(soundswallower);

@@ -1,3 +1,5 @@
+import { Blob } from "blob-polyfill";
+
 /**
  * Async read some binary data
  */
@@ -9,4 +11,3 @@ export async function load_binary_file(path) {
   } else
     throw new Error("Failed to fetch " + path + " :" + response.statusText);
 }
-

@@ -13,16 +13,10 @@
     <script type="module">
       mocha.setup("bdd");
     </script>
+    <script src="bundle.js"></script>
     <script type="module">
-      import {
-        default as createModule,
-        load_binary_file,
-      } from "./soundswallower.web.js";
       import { make_tests } from "./tests.js";
-      /* Passing the necessary functions as arguments seems to be the only way
-         to reuse the same test code between Node and the Web, because
-         JavaScript is total *******. */
-      make_tests(createModule, load_binary_file, chai.assert);
+      make_tests(soundswallower, soundswallower.load_binary_file, chai.assert);
     </script>
     <script type="module" class="mocha-exec">
       mocha.run();
