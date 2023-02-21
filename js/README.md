@@ -24,11 +24,11 @@ Or you can use it directly from
 in your HTML:
 
 ```html
-    <script src="https://unpkg.com/soundswallower/bundle.js"></script>
-    <script>
-    decoder = soundswallower.Decoder();
-    // etcetera
-    </script>
+<script src="https://unpkg.com/soundswallower/bundle.js"></script>
+<script>
+decoder = soundswallower.Decoder();
+// etcetera
+</script>
 ```
 
 In this case the `model` directory must be in the same location as
@@ -130,12 +130,23 @@ import createModule from "soundswallower/jsonly";
 const soundswallower = await createModule();
 ```
 
-Because it needs access to the compiled WebAssembly code, all of the actual API
-is contained within this object that you get back from `createModule`. Now you
-can try to initialize a recognizer and recognize some speech. This is
-asynchronous, because it does a bunch of file loading and such, but the rest of
-the API isn't, because Javascript promises are not actually coroutines and thus
-will block your program even if they appear to be "asynchronous".
+Unfortunately, in this case, Emscripten's generated code currently has
+a bug where it still *tries* to access the non-existent WebAssembly
+file, so you must add this incantation to your Webpack config:
+
+```js
+new webpack.IgnorePlugin({
+    resourceRegExp: /\.wasm$/,
+}),
+```
+
+Because the module needs access to the compiled WebAssembly code, all
+of the actual API is contained within this object that you get back
+from `createModule`. Now you can try to initialize a recognizer and
+recognize some speech. This is asynchronous, because it does a bunch
+of file loading and such, but the rest of the API isn't, because
+Javascript promises are not actually coroutines and thus will block
+your program even if they appear to be "asynchronous".
 
 ```js
 let decoder = new soundswallower.Decoder({
