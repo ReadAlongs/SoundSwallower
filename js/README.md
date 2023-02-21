@@ -20,11 +20,11 @@ SoundSwallower can be installed in your NPM project:
     npm install soundswallower
 
 Or you can use it directly from
-[https://unpkg.com/soundswallower/bundle.js](https://unpkg.com/soundswallower/bundle.js)
+[https://unpkg.com/soundswallower/umd/bundle.js](https://unpkg.com/soundswallower/umd/bundle.js)
 in your HTML:
 
 ```html
-<script src="https://unpkg.com/soundswallower/bundle.js"></script>
+<script src="https://unpkg.com/soundswallower/umd/bundle.js"></script>
 <script>
 decoder = soundswallower.Decoder();
 // etcetera
