@@ -13,7 +13,7 @@
     <script type="module">
       mocha.setup("bdd");
     </script>
-    <script src="bundle.js"></script>
+    <script src="umd/bundle.js"></script>
     <script type="module">
       import { make_tests } from "./tests.js";
       make_tests(soundswallower, soundswallower.load_binary_file, chai.assert);

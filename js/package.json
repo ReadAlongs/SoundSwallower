@@ -14,6 +14,7 @@
       "default": "./jsonly/index.js"
     }
   },
+  "unpkg": "./umd/bundle.js",
   "types": "./index.d.ts",
   "main": "./soundswallower.web.js",
   "scripts": {

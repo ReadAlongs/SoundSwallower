@@ -6,7 +6,8 @@ const isProduction = process.env.NODE_ENV == "production";
 const config = {
   entry: "./soundswallower.bundle.js",
   output: {
-    path: __dirname,
+    path: path.resolve("umd"),
+    publicPath: "",
     filename: "bundle.js",
     library: {
       name: "soundswallower",
