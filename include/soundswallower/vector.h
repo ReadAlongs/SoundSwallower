@@ -7,27 +7,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,7 +36,7 @@
 
 /*
  * vector.h -- vector routines.
- * 
+ *
  * **********************************************
  * CMU ARPA Speech Project
  *
@@ -45,12 +45,11 @@
  * **********************************************
  */
 
-
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
-#include <stdio.h>
 #include <soundswallower/prim_type.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,14 +65,11 @@ typedef float32 *vector_t;
  * at some point.
  */
 
-
 /* Floor all elements of v[0..dim-1] to min value of f */
 void vector_floor(vector_t v, int32 dim, float64 f);
 
-
 /* Floor all non-0 elements of v[0..dim-1] to min value of f */
 void vector_nz_floor(vector_t v, int32 dim, float64 f);
-
 
 /*
  * Normalize the elements of the given vector so that they sum to 1.0.  If the sum is 0.0
@@ -81,13 +77,12 @@ void vector_nz_floor(vector_t v, int32 dim, float64 f);
  */
 float64 vector_sum_norm(vector_t v, int32 dim);
 
-
 /* Return TRUE iff given vector is all 0.0 */
-int32 vector_is_zero (float32 *vec,	/* In: Vector to be checked */
-		      int32 len);	/* In: Length of above vector */
+int32 vector_is_zero(float32 *vec, /* In: Vector to be checked */
+                     int32 len); /* In: Length of above vector */
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* VECTOR_H */ 
+#endif /* VECTOR_H */

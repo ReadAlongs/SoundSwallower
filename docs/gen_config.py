@@ -7,7 +7,7 @@ FIXME: This should be integrated into the Sphinx build but I haven't
 figured out how to do that yet.
 """
 
-from soundswallower import Decoder
+from soundswallower import Config
 
 PREAMBLE = """Configuration parameters
 ========================
@@ -31,7 +31,7 @@ parameters, may change in a subsequent release of SoundSwallower.
    The same keyword arguments can also be passed directly to the
    constructor for `soundswallower.Decoder`."""
 
-config = Decoder.default_config()
+config = Config()
 
 # Sort them into required and other
 required = []

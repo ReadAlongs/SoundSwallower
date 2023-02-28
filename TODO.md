@@ -8,7 +8,7 @@ Roadmap:
     - Lack of example for endpointer
   - Lack of adapter for endpointer (WebAudio, etc)
   - Lack of web audio format support
-    
+
 - 0.5.x: Improve performance/usability
   - Phone input/output as IPA
   - Optimize JSGF compiler

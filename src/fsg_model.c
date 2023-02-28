@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -33,35 +33,34 @@
  */
 
 #include "config.h"
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 /* SphinxBase headers. */
-#include <soundswallower/err.h>
+#include <soundswallower/bitvec.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/fsg_model.h>
+#include <soundswallower/hash_table.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/strfuncs.h>
-#include <soundswallower/hash_table.h>
-#include <soundswallower/fsg_model.h>
-#include <soundswallower/bitvec.h>
 
-#define FSG_MODEL_BEGIN_DECL		"FSG_BEGIN"
-#define FSG_MODEL_END_DECL		"FSG_END"
-#define FSG_MODEL_N_DECL			"N"
-#define FSG_MODEL_NUM_STATES_DECL	"NUM_STATES"
-#define FSG_MODEL_S_DECL			"S"
-#define FSG_MODEL_START_STATE_DECL	"START_STATE"
-#define FSG_MODEL_F_DECL			"F"
-#define FSG_MODEL_FINAL_STATE_DECL	"FINAL_STATE"
-#define FSG_MODEL_T_DECL			"T"
-#define FSG_MODEL_TRANSITION_DECL	"TRANSITION"
-#define FSG_MODEL_COMMENT_CHAR		'#'
-
+#define FSG_MODEL_BEGIN_DECL "FSG_BEGIN"
+#define FSG_MODEL_END_DECL "FSG_END"
+#define FSG_MODEL_N_DECL "N"
+#define FSG_MODEL_NUM_STATES_DECL "NUM_STATES"
+#define FSG_MODEL_S_DECL "S"
+#define FSG_MODEL_START_STATE_DECL "START_STATE"
+#define FSG_MODEL_F_DECL "F"
+#define FSG_MODEL_FINAL_STATE_DECL "FINAL_STATE"
+#define FSG_MODEL_T_DECL "T"
+#define FSG_MODEL_TRANSITION_DECL "TRANSITION"
+#define FSG_MODEL_COMMENT_CHAR '#'
 
 /* FIXME: if from or to is greater than n_state, mysterious crash! */
 void
-fsg_model_trans_add(fsg_model_t * fsg,
+fsg_model_trans_add(fsg_model_t *fsg,
                     int32 from, int32 to, int32 logp, int32 wid)
 {
     fsg_link_t *link;
@@ -73,7 +72,7 @@ fsg_model_trans_add(fsg_model_t * fsg,
 
     /* Check for duplicate link (i.e., link already exists with label=wid) */
     for (gn = gl = fsg_model_trans(fsg, from, to); gn; gn = gnode_next(gn)) {
-        link = (fsg_link_t *) gnode_ptr(gn);
+        link = (fsg_link_t *)gnode_ptr(gn);
         if (link->wid == wid) {
             if (link->logs2prob < logp)
                 link->logs2prob = logp;
@@ -89,14 +88,14 @@ fsg_model_trans_add(fsg_model_t * fsg,
     link->wid = wid;
 
     /* Add it to the list of transitions and update the hash table */
-    gl = glist_add_ptr(gl, (void *) link);
+    gl = glist_add_ptr(gl, (void *)link);
     hash_table_replace_bkey(fsg->trans[from].trans,
-                            (const char *) &link->to_state,
+                            (const char *)&link->to_state,
                             sizeof(link->to_state), gl);
 }
 
 int32
-fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
+fsg_model_tag_trans_add(fsg_model_t *fsg, int32 from, int32 to,
                         int32 logp, int32 wid)
 {
     fsg_link_t *link, *link2;
@@ -121,8 +120,7 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
         if (link->logs2prob < logp) {
             link->logs2prob = logp;
             return 0;
-        }
-        else
+        } else
             return -1;
     }
 
@@ -135,7 +133,7 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
 
     link2 = (fsg_link_t *)
         hash_table_enter_bkey(fsg->trans[from].null_trans,
-                              (const char *) &link->to_state,
+                              (const char *)&link->to_state,
                               sizeof(link->to_state), link);
     assert(link == link2);
 
@@ -143,14 +141,14 @@ fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
 }
 
 int32
-fsg_model_null_trans_add(fsg_model_t * fsg, int32 from, int32 to,
+fsg_model_null_trans_add(fsg_model_t *fsg, int32 from, int32 to,
                          int32 logp)
 {
     return fsg_model_tag_trans_add(fsg, from, to, logp, -1);
 }
 
 glist_t
-fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls)
+fsg_model_null_trans_closure(fsg_model_t *fsg, glist_t nulls)
 {
     gnode_t *gn1;
     int updated;
@@ -160,7 +158,7 @@ fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls)
     E_INFO("Computing transitive closure for null transitions\n");
 
     /* If our caller didn't give us a list of null-transitions,
-       make such a list. Just loop through all the FSG states, 
+       make such a list. Just loop through all the FSG states,
        and all the null-transitions in that state (which are kept in
        their own hash table). */
     if (nulls == NULL) {
@@ -188,30 +186,25 @@ fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls)
         for (gn1 = nulls; gn1; gn1 = gnode_next(gn1)) {
             hash_iter_t *itor;
 
-            tl1 = (fsg_link_t *) gnode_ptr(gn1);
+            tl1 = (fsg_link_t *)gnode_ptr(gn1);
             assert(tl1->wid < 0);
 
             if (fsg->trans[tl1->to_state].null_trans == NULL)
                 continue;
 
-            for (itor =
-                 hash_table_iter(fsg->trans[tl1->to_state].null_trans);
+            for (itor = hash_table_iter(fsg->trans[tl1->to_state].null_trans);
                  itor; itor = hash_table_iter_next(itor)) {
 
-                tl2 = (fsg_link_t *) hash_entry_val(itor->ent);
+                tl2 = (fsg_link_t *)hash_entry_val(itor->ent);
 
                 k = fsg_model_null_trans_add(fsg,
                                              tl1->from_state,
                                              tl2->to_state,
-                                             tl1->logs2prob +
-                                             tl2->logs2prob);
+                                             tl1->logs2prob + tl2->logs2prob);
                 if (k >= 0) {
                     updated = TRUE;
                     if (k > 0) {
-                        nulls = glist_add_ptr(nulls, (void *)
-                                              fsg_model_null_trans
-                                              (fsg, tl1->from_state,
-                                               tl2->to_state));
+                        nulls = glist_add_ptr(nulls, (void *)fsg_model_null_trans(fsg, tl1->from_state, tl2->to_state));
                         n++;
                     }
                 }
@@ -225,33 +218,35 @@ fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls)
 }
 
 glist_t
-fsg_model_trans(fsg_model_t * fsg, int32 i, int32 j)
+fsg_model_trans(fsg_model_t *fsg, int32 i, int32 j)
 {
     void *val;
 
     if (fsg->trans[i].trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].trans, (const char *) &j,
-                               sizeof(j), &val) < 0)
+    if (hash_table_lookup_bkey(fsg->trans[i].trans, (const char *)&j,
+                               sizeof(j), &val)
+        < 0)
         return NULL;
-    return (glist_t) val;
+    return (glist_t)val;
 }
 
 fsg_link_t *
-fsg_model_null_trans(fsg_model_t * fsg, int32 i, int32 j)
+fsg_model_null_trans(fsg_model_t *fsg, int32 i, int32 j)
 {
     void *val;
 
     if (fsg->trans[i].null_trans == NULL)
         return NULL;
-    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (const char *) &j,
-                               sizeof(j), &val) < 0)
+    if (hash_table_lookup_bkey(fsg->trans[i].null_trans, (const char *)&j,
+                               sizeof(j), &val)
+        < 0)
         return NULL;
-    return (fsg_link_t *) val;
+    return (fsg_link_t *)val;
 }
 
 fsg_arciter_t *
-fsg_model_arcs(fsg_model_t * fsg, int32 i)
+fsg_model_arcs(fsg_model_t *fsg, int32 i)
 {
     fsg_arciter_t *itor;
 
@@ -268,19 +263,19 @@ fsg_model_arcs(fsg_model_t * fsg, int32 i)
 }
 
 fsg_link_t *
-fsg_arciter_get(fsg_arciter_t * itor)
+fsg_arciter_get(fsg_arciter_t *itor)
 {
     /* Iterate over non-null arcs first. */
     if (itor->gn)
-        return (fsg_link_t *) gnode_ptr(itor->gn);
+        return (fsg_link_t *)gnode_ptr(itor->gn);
     else if (itor->null_itor)
-        return (fsg_link_t *) hash_entry_val(itor->null_itor->ent);
+        return (fsg_link_t *)hash_entry_val(itor->null_itor->ent);
     else
         return NULL;
 }
 
 fsg_arciter_t *
-fsg_arciter_next(fsg_arciter_t * itor)
+fsg_arciter_next(fsg_arciter_t *itor)
 {
     /* Iterate over non-null arcs first. */
     if (itor->gn) {
@@ -293,8 +288,7 @@ fsg_arciter_next(fsg_arciter_t * itor)
             else if (itor->null_itor == NULL)
                 goto stop_iteration;
         }
-    }
-    else {
+    } else {
         if (itor->null_itor == NULL)
             goto stop_iteration;
         itor->null_itor = hash_table_iter_next(itor->null_itor);
@@ -302,14 +296,13 @@ fsg_arciter_next(fsg_arciter_t * itor)
             goto stop_iteration;
     }
     return itor;
-  stop_iteration:
+stop_iteration:
     fsg_arciter_free(itor);
     return NULL;
-
 }
 
 void
-fsg_arciter_free(fsg_arciter_t * itor)
+fsg_arciter_free(fsg_arciter_t *itor)
 {
     if (itor == NULL)
         return;
@@ -319,7 +312,7 @@ fsg_arciter_free(fsg_arciter_t * itor)
 }
 
 int
-fsg_model_word_id(fsg_model_t * fsg, const char *word)
+fsg_model_word_id(fsg_model_t *fsg, const char *word)
 {
     int wid;
 
@@ -335,7 +328,7 @@ fsg_model_word_id(fsg_model_t * fsg, const char *word)
 }
 
 int
-fsg_model_word_add(fsg_model_t * fsg, const char *word)
+fsg_model_word_add(fsg_model_t *fsg, const char *word)
 {
     int wid, old_size;
 
@@ -348,16 +341,13 @@ fsg_model_word_add(fsg_model_t * fsg, const char *word)
             old_size = fsg->n_word_alloc;
             fsg->n_word_alloc += 10;
             fsg->vocab = ckd_realloc(fsg->vocab,
-                                     fsg->n_word_alloc *
-                                     sizeof(*fsg->vocab));
+                                     fsg->n_word_alloc * sizeof(*fsg->vocab));
             if (fsg->silwords)
-                fsg->silwords =
-                    bitvec_realloc(fsg->silwords, old_size,
-                                   fsg->n_word_alloc);
+                fsg->silwords = bitvec_realloc(fsg->silwords, old_size,
+                                               fsg->n_word_alloc);
             if (fsg->altwords)
-                fsg->altwords =
-                    bitvec_realloc(fsg->altwords, old_size,
-                                   fsg->n_word_alloc);
+                fsg->altwords = bitvec_realloc(fsg->altwords, old_size,
+                                               fsg->n_word_alloc);
         }
         ++fsg->n_word;
         fsg->vocab[wid] = ckd_salloc(word);
@@ -366,7 +356,7 @@ fsg_model_word_add(fsg_model_t * fsg, const char *word)
 }
 
 int
-fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
+fsg_model_add_silence(fsg_model_t *fsg, const char *silword,
                       int state, float32 silprob)
 {
     int32 logsilp;
@@ -375,7 +365,7 @@ fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
     E_INFO("Adding silence transitions for %s to FSG\n", silword);
 
     silwid = fsg_model_word_add(fsg, silword);
-    logsilp = (int32) (logmath_log(fsg->lmath, silprob) * fsg->lw);
+    logsilp = (int32)(logmath_log(fsg->lmath, silprob) * fsg->lw);
     if (fsg->silwords == NULL)
         fsg->silwords = bitvec_alloc(fsg->n_word_alloc);
     bitvec_set(fsg->silwords, silwid);
@@ -386,8 +376,7 @@ fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
             fsg_model_trans_add(fsg, src, src, logsilp, silwid);
             ++n_trans;
         }
-    }
-    else {
+    } else {
         fsg_model_trans_add(fsg, state, state, logsilp, silwid);
         ++n_trans;
     }
@@ -397,7 +386,7 @@ fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
 }
 
 int
-fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+fsg_model_add_alt(fsg_model_t *fsg, const char *baseword,
                   const char *altword)
 {
     int i, basewid, altwid;
@@ -446,10 +435,10 @@ fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
                     link = listelem_malloc(fsg->link_alloc);
                     link->from_state = fl->from_state;
                     link->to_state = fl->to_state;
-                    link->logs2prob = fl->logs2prob;    /* FIXME!!!??? */
+                    link->logs2prob = fl->logs2prob; /* FIXME!!!??? */
                     link->wid = altwid;
 
-                    trans = glist_add_ptr(trans, (void *) link);
+                    trans = glist_add_ptr(trans, (void *)link);
                     ++ntrans;
                 }
             }
@@ -461,9 +450,8 @@ fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
     return ntrans;
 }
 
-
 fsg_model_t *
-fsg_model_init(const char *name, logmath_t * lmath, float32 lw,
+fsg_model_init(const char *name, logmath_t *lmath, float32 lw,
                int32 n_state)
 {
     fsg_model_t *fsg;
@@ -502,8 +490,7 @@ copy_header_value(s3file_t *s3f, int32 *lineno,
                        shortname, lineno);
             }
             return value;
-        }
-        else if (name && 0 == strncmp(word, name, ptr - word)) {
+        } else if (name && 0 == strncmp(word, name, ptr - word)) {
             char *value = s3file_copy_nextword(s3f, &ptr);
             if (s3file_nextword(s3f, &ptr) != NULL) {
                 E_WARN("Extra tokens after %s value in line %d\n",
@@ -516,7 +503,7 @@ copy_header_value(s3file_t *s3f, int32 *lineno,
 }
 
 fsg_model_t *
-fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
+fsg_model_read_s3file(s3file_t *s3f, logmath_t *lmath, float32 lw)
 {
     fsg_model_t *fsg;
     hash_table_t *vocab;
@@ -535,14 +522,15 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     fsgname = NULL;
     fsg = NULL;
 
-    if ((fsgname = copy_header_value(s3f, &lineno, FSG_MODEL_BEGIN_DECL, NULL)) == NULL) { 
+    if ((fsgname = copy_header_value(s3f, &lineno, FSG_MODEL_BEGIN_DECL, NULL)) == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_BEGIN_DECL);
         goto parse_error;
     }
 
     if ((val = copy_header_value(s3f, &lineno,
-                                     FSG_MODEL_NUM_STATES_DECL,
-                                     FSG_MODEL_N_DECL)) == NULL) { 
+                                 FSG_MODEL_NUM_STATES_DECL,
+                                 FSG_MODEL_N_DECL))
+        == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_NUM_STATES_DECL);
         goto parse_error;
     }
@@ -560,8 +548,9 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     fsgname = NULL;
 
     if ((val = copy_header_value(s3f, &lineno,
-                                     FSG_MODEL_START_STATE_DECL,
-                                     FSG_MODEL_S_DECL)) == NULL) { 
+                                 FSG_MODEL_START_STATE_DECL,
+                                 FSG_MODEL_S_DECL))
+        == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_START_STATE_DECL);
         goto parse_error;
     }
@@ -574,8 +563,9 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     val = NULL;
 
     if ((val = copy_header_value(s3f, &lineno,
-                                     FSG_MODEL_FINAL_STATE_DECL,
-                                     FSG_MODEL_F_DECL)) == NULL) { 
+                                 FSG_MODEL_FINAL_STATE_DECL,
+                                 FSG_MODEL_F_DECL))
+        == NULL) {
         E_ERROR("%s declaration missing\n", FSG_MODEL_FINAL_STATE_DECL);
         goto parse_error;
     }
@@ -607,7 +597,7 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
             int i, j;
             int32 tprob;
             float32 p;
-            
+
             if ((word = s3file_nextword(s3f, &ptr)) == NULL) {
                 E_ERROR("Line[%d]: from-state missing\n", lineno);
                 goto parse_error;
@@ -632,33 +622,29 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
             }
             p = (float32)atof(word);
             if ((p <= 0.0) || (p > 1.0)) {
-                E_ERROR
-                    ("Line[%d]: transition spec malformed; Expecting float as transition probability\n",
-                     lineno);
+                E_ERROR("Line[%d]: transition spec malformed; Expecting float as transition probability\n",
+                        lineno);
                 goto parse_error;
             }
             val = s3file_copy_nextword(s3f, &ptr);
-            tprob = (int32) (logmath_log(lmath, p) * fsg->lw);
+            tprob = (int32)(logmath_log(lmath, p) * fsg->lw);
             /* Add word to "dictionary". */
             if (val) {
                 int32 wid;
                 if (hash_table_lookup_int32(vocab, val, &wid) < 0) {
-                    (void) hash_table_enter_int32(vocab, val, lastwid);
+                    (void)hash_table_enter_int32(vocab, val, lastwid);
                     wid = lastwid;
                     ++lastwid;
-                }
-                else {
+                } else {
                     ckd_free(val);
                 }
                 val = NULL; /* Do not free it one way or the other */
                 fsg_model_trans_add(fsg, i, j, tprob, wid);
                 ++n_trans;
-            }
-            else {
+            } else {
                 if (fsg_model_null_trans_add(fsg, i, j, tprob) == 1) {
                     ++n_null_trans;
-                    nulls =
-                        glist_add_ptr(nulls, fsg_model_null_trans(fsg, i, j));
+                    nulls = glist_add_ptr(nulls, fsg_model_null_trans(fsg, i, j));
                 }
             }
         }
@@ -667,16 +653,15 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     E_INFO("FSG: %d states, %d unique words, %d transitions (%d null)\n",
            fsg->n_state, hash_table_inuse(vocab), n_trans, n_null_trans);
 
-
     /* Now create a string table from the "dictionary" */
     fsg->n_word = hash_table_inuse(vocab);
-    fsg->n_word_alloc = fsg->n_word + 10;       /* Pad it a bit. */
+    fsg->n_word_alloc = fsg->n_word + 10; /* Pad it a bit. */
     fsg->vocab = ckd_calloc(fsg->n_word_alloc, sizeof(*fsg->vocab));
     for (itor = hash_table_iter(vocab); itor;
          itor = hash_table_iter_next(itor)) {
         const char *word = hash_entry_key(itor->ent);
-        int32 wid = (int32) (size_t) hash_entry_val(itor->ent);
-        fsg->vocab[wid] = (char *) word;
+        int32 wid = (int32)(size_t)hash_entry_val(itor->ent);
+        fsg->vocab[wid] = (char *)word;
     }
     hash_table_free(vocab);
     if (val)
@@ -693,10 +678,10 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     glist_free(nulls);
     return fsg;
 
-  parse_error:
+parse_error:
     for (itor = hash_table_iter(vocab); itor;
          itor = hash_table_iter_next(itor))
-        ckd_free((char *) hash_entry_key(itor->ent));
+        ckd_free((char *)hash_entry_key(itor->ent));
     glist_free(nulls);
     hash_table_free(vocab);
     if (val)
@@ -707,9 +692,8 @@ fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw)
     return NULL;
 }
 
-
 fsg_model_t *
-fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
+fsg_model_readfile(const char *file, logmath_t *lmath, float32 lw)
 {
     s3file_t *s3f;
     fsg_model_t *fsg;
@@ -724,7 +708,7 @@ fsg_model_readfile(const char *file, logmath_t * lmath, float32 lw)
 }
 
 fsg_model_t *
-fsg_model_retain(fsg_model_t * fsg)
+fsg_model_retain(fsg_model_t *fsg)
 {
     if (fsg == NULL)
         return NULL;
@@ -733,7 +717,7 @@ fsg_model_retain(fsg_model_t * fsg)
 }
 
 static void
-trans_list_free(fsg_model_t * fsg, int32 i)
+trans_list_free(fsg_model_t *fsg, int32 i)
 {
     hash_iter_t *itor;
 
@@ -743,7 +727,7 @@ trans_list_free(fsg_model_t * fsg, int32 i)
     if (fsg->trans[i].trans) {
         for (itor = hash_table_iter(fsg->trans[i].trans);
              itor; itor = hash_table_iter_next(itor)) {
-            glist_t gl = (glist_t) hash_entry_val(itor->ent);
+            glist_t gl = (glist_t)hash_entry_val(itor->ent);
             glist_free(gl);
         }
     }
@@ -752,7 +736,7 @@ trans_list_free(fsg_model_t * fsg, int32 i)
 }
 
 int
-fsg_model_free(fsg_model_t * fsg)
+fsg_model_free(fsg_model_t *fsg)
 {
     int i;
 
@@ -777,9 +761,8 @@ fsg_model_free(fsg_model_t * fsg)
     return 0;
 }
 
-
 void
-fsg_model_write(fsg_model_t * fsg, FILE * fp)
+fsg_model_write(fsg_model_t *fsg, FILE *fp)
 {
     int32 i;
 
@@ -799,7 +782,7 @@ fsg_model_write(fsg_model_t * fsg, FILE * fp)
             fprintf(fp, "%s %d %d %f %s\n", FSG_MODEL_TRANSITION_DECL,
                     tl->from_state, tl->to_state,
                     logmath_exp(fsg->lmath,
-                                (int32) (tl->logs2prob / fsg->lw)),
+                                (int32)(tl->logs2prob / fsg->lw)),
                     (tl->wid < 0) ? "" : fsg_model_word_str(fsg, tl->wid));
         }
     }
@@ -810,7 +793,7 @@ fsg_model_write(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile(fsg_model_t * fsg, const char *file)
+fsg_model_writefile(fsg_model_t *fsg, const char *file)
 {
     FILE *fp;
 
@@ -829,7 +812,7 @@ fsg_model_writefile(fsg_model_t * fsg, const char *file)
 }
 
 static void
-fsg_model_write_fsm_trans(fsg_model_t * fsg, int i, FILE * fp)
+fsg_model_write_fsm_trans(fsg_model_t *fsg, int i, FILE *fp)
 {
     fsg_arciter_t *itor;
 
@@ -844,7 +827,7 @@ fsg_model_write_fsm_trans(fsg_model_t * fsg, int i, FILE * fp)
 }
 
 void
-fsg_model_write_fsm(fsg_model_t * fsg, FILE * fp)
+fsg_model_write_fsm(fsg_model_t *fsg, FILE *fp)
 {
     int i;
 
@@ -865,7 +848,7 @@ fsg_model_write_fsm(fsg_model_t * fsg, FILE * fp)
 }
 
 void
-fsg_model_writefile_fsm(fsg_model_t * fsg, const char *file)
+fsg_model_writefile_fsm(fsg_model_t *fsg, const char *file)
 {
     FILE *fp;
 
@@ -884,7 +867,7 @@ fsg_model_writefile_fsm(fsg_model_t * fsg, const char *file)
 }
 
 void
-fsg_model_write_symtab(fsg_model_t * fsg, FILE * file)
+fsg_model_write_symtab(fsg_model_t *fsg, FILE *file)
 {
     int i;
 
@@ -896,7 +879,7 @@ fsg_model_write_symtab(fsg_model_t * fsg, FILE * file)
 }
 
 void
-fsg_model_writefile_symtab(fsg_model_t * fsg, const char *file)
+fsg_model_writefile_symtab(fsg_model_t *fsg, const char *file)
 {
     FILE *fp;
 

@@ -43,24 +43,23 @@
 #include "config.h"
 #endif
 
+#include <assert.h>
+#include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
-#include <errno.h>
-#include <assert.h>
 
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/prim_type.h>
-#include <soundswallower/ckd_alloc.h>
 
 static err_cb_f err_cb = err_stderr_cb;
 static void *err_user_data;
 static err_lvl_t min_loglevel = ERR_WARN;
-static const char *err_level[ERR_MAX] =
-    {
-     "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
-    };
+static const char *err_level[ERR_MAX] = {
+    "DEBUG", "INFO", "WARN", "ERROR", "FATAL"
+};
 
 static const char *
 path2basename(const char *path)
@@ -186,7 +185,7 @@ err_msg(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
     va_end(args);
     if (msg == NULL)
         return;
-    
+
     if (path) {
         const char *fname = path2basename(path);
         char *longmsg = add_level_and_lineno(lvl, fname, ln, msg);
@@ -205,7 +204,7 @@ void
 err_msg_system(err_lvl_t lvl, const char *path, long ln, const char *fmt, ...)
 {
     int local_errno = errno;
-    
+
     char *msg, *msgsys;
     va_list args;
     int size;
@@ -247,13 +246,13 @@ err_stderr_cb(void *user_data, err_lvl_t lvl, const char *msg)
 {
     (void)user_data;
     (void)lvl;
-    
+
     fwrite(msg, 1, strlen(msg), stderr);
     fflush(stderr);
 }
 
 void
-err_set_callback(err_cb_f cb, void* user_data)
+err_set_callback(err_cb_f cb, void *user_data)
 {
     err_cb = cb;
     err_user_data = user_data;

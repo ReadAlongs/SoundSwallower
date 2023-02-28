@@ -12,11 +12,11 @@
 
 #include <soundswallower/fe.h>
 
-#include <soundswallower/err.h>
-#include <soundswallower/configuration.h>
-#include <soundswallower/config_defs.h>
-#include <soundswallower/ckd_alloc.h>
 #include "test_macros.h"
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/config_defs.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
 
 static FILE *
 open_data(int sample_rate)
@@ -59,7 +59,8 @@ main(int argc, char *argv[])
     mfcc_t **cepbuf;
     int rv, nfr, ncep;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel_str("INFO");
     TEST_ASSERT(config = config_init(fe_args));
     config_set_str(config, "input_endian", "little");
@@ -92,7 +93,8 @@ main(int argc, char *argv[])
     rv = fe_process_int16(fe, &inptr, &nsamp, cepbuf, nfr);
     nfr -= rv;
     printf("fe_process_int16 produced %d frames, "
-           " %lu samples remaining\n", rv, nsamp);
+           " %lu samples remaining\n",
+           rv, nsamp);
     TEST_EQUAL(1, fe_end(fe, cepbuf + rv, nfr));
     close_data(raw);
     ckd_free_2d(cepbuf);

@@ -11,7 +11,7 @@ do_decode(decoder_t *ps)
     short *data;
     long nsamp;
     int nfr;
-    
+
     TEST_ASSERT(rawfh = fopen(TESTDATADIR "/sense_and_sensibility_01_austen_64kb-0880.wav", "rb"));
     fseek(rawfh, 0, SEEK_END);
     nsamp = (ftell(rawfh) - 44) / 2;
@@ -53,7 +53,8 @@ main(int argc, char *argv[])
     do_decode(ps);
     TEST_EQUAL(0, strcmp(decoder_hyp(ps, &i), AUSTEN_TEXT));
     printf("Word alignment:\n");
-    i = 0; last_ef = -1;
+    i = 0;
+    last_ef = -1;
     for (seg = decoder_seg_iter(ps); seg; seg = seg_iter_next(seg)) {
         seg_iter_frames(seg, &sf, &ef);
         printf("%s %d %d\n", seg_iter_word(seg), sf, ef);
@@ -85,13 +86,13 @@ main(int argc, char *argv[])
     printf("Subword alignment:\n");
     /* It should have durations assigned (and properly constrained). */
     for (i = 0, seg = decoder_seg_iter(ps), itor = alignment_words(al); itor;
-	 i++, seg = seg_iter_next(seg), itor = alignment_iter_next(itor)) {
+         i++, seg = seg_iter_next(seg), itor = alignment_iter_next(itor)) {
         int score, start, duration;
         alignment_iter_t *pitor;
 
         seg_iter_frames(seg, &sf, &ef);
         TEST_ASSERT(seg);
-	score = alignment_iter_seg(itor, &start, &duration);
+        score = alignment_iter_seg(itor, &start, &duration);
         printf("%s %d %d %d %d %s %d %d %d\n", seg_iter_word(seg),
                sfs[i], efs[i], sf, ef,
                alignment_iter_name(itor), start, duration, score);
@@ -157,7 +158,7 @@ main(int argc, char *argv[])
         TEST_EQUAL(start, last_ef);
         last_ef = start + duration;
     }
-    
+
     ckd_free(sfs);
     ckd_free(efs);
     decoder_free(ps);

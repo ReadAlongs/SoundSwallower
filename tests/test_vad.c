@@ -5,9 +5,9 @@
  * Author: David Huggins-Daines <dhdaines@gmail.com>
  */
 
-#include <soundswallower/vad.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/vad.h>
 
 #include "test_macros.h"
 
@@ -17,7 +17,7 @@ static const char *expecteds[] = {
     "000000111111111111111111110000",
     "000000111111111111111100000000"
 };
-static const int n_modes = sizeof(expecteds)/sizeof(expecteds[0]);
+static const int n_modes = sizeof(expecteds) / sizeof(expecteds[0]);
 
 static int sample_rates[] = {
     8000,
@@ -28,7 +28,7 @@ static int sample_rates[] = {
     22050,
     44100
 };
-static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+static const int n_sample_rates = sizeof(sample_rates) / sizeof(sample_rates[0]);
 
 static FILE *
 open_data(int sample_rate)
@@ -36,8 +36,7 @@ open_data(int sample_rate)
     char *soxcmd;
     int len;
     FILE *sox;
-#define SOXCMD "sox -q -r 8000 -c 1 -b 16 -e signed-integer -t raw -D -G " \
-        TESTDATADIR "/vad/test-audio.raw -r %d -t raw -"
+#define SOXCMD "sox -q -r 8000 -c 1 -b 16 -e signed-integer -t raw -D -G " TESTDATADIR "/vad/test-audio.raw -r %d -t raw -"
 
     if (sample_rate == 8000)
         return fopen(TESTDATADIR "/vad/test-audio.raw", "rb");
@@ -110,7 +109,8 @@ main(int argc, char *argv[])
     vad_t *vader;
     int i;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel(ERR_INFO);
     /* Test initialization with default parameters. */
     vader = vad_init(0, 0, 0);
@@ -134,6 +134,6 @@ main(int argc, char *argv[])
     TEST_ASSERT(vader == NULL);
     vader = vad_init(0, 96000, 0.03);
     TEST_ASSERT(vader == NULL);
-   
+
     return 0;
 }

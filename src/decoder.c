@@ -37,23 +37,23 @@
 
 #include "config.h"
 
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include <soundswallower/err.h>
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/jsgf.h>
-#include <soundswallower/hash_table.h>
 #include <soundswallower/config_defs.h>
 #include <soundswallower/decoder.h>
+#include <soundswallower/err.h>
 #include <soundswallower/fsg_search.h>
-#include <soundswallower/state_align_search.h>
+#include <soundswallower/hash_table.h>
+#include <soundswallower/jsgf.h>
 #include <soundswallower/search_module.h>
+#include <soundswallower/state_align_search.h>
+#include <soundswallower/strfuncs.h>
 
 /* Do this unconditionally if we have no filesystem */
 /* FIXME: Actually just the web environment */
@@ -81,7 +81,8 @@ file_exists(const char *path)
     FILE *tmp;
 
     tmp = fopen(path, "rb");
-    if (tmp) fclose(tmp);
+    if (tmp)
+        fclose(tmp);
     return (tmp != NULL);
 }
 
@@ -93,9 +94,9 @@ expand_file_config(config_t *config, const char *arg,
     if ((val = config_str(config, arg)) == NULL) {
         char *tmp = string_join(hmmdir, PATHSEP, file, NULL);
         if (file_exists(tmp))
-	    config_set_str(config, arg, tmp);
-	else
-	    config_set_str(config, arg, NULL);
+            config_set_str(config, arg, tmp);
+        else
+            config_set_str(config, arg, NULL);
         ckd_free(tmp);
     }
 }
@@ -190,7 +191,7 @@ static void
 log_callback(void *user_data, err_lvl_t lvl, const char *msg)
 {
     decoder_t *d = (decoder_t *)user_data;
-    (void) lvl;
+    (void)lvl;
     assert(d->logfh != NULL);
     fwrite(msg, 1, strlen(msg), d->logfh);
     fflush(d->logfh);
@@ -257,15 +258,13 @@ decoder_init_config(decoder_t *d, config_t *config)
     config_expand(d->config);
     /* Print out the config for logging. */
     config_log_values(d->config);
-    
+
     /* Logmath computation (used in acmod and search) */
     if (d->lmath == NULL
-        || (logmath_get_base(d->lmath) !=
-            (float64)config_float(d->config, "logbase"))) {
+        || (logmath_get_base(d->lmath) != (float64)config_float(d->config, "logbase"))) {
         if (d->lmath)
             logmath_free(d->lmath);
-        d->lmath = logmath_init
-            ((float64)config_float(d->config, "logbase"), 0, TRUE);
+        d->lmath = logmath_init((float64)config_float(d->config, "logbase"), 0, TRUE);
     }
 
     /* Initialize performance timer. */
@@ -282,7 +281,7 @@ decoder_init_cleanup(decoder_t *d)
     decoder_free_searches(d);
     ckd_free(d->json_result);
     d->json_result = NULL;
-    
+
     return 0;
 }
 
@@ -409,8 +408,7 @@ decoder_init_grammar(decoder_t *d)
     if ((path = config_str(d->config, "jsgf"))) {
         if (decoder_set_jsgf_file(d, path) != 0)
             return -1;
-    }
-    else if ((path = config_str(d->config, "fsg"))) {
+    } else if ((path = config_str(d->config, "fsg"))) {
         fsg_model_t *fsg = fsg_model_readfile(path, d->lmath, lw);
         if (!fsg)
             return -1;
@@ -419,7 +417,7 @@ decoder_init_grammar(decoder_t *d)
             return -1;
         }
     }
-    return  0;
+    return 0;
 }
 
 int
@@ -446,8 +444,8 @@ decoder_init_grammar_s3file(decoder_t *d, s3file_t *fsg_file, s3file_t *jsgf_fil
             return -1;
         }
     }
-    
-    return  0;
+
+    return 0;
 }
 
 int
@@ -483,7 +481,7 @@ decoder_reinit(decoder_t *d, config_t *config)
         return -1;
     if (decoder_init_grammar(d) < 0)
         return -1;
-    
+
     return 0;
 }
 
@@ -505,7 +503,7 @@ decoder_t *
 decoder_create(config_t *config)
 {
     decoder_t *d;
-    
+
     d = ckd_calloc(1, sizeof(*d));
     d->refcount = 1;
     if (config) {
@@ -608,7 +606,7 @@ decoder_set_fsg(decoder_t *d, fsg_model_t *fsg)
     return 0;
 }
 
-int 
+int
 decoder_set_jsgf_file(decoder_t *d, const char *path)
 {
     fsg_model_t *fsg;
@@ -646,7 +644,7 @@ decoder_set_jsgf_file(decoder_t *d, const char *path)
     return result;
 }
 
-int 
+int
 decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string)
 {
     fsg_model_t *fsg;
@@ -742,6 +740,7 @@ decoder_alignment(decoder_t *d)
     seg_iter_t *seg;
     alignment_t *al;
     frame_idx_t output_frame;
+    int prev_ef;
 
     /* Reuse the existing alignment if nothing has changed. */
     if (d->align) {
@@ -755,11 +754,16 @@ decoder_alignment(decoder_t *d)
     if (seg == NULL)
         return NULL;
     al = alignment_init(d->d2p);
+    prev_ef = -1;
     while (seg) {
         int32 wid = dict_wordid(d->dict, seg->word);
-        /* This is, actually, impossible. */
-        assert(wid != BAD_S3WID);
-        alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);
+        /* This is actually possible, because of (null) transitions. */
+        if (wid != BAD_S3WID) {
+            /* The important thing is that they be continguous. */
+            assert(seg->sf == prev_ef + 1);
+            prev_ef = seg->ef;
+            alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);
+        }
         seg = seg_iter_next(seg);
     }
     if (alignment_populate(al) < 0) {
@@ -867,10 +871,10 @@ decoder_lookup_word(decoder_t *d, const char *word)
     int phlen, j;
     char *phones;
     dict_t *dict = d->dict;
-    
+
     wid = dict_wordid(dict, word);
     if (wid == BAD_S3WID)
-	return NULL;
+        return NULL;
 
     for (phlen = j = 0; j < dict_pronlen(dict, wid); ++j)
         phlen += (int)strlen(dict_ciphone_str(dict, wid, j)) + 1;
@@ -888,10 +892,10 @@ decoder_start_utt(decoder_t *d)
 {
     int rv;
     char uttid[16];
-    
+
     if (d->acmod->state == ACMOD_STARTED || d->acmod->state == ACMOD_PROCESSING) {
-	E_ERROR("Utterance already started\n");
-	return -1;
+        E_ERROR("Utterance already started\n");
+        return -1;
     }
 
     if (d->search == NULL) {
@@ -942,7 +946,8 @@ search_module_forward(decoder_t *d)
     while (d->acmod->n_feat_frame > 0) {
         int k;
         if ((k = search_module_step(d->search,
-                                    d->acmod->output_frame)) < 0)
+                                    d->acmod->output_frame))
+            < 0)
             return k;
         acmod_advance(d->acmod);
         ++d->n_frame;
@@ -961,8 +966,8 @@ decoder_process_float32(decoder_t *d,
     int n_searchfr = 0;
 
     if (d->acmod->state == ACMOD_IDLE) {
-	E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
-	return 0;
+        E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
+        return 0;
     }
 
     if (no_search)
@@ -973,7 +978,8 @@ decoder_process_float32(decoder_t *d,
 
         /* Process some data into features. */
         if ((nfr = acmod_process_float32(d->acmod, &data,
-                                         &n_samples, full_utt)) < 0)
+                                         &n_samples, full_utt))
+            < 0)
             return nfr;
 
         /* Score and search as much data as possible */
@@ -997,8 +1003,8 @@ decoder_process_int16(decoder_t *d,
     int n_searchfr = 0;
 
     if (d->acmod->state == ACMOD_IDLE) {
-	E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
-	return 0;
+        E_ERROR("Failed to process data, utterance is not started. Use start_utt to start it\n");
+        return 0;
     }
 
     if (no_search)
@@ -1009,7 +1015,8 @@ decoder_process_int16(decoder_t *d,
 
         /* Process some data into features. */
         if ((nfr = acmod_process_raw(d->acmod, &data,
-                                     &n_samples, full_utt)) < 0)
+                                     &n_samples, full_utt))
+            < 0)
             return nfr;
 
         /* Score and search as much data as possible */
@@ -1034,8 +1041,8 @@ decoder_end_utt(decoder_t *d)
         return -1;
     }
     if (d->acmod->state == ACMOD_ENDED || d->acmod->state == ACMOD_IDLE) {
-	E_ERROR("Utterance is not started\n");
-	return -1;
+        E_ERROR("Utterance is not started\n");
+        return -1;
     }
     acmod_end_utt(d->acmod);
 
@@ -1043,7 +1050,7 @@ decoder_end_utt(decoder_t *d)
     if ((rv = search_module_forward(d)) < 0) {
         ptmr_stop(&d->perf);
         return rv;
-    } 
+    }
     /* Finish main search. */
     if ((rv = search_module_finish(d->search)) < 0) {
         ptmr_stop(&d->perf);
@@ -1052,29 +1059,29 @@ decoder_end_utt(decoder_t *d)
     ptmr_stop(&d->perf);
     /* Log a backtrace if requested. */
     if (config_bool(d->config, "backtrace")) {
-        const char* hyp;
+        const char *hyp;
         seg_iter_t *seg;
         int32 score;
 
         hyp = decoder_hyp(d, &score);
-        
-        if (hyp != NULL) {
-    	    E_INFO("%s (%d)\n", hyp, score);
-    	    E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s\n",
-                        "word", "start", "end", "pprob", "ascr", "lscr");
-    	    for (seg = decoder_seg_iter(d); seg;
-        	 seg = seg_iter_next(seg)) {
-    	        const char *word;
-        	int sf, ef;
-        	int32 post, lscr, ascr;
 
-        	word = seg_iter_word(seg);
-        	seg_iter_frames(seg, &sf, &ef);
-        	post = seg_iter_prob(seg, &ascr, &lscr);
-        	E_INFO_NOFN("%-20s %-5d %-5d %-1.3f %-10d %-10d\n",
-                    	    word, sf, ef, logmath_exp(decoder_logmath(d), post),
+        if (hyp != NULL) {
+            E_INFO("%s (%d)\n", hyp, score);
+            E_INFO_NOFN("%-20s %-5s %-5s %-5s %-10s %-10s\n",
+                        "word", "start", "end", "pprob", "ascr", "lscr");
+            for (seg = decoder_seg_iter(d); seg;
+                 seg = seg_iter_next(seg)) {
+                const char *word;
+                int sf, ef;
+                int32 post, lscr, ascr;
+
+                word = seg_iter_word(seg);
+                seg_iter_frames(seg, &sf, &ef);
+                post = seg_iter_prob(seg, &ascr, &lscr);
+                E_INFO_NOFN("%-20s %-5d %-5d %-1.3f %-10d %-10d\n",
+                            word, sf, ef, logmath_exp(decoder_logmath(d), post),
                             ascr, lscr);
-    	    }
+            }
         }
     }
     return rv;
@@ -1143,15 +1150,19 @@ seg_iter_word(seg_iter_t *seg)
 void
 seg_iter_frames(seg_iter_t *seg, int *out_sf, int *out_ef)
 {
-    if (out_sf) *out_sf = seg->sf;
-    if (out_ef) *out_ef = seg->ef;
+    if (out_sf)
+        *out_sf = seg->sf;
+    if (out_ef)
+        *out_ef = seg->ef;
 }
 
 int32
 seg_iter_prob(seg_iter_t *seg, int32 *out_ascr, int32 *out_lscr)
 {
-    if (out_ascr) *out_ascr = seg->ascr;
-    if (out_lscr) *out_lscr = seg->lscr;
+    if (out_ascr)
+        *out_ascr = seg->ascr;
+    if (out_lscr)
+        *out_lscr = seg->lscr;
     return seg->prob;
 }
 
@@ -1218,7 +1229,8 @@ hyp_iter_hyp(hyp_iter_t *nbest, int32 *out_score)
 
     if (nbest->top == NULL)
         return NULL;
-    if (out_score) *out_score = nbest->top->score;
+    if (out_score)
+        *out_score = nbest->top->score;
     return astar_hyp(nbest, nbest->top);
 }
 
@@ -1287,8 +1299,7 @@ search_module_init(search_module_t *search, searchfuncs_t *vt,
         search->finish_wid = dict_finishwid(dict);
         search->silence_wid = dict_silwid(dict);
         search->n_words = dict_size(dict);
-    }
-    else {
+    } else {
         search->dict = NULL;
         search->start_wid = search->finish_wid = search->silence_wid = -1;
         search->n_words = 0;
@@ -1314,8 +1325,7 @@ search_module_base_reinit(search_module_t *search, dict_t *dict,
         search->finish_wid = dict_finishwid(dict);
         search->silence_wid = dict_silwid(dict);
         search->n_words = dict_size(dict);
-    }
-    else {
+    } else {
         search->dict = NULL;
         search->start_wid = search->finish_wid = search->silence_wid = -1;
         search->n_words = 0;
@@ -1411,7 +1421,7 @@ format_seg_align(char *outptr, int maxlen,
     }
     if (maxlen)
         maxlen -= 6;
-    
+
     pitor = alignment_iter_children(itor);
     while (pitor != NULL) {
         hyplen = format_align_iter(outptr, maxlen,
@@ -1485,7 +1495,7 @@ format_seg_align(char *outptr, int maxlen,
     }
     if (maxlen)
         maxlen--;
-    
+
     return len;
 }
 
@@ -1518,8 +1528,7 @@ decoder_result_json(decoder_t *d, double start, int align_level)
                                        lmath, state_align);
             maxlen++; /* , or ] at end */
         }
-    }
-    else {
+    } else {
         seg_iter_t *itor = decoder_seg_iter(d);
         if (itor == NULL)
             maxlen++; /* ] at end */
@@ -1556,8 +1565,7 @@ decoder_result_json(decoder_t *d, double start, int align_level)
             *ptr++ = ',';
             maxlen--;
         }
-    }
-    else {
+    } else {
         seg_iter_t *itor = decoder_seg_iter(d);
         if (itor == NULL) {
             *ptr++ = ']'; /* Gets overwritten below... */

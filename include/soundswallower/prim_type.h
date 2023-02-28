@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,7 +43,7 @@
  * Copyright (c) 1999 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
  * $Log: prim_type.h,v $
  * Revision 1.12  2005/10/05 00:31:14  dhdfu
@@ -58,26 +58,25 @@
  * Revision 1.3  2005/03/30 01:22:48  archan
  * Fixed mistakes in last updates. Add
  *
- * 
+ *
  * 12-Mar-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Added arraysize_t, point_t, fpoint_t.
- * 
+ *
  * 01-Feb-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Added anytype_t.
- * 
+ *
  * 08-31-95	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Created.
  */
-
 
 #ifndef _LIBUTIL_PRIM_TYPE_H_
 #define _LIBUTIL_PRIM_TYPE_H_
 
 /**
  * @file prim_type.h
- * @brief Basic type definitions used in Sphinx. 
+ * @brief Basic type definitions used in Sphinx.
  */
- 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -96,38 +95,38 @@ typedef union anytype_s {
 } anytype_t;
 
 /* Use C99 types if available */
-#if defined(HAVE_STDINT_H) || (defined(__STDC_VERSION__) &&  __STDC_VERSION__ >= 199901L)
+#if defined(HAVE_STDINT_H) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
 #include <stdint.h>
-typedef int32_t		int32;
-typedef int16_t		int16;
-typedef int8_t		int8;
-typedef uint32_t	uint32;
-typedef uint16_t	uint16;
-typedef uint8_t		uint8;
-typedef int64_t		int64;
-typedef uint64_t	uint64;
+typedef int32_t int32;
+typedef int16_t int16;
+typedef int8_t int8;
+typedef uint32_t uint32;
+typedef uint16_t uint16;
+typedef uint8_t uint8;
+typedef int64_t int64;
+typedef uint64_t uint64;
 /* Take a wild guess otherwise */
 #else
-typedef int		int32;
-typedef short		int16;
-typedef signed char	int8;
-typedef unsigned int	uint32;
-typedef unsigned short	uint16;
-typedef unsigned char	uint8;
-# if defined(_MSC_VER)
-typedef __int64	         int64;
+typedef int int32;
+typedef short int16;
+typedef signed char int8;
+typedef unsigned int uint32;
+typedef unsigned short uint16;
+typedef unsigned char uint8;
+#if defined(_MSC_VER)
+typedef __int64 int64;
 typedef unsigned __int64 uint64;
-# else
-typedef long long	   int64;
+#else
+typedef long long int64;
 typedef unsigned long long uint64;
-# endif
+#endif
 #endif /* not C99 or POSIX */
 
 /* We should maybe stop using these as there isn't any good way to
    know their exact size, but it's 99% certain they are 32 and 64
    bits. */
-typedef float		float32;
-typedef double		float64;
+typedef float float32;
+typedef double float64;
 
 #ifndef TRUE
 #define TRUE 1
@@ -141,35 +140,34 @@ typedef double		float64;
 #endif
 
 /* Useful constants */
-#define MAX_INT32		((int32) 0x7fffffff)
-#define MAX_INT16		((int16) 0x00007fff)
-#define MAX_INT8		((int8)  0x0000007f)
+#define MAX_INT32 ((int32)0x7fffffff)
+#define MAX_INT16 ((int16)0x00007fff)
+#define MAX_INT8 ((int8)0x0000007f)
 
-#define MAX_NEG_INT32		((int32) 0x80000000)
-#define MAX_NEG_INT16		((int16) 0xffff8000)
-#define MAX_NEG_INT8		((int8)  0xffffff80)
+#define MAX_NEG_INT32 ((int32)0x80000000)
+#define MAX_NEG_INT16 ((int16)0xffff8000)
+#define MAX_NEG_INT8 ((int8)0xffffff80)
 
-#define MAX_UINT32		((uint32) 0xffffffff)
-#define MAX_UINT16		((uint16) 0x0000ffff)
-#define MAX_UINT8		((uint8)  0x000000ff)
+#define MAX_UINT32 ((uint32)0xffffffff)
+#define MAX_UINT16 ((uint16)0x0000ffff)
+#define MAX_UINT8 ((uint8)0x000000ff)
 
 /* The following are approximate; IEEE floating point standards might quibble! */
-#define MAX_POS_FLOAT32		3.4e+38f
-#define MIN_POS_FLOAT32		1.2e-38f	/* But not 0 */
-#define MAX_POS_FLOAT64		1.8e+307
-#define MIN_POS_FLOAT64		2.2e-308
+#define MAX_POS_FLOAT32 3.4e+38f
+#define MIN_POS_FLOAT32 1.2e-38f /* But not 0 */
+#define MAX_POS_FLOAT64 1.8e+307
+#define MIN_POS_FLOAT64 2.2e-308
 
-#define MAX_IEEE_NORM_POS_FLOAT32        3.4e+38f
-#define MIN_IEEE_NORM_POS_FLOAT32        1.2e-38f
-#define MIN_IEEE_NORM_NEG_FLOAT32       -3.4e+38f
-#define MAX_IEEE_NORM_POS_FLOAT64        1.8e+307
-#define MIN_IEEE_NORM_POS_FLOAT64        2.2e-308
-#define MIN_IEEE_NORM_NEG_FLOAT64       -1.8e+307
+#define MAX_IEEE_NORM_POS_FLOAT32 3.4e+38f
+#define MIN_IEEE_NORM_POS_FLOAT32 1.2e-38f
+#define MIN_IEEE_NORM_NEG_FLOAT32 -3.4e+38f
+#define MAX_IEEE_NORM_POS_FLOAT64 1.8e+307
+#define MIN_IEEE_NORM_POS_FLOAT64 2.2e-308
+#define MIN_IEEE_NORM_NEG_FLOAT64 -1.8e+307
 
 /* Will the following really work?? */
-#define MIN_NEG_FLOAT32		((float32) (-MIN_POS_FLOAT32))
-#define MIN_NEG_FLOAT64		((float64) (-MIN_POS_FLOAT64))
-
+#define MIN_NEG_FLOAT32 ((float32)(-MIN_POS_FLOAT32))
+#define MIN_NEG_FLOAT64 ((float64)(-MIN_POS_FLOAT64))
 
 #ifdef __cplusplus
 }

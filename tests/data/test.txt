@@ -3,5 +3,5 @@
 This is a line
 This is too
 # This is a comment again
- Foo  	
-Bar  
+ Foo
+Bar

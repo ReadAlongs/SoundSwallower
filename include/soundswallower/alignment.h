@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -42,10 +42,9 @@
 #ifndef __ALIGNMENT_H__
 #define __ALIGNMENT_H__
 
-
-#include <soundswallower/prim_type.h>
 #include <soundswallower/dict2pid.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/prim_type.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,9 +58,9 @@ extern "C" {
  * @brief Entry (phone, word, or state) in an alignment
  */
 typedef struct alignment_entry_s {
-    int32 start;  /**< Start frame index. */
+    int32 start; /**< Start frame index. */
     int32 duration; /**< Duration in frames. */
-    int32 score;  /**< Alignment score (fairly meaningless). */
+    int32 score; /**< Alignment score (fairly meaningless). */
     /**
      * Index of parent node.
      *
@@ -70,7 +69,7 @@ typedef struct alignment_entry_s {
      * inside a word, you can store this for the first phone and stop
      * iterating once it changes. */
     int parent;
-    int child;  /**< Index of child node. */
+    int child; /**< Index of child node. */
     /**
      * ID or IDs for this entry.
      *
@@ -78,10 +77,10 @@ typedef struct alignment_entry_s {
      * this information to do state alignment.
      */
     union {
-        int32 wid;  /**< Word ID (for words) */
+        int32 wid; /**< Word ID (for words) */
         struct {
-            int16 cipid;  /**< Phone ID, which you care about. */
-            uint16 ssid;  /**< Senone sequence ID, which you don't. */
+            int16 cipid; /**< Phone ID, which you care about. */
+            uint16 ssid; /**< Senone sequence ID, which you don't. */
             int32 tmatid; /**< Transition matrix ID, almost certainly
                              the same as cipid. */
         } pid;

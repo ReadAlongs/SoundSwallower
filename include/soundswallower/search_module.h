@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -60,12 +60,11 @@ typedef struct seg_iter_s seg_iter_t;
 typedef struct search_module_s search_module_t;
 
 /* Search names (FIXME: not used, must be destroyed) */
-#define PS_DEFAULT_SEARCH  "_default"
+#define PS_DEFAULT_SEARCH "_default"
 
 /* Search types */
-#define PS_SEARCH_TYPE_FSG    "fsg"
-#define PS_SEARCH_TYPE_STATE_ALIGN  "state_align"
-
+#define PS_SEARCH_TYPE_FSG "fsg"
+#define PS_SEARCH_TYPE_STATE_ALIGN "state_align"
 
 /**
  * V-table for search algorithm.
@@ -87,26 +86,26 @@ typedef struct searchfuncs_s {
  * Base structure for search module.
  */
 struct search_module_s {
-    searchfuncs_t *vt;  /**< V-table of search methods. */
-    
+    searchfuncs_t *vt; /**< V-table of search methods. */
+
     char *type;
     char *name;
-    
-    config_t *config;      /**< Configuration. */
-    acmod_t *acmod;        /**< Acoustic model. */
-    dict_t *dict;        /**< Pronunciation dictionary. */
-    dict2pid_t *d2p;       /**< Dictionary to senone mappings. */
-    char *hyp_str;         /**< Current hypothesis string. */
-    lattice_t *dag;	   /**< Current hypothesis word graph. */
+
+    config_t *config; /**< Configuration. */
+    acmod_t *acmod; /**< Acoustic model. */
+    dict_t *dict; /**< Pronunciation dictionary. */
+    dict2pid_t *d2p; /**< Dictionary to senone mappings. */
+    char *hyp_str; /**< Current hypothesis string. */
+    lattice_t *dag; /**< Current hypothesis word graph. */
     latlink_t *last_link; /**< Final link in best path. */
-    int32 post;            /**< Utterance posterior probability. */
-    int32 n_words;         /**< Number of words known to search (may
-                              be less than in the dictionary) */
+    int32 post; /**< Utterance posterior probability. */
+    int32 n_words; /**< Number of words known to search (may
+                      be less than in the dictionary) */
 
     /* Magical word IDs that must exist in the dictionary: */
-    int32 start_wid;       /**< Start word ID. */
-    int32 silence_wid;     /**< Silence word ID. */
-    int32 finish_wid;      /**< Finish word ID. */
+    int32 start_wid; /**< Start word ID. */
+    int32 silence_wid; /**< Silence word ID. */
+    int32 finish_wid; /**< Finish word ID. */
 };
 
 #define search_module_base(s) ((search_module_t *)s)
@@ -122,12 +121,12 @@ struct search_module_s {
 #define search_module_type(s) search_module_base(s)->type
 #define search_module_name(s) search_module_base(s)->name
 #define search_module_start(s) (*(search_module_base(s)->vt->start))(s)
-#define search_module_step(s,i) (*(search_module_base(s)->vt->step))(s,i)
+#define search_module_step(s, i) (*(search_module_base(s)->vt->step))(s, i)
 #define search_module_finish(s) (*(search_module_base(s)->vt->finish))(s)
-#define search_module_reinit(s,d,d2p) (*(search_module_base(s)->vt->reinit))(s,d,d2p)
+#define search_module_reinit(s, d, d2p) (*(search_module_base(s)->vt->reinit))(s, d, d2p)
 #define search_module_free(s) (*(search_module_base(s)->vt->free))(s)
 #define search_module_lattice(s) (*(search_module_base(s)->vt->lattice))(s)
-#define search_module_hyp(s,sc) (*(search_module_base(s)->vt->hyp))(s,sc)
+#define search_module_hyp(s, sc) (*(search_module_base(s)->vt->hyp))(s, sc)
 #define search_module_prob(s) (*(search_module_base(s)->vt->prob))(s)
 #define search_module_seg_iter(s) (*(search_module_base(s)->vt->seg_iter))(s)
 
@@ -140,10 +139,9 @@ struct search_module_s {
  * Initialize base structure.
  */
 void search_module_init(search_module_t *search, searchfuncs_t *vt,
-		    const char *type, const char *name,
-                    config_t *config, acmod_t *acmod, dict_t *dict,
-                    dict2pid_t *d2p);
-
+                        const char *type, const char *name,
+                        config_t *config, acmod_t *acmod, dict_t *dict,
+                        dict2pid_t *d2p);
 
 /**
  * Free search
@@ -154,7 +152,7 @@ void search_module_base_free(search_module_t *search);
  * Re-initialize base structure with new dictionary.
  */
 void search_module_base_reinit(search_module_t *search, dict_t *dict,
-                           dict2pid_t *d2p);
+                               dict2pid_t *d2p);
 
 typedef struct ps_segfuncs_s {
     seg_iter_t *(*seg_next)(seg_iter_t *seg);
@@ -165,14 +163,14 @@ typedef struct ps_segfuncs_s {
  * Base structure for hypothesis segmentation iterator.
  */
 struct seg_iter_s {
-    ps_segfuncs_t *vt;     /**< V-table of seg methods */
-    search_module_t *search;   /**< Search object from whence this came */
-    const char *word;      /**< Word string (pointer into dictionary hash) */
-    frame_idx_t sf;        /**< Start frame. */
-    frame_idx_t ef;        /**< End frame. */
-    int32 ascr;            /**< Acoustic score. */
-    int32 lscr;            /**< Language model score. */
-    int32 prob;            /**< Log posterior probability. */
+    ps_segfuncs_t *vt; /**< V-table of seg methods */
+    search_module_t *search; /**< Search object from whence this came */
+    const char *word; /**< Word string (pointer into dictionary hash) */
+    frame_idx_t sf; /**< Start frame. */
+    frame_idx_t ef; /**< End frame. */
+    int32 ascr; /**< Acoustic score. */
+    int32 lscr; /**< Language model score. */
+    int32 prob; /**< Log posterior probability. */
 };
 
 #define search_module_seg_next(seg) (*(seg->vt->seg_next))(seg)

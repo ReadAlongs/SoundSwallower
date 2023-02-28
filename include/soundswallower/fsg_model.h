@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -34,7 +34,7 @@
 
 /*
  * fsg_model.h -- Word-level finite state graph
- * 
+ *
  * **********************************************
  * CMU ARPA Speech Project
  *
@@ -43,19 +43,18 @@
  * **********************************************
  */
 
-
 #ifndef __FSG_MODEL_H__
 #define __FSG_MODEL_H__
 
-#include <stdio.h>
-#include <string.h>
-#include <soundswallower/prim_type.h>
-#include <soundswallower/glist.h>
-#include <soundswallower/logmath.h>
 #include <soundswallower/bitvec.h>
+#include <soundswallower/glist.h>
 #include <soundswallower/hash_table.h>
 #include <soundswallower/listelem_alloc.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/prim_type.h>
 #include <soundswallower/s3file.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,15 +71,15 @@ extern "C" {
 typedef struct fsg_link_s {
     int32 from_state;
     int32 to_state;
-    int32 logs2prob;	/**< log(transition probability)*lw */
-    int32 wid;		/**< Word-ID; <0 if epsilon or null transition */
+    int32 logs2prob; /**< log(transition probability)*lw */
+    int32 wid; /**< Word-ID; <0 if epsilon or null transition */
 } fsg_link_t;
 
 /* Access macros */
-#define fsg_link_from_state(l)	((l)->from_state)
-#define fsg_link_to_state(l)	((l)->to_state)
-#define fsg_link_wid(l)		((l)->wid)
-#define fsg_link_logs2prob(l)	((l)->logs2prob)
+#define fsg_link_from_state(l) ((l)->from_state)
+#define fsg_link_to_state(l) ((l)->to_state)
+#define fsg_link_wid(l) ((l)->wid)
+#define fsg_link_logs2prob(l) ((l)->logs2prob)
 
 /**
  * @struct trans_list_t
@@ -90,8 +89,8 @@ typedef struct fsg_link_s {
  * Plus it allows us to make the lookup code a bit less ugly.
  */
 typedef struct trans_list_s {
-    hash_table_t *null_trans;   /* Null transitions keyed by state. */
-    hash_table_t *trans;        /* Lists of non-null transitions keyed by state. */
+    hash_table_t *null_trans; /* Null transitions keyed by state. */
+    hash_table_t *trans; /* Lists of non-null transitions keyed by state. */
 } trans_list_t;
 
 /**
@@ -104,32 +103,32 @@ typedef struct trans_list_s {
  * word.
  */
 typedef struct fsg_model_s {
-    int refcount;       /**< Reference count. */
-    char *name;		/**< A unique string identifier for this FSG */
-    int32 n_word;       /**< Number of unique words in this FSG */
+    int refcount; /**< Reference count. */
+    char *name; /**< A unique string identifier for this FSG */
+    int32 n_word; /**< Number of unique words in this FSG */
     int32 n_word_alloc; /**< Number of words allocated in vocab */
-    char **vocab;       /**< Vocabulary for this FSG. */
+    char **vocab; /**< Vocabulary for this FSG. */
     bitvec_t *silwords; /**< Indicates which words are silence/fillers. */
     bitvec_t *altwords; /**< Indicates which words are pronunciation alternates. */
-    logmath_t *lmath;	/**< Pointer to log math computation object. */
-    int32 n_state;	/**< number of states in FSG */
-    int32 start_state;	/**< Must be in the range [0..n_state-1] */
-    int32 final_state;	/**< Must be in the range [0..n_state-1] */
-    float32 lw;		/**< Language weight that's been applied to transition
-			   logprobs */
+    logmath_t *lmath; /**< Pointer to log math computation object. */
+    int32 n_state; /**< number of states in FSG */
+    int32 start_state; /**< Must be in the range [0..n_state-1] */
+    int32 final_state; /**< Must be in the range [0..n_state-1] */
+    float32 lw; /**< Language weight that's been applied to transition
+                   logprobs */
     trans_list_t *trans; /**< Transitions out of each state, if any. */
     listelem_alloc_t *link_alloc; /**< Allocator for FSG links. */
 } fsg_model_t;
 
 /* Access macros */
-#define fsg_model_name(f)		((f)->name)
-#define fsg_model_n_state(f)		((f)->n_state)
-#define fsg_model_start_state(f)	((f)->start_state)
-#define fsg_model_final_state(f)	((f)->final_state)
-#define fsg_model_log(f,p)		logmath_log((f)->lmath, p)
-#define fsg_model_lw(f)			((f)->lw)
-#define fsg_model_n_word(f)		((f)->n_word)
-#define fsg_model_word_str(f,wid)       (wid == -1 ? "(NULL)" : (f)->vocab[wid])
+#define fsg_model_name(f) ((f)->name)
+#define fsg_model_n_state(f) ((f)->n_state)
+#define fsg_model_start_state(f) ((f)->start_state)
+#define fsg_model_final_state(f) ((f)->final_state)
+#define fsg_model_log(f, p) logmath_log((f)->lmath, p)
+#define fsg_model_lw(f) ((f)->lw)
+#define fsg_model_n_word(f) ((f)->n_word)
+#define fsg_model_word_str(f, wid) (wid == -1 ? "(NULL)" : (f)->vocab[wid])
 
 /**
  * Iterator over arcs.
@@ -143,16 +142,16 @@ typedef struct fsg_arciter_s {
 /**
  * Have silence transitions been added?
  */
-#define fsg_model_has_sil(f)            ((f)->silwords != NULL)
+#define fsg_model_has_sil(f) ((f)->silwords != NULL)
 
 /**
  * Have alternate word transitions been added?
  */
-#define fsg_model_has_alt(f)            ((f)->altwords != NULL)
+#define fsg_model_has_alt(f) ((f)->altwords != NULL)
 
-#define fsg_model_is_filler(f,wid) \
+#define fsg_model_is_filler(f, wid) \
     (fsg_model_has_sil(f) ? bitvec_is_set((f)->silwords, wid) : FALSE)
-#define fsg_model_is_alt(f,wid) \
+#define fsg_model_is_alt(f, wid) \
     (fsg_model_has_alt(f) ? bitvec_is_set((f)->altwords, wid) : FALSE)
 
 /**
@@ -164,9 +163,9 @@ fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
 /**
  * Read a word FSG from the given file and return a pointer to the structure
  * created.  Return NULL if any error occurred.
- * 
+ *
  * File format:
- * 
+ *
  * <pre>
  *   Any number of comment lines; ignored
  *   FSG_BEGIN [<fsgname>]
@@ -179,24 +178,24 @@ fsg_model_t *fsg_model_init(const char *name, logmath_t *lmath,
  *   FSG_END
  *   Any number of comment lines; ignored
  * </pre>
- * 
+ *
  * The FSG spec begins with the line containing the keyword FSG_BEGIN.
  * It has an optional fsg name string.  If not present, the FSG has the empty
  * string as its name.
- * 
+ *
  * Following the FSG_BEGIN declaration is the number of states, the start
  * state, and the final state, each on a separate line.  States are numbered
  * in the range [0 .. <numberofstate>-1].
- * 
+ *
  * These are followed by all the state transitions, each on a separate line,
  * and terminated by the FSG_END line.  A state transition has the given
  * probability of being taken, and emits the given word.  The word emission
  * is optional; if word-string omitted, it is an epsilon or null transition.
- * 
+ *
  * Comments can also be embedded within the FSG body proper (i.e. between
  * FSG_BEGIN and FSG_END): any line with a # character in col 1 is treated
  * as a comment line.
- * 
+ *
  * Return value: a new fsg_model_t structure if the file is successfully
  * read, NULL otherwise.
  */
@@ -205,7 +204,7 @@ fsg_model_t *fsg_model_readfile(const char *file, logmath_t *lmath, float32 lw);
 /**
  * Read from an in-memory file.
  */
-fsg_model_t *fsg_model_read_s3file(s3file_t *s3f, logmath_t * lmath, float32 lw);
+fsg_model_t *fsg_model_read_s3file(s3file_t *s3f, logmath_t *lmath, float32 lw);
 
 /**
  * Retain ownership of an FSG.
@@ -241,7 +240,7 @@ int fsg_model_word_id(fsg_model_t *fsg, const char *word);
  * Duplicates (i.e., two transitions between the same states, with the
  * same word label) are flagged and only the highest prob retained.
  */
-void fsg_model_trans_add(fsg_model_t * fsg,
+void fsg_model_trans_add(fsg_model_t *fsg,
                          int32 from, int32 to, int32 logp, int32 wid);
 
 /**
@@ -254,7 +253,7 @@ void fsg_model_trans_add(fsg_model_t * fsg,
  * @return 1 if a new transition was added, 0 if the prob of an existing
  * transition was upgraded; -1 if nothing was changed.
  */
-int32 fsg_model_null_trans_add(fsg_model_t * fsg, int32 from, int32 to, int32 logp);
+int32 fsg_model_null_trans_add(fsg_model_t *fsg, int32 from, int32 to, int32 logp);
 
 /**
  * Add a "tag" transition between the given states.
@@ -270,7 +269,7 @@ int32 fsg_model_null_trans_add(fsg_model_t * fsg, int32 from, int32 to, int32 lo
  * @return 1 if a new transition was added, 0 if the prob of an existing
  * transition was upgraded; -1 if nothing was changed.
  */
-int32 fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
+int32 fsg_model_tag_trans_add(fsg_model_t *fsg, int32 from, int32 to,
                               int32 logp, int32 wid);
 
 /**
@@ -279,7 +278,7 @@ int32 fsg_model_tag_trans_add(fsg_model_t * fsg, int32 from, int32 to,
  * @param nulls List of null transitions, or NULL to find them automatically.
  * @return Updated list of null transitions.
  */
-glist_t fsg_model_null_trans_closure(fsg_model_t * fsg, glist_t nulls);
+glist_t fsg_model_null_trans_closure(fsg_model_t *fsg, glist_t nulls);
 
 /**
  * Get the list of transitions (if any) from state i to j.
@@ -316,13 +315,13 @@ fsg_link_t *fsg_model_null_trans(fsg_model_t *fsg, int32 i, int32 j);
  * @param state state to add a self-loop to, or -1 for all states.
  * @param silprob probability of silence transition.
  */
-int fsg_model_add_silence(fsg_model_t * fsg, const char *silword,
+int fsg_model_add_silence(fsg_model_t *fsg, const char *silword,
                           int state, float32 silprob);
 
 /**
  * Add alternate pronunciation transitions for a word in given FSG.
  */
-int fsg_model_add_alt(fsg_model_t * fsg, const char *baseword,
+int fsg_model_add_alt(fsg_model_t *fsg, const char *baseword,
                       const char *altword);
 
 /**

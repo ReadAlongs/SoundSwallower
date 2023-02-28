@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -42,9 +42,9 @@
 #ifndef __HMM_H__
 #define __HMM_H__
 
-#include <stdio.h>
-#include <soundswallower/listelem_alloc.h>
 #include <soundswallower/bin_mdef.h>
+#include <soundswallower/listelem_alloc.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -53,8 +53,8 @@ extern "C" {
 }
 #endif
 
-/** 
- * Type for frame index values. Used in HMM indexes and 
+/**
+ * Type for frame index values. Used in HMM indexes and
  * backpointers and affects memory required.Due to limitations of FSG
  * search implementation this value needs to be signed.
  */
@@ -64,7 +64,6 @@ typedef int32 frame_idx_t;
  * Maximum number of frames in index, should be in sync with above.
  */
 #define MAX_N_FRAMES MAX_INT32
-
 
 /** Shift count for senone scores. */
 #define SENSCR_SHIFT 10
@@ -78,13 +77,13 @@ typedef int32 frame_idx_t;
  * require as many was 4 plies before the new 'good' score can wipe
  * out the initial WORST_SCORE initialization.
  */
-#define WORST_SCORE		((int)0xE0000000)
+#define WORST_SCORE ((int)0xE0000000)
 
 /**
  * Watch out, though!  Transition matrix entries that are supposed to
  * be "zero" don't actually get that small due to quantization.
  */
-#define TMAT_WORST_SCORE	(-255)
+#define TMAT_WORST_SCORE (-255)
 
 /**
  * Is one score better than another?
@@ -101,11 +100,11 @@ typedef int32 frame_idx_t;
  *
  * For efficiency, this version is hardwired for two possible HMM
  * topologies, but will fall back to others:
- * 
+ *
  * 5-state left-to-right HMMs: (0 is the *emitting* entry state and E
  * is a non-emitting exit state; the x's indicate allowed transitions
  * between source and destination states):
- * 
+ *
  * <pre>
  *               0   1   2   3   4   E (destination-states)
  *           0   x   x   x
@@ -117,18 +116,18 @@ typedef int32 frame_idx_t;
  * </pre>
  *
  * 5-state topologies that contain a subset of the above transitions should work as well.
- * 
+ *
  * 3-state left-to-right HMMs (similar notation as the 5-state topology above):
- * 
+ *
  * <pre>
  *               0   1   2   E (destination-states)
  *           0   x   x   x
  *           1       x   x   x
- *           2           x   x 
+ *           2           x   x
  *    (source-states)
  * </pre>
  *
- * 3-state topologies that contain a subset of the above transitions should work as well. 
+ * 3-state topologies that contain a subset of the above transitions should work as well.
  */
 
 /**
@@ -141,14 +140,14 @@ typedef int32 frame_idx_t;
  * exit state.
  */
 typedef struct hmm_context_s {
-    int32 n_emit_state;     /**< Number of emitting states in this set of HMMs. */
-    uint8 ** const *tp;	    /**< State transition scores tp[id][from][to] (logs3 values). */
-    int16 const *senscore;  /**< State emission scores senscore[senid]
-                               (negated scaled logs3 values). */
-    uint16 * const *sseq;   /**< Senone sequence mapping. */
-    int32 *st_sen_scr;      /**< Temporary array of senone scores (for some topologies). */
+    int32 n_emit_state; /**< Number of emitting states in this set of HMMs. */
+    uint8 **const *tp; /**< State transition scores tp[id][from][to] (logs3 values). */
+    int16 const *senscore; /**< State emission scores senscore[senid]
+                              (negated scaled logs3 values). */
+    uint16 *const *sseq; /**< Senone sequence mapping. */
+    int32 *st_sen_scr; /**< Temporary array of senone scores (for some topologies). */
     listelem_alloc_t *mpx_ssid_alloc; /**< Allocator for senone sequence ID arrays. */
-    void *udata;            /**< Whatever you feel like, gosh. */
+    void *udata; /**< Whatever you feel like, gosh. */
 } hmm_context_t;
 
 /**
@@ -165,17 +164,17 @@ typedef struct hmm_context_s {
  * non-emitting exit (out) state.
  */
 typedef struct hmm_s {
-    hmm_context_t *ctx;            /**< Shared context data for this HMM. */
-    int32 score[HMM_MAX_NSTATE];   /**< State scores for emitting states. */
+    hmm_context_t *ctx; /**< Shared context data for this HMM. */
+    int32 score[HMM_MAX_NSTATE]; /**< State scores for emitting states. */
     int32 history[HMM_MAX_NSTATE]; /**< History indices for emitting states. */
-    int32 out_score;               /**< Score for non-emitting exit state. */
-    int32 out_history;             /**< History index for non-emitting exit state. */
-    uint16 ssid;                   /**< Senone sequence ID (for non-MPX) */
-    uint16 senid[HMM_MAX_NSTATE];  /**< Senone IDs (non-MPX) or sequence IDs (MPX) */
-    int32 bestscore;	/**< Best [emitting] state score in current frame (for pruning). */
-    int16 tmatid;       /**< Transition matrix ID (see hmm_context_t). */
-    frame_idx_t frame;  /**< Frame in which this HMM was last active; <0 if inactive */
-    uint8 mpx;          /**< Is this HMM multiplex? (hoisted for speed) */
+    int32 out_score; /**< Score for non-emitting exit state. */
+    int32 out_history; /**< History index for non-emitting exit state. */
+    uint16 ssid; /**< Senone sequence ID (for non-MPX) */
+    uint16 senid[HMM_MAX_NSTATE]; /**< Senone IDs (non-MPX) or sequence IDs (MPX) */
+    int32 bestscore; /**< Best [emitting] state score in current frame (for pruning). */
+    int16 tmatid; /**< Transition matrix ID (see hmm_context_t). */
+    frame_idx_t frame; /**< Frame in which this HMM was last active; <0 if inactive */
+    uint8 mpx; /**< Is this HMM multiplex? (hoisted for speed) */
     uint8 n_emit_state; /**< Number of emitting states (hoisted for speed) */
 } hmm_t;
 
@@ -184,29 +183,32 @@ typedef struct hmm_s {
 #define hmm_is_mpx(h) (h)->mpx
 
 #define hmm_in_score(h) (h)->score[0]
-#define hmm_score(h,st) (h)->score[st]
+#define hmm_score(h, st) (h)->score[st]
 #define hmm_out_score(h) (h)->out_score
 
 #define hmm_in_history(h) (h)->history[0]
-#define hmm_history(h,st) (h)->history[st]
+#define hmm_history(h, st) (h)->history[st]
 #define hmm_out_history(h) (h)->out_history
 
 #define hmm_bestscore(h) (h)->bestscore
 #define hmm_frame(h) (h)->frame
-#define hmm_mpx_ssid(h,st) (h)->senid[st]
+#define hmm_mpx_ssid(h, st) (h)->senid[st]
 #define hmm_nonmpx_ssid(h) (h)->ssid
-#define hmm_ssid(h,st) (hmm_is_mpx(h)                                   \
-                        ? hmm_mpx_ssid(h,st) : hmm_nonmpx_ssid(h))
-#define hmm_mpx_senid(h,st) (hmm_mpx_ssid(h,st) == BAD_SENID \
-                             ? BAD_SENID : (h)->ctx->sseq[hmm_mpx_ssid(h,st)][st])
-#define hmm_nonmpx_senid(h,st) ((h)->senid[st])
-#define hmm_senid(h,st) (hmm_is_mpx(h)                                  \
-                         ? hmm_mpx_senid(h,st) : hmm_nonmpx_senid(h,st))
-#define hmm_senscr(h,st) (hmm_senid(h,st) == BAD_SENID                  \
-                          ? WORST_SCORE                                 \
-                          : -(h)->ctx->senscore[hmm_senid(h,st)])
+#define hmm_ssid(h, st) (hmm_is_mpx(h)             \
+                             ? hmm_mpx_ssid(h, st) \
+                             : hmm_nonmpx_ssid(h))
+#define hmm_mpx_senid(h, st) (hmm_mpx_ssid(h, st) == BAD_SENID \
+                                  ? BAD_SENID                  \
+                                  : (h)->ctx->sseq[hmm_mpx_ssid(h, st)][st])
+#define hmm_nonmpx_senid(h, st) ((h)->senid[st])
+#define hmm_senid(h, st) (hmm_is_mpx(h)              \
+                              ? hmm_mpx_senid(h, st) \
+                              : hmm_nonmpx_senid(h, st))
+#define hmm_senscr(h, st) (hmm_senid(h, st) == BAD_SENID \
+                               ? WORST_SCORE             \
+                               : -(h)->ctx->senscore[hmm_senid(h, st)])
 #define hmm_tmatid(h) (h)->tmatid
-#define hmm_tprob(h,i,j) (-(h)->ctx->tp[hmm_tmatid(h)][i][j])
+#define hmm_tprob(h, i, j) (-(h)->ctx->tp[hmm_tmatid(h)][i][j])
 #define hmm_n_emit_state(h) ((h)->n_emit_state)
 #define hmm_n_state(h) ((h)->n_emit_state + 1)
 
@@ -214,9 +216,9 @@ typedef struct hmm_s {
  * Create an HMM context.
  **/
 hmm_context_t *hmm_context_init(int32 n_emit_state,
-                                uint8 ** const *tp,
+                                uint8 **const *tp,
                                 int16 const *senscore,
-                                uint16 * const *sseq);
+                                uint16 *const *sseq);
 
 /**
  * Change the senone score array for a context.
@@ -276,9 +278,8 @@ void hmm_enter(hmm_t *h, int32 score,
  * been logged for the emitting states.  But we're not bothered with
  * state segmentations, for now.  So, we update the exit state as
  * well.
-*/
+ */
 int32 hmm_vit_eval(hmm_t *hmm);
-
 
 #ifdef __cplusplus
 } /* extern "C" */

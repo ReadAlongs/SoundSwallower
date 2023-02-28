@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -50,13 +50,13 @@
  *
  */
 
-#include <soundswallower/feat.h>
-#include <soundswallower/logmath.h>
 #include <soundswallower/configuration.h>
-#include <soundswallower/vector.h>
-#include <soundswallower/mllr.h>
+#include <soundswallower/feat.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/s3file.h>
+#include <soundswallower/vector.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,9 +70,9 @@ extern "C" {
  * \brief Structure to store distance (density) values for a given input observation wrt density values in some given codebook.
  */
 typedef struct gauden_dist_s {
-    int32 id;		/**< Index of codeword (gaussian density) */
-    mfcc_t dist;		/**< Density value for input observation wrt above codeword;
-                           NOTE: result in logs3 domain, but var_t used for speed */
+    int32 id; /**< Index of codeword (gaussian density) */
+    mfcc_t dist; /**< Density value for input observation wrt above codeword;
+            NOTE: result in logs3 domain, but var_t used for speed */
 
 } gauden_dist_t;
 
@@ -81,17 +81,16 @@ typedef struct gauden_dist_s {
  * \brief Multivariate gaussian mixture density parameters
  */
 typedef struct gauden_s {
-    mfcc_t ****mean;	/**< mean[codebook][feature][codeword] vector */
-    mfcc_t ****var;	/**< like mean; diagonal covariance vector only */
-    mfcc_t ***det;	/**< log(determinant) for each variance vector;
-			   actually, log(sqrt(2*pi*det)) */
-    logmath_t *lmath;   /**< log math computation */
-    int32 n_mgau;	/**< Number codebooks */
-    int32 n_feat;	/**< Number feature streams in each codebook */
-    int32 n_density;	/**< Number gaussian densities in each codebook-feature stream */
-    int32 *featlen;	/**< feature length for each feature */
+    mfcc_t ****mean; /**< mean[codebook][feature][codeword] vector */
+    mfcc_t ****var; /**< like mean; diagonal covariance vector only */
+    mfcc_t ***det; /**< log(determinant) for each variance vector;
+                      actually, log(sqrt(2*pi*det)) */
+    logmath_t *lmath; /**< log math computation */
+    int32 n_mgau; /**< Number codebooks */
+    int32 n_feat; /**< Number feature streams in each codebook */
+    int32 n_density; /**< Number gaussian densities in each codebook-feature stream */
+    int32 *featlen; /**< feature length for each feature */
 } gauden_t;
-
 
 /**
  * Read mixture gaussian codebooks from the given files.  Allocate memory space needed
@@ -99,20 +98,18 @@ typedef struct gauden_s {
  * Return value: ptr to the model created; NULL if error.
  * (See Sphinx3 model file-format documentation.)
  */
-gauden_t *gauden_init(const char *meanfile,/**< Input: File containing means of mixture gaussians */
-                      const char *varfile,/**< Input: File containing variances of mixture gaussians */
-                      float32 varfloor,	/**< Input: Floor value to be applied to variances */
-                      logmath_t *lmath
-                      );
+gauden_t *gauden_init(const char *meanfile, /**< Input: File containing means of mixture gaussians */
+                      const char *varfile, /**< Input: File containing variances of mixture gaussians */
+                      float32 varfloor, /**< Input: Floor value to be applied to variances */
+                      logmath_t *lmath);
 
 /**
  * Read mixture gaussian codebooks from s3file_t.
  */
-gauden_t *gauden_init_s3file(s3file_t *meanfile,/**< Input: File containing means of mixture gaussians */
-                             s3file_t *varfile,/**< Input: File containing variances of mixture gaussians */
-                             float32 varfloor,	/**< Input: Floor value to be applied to variances */
-                             logmath_t *lmath
-                             );
+gauden_t *gauden_init_s3file(s3file_t *meanfile, /**< Input: File containing means of mixture gaussians */
+                             s3file_t *varfile, /**< Input: File containing variances of mixture gaussians */
+                             float32 varfloor, /**< Input: Floor value to be applied to variances */
+                             logmath_t *lmath);
 
 /** Release memory allocated by gauden_init. */
 void gauden_free(gauden_t *g); /**< In: The gauden_t to free */
@@ -127,33 +124,33 @@ int32 gauden_mllr_transform(gauden_t *s, mllr_t *mllr, config_t *config);
  * @return 0 if successful, -1 otherwise.
  */
 int32
-gauden_dist (gauden_t *g,	/**< In: handle to entire ensemble of codebooks */
-	     int mgau,		/**< In: codebook for which density values to be evaluated
-				   (g->{mean,var}[mgau]) */
-	     int n_top,		/**< In: Number top densities to be evaluated */
-	     mfcc_t **obs,	/**< In: Observation vector; obs[f] = for feature f */
-	     gauden_dist_t **out_dist
-	     /**< Out: n_top best codewords and density values,
-		in worsening order, for each feature stream.
-		out_dist[f][i] = i-th best density for feature f.
-		Caller must allocate memory for this output */
-    );
+gauden_dist(gauden_t *g, /**< In: handle to entire ensemble of codebooks */
+            int mgau, /**< In: codebook for which density values to be evaluated
+                         (g->{mean,var}[mgau]) */
+            int n_top, /**< In: Number top densities to be evaluated */
+            mfcc_t **obs, /**< In: Observation vector; obs[f] = for feature f */
+            gauden_dist_t **out_dist
+            /**< Out: n_top best codewords and density values,
+               in worsening order, for each feature stream.
+               out_dist[f][i] = i-th best density for feature f.
+               Caller must allocate memory for this output */
+);
 
 /**
-   Dump the definitionn of Gaussian distribution. 
+   Dump the definitionn of Gaussian distribution.
 */
-void gauden_dump (const gauden_t *g  /**< In: Gaussian distribution g*/
-    );
+void gauden_dump(const gauden_t *g /**< In: Gaussian distribution g*/
+);
 
 /**
    Dump the definition of Gaussian distribution of a particular index to the standard output stream
 */
-void gauden_dump_ind (const gauden_t *g,  /**< In: Gaussian distribution g*/
-		      int senidx          /**< In: The senone index of the Gaussian */
-    );
+void gauden_dump_ind(const gauden_t *g, /**< In: Gaussian distribution g*/
+                     int senidx /**< In: The senone index of the Gaussian */
+);
 
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
 
-#endif /* GAUDEN_H */ 
+#endif /* GAUDEN_H */

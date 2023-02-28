@@ -2,11 +2,11 @@
 #include "config.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <soundswallower/hash_table.h>
 #include <soundswallower/err.h>
+#include <soundswallower/hash_table.h>
 
 /* Explore a more complicated case for deletion */
 int
@@ -59,8 +59,7 @@ main(int argc, char **argv)
     if (hash_table_delete(ht, argv[1]) == NULL) {
         printf("Failed as expected\n");
         return 0;
-    }
-    else {
+    } else {
         hash_table_display(ht, 1);
     }
 
@@ -94,7 +93,6 @@ main(int argc, char **argv)
 
     return 0;
 }
-
 
 #if 0
 E_INFO("Hash table in the command line\n");

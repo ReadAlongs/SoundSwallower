@@ -8,7 +8,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -16,16 +16,16 @@
  *    distribution.
  *
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -40,17 +40,17 @@
 
 #include <stdio.h>
 
-#include <soundswallower/configuration.h>
-#include <soundswallower/logmath.h>
-#include <soundswallower/fe.h>
-#include <soundswallower/feat.h>
 #include <soundswallower/acmod.h>
+#include <soundswallower/alignment.h>
+#include <soundswallower/configuration.h>
 #include <soundswallower/dict.h>
 #include <soundswallower/dict2pid.h>
-#include <soundswallower/alignment.h>
-#include <soundswallower/lattice.h>
-#include <soundswallower/mllr.h>
+#include <soundswallower/fe.h>
+#include <soundswallower/feat.h>
 #include <soundswallower/fsg_model.h>
+#include <soundswallower/lattice.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/mllr.h>
 #include <soundswallower/profile.h>
 
 #ifdef __cplusplus
@@ -88,9 +88,9 @@ typedef struct seg_iter_s seg_iter_t;
  * wish to reuse it, you must call config_retain() on it.
  *
  * @param config a command-line structure, as created by
- * config_init().  
+ * config_init().
  */
-decoder_t * decoder_create(config_t *config);
+decoder_t *decoder_create(config_t *config);
 
 /**
  * Initialize the decoder from a configuration object.
@@ -274,7 +274,6 @@ int decoder_set_jsgf_string(decoder_t *d, const char *jsgf_string);
  */
 int decoder_set_align_text(decoder_t *d, const char *text);
 
-
 /**
  * Adapt current acoustic model using a linear transform.
  *
@@ -301,11 +300,11 @@ mllr_t *decoder_apply_mllr(decoder_t *d, mllr_t *mllr);
  *         failure.
  */
 int decoder_add_word(decoder_t *d,
-                const char *word,
-                const char *phones,
-                int update);
+                     const char *word,
+                     const char *phones,
+                     int update);
 
-/** 
+/**
  * Lookup for the word in the dictionary and return phone transcription
  * for it.
  *
@@ -316,7 +315,7 @@ int decoder_add_word(decoder_t *d,
  *         or NULL if word is not present in the dictionary. The string is
  *         allocated and must be freed by the user.
  */
-char *decoder_lookup_word(decoder_t *d, 
+char *decoder_lookup_word(decoder_t *d,
                           const char *word);
 
 /**
@@ -597,24 +596,24 @@ typedef struct search_module_s search_module_t;
  */
 struct decoder_s {
     /* Model parameters and such. */
-    config_t *config;  /**< Configuration. */
-    int refcount;      /**< Reference count. */
+    config_t *config; /**< Configuration. */
+    int refcount; /**< Reference count. */
 
     /* Basic units of computation. */
-    fe_t *fe;          /**< Acoustic feature computation. */
-    feat_t *fcb;       /**< Dynamic feature computation. */
-    acmod_t *acmod;    /**< Acoustic model. */
-    dict_t *dict;      /**< Pronunciation dictionary. */
-    dict2pid_t *d2p;   /**< Dictionary to senone mapping. */
-    logmath_t *lmath;  /**< Log math computation. */
-    search_module_t *search;     /**< Main search module. */
-    search_module_t *align;      /**< State alignment module. */
+    fe_t *fe; /**< Acoustic feature computation. */
+    feat_t *fcb; /**< Dynamic feature computation. */
+    acmod_t *acmod; /**< Acoustic model. */
+    dict_t *dict; /**< Pronunciation dictionary. */
+    dict2pid_t *d2p; /**< Dictionary to senone mapping. */
+    logmath_t *lmath; /**< Log math computation. */
+    search_module_t *search; /**< Main search module. */
+    search_module_t *align; /**< State alignment module. */
     char *json_result; /**< Decoding result as JSON. */
 
     /* Utterance-processing related stuff. */
-    uint32 uttno;       /**< Utterance counter. */
-    ptmr_t perf;        /**< Performance counter for all of decoding. */
-    uint32 n_frame;     /**< Total number of frames processed. */
+    uint32 uttno; /**< Utterance counter. */
+    ptmr_t perf; /**< Performance counter for all of decoding. */
+    uint32 n_frame; /**< Total number of frames processed. */
 
 #ifndef EMSCRIPTEN
     /* Logging. */

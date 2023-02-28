@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2005 Carnegie Mellon University.  All rights 
+ * Copyright (c) 2005 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -37,32 +37,31 @@
 /*********************************************************************
  *
  * File: mmio.c
- * 
+ *
  * Description: mmap() wrappers for Unix/Windows
- * 
+ *
  * Author: David Huggins-Daines <dhuggins@cs.cmu.edu>
- * 
+ *
  *********************************************************************/
 
 #include "config.h"
-#include <string.h>
 #include <stdlib.h>
-
+#include <string.h>
 
 #if defined(_WIN32)
-# include <windows.h>
+#include <windows.h>
 #else
-# include <unistd.h>
-# include <fcntl.h>
-# include <sys/stat.h>
-# include <sys/file.h>
-# include <sys/mman.h>
+#include <fcntl.h>
+#include <sys/file.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 
-#include <soundswallower/prim_type.h>
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/mmio.h>
-#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/prim_type.h>
 
 #if defined(_WIN32) && !defined(_WIN32_WP) /* !WINCE */
 struct mmio_file_s {
@@ -78,8 +77,9 @@ mmio_file_read(const char *filename)
     mmio_file_t *mf;
 
     if ((ffm = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ,
-                         NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-                         NULL)) == INVALID_HANDLE_VALUE) {
+                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
+                          NULL))
+        == INVALID_HANDLE_VALUE) {
         E_ERROR("Failed to create file '%s': %08x\n",
                 filename, GetLastError());
         return NULL;
@@ -90,7 +90,8 @@ mmio_file_read(const char *filename)
         return NULL;
     }
     if ((fd = CreateFileMapping(ffm, NULL,
-                                PAGE_READONLY, 0, 0, NULL)) == NULL) {
+                                PAGE_READONLY, 0, 0, NULL))
+        == NULL) {
         E_ERROR("Failed to CreateFileMapping: %08x\n", GetLastError());
         CloseHandle(ffm);
         return NULL;
@@ -179,4 +180,3 @@ mmio_file_size(mmio_file_t *mf)
 {
     return mf->filesize;
 }
-

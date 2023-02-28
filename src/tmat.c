@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -37,15 +37,14 @@
 
 #include <string.h>
 
-#include <soundswallower/logmath.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/tmat.h>
+#include <soundswallower/err.h>
 #include <soundswallower/hmm.h>
+#include <soundswallower/logmath.h>
+#include <soundswallower/tmat.h>
 #include <soundswallower/vector.h>
 
-#define TMAT_PARAM_VERSION		"1.0"
-
+#define TMAT_PARAM_VERSION "1.0"
 
 /**
  * Checks that no transition matrix in the given object contains backward arcs.
@@ -53,11 +52,10 @@
  */
 static int32 tmat_chk_uppertri(tmat_t *tmat, logmath_t *lmath);
 
-
 /**
  * Checks that transition matrix arcs in the given object skip over
- * at most 1 state.  
- * @returns 0 if successful, -1 if check failed.  
+ * at most 1 state.
+ * @returns 0 if successful, -1 if check failed.
  */
 
 static int32 tmat_chk_1skip(tmat_t *tmat, logmath_t *lmath);
@@ -67,11 +65,11 @@ static int32 tmat_chk_1skip(tmat_t *tmat, logmath_t *lmath);
  * i.e. no "backward" transitions allowed.
  */
 int32
-tmat_chk_uppertri(tmat_t * tmat, logmath_t *lmath)
+tmat_chk_uppertri(tmat_t *tmat, logmath_t *lmath)
 {
     int32 i, src, dst;
 
-    (void) lmath;
+    (void)lmath;
     /* Check that each tmat is upper-triangular */
     for (i = 0; i < tmat->n_tmat; i++) {
         for (dst = 0; dst < tmat->n_state; dst++)
@@ -86,13 +84,12 @@ tmat_chk_uppertri(tmat_t * tmat, logmath_t *lmath)
     return 0;
 }
 
-
 int32
-tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
+tmat_chk_1skip(tmat_t *tmat, logmath_t *lmath)
 {
     int32 i, src, dst;
 
-    (void) lmath;
+    (void)lmath;
     for (i = 0; i < tmat->n_tmat; i++) {
         for (src = 0; src < tmat->n_state; src++)
             for (dst = src + 3; dst <= tmat->n_state; dst++)
@@ -105,7 +102,6 @@ tmat_chk_1skip(tmat_t * tmat, logmath_t *lmath)
 
     return 0;
 }
-
 
 tmat_t *
 tmat_init(const char *file_name, logmath_t *lmath, float64 tpfloor)
@@ -133,8 +129,7 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
     int32 i, j, k, tp_per_tmat;
     tmat_t *t;
 
-
-    t = (tmat_t *) ckd_calloc(1, sizeof(tmat_t));
+    t = (tmat_t *)ckd_calloc(1, sizeof(tmat_t));
 
     /* Read header, including argument-value info and 32-bit byteorder magic */
     if (s3file_parse_header(s, TMAT_PARAM_VERSION) < 0) {
@@ -145,10 +140,8 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
     /* Read #tmat, #from-states, #to-states, arraysize */
     if ((s3file_get(&n_tmat, sizeof(int32), 1, s)
          != 1)
-        || (s3file_get(&n_src, sizeof(int32), 1, s) !=
-            1)
-        || (s3file_get(&n_dst, sizeof(int32), 1, s) !=
-            1)
+        || (s3file_get(&n_src, sizeof(int32), 1, s) != 1)
+        || (s3file_get(&n_dst, sizeof(int32), 1, s) != 1)
         || (s3file_get(&i, sizeof(int32), 1, s) != 1)) {
         E_ERROR("Failed to read tmat header\n");
         goto error_out;
@@ -159,7 +152,7 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
         goto error_out;
     }
     t->n_tmat = n_tmat;
-    
+
     if (n_dst != n_src + 1) {
         E_ERROR("Unsupported transition matrix."
                 "Number of source states (%d) != number of target states (%d)-1\n",
@@ -169,9 +162,8 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
     t->n_state = n_src;
 
     if (i != t->n_tmat * n_src * n_dst) {
-        E_ERROR
-            ("Invalid transitions. Number of coefficients (%d) doesn't match expected array dimension: %d x %d x %d\n",
-             i, t->n_tmat, n_src, n_dst);
+        E_ERROR("Invalid transitions. Number of coefficients (%d) doesn't match expected array dimension: %d x %d x %d\n",
+                i, t->n_tmat, n_src, n_dst);
         goto error_out;
     }
 
@@ -208,7 +200,8 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
 #endif
                 /* Log and quantize them. */
                 ltp = -logmath_log(lmath, tp[j][k]) >> SENSCR_SHIFT;
-                if (ltp > 255) ltp = 255;
+                if (ltp > 255)
+                    ltp = 255;
                 t->tp[i][j][k] = (uint8)ltp;
             }
         }
@@ -226,18 +219,18 @@ tmat_init_s3file(s3file_t *s, logmath_t *lmath, float64 tpfloor)
 
     return t;
 
- error_out:
+error_out:
     if (tp)
         ckd_free_2d(tp);
     tmat_free(t);
     return NULL;
 }
 
-/* 
+/*
  *  RAH, Free memory allocated in tmat_init ()
  */
 void
-tmat_free(tmat_t * t)
+tmat_free(tmat_t *t)
 {
     if (t) {
         if (t->tp)

@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -44,8 +44,8 @@
 #define __TIED_MGAU_COMMON_H__
 
 #include <soundswallower/logmath.h>
-#include <soundswallower/s3file.h>
 #include <soundswallower/ms_gauden.h>
+#include <soundswallower/s3file.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,18 +54,17 @@ extern "C" {
 }
 #endif
 
-#define MGAU_MIXW_VERSION	"1.0"   /* Sphinx-3 file format version for mixw */
-#define MGAU_PARAM_VERSION	"1.0"   /* Sphinx-3 file format version for mean/var */
-#define NONE		-1
-#define WORST_DIST	MAX_NEG_INT32
+#define MGAU_MIXW_VERSION "1.0" /* Sphinx-3 file format version for mixw */
+#define MGAU_PARAM_VERSION "1.0" /* Sphinx-3 file format version for mean/var */
+#define NONE -1
+#define WORST_DIST MAX_NEG_INT32
 
-#define GMMSUB(a,b) ((a)-(b))
-#define GMMADD(a,b) ((a)+(b))
+#define GMMSUB(a, b) ((a) - (b))
+#define GMMADD(a, b) ((a) + (b))
 
 #ifndef MIN
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 #endif
-
 
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
 #define LOGMATH_INLINE static inline
@@ -79,7 +78,7 @@ extern "C" {
  * negated normalized acoustic scores, so that the combination of the
  * two (for a single mixture) can never exceed 255. */
 #define MAX_NEG_MIXW 159 /**< Maximum negated mixture weight value. */
-#define MAX_NEG_ASCR 96  /**< Maximum negated acoustic score value. */
+#define MAX_NEG_ASCR 96 /**< Maximum negated acoustic score value. */
 
 /**
  * Quickly log-add two negated log probabilities.
@@ -108,8 +107,7 @@ fast_logmath_add(logmath_t *lmath, int mlx, int mly)
     if (mlx > mly) {
         d = (mlx - mly);
         r = mly;
-    }
-    else {
+    } else {
         d = (mly - mlx);
         r = mlx;
     }

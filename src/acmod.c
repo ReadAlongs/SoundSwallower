@@ -35,7 +35,6 @@
  *
  */
 
-
 /**
  * @file acmod.c Acoustic model structures
  * @author David Huggins-Daines <dhdaines@gmail.com>
@@ -43,20 +42,20 @@
 
 #include "config.h"
 #include <assert.h>
-#include <string.h>
 #include <math.h>
+#include <string.h>
 
-#include <soundswallower/prim_type.h>
-#include <soundswallower/err.h>
-#include <soundswallower/configuration.h>
-#include <soundswallower/strfuncs.h>
-#include <soundswallower/byteorder.h>
-#include <soundswallower/feat.h>
-#include <soundswallower/config_defs.h>
 #include <soundswallower/acmod.h>
-#include <soundswallower/s2_semi_mgau.h>
-#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/byteorder.h>
+#include <soundswallower/config_defs.h>
+#include <soundswallower/configuration.h>
+#include <soundswallower/err.h>
+#include <soundswallower/feat.h>
 #include <soundswallower/ms_mgau.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/ptm_mgau.h>
+#include <soundswallower/s2_semi_mgau.h>
+#include <soundswallower/strfuncs.h>
 
 static int32 acmod_process_mfcbuf(acmod_t *acmod);
 
@@ -72,7 +71,8 @@ acmod_load_am(acmod_t *acmod)
                     "with -mdef option or with -hmm\n");
         else
             E_ERROR("Folder '%s' does not contain acoustic model "
-                    "definition 'mdef'\n", hmmdir);
+                    "definition 'mdef'\n",
+                    hmmdir);
 
         return -1;
     }
@@ -103,8 +103,7 @@ acmod_load_am(acmod_t *acmod)
         acmod->mgau = ms_mgau_init(acmod);
         if (acmod->mgau == NULL)
             return -1;
-    }
-    else {
+    } else {
         E_INFO("Attempting to use PTM computation module\n");
         if ((acmod->mgau = ptm_mgau_init(acmod)) == NULL) {
             E_INFO("Attempting to use semi-continuous computation module\n");
@@ -138,10 +137,10 @@ acmod_init_senscr(acmod_t *acmod)
     }
     /* Set up senone computation. */
     acmod->senone_scores = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
-                                                     sizeof(*acmod->senone_scores));
+                                      sizeof(*acmod->senone_scores));
     acmod->senone_active_vec = bitvec_alloc(bin_mdef_n_sen(acmod->mdef));
     acmod->senone_active = ckd_calloc(bin_mdef_n_sen(acmod->mdef),
-                                                     sizeof(*acmod->senone_active));
+                                      sizeof(*acmod->senone_active));
     acmod->log_zero = logmath_get_zero(acmod->lmath);
     acmod->compallsen = config_bool(acmod->config, "compallsen");
 
@@ -207,7 +206,7 @@ acmod_t *
 acmod_create(config_t *config, logmath_t *lmath, fe_t *fe, feat_t *fcb)
 {
     acmod_t *acmod;
-    
+
     acmod = ckd_calloc(1, sizeof(*acmod));
     acmod->config = config_retain(config);
     acmod->lmath = logmath_retain(lmath);
@@ -330,7 +329,8 @@ acmod_grow_feat_buf(acmod_t *acmod, int nfr)
 {
     if (nfr > MAX_N_FRAMES)
         E_FATAL("Decoder can not process more than %d frames at once, "
-                "requested %d\n", MAX_N_FRAMES, nfr);
+                "requested %d\n",
+                MAX_N_FRAMES, nfr);
 
     acmod->feat_buf = feat_array_realloc(acmod->fcb, acmod->feat_buf,
                                          acmod->n_feat_alloc, nfr);
@@ -401,7 +401,8 @@ acmod_process_full_cep(acmod_t *acmod,
 
         if (*inout_n_frames > MAX_N_FRAMES)
             E_FATAL("Batch processing can not process more than %d frames "
-                    "at once, requested %d\n", MAX_N_FRAMES, *inout_n_frames);
+                    "at once, requested %d\n",
+                    MAX_N_FRAMES, *inout_n_frames);
 
         feat_array_free(acmod->feat_buf);
         acmod->feat_buf = feat_array_alloc(acmod->fcb, *inout_n_frames);
@@ -440,7 +441,8 @@ acmod_process_full_raw(acmod_t *acmod,
     acmod->mfc_outidx = 0;
     fe_start(acmod->fe);
     if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
-                                 acmod->mfc_buf, nfr)) < 0)
+                                 acmod->mfc_buf, nfr))
+        < 0)
         return -1;
     nfr -= nvec;
     nvec += fe_end(acmod->fe, acmod->mfc_buf + nvec, nfr);
@@ -451,7 +453,6 @@ acmod_process_full_raw(acmod_t *acmod,
     acmod->n_mfc_frame = 0;
     return nvec;
 }
-
 
 static int
 acmod_process_full_float32(acmod_t *acmod,
@@ -475,7 +476,8 @@ acmod_process_full_float32(acmod_t *acmod,
     fe_start(acmod->fe);
     if ((nvec = fe_process_float32(acmod->fe,
                                    inout_raw, inout_n_samps,
-                                   acmod->mfc_buf, nfr)) < 0)
+                                   acmod->mfc_buf, nfr))
+        < 0)
         return -1;
     nfr -= nvec;
     nvec += fe_end(acmod->fe, acmod->mfc_buf + nvec, nfr);
@@ -549,7 +551,8 @@ acmod_process_raw(acmod_t *acmod,
         while (inptr + ncep > acmod->n_mfc_alloc) {
             if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
                                          acmod->mfc_buf + inptr,
-                                         acmod->n_mfc_alloc - inptr)) < 0)
+                                         acmod->n_mfc_alloc - inptr))
+                < 0)
                 return -1;
             /* nvec contains the number of frames actually processed.
              * This is a good thing, but it means we actually still
@@ -562,15 +565,15 @@ acmod_process_raw(acmod_t *acmod,
             inptr += nvec;
             inptr %= acmod->n_mfc_alloc;
             if (nvec == 0)
-        	goto alldone;
+                goto alldone;
         }
         assert(inptr + ncep <= acmod->n_mfc_alloc);
         if ((nvec = fe_process_int16(acmod->fe, inout_raw, inout_n_samps,
-                                     acmod->mfc_buf + inptr, ncep)) < 0)
+                                     acmod->mfc_buf + inptr, ncep))
+            < 0)
             return -1;
         acmod->n_mfc_frame += nvec;
-    alldone:
-        ;
+    alldone:;
     }
 
     /* Hand things off to acmod_process_cep. */
@@ -604,7 +607,8 @@ acmod_process_float32(acmod_t *acmod,
             if ((nvec = fe_process_float32(acmod->fe, inout_raw,
                                            inout_n_samps,
                                            acmod->mfc_buf + inptr,
-                                           acmod->n_mfc_alloc - inptr)) < 0)
+                                           acmod->n_mfc_alloc - inptr))
+                < 0)
                 return -1;
             /* nvec contains the number of frames actually processed.
              * This is a good thing, but it means we actually still
@@ -617,17 +621,17 @@ acmod_process_float32(acmod_t *acmod,
             inptr += nvec;
             inptr %= acmod->n_mfc_alloc;
             if (nvec == 0)
-        	goto alldone;
+                goto alldone;
         }
         assert(inptr + ncep <= acmod->n_mfc_alloc);
         if ((nvec = fe_process_float32(acmod->fe, inout_raw,
                                        inout_n_samps,
                                        acmod->mfc_buf + inptr,
-                                       ncep)) < 0)
+                                       ncep))
+            < 0)
             return -1;
         acmod->n_mfc_frame += nvec;
-    alldone:
-        ;
+    alldone:;
     }
 
     /* Hand things off to acmod_process_cep. */
@@ -636,9 +640,9 @@ acmod_process_float32(acmod_t *acmod,
 
 int
 acmod_process_cep(acmod_t *acmod,
-		  mfcc_t ***inout_cep,
-		  int *inout_n_frames,
-		  int full_utt)
+                  mfcc_t ***inout_cep,
+                  int *inout_n_frames,
+                  int full_utt)
 {
     int32 nfeat, ncep, inptr;
     int orig_n_frames;
@@ -672,17 +676,15 @@ acmod_process_cep(acmod_t *acmod,
         inptr = acmod->feat_outidx + acmod->n_feat_frame;
         while (inptr + nfeat >= acmod->n_feat_alloc)
             acmod_grow_feat_buf(acmod, acmod->n_feat_alloc * 2);
-    }
-    else {
+    } else {
         inptr = (acmod->feat_outidx + acmod->n_feat_frame) % acmod->n_feat_alloc;
     }
 
-
     /* FIXME: we can't split the last frame drop properly to be on the bounary, so just return */
     if (inptr + nfeat > acmod->n_feat_alloc && acmod->state == ACMOD_ENDED) {
-	*inout_n_frames -= ncep;
-	*inout_cep += ncep;
-	return 0;
+        *inout_n_frames -= ncep;
+        *inout_cep += ncep;
+        return 0;
     }
 
     /* Write them in two parts if there is wraparound. */
@@ -731,7 +733,8 @@ acmod_rewind(acmod_t *acmod)
     /* If the feature buffer is circular, this is not possible. */
     if (acmod->output_frame > acmod->n_feat_alloc) {
         E_ERROR("Circular feature buffer cannot be rewound (output frame %d, "
-                "alloc %d)\n", acmod->output_frame, acmod->n_feat_alloc);
+                "alloc %d)\n",
+                acmod->output_frame, acmod->n_feat_alloc);
         return -1;
     }
 
@@ -759,7 +762,6 @@ acmod_advance(acmod_t *acmod)
     return ++acmod->output_frame;
 }
 
-
 static int
 calc_frame_idx(acmod_t *acmod, int *inout_frame_idx)
 {
@@ -784,15 +786,15 @@ calc_feat_idx(acmod_t *acmod, int frame_idx)
     n_backfr = acmod->n_feat_alloc - acmod->n_feat_frame;
     if (frame_idx < 0 || acmod->output_frame - frame_idx > n_backfr) {
         E_ERROR("Frame %d outside queue of %d frames, %d alloc (%d > %d), "
-                "cannot score\n", frame_idx, acmod->n_feat_frame,
+                "cannot score\n",
+                frame_idx, acmod->n_feat_frame,
                 acmod->n_feat_alloc, acmod->output_frame - frame_idx,
                 n_backfr);
         return -1;
     }
 
     /* Get the index in feat_buf/framepos of the frame to be scored. */
-    feat_idx = (acmod->feat_outidx + frame_idx - acmod->output_frame) %
-               acmod->n_feat_alloc;
+    feat_idx = (acmod->feat_outidx + frame_idx - acmod->output_frame) % acmod->n_feat_alloc;
     if (feat_idx < 0)
         feat_idx += acmod->n_feat_alloc;
 
@@ -870,8 +872,7 @@ acmod_best_score(acmod_t *acmod, int *out_best_senid)
                 *out_best_senid = i;
             }
         }
-    }
-    else {
+    } else {
         int16 *senscr;
         senscr = acmod->senone_scores;
         for (i = 0; i < acmod->n_senone_active; ++i) {
@@ -885,7 +886,6 @@ acmod_best_score(acmod_t *acmod, int *out_best_senid)
     return best;
 }
 
-
 void
 acmod_clear_active(acmod_t *acmod)
 {
@@ -895,12 +895,12 @@ acmod_clear_active(acmod_t *acmod)
     acmod->n_senone_active = 0;
 }
 
-#define MPX_BITVEC_SET(a,h,i)                                   \
-    if (hmm_mpx_ssid(h,i) != BAD_SSID)                          \
-        bitvec_set((a)->senone_active_vec, hmm_mpx_senid(h,i))
-#define NONMPX_BITVEC_SET(a,h,i)                                        \
-    bitvec_set((a)->senone_active_vec,                                  \
-               hmm_nonmpx_senid(h,i))
+#define MPX_BITVEC_SET(a, h, i)         \
+    if (hmm_mpx_ssid(h, i) != BAD_SSID) \
+    bitvec_set((a)->senone_active_vec, hmm_mpx_senid(h, i))
+#define NONMPX_BITVEC_SET(a, h, i)     \
+    bitvec_set((a)->senone_active_vec, \
+               hmm_nonmpx_senid(h, i))
 
 void
 acmod_activate_hmm(acmod_t *acmod, hmm_t *hmm)
@@ -925,8 +925,7 @@ acmod_activate_hmm(acmod_t *acmod, hmm_t *hmm)
                 MPX_BITVEC_SET(acmod, hmm, i);
             }
         }
-    }
-    else {
+    } else {
         switch (hmm_n_emit_state(hmm)) {
         case 5:
             NONMPX_BITVEC_SET(acmod, hmm, 4);

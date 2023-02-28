@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,34 +43,32 @@
  * Copyright (c) 1999 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
- * 
+ *
  * 15-Jul-1997	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Added required arguments types.
- * 
+ *
  * 07-Dec-96	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon University
  * 		Created, based on Eric's implementation.  Basically, combined several
  *		functions into one, eliminated validation, and simplified the interface.
  */
 
-
 #ifndef _LIBUTIL_CMD_LN_H_
 #define _LIBUTIL_CMD_LN_H_
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/hash_table.h>
+#include <soundswallower/prim_type.h>
 
 /**
  * @file configuration.h
  * @brief Command-line and other configuration parsing and handling.
- *  
+ *
  * Configuration parameters, optionally parsed from the command line.
  */
-  
 
 #ifdef __cplusplus
 extern "C" {
@@ -84,12 +82,12 @@ extern "C" {
  * @enum config_type_e
  * @brief Types of configuration parameters.
  */
-typedef enum config_type_e  {
-    ARG_REQUIRED =  (1<<0), /*<< Bit indicating required argument. */
-    ARG_INTEGER = (1<<1),   /*<< Integer up to 64 bits. */
-    ARG_FLOATING  = (1<<2), /*<< Double-precision floating point. */
-    ARG_STRING = (1<<3),    /*<< String. */
-    ARG_BOOLEAN = (1<<4),   /*<< Boolean (true/false). */
+typedef enum config_type_e {
+    ARG_REQUIRED = (1 << 0), /*<< Bit indicating required argument. */
+    ARG_INTEGER = (1 << 1), /*<< Integer up to 64 bits. */
+    ARG_FLOATING = (1 << 2), /*<< Double-precision floating point. */
+    ARG_STRING = (1 << 3), /*<< String. */
+    ARG_BOOLEAN = (1 << 4), /*<< Boolean (true/false). */
     REQARG_INTEGER = (ARG_INTEGER | ARG_REQUIRED),
     REQARG_FLOATING = (ARG_FLOATING | ARG_REQUIRED),
     REQARG_STRING = (ARG_STRING | ARG_REQUIRED),
@@ -105,10 +103,10 @@ typedef enum config_type_e  {
  * Argument definition structure.
  */
 typedef struct config_param_s {
-    const char *name;   /**< Name of the command line switch */
-    int type;           /**< Type of the argument in question */
-    const char *deflt;  /**< Default value (as a character string), or NULL if none */
-    const char *doc;    /**< Documentation/description string */
+    const char *name; /**< Name of the command line switch */
+    int type; /**< Type of the argument in question */
+    const char *deflt; /**< Default value (as a character string), or NULL if none */
+    const char *doc; /**< Documentation/description string */
 } config_param_t;
 
 /**
@@ -120,7 +118,6 @@ typedef struct config_val_s {
     int type;
     char *name;
 } config_val_t;
-
 
 /**
  * @struct config_t
@@ -395,7 +392,6 @@ void config_log_help(config_t *cmdln);
  * @param cmdln  command-line object
  */
 void config_log_values(config_t *cmdln);
-
 
 config_val_t *config_access(config_t *cmdln, const char *name);
 anytype_t *anytype_from_str(anytype_t *val, int t, const char *str);

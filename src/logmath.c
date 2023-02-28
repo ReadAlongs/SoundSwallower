@@ -8,40 +8,40 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
  *
  */
 
+#include <assert.h>
 #include <math.h>
 #include <string.h>
-#include <assert.h>
 
-#include <soundswallower/logmath.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/logmath.h>
 #include <soundswallower/mmio.h>
 #include <soundswallower/strfuncs.h>
 
@@ -70,15 +70,15 @@ logmath_init(float64 base, int shift, int use_table)
         E_ERROR("Base must be greater than 1.0\n");
         return NULL;
     }
-    
+
     /* Set up various necessary constants. */
     lmath = ckd_calloc(1, sizeof(*lmath));
     lmath->refcount = 1;
     lmath->base = base;
     lmath->log_of_base = log(base);
     lmath->log10_of_base = log10(base);
-    lmath->inv_log_of_base = 1.0/lmath->log_of_base;
-    lmath->inv_log10_of_base = 1.0/lmath->log10_of_base;
+    lmath->inv_log_of_base = 1.0 / lmath->log_of_base;
+    lmath->inv_log10_of_base = 1.0 / lmath->log10_of_base;
     lmath->t.shift = shift;
     /* Shift this sufficiently that overflows can be avoided. */
     lmath->zero = MAX_NEG_INT32 >> (shift + 2);
@@ -87,18 +87,21 @@ logmath_init(float64 base, int shift, int use_table)
         return lmath;
 
     /* Create a logadd table with the appropriate width */
-    maxyx = (uint32) (log(2.0) / log(base) + 0.5) >> shift;
+    maxyx = (uint32)(log(2.0) / log(base) + 0.5) >> shift;
     /* Poor man's log2 */
-    if (maxyx < 256) width = 1;
-    else if (maxyx < 65536) width = 2;
-    else width = 4;
+    if (maxyx < 256)
+        width = 1;
+    else if (maxyx < 65536)
+        width = 2;
+    else
+        width = 4;
 
     lmath->t.width = width;
     /* Figure out size of add table required. */
     byx = 1.0; /* Maximum possible base^{y-x} value - note that this implies that y-x == 0 */
     for (i = 0;; ++i) {
         float64 lobyx = log(1.0 + byx) * lmath->inv_log_of_base; /* log_{base}(1 + base^{y-x}); */
-        int32 k = (int32) (lobyx + 0.5 * (1<<shift)) >> shift; /* Round to shift */
+        int32 k = (int32)(lobyx + 0.5 * (1 << shift)) >> shift; /* Round to shift */
 
         /* base^{y-x} has reached the smallest representable value. */
         if (k <= 0)
@@ -112,15 +115,16 @@ logmath_init(float64 base, int shift, int use_table)
     i >>= shift;
 
     /* Never produce a table smaller than 256 entries. */
-    if (i < 255) i = 255;
+    if (i < 255)
+        i = 255;
 
-    lmath->t.table = ckd_calloc(i+1, width);
+    lmath->t.table = ckd_calloc(i + 1, width);
     lmath->t.table_size = i + 1;
     /* Create the add table (see above). */
     byx = 1.0;
     for (i = 0;; ++i) {
         float64 lobyx = log(1.0 + byx) * lmath->inv_log_of_base;
-        int32 k = (int32) (lobyx + 0.5 * (1<<shift)) >> shift; /* Round to shift */
+        int32 k = (int32)(lobyx + 0.5 * (1 << shift)) >> shift; /* Round to shift */
         uint32 prev = 0;
 
         /* Check any previous value - if there is a shift, we want to
@@ -139,13 +143,13 @@ logmath_init(float64 base, int shift, int use_table)
         if (prev == 0) {
             switch (width) {
             case 1:
-                ((uint8 *)lmath->t.table)[i >> shift] = (uint8) k;
+                ((uint8 *)lmath->t.table)[i >> shift] = (uint8)k;
                 break;
             case 2:
-                ((uint16 *)lmath->t.table)[i >> shift] = (uint16) k;
+                ((uint16 *)lmath->t.table)[i >> shift] = (uint16)k;
                 break;
             case 4:
-                ((uint32 *)lmath->t.table)[i >> shift] = (uint32) k;
+                ((uint32 *)lmath->t.table)[i >> shift] = (uint32)k;
                 break;
             }
         }
@@ -187,9 +191,12 @@ int32
 logmath_get_table_shape(logmath_t *lmath, uint32 *out_size,
                         uint32 *out_width, uint32 *out_shift)
 {
-    if (out_size) *out_size = lmath->t.table_size;
-    if (out_width) *out_width = lmath->t.width;
-    if (out_shift) *out_shift = lmath->t.shift;
+    if (out_size)
+        *out_size = lmath->t.table_size;
+    if (out_width)
+        *out_width = lmath->t.width;
+    if (out_shift)
+        *out_shift = lmath->t.shift;
 
     return lmath->t.table_size * lmath->t.width;
 }
@@ -237,8 +244,7 @@ logmath_add(logmath_t *lmath, int logb_x, int logb_y)
     if (logb_x > logb_y) {
         d = (logb_x - logb_y);
         r = logb_x;
-    }
-    else {
+    } else {
         d = (logb_y - logb_x);
         r = logb_y;
     }
@@ -270,7 +276,7 @@ logmath_add_exact(logmath_t *lmath, int logb_p, int logb_q)
 {
     return logmath_log(lmath,
                        logmath_exp(lmath, logb_p)
-                       + logmath_exp(lmath, logb_q));
+                           + logmath_exp(lmath, logb_q));
 }
 
 int
@@ -306,7 +312,7 @@ logmath_log10_to_log(logmath_t *lmath, float64 log_p)
     return (int)(log_p * lmath->inv_log10_of_base) >> lmath->t.shift;
 }
 
-float 
+float
 logmath_log10_to_log_float(logmath_t *lmath, float64 log_p)
 {
     int i;

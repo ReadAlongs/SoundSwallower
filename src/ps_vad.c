@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -28,12 +28,12 @@
  * ====================================================================
  */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/vad.h>
-#include <soundswallower/ckd_alloc.h>
 
 #include "common_audio/vad/include/webrtc_vad.h"
 #include "common_audio/vad/vad_core.h"
@@ -87,7 +87,7 @@ vad_free(vad_t *vad)
 static const int sample_rates[] = {
     8000, 16000, 32000, 48000
 };
-static const int n_sample_rates = sizeof(sample_rates)/sizeof(sample_rates[0]);
+static const int n_sample_rates = sizeof(sample_rates) / sizeof(sample_rates[0]);
 
 int
 vad_set_input_params(vad_t *vad, int sample_rate, double frame_length)

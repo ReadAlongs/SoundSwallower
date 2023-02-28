@@ -20,7 +20,8 @@ main(int argc, char *argv[])
     ptmr_t t;
     int i;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     SWAP_INT32(&ui32);
     TEST_EQUAL(0xefbeadde, ui32);
     SWAP_INT32(&i32);

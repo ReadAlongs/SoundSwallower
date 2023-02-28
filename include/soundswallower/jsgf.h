@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -48,8 +48,8 @@
 
 #include <stdio.h>
 
-#include <soundswallower/hash_table.h>
 #include <soundswallower/fsg_model.h>
+#include <soundswallower/hash_table.h>
 #include <soundswallower/logmath.h>
 
 #ifdef __cplusplus
@@ -131,7 +131,7 @@ jsgf_rule_t *jsgf_get_rule(jsgf_t *grammar, const char *name);
 
 /**
  * Returns the first public rule of the grammar
- */ 
+ */
 jsgf_rule_t *jsgf_get_public_rule(jsgf_t *grammar);
 
 /**
@@ -161,21 +161,19 @@ fsg_model_t *jsgf_build_fsg(jsgf_t *grammar, jsgf_rule_t *rule,
 fsg_model_t *jsgf_build_fsg_raw(jsgf_t *grammar, jsgf_rule_t *rule,
                                 logmath_t *lmath, float32 lw);
 
-
 /**
  * Read JSGF from file and return FSG object from it.
  *
  * This function looks for a first public rule in jsgf and constructs JSGF from it.
  */
-fsg_model_t *jsgf_read_file(const char *file, logmath_t * lmath, float32 lw);
+fsg_model_t *jsgf_read_file(const char *file, logmath_t *lmath, float32 lw);
 
 /**
  * Read JSGF from string and return FSG object from it.
  *
  * This function looks for a first public rule in jsgf and constructs JSGF from it.
  */
-fsg_model_t *jsgf_read_string(const char *string, logmath_t * lmath, float32 lw);
-
+fsg_model_t *jsgf_read_string(const char *string, logmath_t *lmath, float32 lw);
 
 #define YY_NO_INPUT /* Silence a compiler warning. */
 
@@ -184,47 +182,47 @@ typedef struct jsgf_atom_s jsgf_atom_t;
 typedef struct jsgf_link_s jsgf_link_t;
 
 struct jsgf_s {
-    char *version;  /**< JSGF version (from header) */
-    char *charset;  /**< JSGF charset (default UTF-8) */
-    char *locale;   /**< JSGF locale (default C) */
-    char *name;     /**< Grammar name */
+    char *version; /**< JSGF version (from header) */
+    char *charset; /**< JSGF charset (default UTF-8) */
+    char *locale; /**< JSGF locale (default C) */
+    char *name; /**< Grammar name */
 
-    hash_table_t *rules;   /**< Defined or imported rules in this grammar. */
+    hash_table_t *rules; /**< Defined or imported rules in this grammar. */
     hash_table_t *imports; /**< Pointers to imported grammars. */
-    jsgf_t *parent;        /**< Parent grammar (if this is an imported one) */
-    glist_t searchpath;    /**< List of directories to search for grammars. */
+    jsgf_t *parent; /**< Parent grammar (if this is an imported one) */
+    glist_t searchpath; /**< List of directories to search for grammars. */
 
     /* Scratch variables for FSG conversion. */
-    int nstate;            /**< Number of generated states. */
-    glist_t links;	   /**< Generated FSG links. */
-    glist_t rulestack;     /**< Stack of currently expanded rules. */
+    int nstate; /**< Number of generated states. */
+    glist_t links; /**< Generated FSG links. */
+    glist_t rulestack; /**< Stack of currently expanded rules. */
 };
 
 struct jsgf_rule_s {
-    int refcnt;      /**< Reference count. */
-    char *name;      /**< Rule name (NULL for an alternation/grouping) */
-    int is_public;   /**< Is this rule marked 'public'? */
+    int refcnt; /**< Reference count. */
+    char *name; /**< Rule name (NULL for an alternation/grouping) */
+    int is_public; /**< Is this rule marked 'public'? */
     jsgf_rhs_t *rhs; /**< Expansion */
 
-    int entry;       /**< Entry state for current instance of this rule. */
-    int exit;        /**< Exit state for current instance of this rule. */
+    int entry; /**< Entry state for current instance of this rule. */
+    int exit; /**< Exit state for current instance of this rule. */
 };
 
 struct jsgf_rhs_s {
-    glist_t atoms;   /**< Sequence of items */
+    glist_t atoms; /**< Sequence of items */
     jsgf_rhs_t *alt; /**< Linked list of alternates */
 };
 
 struct jsgf_atom_s {
-    char *name;        /**< Rule or token name */
-    glist_t tags;      /**< Tags, if any (glist_t of char *) */
-    float weight;      /**< Weight (default 1) */
+    char *name; /**< Rule or token name */
+    glist_t tags; /**< Tags, if any (glist_t of char *) */
+    float weight; /**< Weight (default 1) */
 };
 
 struct jsgf_link_s {
     jsgf_atom_t *atom; /**< Name, tags, weight */
-    int from;          /**< From state */
-    int to;            /**< To state */
+    int from; /**< From state */
+    int to; /**< To state */
 };
 
 #define jsgf_atom_is_rule(atom) ((atom)->name[0] == '<')
@@ -243,6 +241,5 @@ jsgf_rule_t *jsgf_rule_retain(jsgf_rule_t *rule);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif /* __JSGF_H__ */

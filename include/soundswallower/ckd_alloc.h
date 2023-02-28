@@ -60,7 +60,6 @@
  * 		Created.
  */
 
-
 /*********************************************************************
  *
  * $Header: /cvsroot/cmusphinx/sphinx3/src/libutil/ckd_alloc.h,v 1.10 2005/06/22 02:59:25 arthchan2003 Exp $
@@ -82,12 +81,11 @@
  *
  *********************************************************************/
 
-
 #ifndef _LIBUTIL_CKD_ALLOC_H_
 #define _LIBUTIL_CKD_ALLOC_H_
 
-#include <stdlib.h>
 #include <setjmp.h>
+#include <stdlib.h>
 
 #include <soundswallower/prim_type.h>
 
@@ -138,59 +136,59 @@ void ckd_fail(char *format, ...);
  */
 
 void *__ckd_calloc__(size_t n_elem, size_t elem_size,
-		     const char *caller_file, int caller_line);
+                     const char *caller_file, int caller_line);
 
 void *__ckd_malloc__(size_t size,
-		     const char *caller_file, int caller_line);
+                     const char *caller_file, int caller_line);
 
 void *__ckd_realloc__(void *ptr, size_t new_size,
-		      const char *caller_file, int caller_line);
+                      const char *caller_file, int caller_line);
 
 /**
  * Like strdup, except that if an error occurs it prints a diagnostic message and
  * exits. If origin in NULL the function also returns NULL.
  */
 char *__ckd_salloc__(const char *origstr,
-		     const char *caller_file, int caller_line);
+                     const char *caller_file, int caller_line);
 
 /**
  * Allocate a 2-D array and return ptr to it (ie, ptr to vector of ptrs).
  * The data area is allocated in one block so it can also be treated as a 1-D array.
  */
-void *__ckd_calloc_2d__(size_t d1, size_t d2,	/* In: #elements in the 2 dimensions */
-                        size_t elemsize,	/* In: Size (#bytes) of each element */
-                        const char *caller_file, int caller_line);	/* In */
+void *__ckd_calloc_2d__(size_t d1, size_t d2, /* In: #elements in the 2 dimensions */
+                        size_t elemsize, /* In: Size (#bytes) of each element */
+                        const char *caller_file, int caller_line); /* In */
 
 /**
  * Allocate a 3-D array and return ptr to it.
  * The data area is allocated in one block so it can also be treated as a 1-D array.
  */
-void *__ckd_calloc_3d__(size_t d1, size_t d2, size_t d3,	/* In: #elems in the dims */
-                        size_t elemsize,		/* In: Size (#bytes) per element */
-                        const char *caller_file, int caller_line);	/* In */
+void *__ckd_calloc_3d__(size_t d1, size_t d2, size_t d3, /* In: #elems in the dims */
+                        size_t elemsize, /* In: Size (#bytes) per element */
+                        const char *caller_file, int caller_line); /* In */
 
 /**
  * Allocate a 34D array and return ptr to it.
  * The data area is allocated in one block so it can also be treated as a 1-D array.
  */
 void ****__ckd_calloc_4d__(size_t d1,
-			   size_t d2,
-			   size_t d3,
-			   size_t d4,
-			   size_t elem_size,
-			   char *caller_file,
-			   int caller_line);
+                           size_t d2,
+                           size_t d3,
+                           size_t d4,
+                           size_t elem_size,
+                           char *caller_file,
+                           int caller_line);
 
 /**
  * Overlay a 3-D array over a previously allocated storage area.
  **/
-void * __ckd_alloc_3d_ptr(size_t d1,
-                          size_t d2,
-                          size_t d3,
-                          void *store,
-                          size_t elem_size,
-                          char *caller_file,
-                          int caller_line);
+void *__ckd_alloc_3d_ptr(size_t d1,
+                         size_t d2,
+                         size_t d3,
+                         void *store,
+                         size_t elem_size,
+                         char *caller_file,
+                         int caller_line);
 
 /**
  * Overlay a s-D array over a previously allocated storage area.
@@ -230,46 +228,46 @@ void ckd_free_4d(void *ptr);
 /**
  * Macro for __ckd_calloc__
  */
-#define ckd_calloc(n,sz)	__ckd_calloc__((n),(sz),__FILE__,__LINE__)
+#define ckd_calloc(n, sz) __ckd_calloc__((n), (sz), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_malloc__
  */
-#define ckd_malloc(sz)		__ckd_malloc__((sz),__FILE__,__LINE__)
+#define ckd_malloc(sz) __ckd_malloc__((sz), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_realloc__
  */
-#define ckd_realloc(ptr,sz)	__ckd_realloc__(ptr,(sz),__FILE__,__LINE__)
+#define ckd_realloc(ptr, sz) __ckd_realloc__(ptr, (sz), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_salloc__
  */
 
-#define ckd_salloc(ptr)		__ckd_salloc__(ptr,__FILE__,__LINE__)
+#define ckd_salloc(ptr) __ckd_salloc__(ptr, __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_calloc_2d__
  */
 
-#define ckd_calloc_2d(d1,d2,sz)	__ckd_calloc_2d__((d1),(d2),(sz),__FILE__,__LINE__)
+#define ckd_calloc_2d(d1, d2, sz) __ckd_calloc_2d__((d1), (d2), (sz), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_calloc_3d__
  */
 
-#define ckd_calloc_3d(d1,d2,d3,sz) __ckd_calloc_3d__((d1),(d2),(d3),(sz),__FILE__,__LINE__)
+#define ckd_calloc_3d(d1, d2, d3, sz) __ckd_calloc_3d__((d1), (d2), (d3), (sz), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_calloc_4d__
  */
-#define ckd_calloc_4d(d1, d2, d3, d4, s)  __ckd_calloc_4d__((d1), (d2), (d3), (d4), (s), __FILE__, __LINE__)
+#define ckd_calloc_4d(d1, d2, d3, d4, s) __ckd_calloc_4d__((d1), (d2), (d3), (d4), (s), __FILE__, __LINE__)
 
 /**
  * Macro for __ckd_alloc_2d_ptr__
  */
 
-#define ckd_alloc_2d_ptr(d1, d2, bf, sz)    __ckd_alloc_2d_ptr((d1), (d2), (bf), (sz), __FILE__, __LINE__)
+#define ckd_alloc_2d_ptr(d1, d2, bf, sz) __ckd_alloc_2d_ptr((d1), (d2), (bf), (sz), __FILE__, __LINE__)
 
 /**
  * Free only the pointer arrays allocated with ckd_alloc_2d_ptr().
@@ -286,7 +284,6 @@ void ckd_free_4d(void *ptr);
  * Free only the pointer arrays allocated with ckd_alloc_3d_ptr().
  */
 #define ckd_free_3d_ptr(bf) ckd_free_2d(bf)
-
 
 #ifdef __cplusplus
 }

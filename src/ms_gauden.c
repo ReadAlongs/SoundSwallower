@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,25 +36,25 @@
  */
 
 #include <assert.h>
-#include <string.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
+#include <string.h>
 
+#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/err.h>
 #include <soundswallower/mllr.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/ms_gauden.h>
 
-#define GAUDEN_PARAM_VERSION	"1.0"
+#define GAUDEN_PARAM_VERSION "1.0"
 
 #ifndef M_PI
-#define M_PI	3.1415926535897932385e0
+#define M_PI 3.1415926535897932385e0
 #endif
 
-#define WORST_DIST	(int32)(0x80000000)
+#define WORST_DIST (int32)(0x80000000)
 
 void
-gauden_dump(const gauden_t * g)
+gauden_dump(const gauden_t *g)
 {
     int32 c;
 
@@ -62,9 +62,8 @@ gauden_dump(const gauden_t * g)
         gauden_dump_ind(g, c);
 }
 
-
 void
-gauden_dump_ind(const gauden_t * g, int senidx)
+gauden_dump_ind(const gauden_t *g, int senidx)
 {
     int32 f, d, i;
 
@@ -163,16 +162,15 @@ gauden_param_read(s3file_t *s,
     }
 
     if (n != n_mgau * n_density * blk) {
-        E_ERROR
-            ("Number of parameters %d doesn't match dimensions: %d x %d x %d\n",
-             n, n_mgau, n_density, blk);
+        E_ERROR("Number of parameters %d doesn't match dimensions: %d x %d x %d\n",
+                n, n_mgau, n_density, blk);
         return NULL;
     }
 
     /* Allocate memory for mixture gaussian densities if not already allocated */
-    out = (float32 ****) ckd_calloc_3d(n_mgau, n_feat, n_density,
+    out = (float32 ****)ckd_calloc_3d(n_mgau, n_feat, n_density,
                                       sizeof(float32 *));
-    buf = (float32 *) ckd_calloc(n, sizeof(float32));
+    buf = (float32 *)ckd_calloc(n, sizeof(float32));
     for (i = 0, l = 0; i < n_mgau; i++) {
         for (j = 0; j < n_feat; j++) {
             for (k = 0; k < n_density; k++) {
@@ -204,7 +202,7 @@ gauden_param_read(s3file_t *s,
 }
 
 static void
-gauden_param_free(mfcc_t **** p)
+gauden_param_free(mfcc_t ****p)
 {
     ckd_free(p[0][0][0]);
     ckd_free_3d(p);
@@ -217,7 +215,7 @@ gauden_param_free(mfcc_t **** p)
  * NOTE; The density computation is performed in log domain.
  */
 static int32
-gauden_dist_precompute(gauden_t * g, logmath_t *lmath, float32 varfloor)
+gauden_dist_precompute(gauden_t *g, logmath_t *lmath, float32 varfloor)
 {
     int32 i, m, f, d, flen;
     mfcc_t *meanp;
@@ -259,19 +257,16 @@ gauden_dist_precompute(gauden_t * g, logmath_t *lmath, float32 varfloor)
     return 0;
 }
 
-
 gauden_t *
-gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixture gaussians */
-                   s3file_t *vars,   /**< Input: File containing variances of mixture gaussians */
+gauden_init_s3file(s3file_t *means, /**< Input: File containing means of mixture gaussians */
+                   s3file_t *vars, /**< Input: File containing variances of mixture gaussians */
                    float32 varfloor, /**< Input: Floor value to be applied to variances */
-                   logmath_t *lmath
-                   )
+                   logmath_t *lmath)
 {
     int32 i, m, f, d, *flen = NULL;
     gauden_t *g;
 
-
-    g = (gauden_t *) ckd_calloc(1, sizeof(gauden_t));
+    g = (gauden_t *)ckd_calloc(1, sizeof(gauden_t));
     g->lmath = logmath_retain(lmath);
 
     g->mean = (mfcc_t ****)gauden_param_read(means, &g->n_mgau, &g->n_feat, &g->n_density,
@@ -285,8 +280,7 @@ gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixtur
 
     /* Verify mean and variance parameter dimensions */
     if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density)) {
-        E_ERROR
-            ("Mixture-gaussians dimensions for means and variances differ\n");
+        E_ERROR("Mixture-gaussians dimensions for means and variances differ\n");
         goto error_out;
     }
     for (i = 0; i < g->n_feat; i++) {
@@ -299,7 +293,7 @@ gauden_init_s3file(s3file_t *means,  /**< Input: File containing means of mixtur
     gauden_dist_precompute(g, lmath, varfloor);
     return g;
 
- error_out:
+error_out:
     if (flen)
         ckd_free(flen);
     gauden_free(g);
@@ -334,7 +328,7 @@ gauden_init(const char *meanfile, const char *varfile, float32 varfloor, logmath
 }
 
 void
-gauden_free(gauden_t * g)
+gauden_free(gauden_t *g)
 {
     if (g == NULL)
         return;
@@ -353,8 +347,8 @@ gauden_free(gauden_t * g)
 
 /* See compute_dist below */
 static int32
-compute_dist_all(gauden_dist_t * out_dist, mfcc_t* obs, int32 featlen,
-                 mfcc_t ** mean, mfcc_t ** var, mfcc_t * det,
+compute_dist_all(gauden_dist_t *out_dist, mfcc_t *obs, int32 featlen,
+                 mfcc_t **mean, mfcc_t **var, mfcc_t *det,
                  int32 n_density)
 {
     int32 i, d;
@@ -383,15 +377,14 @@ compute_dist_all(gauden_dist_t * out_dist, mfcc_t* obs, int32 featlen,
     return 0;
 }
 
-
 /*
  * Compute the top-N closest gaussians from the chosen set (mgau,feat)
  * for the given input observation vector.
  */
 static int32
-compute_dist(gauden_dist_t * out_dist, int32 n_top,
-             mfcc_t * obs, int32 featlen,
-             mfcc_t ** mean, mfcc_t ** var, mfcc_t * det,
+compute_dist(gauden_dist_t *out_dist, int32 n_top,
+             mfcc_t *obs, int32 featlen,
+             mfcc_t **mean, mfcc_t **var, mfcc_t *det,
              int32 n_density)
 {
     int32 i, j, d;
@@ -399,8 +392,7 @@ compute_dist(gauden_dist_t * out_dist, int32 n_top,
 
     /* Special case optimization when n_density <= n_top */
     if (n_top >= n_density)
-        return (compute_dist_all
-                (out_dist, obs, featlen, mean, var, det, n_density));
+        return (compute_dist_all(out_dist, obs, featlen, mean, var, det, n_density));
 
     for (i = 0; i < n_top; i++)
         out_dist[i].dist = WORST_DIST;
@@ -423,11 +415,12 @@ compute_dist(gauden_dist_t * out_dist, int32 n_top,
             dval -= diff * diff * v[i];
         }
 
-        if ((i < featlen) || (dval < worst->dist))     /* Codeword d worse than worst */
+        if ((i < featlen) || (dval < worst->dist)) /* Codeword d worse than worst */
             continue;
 
         /* Codeword d at least as good as worst so far; insert in the ordered list */
-        for (i = 0; (i < n_top) && (dval < out_dist[i].dist); i++);
+        for (i = 0; (i < n_top) && (dval < out_dist[i].dist); i++)
+            ;
         assert(i < n_top);
         for (j = n_top - 1; j > i; --j)
             out_dist[j] = out_dist[j - 1];
@@ -438,15 +431,14 @@ compute_dist(gauden_dist_t * out_dist, int32 n_top,
     return 0;
 }
 
-
 /*
  * Compute distances of the input observation from the top N codewords in the given
  * codebook (g->{mean,var}[mgau]).  The input observation, obs, includes vectors for
  * all features in the codebook.
  */
 int32
-gauden_dist(gauden_t * g,
-            int mgau, int32 n_top, mfcc_t** obs, gauden_dist_t ** out_dist)
+gauden_dist(gauden_t *g,
+            int mgau, int32 n_top, mfcc_t **obs, gauden_dist_t **out_dist)
 {
     int32 f;
 
@@ -490,7 +482,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
         return -1;
     }
     g->mean = (mfcc_t ****)gauden_param_read(s, &g->n_mgau, &g->n_feat, &g->n_density,
-                      &g->featlen);
+                                             &g->featlen);
     s3file_free(s);
     varfile = config_str(config, "var");
     if ((s = s3file_map_file(varfile)) == NULL) {
@@ -501,8 +493,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
     s3file_free(s);
     /* Verify mean and variance parameter dimensions */
     if ((m != g->n_mgau) || (f != g->n_feat) || (d != g->n_density)) {
-        E_ERROR
-            ("Mixture-gaussians dimensions for means and variances differ\n");
+        E_ERROR("Mixture-gaussians dimensions for means and variances differ\n");
         ckd_free(flen);
         return -1;
     }
@@ -519,7 +510,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
     for (i = 0; i < g->n_mgau; ++i) {
         for (f = 0; f < g->n_feat; ++f) {
             float64 *temp;
-            temp = (float64 *) ckd_calloc(g->featlen[f], sizeof(float64));
+            temp = (float64 *)ckd_calloc(g->featlen[f], sizeof(float64));
             /* Transform each density d in selected codebook */
             for (d = 0; d < g->n_density; d++) {
                 int l;
@@ -533,7 +524,7 @@ gauden_mllr_transform(gauden_t *g, mllr_t *mllr, config_t *config)
                 }
 
                 for (l = 0; l < g->featlen[f]; l++) {
-                    g->mean[i][f][d][l] = (float32) temp[l];
+                    g->mean[i][f][d][l] = (float32)temp[l];
                     g->var[i][f][d][l] *= mllr->h[f][0][l];
                 }
             }

@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 1996-2004 Carnegie Mellon University.  All rights 
+ * Copyright (c) 1996-2004 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,14 +36,14 @@
  */
 
 #include "config.h"
-#include <stdio.h>
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4244)
+#pragma warning(disable : 4244)
 #endif
 
 /**
@@ -53,49 +53,45 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#include <soundswallower/prim_type.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/byteorder.h>
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
 #include <soundswallower/fe.h>
 #include <soundswallower/genrand.h>
-#include <soundswallower/err.h>
+#include <soundswallower/prim_type.h>
 
 #include <soundswallower/fe_warp.h>
 
 /* Use extra precision for cosines, Hamming window, pre-emphasis
  * coefficient, twiddle factors. */
 #define FLOAT2COS(x) (x)
-#define COSMUL(x,y) ((x)*(y))
+#define COSMUL(x, y) ((x) * (y))
 
 static float32
-fe_mel(melfb_t * mel, float32 x)
+fe_mel(melfb_t *mel, float32 x)
 {
     float32 warped = fe_warp_unwarped_to_warped(mel, x);
 
-    return (float32) (2595.0 * log10(1.0 + warped / 700.0));
+    return (float32)(2595.0 * log10(1.0 + warped / 700.0));
 }
 
 static float32
-fe_melinv(melfb_t * mel, float32 x)
+fe_melinv(melfb_t *mel, float32 x)
 {
-    float32 warped = (float32) (700.0 * (pow(10.0, x / 2595.0) - 1.0));
+    float32 warped = (float32)(700.0 * (pow(10.0, x / 2595.0) - 1.0));
     return fe_warp_warped_to_unwarped(mel, warped);
 }
 
 int32
-fe_build_melfilters(melfb_t * mel_fb)
+fe_build_melfilters(melfb_t *mel_fb)
 {
     float32 melmin, melmax, melbw, fftfreq;
     int n_coeffs, i, j;
 
-
     /* Filter coefficient matrix, in flattened form. */
-    mel_fb->spec_start =
-        ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->spec_start));
-    mel_fb->filt_start =
-        ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->filt_start));
-    mel_fb->filt_width =
-        ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->filt_width));
+    mel_fb->spec_start = ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->spec_start));
+    mel_fb->filt_start = ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->filt_start));
+    mel_fb->filt_width = ckd_calloc(mel_fb->num_filters, sizeof(*mel_fb->filt_width));
 
     /* First calculate the widths of each filter. */
     /* Minimum and maximum frequencies in mel scale. */
@@ -107,20 +103,17 @@ fe_build_melfilters(melfb_t * mel_fb)
     if (mel_fb->doublewide) {
         melmin -= melbw;
         melmax += melbw;
-        if ((fe_melinv(mel_fb, melmin) < 0) ||
-            (fe_melinv(mel_fb, melmax) > mel_fb->sampling_rate / 2)) {
-            E_WARN
-                ("Out of Range: low  filter edge = %f (%f)\n",
-                 fe_melinv(mel_fb, melmin), 0.0);
-            E_WARN
-                ("              high filter edge = %f (%f)\n",
-                 fe_melinv(mel_fb, melmax), mel_fb->sampling_rate / 2);
+        if ((fe_melinv(mel_fb, melmin) < 0) || (fe_melinv(mel_fb, melmax) > mel_fb->sampling_rate / 2)) {
+            E_WARN("Out of Range: low  filter edge = %f (%f)\n",
+                   fe_melinv(mel_fb, melmin), 0.0);
+            E_WARN("              high filter edge = %f (%f)\n",
+                   fe_melinv(mel_fb, melmax), mel_fb->sampling_rate / 2);
             return FE_INVALID_PARAM_ERROR;
         }
     }
 
     /* DFT point spacing */
-    fftfreq = mel_fb->sampling_rate / (float32) mel_fb->fft_size;
+    fftfreq = mel_fb->sampling_rate / (float32)mel_fb->fft_size;
 
     /* Count and place filter coefficients. */
     n_coeffs = 0;
@@ -135,7 +128,7 @@ fe_build_melfilters(melfb_t * mel_fb)
                 freqs[j] = fe_melinv(mel_fb, (i + j) * melbw + melmin);
             /* Round them to DFT points if requested */
             if (mel_fb->round_filters)
-                freqs[j] = ((int) (freqs[j] / fftfreq + 0.5)) * fftfreq;
+                freqs[j] = ((int)(freqs[j] / fftfreq + 0.5)) * fftfreq;
         }
 
         /* spec_start is the start of this filter in the power spectrum. */
@@ -159,8 +152,7 @@ fe_build_melfilters(melfb_t * mel_fb)
     }
 
     /* Now go back and allocate the coefficient array. */
-    mel_fb->filt_coeffs =
-        ckd_malloc(n_coeffs * sizeof(*mel_fb->filt_coeffs));
+    mel_fb->filt_coeffs = ckd_malloc(n_coeffs * sizeof(*mel_fb->filt_coeffs));
 
     /* And now generate the coefficients. */
     n_coeffs = 0;
@@ -175,7 +167,7 @@ fe_build_melfilters(melfb_t * mel_fb)
                 freqs[j] = fe_melinv(mel_fb, (i + j) * melbw + melmin);
             /* Round them to DFT points if requested */
             if (mel_fb->round_filters)
-                freqs[j] = ((int) (freqs[j] / fftfreq + 0.5)) * fftfreq;
+                freqs[j] = ((int)(freqs[j] / fftfreq + 0.5)) * fftfreq;
         }
 
         for (j = 0; j < mel_fb->filt_width[i]; ++j) {
@@ -183,11 +175,10 @@ fe_build_melfilters(melfb_t * mel_fb)
 
             hz = (mel_fb->spec_start[i] + j) * fftfreq;
             if (hz < freqs[0] || hz > freqs[2]) {
-                E_FATAL
-                    ("Failed to create filterbank, frequency range does not match. "
-                     "Sample rate %f, FFT size %d, lowerf %f < freq %f > upperf %f.\n",
-                     mel_fb->sampling_rate, mel_fb->fft_size, freqs[0], hz,
-                     freqs[2]);
+                E_FATAL("Failed to create filterbank, frequency range does not match. "
+                        "Sample rate %f, FFT size %d, lowerf %f < freq %f > upperf %f.\n",
+                        mel_fb->sampling_rate, mel_fb->fft_size, freqs[0], hz,
+                        freqs[2]);
             }
             loslope = (hz - freqs[0]) / (freqs[1] - freqs[0]);
             hislope = (freqs[2] - hz) / (freqs[2] - freqs[1]);
@@ -197,8 +188,7 @@ fe_build_melfilters(melfb_t * mel_fb)
             }
             if (loslope < hislope) {
                 mel_fb->filt_coeffs[n_coeffs] = loslope;
-            }
-            else {
+            } else {
                 mel_fb->filt_coeffs[n_coeffs] = hislope;
             }
             ++n_coeffs;
@@ -209,15 +199,14 @@ fe_build_melfilters(melfb_t * mel_fb)
 }
 
 int32
-fe_compute_melcosine(melfb_t * mel_fb)
+fe_compute_melcosine(melfb_t *mel_fb)
 {
 
     float64 freqstep;
     int32 i, j;
 
-    mel_fb->mel_cosine =
-        (mfcc_t **) ckd_calloc_2d(mel_fb->num_cepstra,
-                                  mel_fb->num_filters, sizeof(mfcc_t));
+    mel_fb->mel_cosine = (mfcc_t **)ckd_calloc_2d(mel_fb->num_cepstra,
+                                                  mel_fb->num_filters, sizeof(mfcc_t));
 
     freqstep = M_PI / mel_fb->num_filters;
     /* NOTE: The first row vector is actually unnecessary but we leave
@@ -237,12 +226,9 @@ fe_compute_melcosine(melfb_t * mel_fb)
 
     /* And liftering weights */
     if (mel_fb->lifter_val) {
-        mel_fb->lifter =
-            calloc(mel_fb->num_cepstra, sizeof(*mel_fb->lifter));
+        mel_fb->lifter = calloc(mel_fb->num_cepstra, sizeof(*mel_fb->lifter));
         for (i = 0; i < mel_fb->num_cepstra; ++i) {
-            mel_fb->lifter[i] = FLOAT2MFCC(1 + mel_fb->lifter_val / 2
-                                           * sin(i * M_PI /
-                                                 mel_fb->lifter_val));
+            mel_fb->lifter[i] = FLOAT2MFCC(1 + mel_fb->lifter_val / 2 * sin(i * M_PI / mel_fb->lifter_val));
         }
     }
 
@@ -250,41 +236,40 @@ fe_compute_melcosine(melfb_t * mel_fb)
 }
 
 static void
-fe_pre_emphasis(float32 const *in, frame_t * out, int32 len,
+fe_pre_emphasis(float32 const *in, frame_t *out, int32 len,
                 float32 factor, float32 prior)
 {
     int i;
 
-    out[0] = (frame_t) in[0] - (frame_t) prior *factor;
+    out[0] = (frame_t)in[0] - (frame_t)prior * factor;
     for (i = 1; i < len; i++)
-        out[i] = (frame_t) in[i] - (frame_t) in[i - 1] * factor;
+        out[i] = (frame_t)in[i] - (frame_t)in[i - 1] * factor;
 }
 
 static void
-fe_copy_to_frame(float32 const *in, frame_t * out, int32 len)
+fe_copy_to_frame(float32 const *in, frame_t *out, int32 len)
 {
     int i;
 
     for (i = 0; i < len; i++)
-        out[i] = (frame_t) in[i];
+        out[i] = (frame_t)in[i];
 }
 
 void
-fe_create_hamming(window_t * in, int32 in_len)
+fe_create_hamming(window_t *in, int32 in_len)
 {
     int i;
 
     /* Symmetric, so we only create the first half of it. */
     for (i = 0; i < in_len / 2; i++) {
         float64 hamm;
-        hamm = (0.54 - 0.46 * cos(2 * M_PI * i /
-                                  ((float64) in_len - 1.0)));
+        hamm = (0.54 - 0.46 * cos(2 * M_PI * i / ((float64)in_len - 1.0)));
         in[i] = FLOAT2COS(hamm);
     }
 }
 
 static void
-fe_hamming_window(frame_t * in, window_t * window, int32 in_len,
+fe_hamming_window(frame_t *in, window_t *window, int32 in_len,
                   int32 remove_dc)
 {
     int i;
@@ -296,7 +281,7 @@ fe_hamming_window(frame_t * in, window_t * window, int32 in_len,
             mean += in[i];
         mean /= in_len;
         for (i = 0; i < in_len; i++)
-            in[i] -= (frame_t) mean;
+            in[i] -= (frame_t)mean;
     }
 
     for (i = 0; i < in_len / 2; i++) {
@@ -306,7 +291,7 @@ fe_hamming_window(frame_t * in, window_t * window, int32 in_len,
 }
 
 static int
-fe_spch_to_frame(fe_t * fe, int len)
+fe_spch_to_frame(fe_t *fe, int len)
 {
     /* Copy to the frame buffer. */
     if (fe->pre_emphasis_alpha != 0.0) {
@@ -320,8 +305,7 @@ fe_spch_to_frame(fe_t * fe, int len)
             fe->pre_emphasis_prior = fe->spch[fe->frame_shift - 1];
         else
             fe->pre_emphasis_prior = fe->spch[len - 1];
-    }
-    else
+    } else
         fe_copy_to_frame(fe->spch, fe->frame, len);
 
     /* Zero pad up to FFT size. */
@@ -335,7 +319,7 @@ fe_spch_to_frame(fe_t * fe, int len)
 }
 
 int
-fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
+fe_read_frame_int16(fe_t *fe, int16 const *in, int32 len)
 {
     int i;
 
@@ -349,7 +333,7 @@ fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
         if (fe->swap)
             SWAP_INT16(&sample);
         if (fe->dither)
-            sample += (int16) ((!(s3_rand_int31() % 4)) ? 1 : 0);
+            sample += (int16)((!(s3_rand_int31() % 4)) ? 1 : 0);
         fe->spch[i] = sample;
     }
 
@@ -357,13 +341,13 @@ fe_read_frame_int16(fe_t * fe, int16 const *in, int32 len)
 }
 
 int
-fe_read_frame(fe_t * fe, int16 const *in, int32 len)
+fe_read_frame(fe_t *fe, int16 const *in, int32 len)
 {
     return fe_read_frame_int16(fe, in, len);
 }
 
 int
-fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
+fe_read_frame_float32(fe_t *fe, float32 const *in, int32 len)
 {
     int i;
 
@@ -376,12 +360,10 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
             float32 sample = in[i];
             if (fe->swap)
                 SWAP_FLOAT32(&sample);
-            fe->spch[i] =
-                (sample * FLOAT32_SCALE
-                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
+            fe->spch[i] = (sample * FLOAT32_SCALE
+                           + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
         }
-    }
-    else {
+    } else {
         for (i = 0; i < len; ++i) {
             float32 sample = in[i];
             if (fe->swap)
@@ -394,7 +376,7 @@ fe_read_frame_float32(fe_t * fe, float32 const *in, int32 len)
 }
 
 int
-fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
+fe_shift_frame_int16(fe_t *fe, int16 const *in, int32 len)
 {
     int offset, i;
 
@@ -422,13 +404,13 @@ fe_shift_frame_int16(fe_t * fe, int16 const *in, int32 len)
 }
 
 int
-fe_shift_frame(fe_t * fe, int16 const *in, int32 len)
+fe_shift_frame(fe_t *fe, int16 const *in, int32 len)
 {
     return fe_shift_frame_int16(fe, in, len);
 }
 
 int
-fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
+fe_shift_frame_float32(fe_t *fe, float32 const *in, int32 len)
 {
     int offset, i;
 
@@ -441,16 +423,14 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
             offset * sizeof(*fe->spch));
     /* Swap, scale, and dither new data if necessary. */
     if (fe->dither) {
-        for (i = 0; i < len; ++i){
+        for (i = 0; i < len; ++i) {
             float32 sample = in[i];
             if (fe->swap)
                 SWAP_FLOAT32(&sample);
-            fe->spch[i + offset] =
-                (sample * FLOAT32_SCALE
-                 + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
+            fe->spch[i + offset] = (sample * FLOAT32_SCALE
+                                    + ((!(s3_rand_int31() % 4)) ? FLOAT32_DITHER : 0.0));
         }
-    }
-    else {
+    } else {
         for (i = 0; i < len; ++i) {
             float32 sample = in[i];
             if (fe->swap)
@@ -467,7 +447,7 @@ fe_shift_frame_float32(fe_t * fe, float32 const *in, int32 len)
  * Create arrays of twiddle factors.
  */
 void
-fe_create_twiddle(fe_t * fe)
+fe_create_twiddle(fe_t *fe)
 {
     int i;
 
@@ -478,9 +458,8 @@ fe_create_twiddle(fe_t * fe)
     }
 }
 
-
 static int
-fe_fft_real(fe_t * fe)
+fe_fft_real(fe_t *fe)
 {
     int i, j, k, m, n;
     frame_t *x, xt;
@@ -578,7 +557,7 @@ fe_fft_real(fe_t * fe)
 }
 
 static void
-fe_spec_magnitude(fe_t * fe)
+fe_spec_magnitude(fe_t *fe)
 {
     frame_t *fft;
     powspec_t *spec;
@@ -607,7 +586,7 @@ fe_spec_magnitude(fe_t * fe)
 }
 
 static void
-fe_mel_spec(fe_t * fe)
+fe_mel_spec(fe_t *fe)
 {
     int whichfilt;
     powspec_t *spec, *mfspec;
@@ -623,17 +602,14 @@ fe_mel_spec(fe_t * fe)
 
         mfspec[whichfilt] = 0;
         for (i = 0; i < fe->mel_fb->filt_width[whichfilt]; i++)
-            mfspec[whichfilt] +=
-                spec[spec_start + i] * fe->mel_fb->filt_coeffs[filt_start +
-                                                               i];
+            mfspec[whichfilt] += spec[spec_start + i] * fe->mel_fb->filt_coeffs[filt_start + i];
     }
-
 }
 
 #define LOG_FLOOR 1e-4
 
 static void
-fe_mel_cep(fe_t * fe, mfcc_t * mfcep)
+fe_mel_cep(fe_t *fe, mfcc_t *mfcep)
 {
     int32 i;
     powspec_t *mfspec;
@@ -648,7 +624,7 @@ fe_mel_cep(fe_t * fe, mfcc_t * mfcep)
     /* If we are doing LOG_SPEC, then do nothing. */
     if (fe->log_spec == RAW_LOG_SPEC) {
         for (i = 0; i < fe->feature_dimension; i++) {
-            mfcep[i] = (mfcc_t) mfspec[i];
+            mfcep[i] = (mfcc_t)mfspec[i];
         }
     }
     /* For smoothed spectrum, do DCT-II followed by (its inverse) DCT-III */
@@ -656,10 +632,9 @@ fe_mel_cep(fe_t * fe, mfcc_t * mfcep)
         fe_dct2(fe, mfspec, mfcep, FALSE);
         fe_dct3(fe, mfcep, mfspec);
         for (i = 0; i < fe->feature_dimension; i++) {
-            mfcep[i] = (mfcc_t) mfspec[i];
+            mfcep[i] = (mfcc_t)mfspec[i];
         }
-    }
-    else if (fe->transform == DCT_II)
+    } else if (fe->transform == DCT_II)
         fe_dct2(fe, mfspec, mfcep, FALSE);
     else if (fe->transform == DCT_HTK)
         fe_dct2(fe, mfspec, mfcep, TRUE);
@@ -670,36 +645,37 @@ fe_mel_cep(fe_t * fe, mfcc_t * mfcep)
 }
 
 void
-fe_spec2cep(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep)
+fe_spec2cep(fe_t *fe, const powspec_t *mflogspec, mfcc_t *mfcep)
 {
     int32 i, j, beta;
 
     /* Compute C0 separately (its basis vector is 1) to avoid
      * costly multiplications. */
-    mfcep[0] = mflogspec[0] / 2;        /* beta = 0.5 */
+    mfcep[0] = mflogspec[0] / 2; /* beta = 0.5 */
     for (j = 1; j < fe->mel_fb->num_filters; j++)
-        mfcep[0] += mflogspec[j];       /* beta = 1.0 */
-    mfcep[0] /= (frame_t) fe->mel_fb->num_filters;
+        mfcep[0] += mflogspec[j]; /* beta = 1.0 */
+    mfcep[0] /= (frame_t)fe->mel_fb->num_filters;
 
     for (i = 1; i < fe->num_cepstra; ++i) {
         mfcep[i] = 0;
         for (j = 0; j < fe->mel_fb->num_filters; j++) {
             if (j == 0)
-                beta = 1;       /* 0.5 */
+                beta = 1; /* 0.5 */
             else
-                beta = 2;       /* 1.0 */
+                beta = 2; /* 1.0 */
             mfcep[i] += COSMUL(mflogspec[j],
-                               fe->mel_fb->mel_cosine[i][j]) * beta;
+                               fe->mel_fb->mel_cosine[i][j])
+                * beta;
         }
         /* Note that this actually normalizes by num_filters, like the
          * original Sphinx front-end, due to the doubled 'beta' factor
          * above.  */
-        mfcep[i] /= (frame_t) fe->mel_fb->num_filters * 2;
+        mfcep[i] /= (frame_t)fe->mel_fb->num_filters * 2;
     }
 }
 
 void
-fe_dct2(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep, int htk)
+fe_dct2(fe_t *fe, const powspec_t *mflogspec, mfcc_t *mfcep, int htk)
 {
     int32 i, j;
 
@@ -710,7 +686,7 @@ fe_dct2(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep, int htk)
         mfcep[0] += mflogspec[j];
     if (htk)
         mfcep[0] = COSMUL(mfcep[0], fe->mel_fb->sqrt_inv_2n);
-    else                        /* sqrt(1/N) = sqrt(2/N) * 1/sqrt(2) */
+    else /* sqrt(1/N) = sqrt(2/N) * 1/sqrt(2) */
         mfcep[0] = COSMUL(mfcep[0], fe->mel_fb->sqrt_inv_n);
 
     for (i = 1; i < fe->num_cepstra; ++i) {
@@ -723,7 +699,7 @@ fe_dct2(fe_t * fe, const powspec_t * mflogspec, mfcc_t * mfcep, int htk)
 }
 
 void
-fe_lifter(fe_t * fe, mfcc_t * mfcep)
+fe_lifter(fe_t *fe, mfcc_t *mfcep)
 {
     int32 i;
 
@@ -736,7 +712,7 @@ fe_lifter(fe_t * fe, mfcc_t * mfcep)
 }
 
 void
-fe_dct3(fe_t * fe, const mfcc_t * mfcep, powspec_t * mflogspec)
+fe_dct3(fe_t *fe, const mfcc_t *mfcep, powspec_t *mflogspec)
 {
     int32 i, j;
 
@@ -750,7 +726,7 @@ fe_dct3(fe_t * fe, const mfcc_t * mfcep, powspec_t * mflogspec)
 }
 
 int
-fe_write_frame(fe_t * fe, mfcc_t * feat)
+fe_write_frame(fe_t *fe, mfcc_t *feat)
 {
     fe_spec_magnitude(fe);
     fe_mel_spec(fe);

@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -37,21 +37,20 @@
 
 #include <string.h>
 
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/dict.h>
+#include <soundswallower/strfuncs.h>
 
-
-#define DELIM	" \t\n"         /* Set of field separator characters */
-#define DEFAULT_NUM_PHONE	(MAX_S3CIPID+1)
+#define DELIM " \t\n" /* Set of field separator characters */
+#define DEFAULT_NUM_PHONE (MAX_S3CIPID + 1)
 
 #if WIN32
 #define snprintf sprintf_s
-#endif 
+#endif
 
 extern const char *const cmu6_lts_phone_table[];
 
 static s3cipid_t
-dict_ciphone_id(dict_t * d, const char *str)
+dict_ciphone_id(dict_t *d, const char *str)
 {
     if (d->nocase)
         return bin_mdef_ciphone_id_nocase(d->mdef, str);
@@ -59,9 +58,8 @@ dict_ciphone_id(dict_t * d, const char *str)
         return bin_mdef_ciphone_id(d->mdef, str);
 }
 
-
 const char *
-dict_ciphone_str(dict_t * d, s3wid_t wid, int32 pos)
+dict_ciphone_str(dict_t *d, s3wid_t wid, int32 pos)
 {
     assert(d != NULL);
     assert((wid >= 0) && (wid < d->n_word));
@@ -70,9 +68,8 @@ dict_ciphone_str(dict_t * d, s3wid_t wid, int32 pos)
     return bin_mdef_ciphone_str(d->mdef, d->word[wid].ciphone[pos]);
 }
 
-
 s3wid_t
-dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
+dict_add_word(dict_t *d, const char *word, s3cipid_t const *p, int32 np)
 {
     int32 len;
     dictword_t *wordp;
@@ -82,15 +79,13 @@ dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
     if (d->n_word >= d->max_words) {
         E_INFO("Reallocating to %d KiB for word entries\n",
                (d->max_words + S3DICT_INC_SZ) * sizeof(dictword_t) / 1024);
-        d->word =
-            (dictword_t *) ckd_realloc(d->word,
-                                       (d->max_words +
-                                        S3DICT_INC_SZ) * sizeof(dictword_t));
+        d->word = (dictword_t *)ckd_realloc(d->word,
+                                            (d->max_words + S3DICT_INC_SZ) * sizeof(dictword_t));
         d->max_words = d->max_words + S3DICT_INC_SZ;
     }
 
     wordp = d->word + d->n_word;
-    wordp->word = (char *) ckd_salloc(word);    /* Freed in dict_free */
+    wordp->word = (char *)ckd_salloc(word); /* Freed in dict_free */
 
     /* Determine base/alt wids */
     wword = ckd_salloc(word);
@@ -125,11 +120,10 @@ dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
 
     /* Fill in word entry, and set defaults */
     if (p && (np > 0)) {
-        wordp->ciphone = (s3cipid_t *) ckd_malloc(np * sizeof(s3cipid_t));      /* Freed in dict_free */
+        wordp->ciphone = (s3cipid_t *)ckd_malloc(np * sizeof(s3cipid_t)); /* Freed in dict_free */
         memcpy(wordp->ciphone, p, np * sizeof(s3cipid_t));
         wordp->pronlen = np;
-    }
-    else {
+    } else {
         wordp->ciphone = NULL;
         wordp->pronlen = 0;
     }
@@ -139,9 +133,8 @@ dict_add_word(dict_t * d, const char *word, s3cipid_t const * p, int32 np)
     return newwid;
 }
 
-
 dict_t *
-dict_init(config_t *config, bin_mdef_t * mdef)
+dict_init(config_t *config, bin_mdef_t *mdef)
 {
     dict_t *d = NULL;
     s3file_t *dict = NULL;
@@ -163,12 +156,11 @@ dict_init(config_t *config, bin_mdef_t * mdef)
         }
     }
     d = dict_init_s3file(config, mdef, dict, fdict);
- error_out:
+error_out:
     s3file_free(dict);
     s3file_free(fdict);
     return d;
 }
-
 
 static int32
 dict_read_s3file(dict_t *d, s3file_t *dict)
@@ -197,13 +189,13 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
             maxwd = nwd * 2; /* Some extra space */
             p = ckd_calloc(maxwd, sizeof(*p));
         }
-        if (nwd == 0)           /* Empty line */
+        if (nwd == 0) /* Empty line */
             continue;
         /* Increase size of p, wptr if needed. */
         while (nwd > maxwd) {
             maxwd *= 2;
             E_INFO("Increased maximum words/phones to %ld\n", maxwd);
-            p = (s3cipid_t *) ckd_realloc(p, maxwd * sizeof(*p));
+            p = (s3cipid_t *)ckd_realloc(p, maxwd * sizeof(*p));
         }
         /* FIXME: Might be slow with all the copying */
         word = s3file_copy_nextword(dict, &ptr);
@@ -215,7 +207,7 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
         }
         /* Convert pronunciation string to CI-phone-ids */
         for (i = 1; i < nwd; i++) {
-        /* FIXME: Might be slow with all the copying */
+            /* FIXME: Might be slow with all the copying */
             char *phone = s3file_copy_nextword(dict, &ptr);
             p[i - 1] = dict_ciphone_id(d, phone);
             if (NOT_S3CIPID(p[i - 1])) {
@@ -226,12 +218,11 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
             }
             ckd_free(phone);
         }
-        if (i == nwd) {         /* All CI-phones successfully converted to IDs */
+        if (i == nwd) { /* All CI-phones successfully converted to IDs */
             w = dict_add_word(d, word, p, nwd - 1);
             if (NOT_S3WID(w))
-                E_ERROR
-                    ("Line %d: Failed to add the word '%s' (duplicate?); ignored\n",
-                     lineno, word);
+                E_ERROR("Line %d: Failed to add the word '%s' (duplicate?); ignored\n",
+                        lineno, word);
             else {
                 stralloc += strlen(d->word[w].word);
                 phnalloc += d->word[w].pronlen * sizeof(s3cipid_t);
@@ -245,7 +236,6 @@ dict_read_s3file(dict_t *d, s3file_t *dict)
 
     return 0;
 }
-
 
 dict_t *
 dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *fdict)
@@ -265,15 +255,15 @@ dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
         while ((line = s3file_nextline(dict)) != NULL) {
             if (0 != strncmp(line, "##", 2)
                 && 0 != strncmp(line, ";;", 2))
-            n++;
+                n++;
         }
         dict->ptr = dict->buf;
     }
 
     if (fdict) {
         while ((line = s3file_nextline(fdict)) != NULL) {
-	    if (0 != strncmp(line, "##", 2)
-    	        && 0 != strncmp(line, ";;", 2))
+            if (0 != strncmp(line, "##", 2)
+                && 0 != strncmp(line, ";;", 2))
                 n++;
         }
         fdict->ptr = fdict->buf;
@@ -283,10 +273,9 @@ dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
      * Allocate dict entries.  HACK!!  Allow some extra entries for words not in file.
      * Also check for type size restrictions.
      */
-    d = (dict_t *) ckd_calloc(1, sizeof(dict_t));       /* freed in dict_free() */
+    d = (dict_t *)ckd_calloc(1, sizeof(dict_t)); /* freed in dict_free() */
     d->refcnt = 1;
-    d->max_words =
-        (n + S3DICT_INC_SZ < MAX_S3WID) ? n + S3DICT_INC_SZ : MAX_S3WID;
+    d->max_words = (n + S3DICT_INC_SZ < MAX_S3WID) ? n + S3DICT_INC_SZ : MAX_S3WID;
     if (n >= MAX_S3WID) {
         E_ERROR("Number of words in dictionaries (%d) exceeds limit (%d)\n", n,
                 MAX_S3WID);
@@ -296,7 +285,7 @@ dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
     E_INFO("Allocating %d * %d bytes (%d KiB) for word entries\n",
            d->max_words, sizeof(dictword_t),
            d->max_words * sizeof(dictword_t) / 1024);
-    d->word = (dictword_t *) ckd_calloc(d->max_words, sizeof(dictword_t));      /* freed in dict_free() */
+    d->word = (dictword_t *)ckd_calloc(d->max_words, sizeof(dictword_t)); /* freed in dict_free() */
     d->n_word = 0;
     if (mdef)
         d->mdef = bin_mdef_retain(mdef);
@@ -313,15 +302,15 @@ dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
     }
 
     if (dict_wordid(d, S3_START_WORD) != BAD_S3WID) {
-	E_ERROR("Remove sentence start word '<s>' from the dictionary\n");
+        E_ERROR("Remove sentence start word '<s>' from the dictionary\n");
         goto error_out;
     }
     if (dict_wordid(d, S3_FINISH_WORD) != BAD_S3WID) {
-	E_ERROR("Remove sentence start word '</s>' from the dictionary\n");
+        E_ERROR("Remove sentence start word '</s>' from the dictionary\n");
         goto error_out;
     }
     if (dict_wordid(d, S3_SILENCE_WORD) != BAD_S3WID) {
-	E_ERROR("Remove silence word '<sil>' from the dictionary\n");
+        E_ERROR("Remove silence word '<sil>' from the dictionary\n");
         goto error_out;
     }
 
@@ -362,11 +351,10 @@ dict_init_s3file(config_t *config, bin_mdef_t *mdef, s3file_t *dict, s3file_t *f
     /* No check that alternative pronunciations for filler words are in filler range!! */
     return d;
 
- error_out:
+error_out:
     dict_free(d);
     return NULL;
 }
-
 
 s3wid_t
 dict_wordid(dict_t *d, const char *word)
@@ -380,7 +368,6 @@ dict_wordid(dict_t *d, const char *word)
         return (BAD_S3WID);
     return w;
 }
-
 
 int
 dict_filler_word(dict_t *d, s3wid_t w)
@@ -410,7 +397,6 @@ dict_real_word(dict_t *d, s3wid_t w)
     return 1;
 }
 
-
 int32
 dict_word2basestr(char *word)
 {
@@ -418,7 +404,8 @@ dict_word2basestr(char *word)
 
     len = (int32)strlen(word);
     if (word[len - 1] == ')') {
-        for (i = len - 2; (i > 0) && (word[i] != '('); --i);
+        for (i = len - 2; (i > 0) && (word[i] != '('); --i)
+            ;
 
         if (i > 0) {
             /* The word is of the form <baseword>(...); strip from left-paren */
@@ -440,7 +427,7 @@ dict_retain(dict_t *d)
 }
 
 int
-dict_free(dict_t * d)
+dict_free(dict_t *d)
 {
     int i;
     dictword_t *word;
@@ -452,26 +439,26 @@ dict_free(dict_t * d)
 
     /* First Step, free all memory allocated for each word */
     for (i = 0; i < d->n_word; i++) {
-        word = (dictword_t *) & (d->word[i]);
+        word = (dictword_t *)&(d->word[i]);
         if (word->word)
-            ckd_free((void *) word->word);
+            ckd_free((void *)word->word);
         if (word->ciphone)
-            ckd_free((void *) word->ciphone);
+            ckd_free((void *)word->ciphone);
     }
 
     if (d->word)
-        ckd_free((void *) d->word);
+        ckd_free((void *)d->word);
     if (d->ht)
         hash_table_free(d->ht);
     if (d->mdef)
         bin_mdef_free(d->mdef);
-    ckd_free((void *) d);
+    ckd_free((void *)d);
 
     return 0;
 }
 
 void
-dict_report(dict_t * d)
+dict_report(dict_t *d)
 {
     E_INFO_NOFN("Initialization of dict_t, report:\n");
     E_INFO_NOFN("Max word: %d\n", d->max_words);

@@ -50,7 +50,7 @@ compare_table() {
 	pass "$title"
     else
 	fail "$title"
-    fi 
+    fi
 }
 
 report_failures() {

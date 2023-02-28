@@ -2,8 +2,8 @@
 #include "config.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <soundswallower/case.h>
 #include <soundswallower/err.h>
@@ -18,7 +18,6 @@
 #define STR4 "AZ3O%\tW@^#\\\n\r[]{}|\\() '\""
 #define STR5 "AZ3O%\tw@^#\\\n\r[]{}|\\() '\""
 
-
 int
 main(int argc, char **argv)
 {
@@ -30,32 +29,23 @@ main(int argc, char **argv)
     char s2[MAX_STR_LEN];
 
     char strs[NUM_STRS][MAX_STR_LEN] = { STR0,
-        STR1,
-        STR2,
-        STR3,
-        STR4,
-        STR5
-    };
+                                         STR1,
+                                         STR2,
+                                         STR3,
+                                         STR4,
+                                         STR5 };
 
-    if (argc < 2 ||
-        3 == argc ||
-        argc > 4 ||
-        (strcmp(argv[1], "lcase") &&
-         strcmp(argv[1], "ucase") && strcmp(argv[1], "strcmp_nocase")
-        )) {
+    if (argc < 2 || 3 == argc || argc > 4 || (strcmp(argv[1], "lcase") && strcmp(argv[1], "ucase") && strcmp(argv[1], "strcmp_nocase"))) {
         /*printf("INVALID PARAMETERS to chgCase\n"); */
         exit(1);
     }
 
-
     if (2 == argc) {
         if (0 == strcmp(argv[1], "ucase")) {
             ucase(n1);
-        }
-        else if (0 == strcmp(argv[1], "lcase")) {
+        } else if (0 == strcmp(argv[1], "lcase")) {
             lcase(n1);
-        }
-        else {
+        } else {
             strcmp_nocase(n1, n2);
         }
         /*
@@ -66,9 +56,7 @@ main(int argc, char **argv)
 
     if (4 == argc) {
 
-        if (0 >= atoi(argv[2]) ||
-            atoi(argv[2]) >= NUM_STRS ||
-            0 >= atoi(argv[3]) || atoi(argv[3]) >= NUM_STRS) {
+        if (0 >= atoi(argv[2]) || atoi(argv[2]) >= NUM_STRS || 0 >= atoi(argv[3]) || atoi(argv[3]) >= NUM_STRS) {
             E_INFO("INVALID PARAMS TO chkCase\n");
             exit(1);
         }
@@ -79,12 +67,10 @@ main(int argc, char **argv)
         if (0 == strcmp(argv[1], "ucase")) {
             ucase(s1);
             cmp = strcmp(s1, s2);
-        }
-        else if (0 == strcmp(argv[1], "lcase")) {
+        } else if (0 == strcmp(argv[1], "lcase")) {
             lcase(s1);
             cmp = strcmp(s1, s2);
-        }
-        else {
+        } else {
             cmp = strcmp_nocase(s1, s2);
         }
 

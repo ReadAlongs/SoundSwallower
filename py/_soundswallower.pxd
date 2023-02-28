@@ -24,7 +24,7 @@ cdef extern from "soundswallower/err.h":
 cdef extern from "soundswallower/logmath.h":
     ctypedef struct logmath_t:
         pass
-    
+
     logmath_t *logmath_init(double base, int shift, int use_table)
     int logmath_free(logmath_t *lmath)
 
@@ -83,7 +83,7 @@ cdef extern from "soundswallower/configuration.h":
         long i
         float fl
         void *ptr
-        
+
     config_t *config_init(const config_param_t *defn)
     config_t *config_retain(config_t *config)
     int config_free(config_t *cmdln)

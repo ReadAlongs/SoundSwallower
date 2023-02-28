@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -36,7 +36,7 @@
  */
 /*
  * s3file.c -- Sphinx-3 binary file parsing in memory.
- * 
+ *
  * **********************************************
  * CMU ARPA Speech Project
  *
@@ -45,19 +45,18 @@
  * **********************************************
  */
 
-#include <string.h>
-#include <ctype.h>
 #include <assert.h>
+#include <ctype.h>
+#include <string.h>
 
-#include <soundswallower/s3file.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/strfuncs.h>
 
-
 #define BYTE_ORDER_MAGIC (0x11223344)
-#define BIO_HDRARG_MAX	32
-#define END_COMMENT	"*end_comment*\n"
+#define BIO_HDRARG_MAX 32
+#define END_COMMENT "*end_comment*\n"
 
 s3file_t *
 s3file_init(const void *buf, size_t len)
@@ -173,8 +172,7 @@ s3file_nextword(s3file_t *s, const char **ptr)
     if (ptr == NULL) {
         ptr = &s->ptr;
         end = s->end;
-    }
-    else
+    } else
         end = s->ptr;
     assert(*ptr <= end);
     if (*ptr == end)
@@ -297,8 +295,7 @@ s3file_parse_header(s3file_t *s, const char *version)
                     s->headers[i].value.buf);
             i++;
         }
-    }
-    else {
+    } else {
         static const char version_string[] = "version";
         /* Old format (without checksums); the first entry must be the version# */
         s->headers = ckd_calloc(1, sizeof(*s->headers));
@@ -351,7 +348,7 @@ char *
 s3file_copy_header_name(s3file_t *s, size_t idx)
 {
     char *str = ckd_malloc(s->headers[idx].name.len + 1);
-    memcpy(str, s->headers[idx].name.buf,  s->headers[idx].name.len);
+    memcpy(str, s->headers[idx].name.buf, s->headers[idx].name.len);
     str[s->headers[idx].name.len] = '\0';
     return str;
 }
@@ -360,7 +357,7 @@ char *
 s3file_copy_header_value(s3file_t *s, size_t idx)
 {
     char *str = ckd_malloc(s->headers[idx].value.len + 1);
-    memcpy(str, s->headers[idx].value.buf,  s->headers[idx].value.len);
+    memcpy(str, s->headers[idx].value.buf, s->headers[idx].value.len);
     str[s->headers[idx].value.len] = '\0';
     return str;
 }
@@ -375,18 +372,18 @@ chksum_accum(const void *buf, size_t el_sz, size_t n_el, uint32 sum)
 
     switch (el_sz) {
     case 1:
-        i8 = (uint8 *) buf;
+        i8 = (uint8 *)buf;
         for (i = 0; i < n_el; i++)
             sum = (sum << 5 | sum >> 27) + i8[i];
         break;
     case 2:
-        i16 = (uint16 *) buf;
+        i16 = (uint16 *)buf;
         for (i = 0; i < n_el; i++)
             sum = (sum << 10 | sum >> 22) + i16[i];
         break;
     case 4:
     case 8:
-        i32 = (uint32 *) buf;
+        i32 = (uint32 *)buf;
         for (i = 0; i < n_el; i++)
             sum = (sum << 20 | sum >> 12) + i32[i];
         break;
@@ -435,7 +432,7 @@ s3file_get(void *buf,
         n_el = available / el_sz;
     if (n_el == 0)
         return 0;
-        
+
     memcpy(buf, s->ptr, el_sz * n_el);
     s->ptr += el_sz * n_el;
     if (s->do_swap)
@@ -458,7 +455,7 @@ s3file_get_1d(void **buf, size_t el_sz, uint32 *n_el, s3file_t *s)
         E_FATAL("Bad arraysize: %d\n", *n_el);
 
     /* Allocate memory for array data */
-    *buf = (void *) ckd_calloc(*n_el, el_sz);
+    *buf = (void *)ckd_calloc(*n_el, el_sz);
 
     /* Read array data */
     if (s3file_get(*buf, el_sz, *n_el, s) != *n_el) {
@@ -480,23 +477,23 @@ s3file_get_2d(void ***arr,
     uint32 n;
     size_t ret;
     void *raw;
-    
+
     ret = s3file_get(&l_d1, sizeof(uint32), 1, s);
     if (ret != 1) {
         E_ERROR("get(dimension1) failed");
-	return -1;
+        return -1;
     }
     ret = s3file_get(&l_d2, sizeof(uint32), 1, s);
     if (ret != 1) {
         E_ERROR("get(dimension1) failed");
-	return -1;
+        return -1;
     }
     if (s3file_get_1d(&raw, e_sz, &n, s) != (int32)n) {
         E_ERROR("get(arraydata) failed");
-	return -1;
+        return -1;
     }
 
-    assert(n == l_d1*l_d2);
+    assert(n == l_d1 * l_d2);
 
     *d1 = l_d1;
     *d2 = l_d2;
@@ -523,21 +520,21 @@ s3file_get_3d(void ****arr,
     ret = s3file_get(&l_d1, sizeof(uint32), 1, s);
     if (ret != 1) {
         E_ERROR("get(dimension1) failed");
-	return -1;
+        return -1;
     }
     ret = s3file_get(&l_d2, sizeof(uint32), 1, s);
     if (ret != 1) {
         E_ERROR("get(dimension2) failed");
-	return -1;
+        return -1;
     }
     ret = s3file_get(&l_d3, sizeof(uint32), 1, s);
     if (ret != 1) {
         E_ERROR("get(dimension3) failed");
-	return -1;
+        return -1;
     }
     if (s3file_get_1d(&raw, e_sz, &n, s) != (int32)n) {
         E_ERROR("get(arraydata) failed");
-	return -1;
+        return -1;
     }
 
     assert(n == l_d1 * l_d2 * l_d3);
@@ -546,7 +543,7 @@ s3file_get_3d(void ****arr,
     *d1 = l_d1;
     *d2 = l_d2;
     *d3 = l_d3;
-    
+
     return n;
 }
 
@@ -557,7 +554,7 @@ s3file_verify_chksum(s3file_t *s)
 
     if (!s->do_chksum)
         return 0;
-    
+
     /* No more checksumming to do! */
     s->do_chksum = FALSE;
     if (s3file_get(&file_chksum, sizeof(uint32), 1, s) != 1) {
@@ -565,9 +562,8 @@ s3file_verify_chksum(s3file_t *s)
         return -1;
     }
     if (file_chksum != s->chksum) {
-        E_ERROR
-            ("Checksum error; file-checksum %08x, computed %08x\n",
-             file_chksum, s->chksum);
+        E_ERROR("Checksum error; file-checksum %08x, computed %08x\n",
+                file_chksum, s->chksum);
         return -1;
     }
     return 0;

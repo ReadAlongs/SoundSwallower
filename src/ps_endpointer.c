@@ -7,7 +7,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -28,11 +28,11 @@
  * ====================================================================
  */
 
-#include <string.h>
 #include <assert.h>
+#include <string.h>
 
-#include <soundswallower/endpointer.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/endpointer.h>
 #include <soundswallower/err.h>
 
 struct endpointer_s {
@@ -154,8 +154,7 @@ ep_speech_count(endpointer_t *ep)
         int i;
         for (i = 0; i < ep->maxlen; ++i)
             count += ep->is_speech[i];
-    }
-    else {
+    } else {
         int i = ep->pos, end = (ep->pos + ep->n) % ep->maxlen;
         count = ep->is_speech[i++];
         while (i != end) {
@@ -176,8 +175,7 @@ ep_push(endpointer_t *ep, int is_speech, const int16 *frame)
     if (ep_full(ep)) {
         ep->qstart_time += ep->frame_length;
         ep->pos = (ep->pos + 1) % ep->maxlen;
-    }
-    else
+    } else
         ep->n++;
     return ep->n;
 }
@@ -243,7 +241,7 @@ endpointer_end_stream(endpointer_t *ep,
                 ep->frame_size);
         return NULL;
     }
-    
+
     if (out_nsamp)
         *out_nsamp = 0;
     if (!ep->in_speech)
@@ -261,8 +259,7 @@ endpointer_end_stream(endpointer_t *ep,
             if (out_nsamp)
                 *out_nsamp += ep->frame_size;
             ep->speech_end = ep->qstart_time;
-        }
-        else
+        } else
             break;
     }
     /* If we used all the VAD queue, add the trailing samples. */
@@ -270,10 +267,8 @@ endpointer_end_stream(endpointer_t *ep,
         if (ep->pos == ep->maxlen) {
             E_ERROR("VAD queue overflow (should not happen)");
             /* Not fatal, we just lose data. */
-        }
-        else {
-            ep->timestamp +=
-                (double)nsamp / endpointer_sample_rate(ep);
+        } else {
+            ep->timestamp += (double)nsamp / endpointer_sample_rate(ep);
             if (out_nsamp)
                 *out_nsamp += nsamp;
             memcpy(ep->buf + ep->pos * ep->frame_size,
@@ -313,8 +308,7 @@ endpointer_process(endpointer_t *ep,
             ep->in_speech = FALSE;
             return pcm;
         }
-    }
-    else {
+    } else {
         if (speech_count > ep->start_frames) {
             ep->speech_start = ep->qstart_time;
             ep->speech_end = 0;

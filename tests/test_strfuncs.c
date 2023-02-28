@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/strfuncs.h>
 
 #include "test_macros.h"
 
@@ -28,8 +28,7 @@ main(int argc, char *argv[])
             return 1;
         }
         return 0;
-    }
-    else if (!strcmp(argv[1], "string_trim")) {
+    } else if (!strcmp(argv[1], "string_trim")) {
         char *foo = ckd_salloc("\t foo bar baz  \n");
         string_trim(foo, STRING_BOTH);
         if (strcmp(foo, "foo bar baz") != 0) {

@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,10 +43,10 @@
 
 #include <stdio.h>
 
+#include <soundswallower/cmn.h>
+#include <soundswallower/fe.h>
 #include <soundswallower/prim_type.h>
 #include <soundswallower/s3file.h>
-#include <soundswallower/fe.h>
-#include <soundswallower/cmn.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,11 +57,11 @@ extern "C" {
 #endif
 
 /** \file feat.h
- * \brief compute the dynamic coefficients from the cepstral vector. 
+ * \brief compute the dynamic coefficients from the cepstral vector.
  */
-#define LIVEBUFBLOCKSIZE        256    /** Blocks of 256 vectors allocated 
-					   for livemode decoder */
-#define S3_MAX_FRAMES		15000    /* RAH, I believe this is still too large, but better than before */
+#define LIVEBUFBLOCKSIZE 256 /** Blocks of 256 vectors allocated \
+                                 for livemode decoder */
+#define S3_MAX_FRAMES 15000 /* RAH, I believe this is still too large, but better than before */
 
 /**
  * \struct feat_t
@@ -71,25 +71,25 @@ extern "C" {
  * MFC cepstra) into this type of feature vectors.
  */
 typedef struct feat_s {
-    int refcount;       /**< Reference count. */
-    char *name;		/**< Printable name for this feature type */
-    int32 cepsize;	/**< Size of input speech vector (typically, a cepstrum vector) */
-    int32 n_stream;	/**< Number of feature streams; e.g., 4 in Sphinx-II */
-    uint32 *stream_len;	/**< Vector length of each feature stream */
-    int32 window_size;	/**< Number of extra frames around given input frame needed to compute
-                           corresponding output feature (so total = window_size*2 + 1) */
-    int32 n_sv;         /**< Number of subvectors */
-    uint32 *sv_len;      /**< Vector length of each subvector */
-    int32 **subvecs;    /**< Subvector specification (or NULL for none) */
-    mfcc_t *sv_buf;      /**< Temporary copy buffer for subvector projection */
-    int32 sv_dim;       /**< Total dimensionality of subvector (length of sv_buf) */
+    int refcount; /**< Reference count. */
+    char *name; /**< Printable name for this feature type */
+    int32 cepsize; /**< Size of input speech vector (typically, a cepstrum vector) */
+    int32 n_stream; /**< Number of feature streams; e.g., 4 in Sphinx-II */
+    uint32 *stream_len; /**< Vector length of each feature stream */
+    int32 window_size; /**< Number of extra frames around given input frame needed to compute
+                          corresponding output feature (so total = window_size*2 + 1) */
+    int32 n_sv; /**< Number of subvectors */
+    uint32 *sv_len; /**< Vector length of each subvector */
+    int32 **subvecs; /**< Subvector specification (or NULL for none) */
+    mfcc_t *sv_buf; /**< Temporary copy buffer for subvector projection */
+    int32 sv_dim; /**< Total dimensionality of subvector (length of sv_buf) */
 
-    cmn_type_t cmn;	/**< Type of CMN to be performed on each utterance */
-    int32 varnorm;	/**< Whether variance normalization is to be performed on each utt;
-                           Irrelevant if no CMN is performed */
+    cmn_type_t cmn; /**< Type of CMN to be performed on each utterance */
+    int32 varnorm; /**< Whether variance normalization is to be performed on each utt;
+                      Irrelevant if no CMN is performed */
 
     /**
-     * Feature computation function. 
+     * Feature computation function.
      * @param fcb the feat_t describing this feature type
      * @param input pointer into the input cepstra
      * @param feat a 2-d array of output features (n_stream x stream_len)
@@ -101,59 +101,60 @@ typedef struct feat_s {
      * speech input must be feature vector itself.
      **/
     void (*compute_feat)(struct feat_s *fcb, mfcc_t **input, mfcc_t **feat);
-    cmn_t *cmn_struct;	/**< Structure that stores the temporary variables for cepstral 
-                           means normalization*/
+    cmn_t *cmn_struct; /**< Structure that stores the temporary variables for cepstral
+                          means normalization*/
 
-    mfcc_t **cepbuf;    /**< Circular buffer of MFCC frames for live feature computation. */
+    mfcc_t **cepbuf; /**< Circular buffer of MFCC frames for live feature computation. */
     mfcc_t **tmpcepbuf; /**< Array of pointers into cepbuf to handle border cases. */
-    int32   bufpos;     /**< Write index in cepbuf. */
-    int32   curpos;     /**< Read index in cepbuf. */
+    int32 bufpos; /**< Write index in cepbuf. */
+    int32 curpos; /**< Read index in cepbuf. */
 
     mfcc_t ***lda; /**< Array of linear transformations (for LDA, MLLT, or whatever) */
-    uint32 n_lda;   /**< Number of linear transformations in lda. */
+    uint32 n_lda; /**< Number of linear transformations in lda. */
     uint32 out_dim; /**< Output dimensionality */
 } feat_t;
 
 /**
  * Name of feature type.
  */
-#define feat_name(f)		((f)->name)
+#define feat_name(f) ((f)->name)
 /**
  * Input dimensionality of feature.
  */
-#define feat_cepsize(f)		((f)->cepsize)
+#define feat_cepsize(f) ((f)->cepsize)
 /**
  * Size of dynamic feature window.
  */
-#define feat_window_size(f)	((f)->window_size)
+#define feat_window_size(f) ((f)->window_size)
 /**
  * Number of feature streams.
  *
  * @deprecated Do not use this, use feat_dimension1() instead.
  */
-#define feat_n_stream(f)	((f)->n_stream)
+#define feat_n_stream(f) ((f)->n_stream)
 /**
  * Length of feature stream i.
  *
  * @deprecated Do not use this, use feat_dimension2() instead.
  */
-#define feat_stream_len(f,i)	((f)->stream_len[i])
+#define feat_stream_len(f, i) ((f)->stream_len[i])
 /**
  * Number of streams or subvectors in feature output.
  */
-#define feat_dimension1(f)	((f)->n_sv ? (f)->n_sv : f->n_stream)
+#define feat_dimension1(f) ((f)->n_sv ? (f)->n_sv : f->n_stream)
 /**
  * Dimensionality of stream/subvector i in feature output.
  */
-#define feat_dimension2(f,i)	((f)->lda ? (f)->out_dim : ((f)->sv_len ? (f)->sv_len[i] : f->stream_len[i]))
+#define feat_dimension2(f, i) ((f)->lda ? (f)->out_dim : ((f)->sv_len ? (f)->sv_len[i] : f->stream_len[i]))
 /**
  * Total dimensionality of feature output.
  */
-#define feat_dimension(f)	((f)->out_dim)
+#define feat_dimension(f) ((f)->out_dim)
 /**
  * Array with stream/subvector lengths
  */
-#define feat_stream_lengths(f)  ((f)->lda ? (&(f)->out_dim) : (f)->sv_len ? (f)->sv_len : f->stream_len)
+#define feat_stream_lengths(f) ((f)->lda ? (&(f)->out_dim) : (f)->sv_len ? (f)->sv_len \
+                                                                         : f->stream_len)
 
 /**
  * Parse subvector specification string.
@@ -184,7 +185,6 @@ int32 **parse_subvecs(const char *str);
  */
 void subvecs_free(int32 **subvecs);
 
-
 /**
  * Allocate an array to hold several frames worth of feature vectors.  The returned value
  * is the mfcc_t ***data array, organized as follows:
@@ -197,26 +197,25 @@ void subvecs_free(int32 **subvecs);
  * NOTE: For I/O convenience, the entire data area is allocated as one contiguous block.
  * @return pointer to the allocated space if successful, NULL if any error.
  */
-mfcc_t ***feat_array_alloc(feat_t *fcb,	/**< In: Descriptor from feat_init(), used
-					     to obtain number of streams and stream sizes */
-                           int32 nfr	/**< In: Number of frames for which to allocate */
-    );
+mfcc_t ***feat_array_alloc(feat_t *fcb, /**< In: Descriptor from feat_init(), used
+                                             to obtain number of streams and stream sizes */
+                           int32 nfr /**< In: Number of frames for which to allocate */
+);
 
 /**
  * Realloate the array of features. Requires us to know the old size
  */
 mfcc_t ***feat_array_realloc(feat_t *fcb, /**< In: Descriptor from feat_init(), used
-					      to obtain number of streams and stream sizes */
-			     mfcc_t ***old_feat, /**< Feature array. Freed */
-                             int32 ofr,	/**< In: Previous number of frames */
-                             int32 nfr	/**< In: Number of frames for which to allocate */
-    );
+                                              to obtain number of streams and stream sizes */
+                             mfcc_t ***old_feat, /**< Feature array. Freed */
+                             int32 ofr, /**< In: Previous number of frames */
+                             int32 nfr /**< In: Number of frames for which to allocate */
+);
 
 /**
  * Free a buffer allocated with feat_array_alloc()
  */
 void feat_array_free(mfcc_t ***feat);
-
 
 /**
  * Initialize feature module to use the selected type of feature
@@ -228,11 +227,11 @@ void feat_array_free(mfcc_t ***feat);
  * - "s2_4x":     s2mfc->Sphinx-II 4-feature stream,
  * - "1s_c_d_dd": s2mfc->Sphinx 3.x single feature stream,
  * - "s3_1x39":   s2mfc->Sphinx 3.0 single feature stream,
- * - "n1,n2,n3,...": Explicit feature vector layout spec. with comma-separated 
- *   feature stream lengths.  In this case, the input data is already in the 
+ * - "n1,n2,n3,...": Explicit feature vector layout spec. with comma-separated
+ *   feature stream lengths.  In this case, the input data is already in the
  *   feature format and there is no conversion necessary.
  *
- * @return (feat_t *) descriptor if successful, NULL if error.  Caller 
+ * @return (feat_t *) descriptor if successful, NULL if error.  Caller
  * must not directly modify the contents of the returned value.
  */
 feat_t *feat_init(config_t *config);
@@ -246,10 +245,10 @@ feat_t *feat_init_s3file(config_t *config, s3file_t *lda);
  * Add an LDA transformation to the feature module from a file.
  * @return 0 for success or -1 if reading the LDA file failed.
  **/
-int32 feat_read_lda(feat_t *feat,	 /**< In: Descriptor from feat_init() */
+int32 feat_read_lda(feat_t *feat, /**< In: Descriptor from feat_init() */
                     const char *ldafile, /**< In: File to read the LDA matrix from. */
-                    int32 dim		 /**< In: Dimensionality of LDA output. */
-    );
+                    int32 dim /**< In: Dimensionality of LDA output. */
+);
 /**
  * Add an LDA transformation to the feature module from existing s3file_t.
  * @return 0 for success or -1 if reading the LDA file failed.
@@ -259,10 +258,10 @@ int feat_read_lda_s3file(feat_t *feat, s3file_t *s, int32 dim);
 /**
  * Transform a block of features using the feature module's LDA transform.
  **/
-void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
-                        mfcc_t ***inout_feat,	/**< Feature block to transform. */
-                        uint32 nfr		/**< In: Number of frames in inout_feat. */
-    );
+void feat_lda_transform(feat_t *fcb, /**< In: Descriptor from feat_init() */
+                        mfcc_t ***inout_feat, /**< Feature block to transform. */
+                        uint32 nfr /**< In: Number of frames in inout_feat. */
+);
 
 /**
  * Add a subvector specification to the feature module.
@@ -274,7 +273,7 @@ void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
  * After adding a subvector specification, the output of feature
  * computation will be split into multiple subvectors, and
  * feat_array_alloc() will allocate pointers accordingly.  The number
- * of <em>streams</em> will remain the 
+ * of <em>streams</em> will remain the
  *
  * @param fcb the feature descriptor.
  * @param subvecs subvector specification.  This pointer is retained
@@ -284,7 +283,6 @@ void feat_lda_transform(feat_t *fcb,		/**< In: Descriptor from feat_init() */
  */
 int feat_set_subvecs(feat_t *fcb, int32 **subvecs);
 
-  
 /**
  * Feature computation routine for live mode decoder.
  *
@@ -313,24 +311,22 @@ int feat_set_subvecs(feat_t *fcb, int32 **subvecs);
  *
  * @return The number of output frames actually computed.
  **/
-int32 feat_s2mfc2feat_live(feat_t  *fcb,     /**< In: Descriptor from feat_init() */
-                           mfcc_t **uttcep,  /**< In: Incoming cepstral buffer */
-                           int32 *inout_ncep,/**< In: Size of incoming buffer.
-                                                Out: Number of incoming frames consumed. */
-                           int32 beginutt,   /**< In: Begining of utterance flag */
-                           int32 endutt,     /**< In: End of utterance flag */
-                           mfcc_t ***ofeat   /**< In: Output feature buffer.  See
-                                                <strong>VERY IMPORTANT</strong> note
-                                                about the size of this buffer above. */
-    );
-
+int32 feat_s2mfc2feat_live(feat_t *fcb, /**< In: Descriptor from feat_init() */
+                           mfcc_t **uttcep, /**< In: Incoming cepstral buffer */
+                           int32 *inout_ncep, /**< In: Size of incoming buffer.
+                                                 Out: Number of incoming frames consumed. */
+                           int32 beginutt, /**< In: Begining of utterance flag */
+                           int32 endutt, /**< In: End of utterance flag */
+                           mfcc_t ***ofeat /**< In: Output feature buffer.  See
+                                              <strong>VERY IMPORTANT</strong> note
+                                              about the size of this buffer above. */
+);
 
 /**
  * Update the normalization stats, possibly in the end of utterance
  *
  */
 void feat_update_stats(feat_t *fcb);
-
 
 /**
  * Retain ownership of feat_t.
@@ -345,16 +341,15 @@ feat_t *feat_retain(feat_t *f);
  * @return new reference count (0 if freed)
  */
 int feat_free(feat_t *f /**< In: feat_t */
-    );
+);
 
 /**
- * Report the feat_t data structure 
+ * Report the feat_t data structure
  */
 void feat_report(feat_t *f /**< In: feat_t */
-    );
+);
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

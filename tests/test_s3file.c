@@ -1,35 +1,35 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
-#include <soundswallower/s3file.h>
-#include <soundswallower/err.h>
 #include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/s3file.h>
 #include <soundswallower/tmat.h>
 #include <stdio.h>
 
 #include "test_macros.h"
 
 const char data_le[] = "s3\n"
-    "key1 value1\n"
-    "key2  value2\n"
-    "# a comment\n"
-    "endhdr\n"
-    "\x44\x33\x22\x11"
-    "\xcd\xab"
-    "\xef\xbe\xad\xde"
-    "\x78\x56\x34\x12\xef\xbe\xad\xde";
+                       "key1 value1\n"
+                       "key2  value2\n"
+                       "# a comment\n"
+                       "endhdr\n"
+                       "\x44\x33\x22\x11"
+                       "\xcd\xab"
+                       "\xef\xbe\xad\xde"
+                       "\x78\x56\x34\x12\xef\xbe\xad\xde";
 const char data_be[] = "s3\n"
-    "key1 value1\n"
-    "key2  value2\n"
-    "# a comment\n"
-    "endhdr\n"
-    "\x11\x22\x33\x44"
-    "\xab\xcd"
-    "\xde\xad\xbe\xef"
-    "\xde\xad\xbe\xef\x12\x34\x56\x78";
+                       "key1 value1\n"
+                       "key2  value2\n"
+                       "# a comment\n"
+                       "endhdr\n"
+                       "\x11\x22\x33\x44"
+                       "\xab\xcd"
+                       "\xde\xad\xbe\xef"
+                       "\xde\xad\xbe\xef\x12\x34\x56\x78";
 const char data_str[] = "word1 word2 word3\n"
-    "\n"        /* blank line */
-    "  word\n"  /* leading whitespace */
-    "word   \n" /* trailing whitespace */
-    "word1 word2"; /* no EOL */
+                        "\n" /* blank line */
+                        "  word\n" /* leading whitespace */
+                        "word   \n" /* trailing whitespace */
+                        "word1 word2"; /* no EOL */
 
 static void
 should_have_nwords(s3file_t *s, size_t expected)
@@ -59,7 +59,7 @@ static void
 test_tokens(void)
 {
     s3file_t *s;
-    
+
     s = s3file_init(data_str, sizeof(data_str));
     /* Test line-oriented scanning (note that all this may be
        redundant with yyscan, which we should perhaps use instead) */
@@ -116,7 +116,8 @@ main(int argc, char *argv[])
     uint32 i32;
     uint16 i16;
 
-    (void)argc; (void)argv;
+    (void)argc;
+    (void)argv;
     err_set_loglevel(ERR_INFO);
 
     /* Little-endian data */
@@ -176,6 +177,6 @@ main(int argc, char *argv[])
 
     /* Simple tokenization */
     test_tokens();
-            
+
     return 0;
 }

@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -43,7 +43,7 @@
  * Copyright (c) 1999 Carnegie Mellon University.
  * ALL RIGHTS RESERVED.
  * **********************************************
- * 
+ *
  * HISTORY
  * $Log: hash.c,v $
  * Revision 1.5  2005/06/22 03:04:01  arthchan2003
@@ -67,37 +67,35 @@
  * Revision 1.3  2005/03/30 01:22:48  archan
  * Fixed mistakes in last updates. Add
  *
- * 
+ *
  * 05-May-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Removed hash_key2hash().  Added hash_enter_bkey() and hash_lookup_bkey(),
  * 		and len attribute to hash_entry_t.
- * 
+ *
  * 30-Apr-1999	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Added hash_key2hash().
- * 
+ *
  * 18-Jun-97	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Included case sensitive/insensitive option.  Removed local, static
  * 		maintenance of all hash tables.
- * 
+ *
  * 31-Jul-95	M K Ravishankar (rkm@cs.cmu.edu) at Carnegie Mellon
  * 		Created.
  */
 
-
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifdef _MSC_VER
-#pragma warning (disable: 4018)
+#pragma warning(disable : 4018)
 #endif
 
-#include <soundswallower/hash_table.h>
-#include <soundswallower/err.h>
-#include <soundswallower/ckd_alloc.h>
 #include <soundswallower/case.h>
-
+#include <soundswallower/ckd_alloc.h>
+#include <soundswallower/err.h>
+#include <soundswallower/hash_table.h>
 
 #if 0
 static void
@@ -119,7 +117,6 @@ prime_sieve(int32 max)
 }
 #endif
 
-
 /*
  * HACK!!  Initial hash table size is restricted by this set of primes.  (Of course,
  * collision resolution by chaining will accommodate more entries indefinitely, but
@@ -136,16 +133,16 @@ const int32 prime[] = {
     -1
 };
 
-
 /**
- * This function returns a very large prime. 
+ * This function returns a very large prime.
  */
 static int32
 prime_size(int32 size)
 {
     int32 i;
 
-    for (i = 0; (prime[i] > 0) && (prime[i] < size); i++);
+    for (i = 0; (prime[i] > 0) && (prime[i] < size); i++)
+        ;
     if (prime[i] <= 0) {
         E_WARN("Very large hash table requested (%d entries)\n", size);
         --i;
@@ -153,34 +150,32 @@ prime_size(int32 size)
     return (prime[i]);
 }
 
-
 hash_table_t *
 hash_table_new(int32 size, int32 casearg)
 {
     hash_table_t *h;
 
-    h = (hash_table_t *) ckd_calloc(1, sizeof(hash_table_t));
+    h = (hash_table_t *)ckd_calloc(1, sizeof(hash_table_t));
     h->size = prime_size(size + (size >> 1));
     h->nocase = (casearg == HASH_CASE_NO);
-    h->table = (hash_entry_t *) ckd_calloc(h->size, sizeof(hash_entry_t));
+    h->table = (hash_entry_t *)ckd_calloc(h->size, sizeof(hash_entry_t));
     /* The above calloc clears h->table[*].key and .next to NULL, i.e. an empty table */
 
     return h;
 }
-
 
 /*
  * Compute hash value for given key string.
  * Somewhat tuned for English text word strings.
  */
 static uint32
-key2hash(hash_table_t * h, const char *key)
+key2hash(hash_table_t *h, const char *key)
 {
 
     register const char *cp;
 
-    /* This is a hack because the best way to solve it is to make sure 
-       all character representation is unsigned character in the first place.        
+    /* This is a hack because the best way to solve it is to make sure
+       all character representation is unsigned character in the first place.
        (or better unicode.) */
     register unsigned char c;
     register int32 s;
@@ -198,8 +193,7 @@ key2hash(hash_table_t * h, const char *key)
             if (s >= 25)
                 s -= 24;
         }
-    }
-    else {
+    } else {
         for (cp = key; *cp; cp++) {
             hash += (*cp) << s;
             s += 5;
@@ -211,14 +205,13 @@ key2hash(hash_table_t * h, const char *key)
     return (hash % h->size);
 }
 
-
 static char *
-makekey(uint8 * data, size_t len, char *key)
+makekey(uint8 *data, size_t len, char *key)
 {
     size_t i, j;
 
     if (!key)
-        key = (char *) ckd_calloc(len * 2 + 1, sizeof(char));
+        key = (char *)ckd_calloc(len * 2 + 1, sizeof(char));
 
     for (i = 0, j = 0; i < len; i++, j += 2) {
         key[j] = 'A' + (data[i] & 0x000f);
@@ -229,9 +222,8 @@ makekey(uint8 * data, size_t len, char *key)
     return key;
 }
 
-
 static int32
-keycmp_nocase(hash_entry_t * entry, const char *key)
+keycmp_nocase(hash_entry_t *entry, const char *key)
 {
     char c1, c2;
     int32 i;
@@ -250,9 +242,8 @@ keycmp_nocase(hash_entry_t * entry, const char *key)
     return 0;
 }
 
-
 static int32
-keycmp_case(hash_entry_t * entry, const char *key)
+keycmp_case(hash_entry_t *entry, const char *key)
 {
     char c1, c2;
     int32 i;
@@ -269,13 +260,12 @@ keycmp_case(hash_entry_t * entry, const char *key)
     return 0;
 }
 
-
 /*
  * Lookup entry with hash-value hash in table h for given key
  * Return value: hash_entry_t for key
  */
 static hash_entry_t *
-lookup(hash_table_t * h, uint32 hash, const char *key, size_t len)
+lookup(hash_table_t *h, uint32 hash, const char *key, size_t len)
 {
     hash_entry_t *entry;
 
@@ -284,22 +274,18 @@ lookup(hash_table_t * h, uint32 hash, const char *key, size_t len)
         return NULL;
 
     if (h->nocase) {
-        while (entry && ((entry->len != len)
-                         || (keycmp_nocase(entry, key) != 0)))
+        while (entry && ((entry->len != len) || (keycmp_nocase(entry, key) != 0)))
             entry = entry->next;
-    }
-    else {
-        while (entry && ((entry->len != len)
-                         || (keycmp_case(entry, key) != 0)))
+    } else {
+        while (entry && ((entry->len != len) || (keycmp_case(entry, key) != 0)))
             entry = entry->next;
     }
 
     return entry;
 }
 
-
 int32
-hash_table_lookup(hash_table_t * h, const char *key, void ** val)
+hash_table_lookup(hash_table_t *h, const char *key, void **val)
 {
     hash_entry_t *entry;
     uint32 hash;
@@ -313,13 +299,12 @@ hash_table_lookup(hash_table_t * h, const char *key, void ** val)
         if (val)
             *val = entry->val;
         return 0;
-    }
-    else
+    } else
         return -1;
 }
 
 int32
-hash_table_lookup_int32(hash_table_t * h, const char *key, int32 *val)
+hash_table_lookup_int32(hash_table_t *h, const char *key, int32 *val)
 {
     void *vval;
     int32 rv;
@@ -332,15 +317,14 @@ hash_table_lookup_int32(hash_table_t * h, const char *key, int32 *val)
     return 0;
 }
 
-
 int32
-hash_table_lookup_bkey(hash_table_t * h, const char *key, size_t len, void ** val)
+hash_table_lookup_bkey(hash_table_t *h, const char *key, size_t len, void **val)
 {
     hash_entry_t *entry;
     uint32 hash;
     char *str;
 
-    str = makekey((uint8 *) key, len, NULL);
+    str = makekey((uint8 *)key, len, NULL);
     hash = key2hash(h, str);
     ckd_free(str);
 
@@ -349,13 +333,12 @@ hash_table_lookup_bkey(hash_table_t * h, const char *key, size_t len, void ** va
         if (val)
             *val = entry->val;
         return 0;
-    }
-    else
+    } else
         return -1;
 }
 
 int32
-hash_table_lookup_bkey_int32(hash_table_t * h, const char *key, size_t len, int32 *val)
+hash_table_lookup_bkey_int32(hash_table_t *h, const char *key, size_t len, int32 *val)
 {
     void *vval;
     int32 rv;
@@ -368,9 +351,8 @@ hash_table_lookup_bkey_int32(hash_table_t * h, const char *key, size_t len, int3
     return 0;
 }
 
-
 static void *
-enter(hash_table_t * h, uint32 hash, const char *key, size_t len, void *val, int32 replace)
+enter(hash_table_t *h, uint32 hash, const char *key, size_t len, void *val, int32 replace)
 {
     hash_entry_t *cur, *new;
 
@@ -398,10 +380,9 @@ enter(hash_table_t * h, uint32 hash, const char *key, size_t len, void *val, int
         /* Added by ARCHAN at 20050515. This allows deletion could work. */
         cur->next = NULL;
 
-    }
-    else {
+    } else {
         /* Key collision; create new entry and link to hashed location */
-        new = (hash_entry_t *) ckd_calloc(1, sizeof(hash_entry_t));
+        new = (hash_entry_t *)ckd_calloc(1, sizeof(hash_entry_t));
         new->key = key;
         new->len = len;
         new->val = val;
@@ -414,8 +395,7 @@ enter(hash_table_t * h, uint32 hash, const char *key, size_t len, void *val, int
 }
 
 /* 20050523 Added by ARCHAN  to delete a key from a hash table */
-static void *
-delete(hash_table_t * h, uint32 hash, const char *key, size_t len)
+static void *delete(hash_table_t *h, uint32 hash, const char *key, size_t len)
 {
     hash_entry_t *entry, *prev;
     void *val;
@@ -426,15 +406,12 @@ delete(hash_table_t * h, uint32 hash, const char *key, size_t len)
         return NULL;
 
     if (h->nocase) {
-        while (entry && ((entry->len != len)
-                         || (keycmp_nocase(entry, key) != 0))) {
+        while (entry && ((entry->len != len) || (keycmp_nocase(entry, key) != 0))) {
             prev = entry;
             entry = entry->next;
         }
-    }
-    else {
-        while (entry && ((entry->len != len)
-                         || (keycmp_case(entry, key) != 0))) {
+    } else {
+        while (entry && ((entry->len != len) || (keycmp_case(entry, key) != 0))) {
             prev = entry;
             entry = entry->next;
         }
@@ -452,22 +429,20 @@ delete(hash_table_t * h, uint32 hash, const char *key, size_t len)
         /* That is to say the entry in the hash table (not the chain) matched the key. */
         /* We will then copy the things from the next entry to the hash table */
         prev = entry;
-        if (entry->next) {      /* There is a next entry, great, copy it. */
+        if (entry->next) { /* There is a next entry, great, copy it. */
             entry = entry->next;
             prev->key = entry->key;
             prev->len = entry->len;
             prev->val = entry->val;
             prev->next = entry->next;
             ckd_free(entry);
-        }
-        else {                  /* There is not a next entry, just set the key to null */
+        } else { /* There is not a next entry, just set the key to null */
             prev->key = NULL;
             prev->len = 0;
             prev->next = NULL;
         }
 
-    }
-    else {                      /* This case is simple */
+    } else { /* This case is simple */
         prev->next = entry->next;
         ckd_free(entry);
     }
@@ -489,16 +464,15 @@ hash_table_empty(hash_table_t *h)
         /* Free collision lists. */
         for (e = h->table[i].next; e; e = e2) {
             e2 = e->next;
-            ckd_free((void *) e);
+            ckd_free((void *)e);
         }
         memset(&h->table[i], 0, sizeof(h->table[i]));
     }
     h->inuse = 0;
 }
 
-
 void *
-hash_table_enter(hash_table_t * h, const char *key, void *val)
+hash_table_enter(hash_table_t *h, const char *key, void *val)
 {
     uint32 hash;
     size_t len;
@@ -509,7 +483,7 @@ hash_table_enter(hash_table_t * h, const char *key, void *val)
 }
 
 void *
-hash_table_replace(hash_table_t * h, const char *key, void *val)
+hash_table_replace(hash_table_t *h, const char *key, void *val)
 {
     uint32 hash;
     size_t len;
@@ -520,7 +494,7 @@ hash_table_replace(hash_table_t * h, const char *key, void *val)
 }
 
 void *
-hash_table_delete(hash_table_t * h, const char *key)
+hash_table_delete(hash_table_t *h, const char *key)
 {
     uint32 hash;
     size_t len;
@@ -528,16 +502,16 @@ hash_table_delete(hash_table_t * h, const char *key)
     hash = key2hash(h, key);
     len = strlen(key);
 
-    return (delete(h, hash, key, len));
+    return (delete (h, hash, key, len));
 }
 
 void *
-hash_table_enter_bkey(hash_table_t * h, const char *key, size_t len, void *val)
+hash_table_enter_bkey(hash_table_t *h, const char *key, size_t len, void *val)
 {
     uint32 hash;
     char *str;
 
-    str = makekey((uint8 *) key, len, NULL);
+    str = makekey((uint8 *)key, len, NULL);
     hash = key2hash(h, str);
     ckd_free(str);
 
@@ -545,12 +519,12 @@ hash_table_enter_bkey(hash_table_t * h, const char *key, size_t len, void *val)
 }
 
 void *
-hash_table_replace_bkey(hash_table_t * h, const char *key, size_t len, void *val)
+hash_table_replace_bkey(hash_table_t *h, const char *key, size_t len, void *val)
 {
     uint32 hash;
     char *str;
 
-    str = makekey((uint8 *) key, len, NULL);
+    str = makekey((uint8 *)key, len, NULL);
     hash = key2hash(h, str);
     ckd_free(str);
 
@@ -558,20 +532,20 @@ hash_table_replace_bkey(hash_table_t * h, const char *key, size_t len, void *val
 }
 
 void *
-hash_table_delete_bkey(hash_table_t * h, const char *key, size_t len)
+hash_table_delete_bkey(hash_table_t *h, const char *key, size_t len)
 {
     uint32 hash;
     char *str;
 
-    str = makekey((uint8 *) key, len, NULL);
+    str = makekey((uint8 *)key, len, NULL);
     hash = key2hash(h, str);
     ckd_free(str);
 
-    return (delete(h, hash, key, len));
+    return (delete (h, hash, key, len));
 }
 
 void
-hash_table_display(hash_table_t * h, int32 showdisplay)
+hash_table_display(hash_table_t *h, int32 showdisplay)
 {
     hash_entry_t *e;
     int i, j;
@@ -611,9 +585,8 @@ hash_table_display(hash_table_t * h, int32 showdisplay)
     printf("The total number of keys =%d\n", j);
 }
 
-
 glist_t
-hash_table_tolist(hash_table_t * h, int32 * count)
+hash_table_tolist(hash_table_t *h, int32 *count)
 {
     glist_t g;
     hash_entry_t *e;
@@ -626,11 +599,11 @@ hash_table_tolist(hash_table_t * h, int32 * count)
         e = &(h->table[i]);
 
         if (e->key != NULL) {
-            g = glist_add_ptr(g, (void *) e);
+            g = glist_add_ptr(g, (void *)e);
             j++;
 
             for (e = e->next; e; e = e->next) {
-                g = glist_add_ptr(g, (void *) e);
+                g = glist_add_ptr(g, (void *)e);
                 j++;
             }
         }
@@ -645,47 +618,47 @@ hash_table_tolist(hash_table_t * h, int32 * count)
 hash_iter_t *
 hash_table_iter(hash_table_t *h)
 {
-	hash_iter_t *itor;
+    hash_iter_t *itor;
 
-	itor = ckd_calloc(1, sizeof(*itor));
-	itor->ht = h;
-	return hash_table_iter_next(itor);
+    itor = ckd_calloc(1, sizeof(*itor));
+    itor->ht = h;
+    return hash_table_iter_next(itor);
 }
 
 hash_iter_t *
 hash_table_iter_next(hash_iter_t *itor)
 {
-	/* If there is an entry, walk down its list. */
-	if (itor->ent)
-		itor->ent = itor->ent->next;
-	/* If we got to the end of the chain, or we had no entry, scan
-	 * forward in the table to find the next non-empty bucket. */
-	if (itor->ent == NULL) {
-              while (itor->idx < (size_t)itor->ht->size
-		       && itor->ht->table[itor->idx].key == NULL) 
-			++itor->idx;
-		/* If we did not find one then delete the iterator and
-		 * return NULL. */
-                if (itor->idx == (size_t)itor->ht->size) {
-			hash_table_iter_free(itor);
-			return NULL;
-		}
-		/* Otherwise use this next entry. */
-		itor->ent = itor->ht->table + itor->idx;
-		/* Increase idx for the next time around. */
-		++itor->idx;
-	}
-	return itor;
+    /* If there is an entry, walk down its list. */
+    if (itor->ent)
+        itor->ent = itor->ent->next;
+    /* If we got to the end of the chain, or we had no entry, scan
+     * forward in the table to find the next non-empty bucket. */
+    if (itor->ent == NULL) {
+        while (itor->idx < (size_t)itor->ht->size
+               && itor->ht->table[itor->idx].key == NULL)
+            ++itor->idx;
+        /* If we did not find one then delete the iterator and
+         * return NULL. */
+        if (itor->idx == (size_t)itor->ht->size) {
+            hash_table_iter_free(itor);
+            return NULL;
+        }
+        /* Otherwise use this next entry. */
+        itor->ent = itor->ht->table + itor->idx;
+        /* Increase idx for the next time around. */
+        ++itor->idx;
+    }
+    return itor;
 }
 
 void
 hash_table_iter_free(hash_iter_t *itor)
 {
-	ckd_free(itor);
+    ckd_free(itor);
 }
 
 void
-hash_table_free(hash_table_t * h)
+hash_table_free(hash_table_t *h)
 {
     hash_entry_t *e, *e2;
     int32 i;
@@ -697,10 +670,10 @@ hash_table_free(hash_table_t * h)
     for (i = 0; i < h->size; i++) {
         for (e = h->table[i].next; e; e = e2) {
             e2 = e->next;
-            ckd_free((void *) e);
+            ckd_free((void *)e);
         }
     }
 
-    ckd_free((void *) h->table);
-    ckd_free((void *) h);
+    ckd_free((void *)h->table);
+    ckd_free((void *)h);
 }

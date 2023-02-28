@@ -1,6 +1,6 @@
 /* -*- c-basic-offset: 4; indent-tabs-mode: nil -*- */
 /* ====================================================================
- * Copyright (c) 2013 Carnegie Mellon University.  All rights 
+ * Copyright (c) 2013 Carnegie Mellon University.  All rights
  * reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -8,27 +8,27 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
  *    the documentation and/or other materials provided with the
  *    distribution.
  *
- * This work was supported in part by funding from the Defense Advanced 
- * Research Projects Agency and the National Science Foundation of the 
+ * This work was supported in part by funding from the Defense Advanced
+ * Research Projects Agency and the National Science Foundation of the
  * United States of America, and the CMU Sphinx Speech Consortium.
  *
- * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND 
- * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+ * THIS SOFTWARE IS PROVIDED BY CARNEGIE MELLON UNIVERSITY ``AS IS'' AND
+ * ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
  * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
  * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
  * NOR ITS EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ====================================================================
@@ -53,13 +53,12 @@
 
 #include <math.h>
 
-#include <soundswallower/prim_type.h>
 #include <soundswallower/ckd_alloc.h>
-#include <soundswallower/strfuncs.h>
 #include <soundswallower/err.h>
-#include <soundswallower/fe_noise.h>
 #include <soundswallower/fe.h>
-
+#include <soundswallower/fe_noise.h>
+#include <soundswallower/prim_type.h>
+#include <soundswallower/strfuncs.h>
 
 /* Noise supression constants */
 #define SMOOTH_WINDOW 4
@@ -116,19 +115,15 @@ fe_lower_envelope(noise_stats_t *noise_stats, const powspec_t *buf, powspec_t *f
     for (i = 0; i < num_filt; i++) {
 #ifndef FIXED_POINT
         if (buf[i] >= floor_buf[i]) {
-            floor_buf[i] =
-                noise_stats->lambda_a * floor_buf[i] + noise_stats->comp_lambda_a * buf[i];
-        }
-        else {
-            floor_buf[i] =
-                noise_stats->lambda_b * floor_buf[i] + noise_stats->comp_lambda_b * buf[i];
+            floor_buf[i] = noise_stats->lambda_a * floor_buf[i] + noise_stats->comp_lambda_a * buf[i];
+        } else {
+            floor_buf[i] = noise_stats->lambda_b * floor_buf[i] + noise_stats->comp_lambda_b * buf[i];
         }
 #else
         if (buf[i] >= floor_buf[i]) {
             floor_buf[i] = fe_log_add(noise_stats->lambda_a + floor_buf[i],
                                       noise_stats->comp_lambda_a + buf[i]);
-        }
-        else {
+        } else {
             floor_buf[i] = fe_log_add(noise_stats->lambda_b + floor_buf[i],
                                       noise_stats->comp_lambda_b + buf[i]);
         }
@@ -138,7 +133,7 @@ fe_lower_envelope(noise_stats_t *noise_stats, const powspec_t *buf, powspec_t *f
 
 /* temporal masking */
 static void
-fe_temp_masking(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * peak, int32 num_filt)
+fe_temp_masking(noise_stats_t *noise_stats, powspec_t *buf, powspec_t *peak, int32 num_filt)
 {
     powspec_t cur_in;
     int i;
@@ -163,7 +158,7 @@ fe_temp_masking(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * peak, i
 
 /* spectral weight smoothing */
 static void
-fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs, int32 num_filt)
+fe_weight_smooth(noise_stats_t *noise_stats, powspec_t *buf, powspec_t *coefs, int32 num_filt)
 {
     int i, j;
     int l1, l2;
@@ -171,8 +166,7 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
 
     for (i = 0; i < num_filt; i++) {
         l1 = ((i - SMOOTH_WINDOW) > 0) ? (i - SMOOTH_WINDOW) : 0;
-        l2 = ((i + SMOOTH_WINDOW) <
-              (num_filt - 1)) ? (i + SMOOTH_WINDOW) : (num_filt - 1);
+        l2 = ((i + SMOOTH_WINDOW) < (num_filt - 1)) ? (i + SMOOTH_WINDOW) : (num_filt - 1);
 
 #ifndef FIXED_POINT
         (void)noise_stats;
@@ -185,10 +179,9 @@ fe_weight_smooth(noise_stats_t *noise_stats, powspec_t * buf, powspec_t * coefs,
         coef = MIN_FIXLOG;
         for (j = l1; j <= l2; j++) {
             coef = fe_log_add(coef, coefs[j]);
-        }        
+        }
         buf[i] = buf[i] + coef - noise_stats->smooth_scaling[l2 - l1 + 1];
 #endif
-
     }
 }
 
@@ -198,16 +191,12 @@ fe_init_noisestats(int num_filters)
     int i;
     noise_stats_t *noise_stats;
 
-    noise_stats = (noise_stats_t *) ckd_calloc(1, sizeof(noise_stats_t));
+    noise_stats = (noise_stats_t *)ckd_calloc(1, sizeof(noise_stats_t));
 
-    noise_stats->power =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->noise =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->floor =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->peak =
-        (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->power = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->noise = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->floor = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->peak = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
 
     noise_stats->undefined = TRUE;
     noise_stats->num_filters = num_filters;
@@ -223,7 +212,7 @@ fe_init_noisestats(int num_filters)
     noise_stats->mu_t = MU_T;
     noise_stats->max_gain = MAX_GAIN;
     noise_stats->inv_max_gain = 1.0 / MAX_GAIN;
-    
+
     for (i = 1; i < 2 * SMOOTH_WINDOW + 1; i++) {
         noise_stats->smooth_scaling[i] = 1.0 / i;
     }
@@ -244,21 +233,21 @@ fe_init_noisestats(int num_filters)
     }
 #endif
 
-    noise_stats->signal = (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
-    noise_stats->gain = (powspec_t *) ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->signal = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
+    noise_stats->gain = (powspec_t *)ckd_calloc(num_filters, sizeof(powspec_t));
 
     return noise_stats;
 }
 
 void
-fe_reset_noisestats(noise_stats_t * noise_stats)
+fe_reset_noisestats(noise_stats_t *noise_stats)
 {
     if (noise_stats)
         noise_stats->undefined = TRUE;
 }
 
 void
-fe_free_noisestats(noise_stats_t * noise_stats)
+fe_free_noisestats(noise_stats_t *noise_stats)
 {
     ckd_free(noise_stats->signal);
     ckd_free(noise_stats->gain);
@@ -274,7 +263,7 @@ fe_free_noisestats(noise_stats_t * noise_stats)
  * so we have to add many processing cases.
  */
 void
-fe_remove_noise(fe_t * fe)
+fe_remove_noise(fe_t *fe)
 {
     noise_stats_t *noise_stats;
     powspec_t *mfspec;
@@ -300,8 +289,7 @@ fe_remove_noise(fe_t * fe)
 
     /* Calculate smoothed power */
     for (i = 0; i < num_filts; i++) {
-        noise_stats->power[i] =
-            noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];   
+        noise_stats->power[i] = noise_stats->lambda_power * noise_stats->power[i] + noise_stats->comp_lambda_power * mfspec[i];
     }
 
     /* Update noise spectrum estimate */
