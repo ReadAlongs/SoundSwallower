@@ -1,2 +1,2 @@
-$allocateUTF8
+$stringToNewUTF8
 $ccall
