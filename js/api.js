@@ -29,7 +29,7 @@ class Decoder {
     if (config === undefined) config = {};
     if (Module.defaultModel !== null && config.hmm === undefined)
       config.hmm = Module.get_model_path(Module.defaultModel);
-    const cjson = allocateUTF8(JSON.stringify(config));
+    const cjson = stringToNewUTF8(JSON.stringify(config));
     const cconfig = Module._config_parse_json(0, cjson);
     Module._free(cjson);
     this.cdecoder = Module._decoder_create(cconfig);
@@ -57,7 +57,7 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   set_config(key, val) {
-    const ckey = allocateUTF8(key);
+    const ckey = stringToNewUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
@@ -65,7 +65,7 @@ class Decoder {
       throw new ReferenceError(`Unknown configuration parameter ${key}`);
     }
     if (type & ARG_STRING) {
-      const cval = allocateUTF8(val);
+      const cval = stringToNewUTF8(val);
       Module._config_set_str(cconfig, ckey, cval);
       Module._free(cval);
     } else if (type & ARG_FLOATING) {
@@ -85,7 +85,7 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   unset_config(key) {
-    const ckey = allocateUTF8(key);
+    const ckey = stringToNewUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
@@ -102,7 +102,7 @@ class Decoder {
    * @throws {ReferenceError} Throws ReferenceError if key is not a known parameter.
    */
   get_config(key) {
-    const ckey = allocateUTF8(key);
+    const ckey = stringToNewUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const type = Module._config_typeof(cconfig, ckey);
     if (type == 0) {
@@ -131,7 +131,7 @@ class Decoder {
    * @param {string} key Key whose existence to check.
    */
   has_config(key) {
-    const ckey = allocateUTF8(key);
+    const ckey = stringToNewUTF8(key);
     const cconfig = Module._decoder_config(this.cdecoder);
     const rv = Module._config_typeof(cconfig, ckey) != 0;
     Module._free(ckey);
@@ -415,7 +415,7 @@ class Decoder {
    */
   lookup_word(word) {
     this.assert_initialized();
-    const cword = allocateUTF8(word);
+    const cword = stringToNewUTF8(word);
     const cpron = Module._decoder_lookup_word(this.cdecoder, cword);
     Module._free(cword);
     if (cpron == 0) return null;
@@ -441,8 +441,8 @@ class Decoder {
         throw new Error(
           `Word at position ${i} has missing text or pronunciation`
         );
-      const ctext = allocateUTF8(text);
-      const cpron = allocateUTF8(pron);
+      const ctext = stringToNewUTF8(text);
+      const cpron = stringToNewUTF8(pron);
       const update = i == words.length - 1;
       const wid = Module._decoder_add_word(this.cdecoder, ctext, cpron, update);
       Module._free(ctext);
@@ -463,13 +463,13 @@ class Decoder {
     const logmath = Module._decoder_logmath(this.cdecoder);
     const config = Module._decoder_config(this.cdecoder);
     const lw = this.get_config("lw");
-    const cjsgf = allocateUTF8(jsgf_string);
+    const cjsgf = stringToNewUTF8(jsgf_string);
     const jsgf = Module._jsgf_parse_string(cjsgf, 0);
     Module._free(cjsgf);
     if (jsgf == 0) throw new Error("Failed to parse JSGF");
     let rule;
     if (toprule !== null) {
-      const crule = allocateUTF8(toprule);
+      const crule = stringToNewUTF8(toprule);
       rule = Module._jsgf_get_rule(jsgf, crule);
       Module._free(crule);
       if (rule == 0) throw new Error("Failed to find top rule " + toprule);
@@ -490,7 +490,7 @@ class Decoder {
    */
   set_align_text(text) {
     this.assert_initialized();
-    const ctext = allocateUTF8(text);
+    const ctext = stringToNewUTF8(text);
     const rv = Module._decoder_set_align_text(this.cdecoder, ctext);
     Module._free(ctext);
     if (rv < 0) throw new Error("Failed to set alignment text");
