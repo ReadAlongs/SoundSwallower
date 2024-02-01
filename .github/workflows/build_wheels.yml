@@ -5,6 +5,9 @@ on:
     branches:
       - master
   workflow_dispatch:
+  release:
+    types:
+      - published
 
 jobs:
   build_sdist:
@@ -28,7 +31,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest] # , windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +55,7 @@ jobs:
     permissions:
       id-token: write
     # Comment this line for testing
-    # if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published'
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -62,5 +65,5 @@ jobs:
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
         # Uncomment these lines for testing
-        with:
-          repository-url: https://test.pypi.org/legacy/
+        # with:
+        #   repository-url: https://test.pypi.org/legacy/
