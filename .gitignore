@@ -12,3 +12,4 @@ CMakeFiles
 CTestTestfile.cmake
 DartConfiguration.tcl
 cmake_install.cmake
+py/soundswallower/_version.py
