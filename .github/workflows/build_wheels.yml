@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
+
 jobs:
   build_sdist:
     name: Build source distribution
@@ -23,13 +25,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-11]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.8.1
+        uses: pypa/cibuildwheel@v2.16.5
 
       - uses: actions/upload-artifact@v3
         with:
