@@ -1,26 +1,72 @@
 [build-system]
 requires = [
-	 "setuptools>=45,<64",
-	 "wheel",
-	 "scikit-build~=0.15",
-	 "cmake",
-	 "Cython",
-	 "ninja"
+     	 "scikit-build-core",
+	 "Cython"
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "soundswallower"
+version = "0.6.1"
+description = "An even smaller speech recognizer"
+readme = "README.md"
+authors = [
+        {name = "David Huggins-Daines", email = "dhd@ecolingui.ca"}
+]
+keywords = ["asr", "speech"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: C",
+    "Programming Language :: Cython",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+[project.urls]
+Homepage = "https://github.com/ReadAlongs/SoundSwallower"
+Documentation = "https://soundswallower.readthedocs.io/"
+Repository = "https://github.com/ReadAlongs/SoundSwallower.git"
+Issues = "https://github.com/ReadAlongs/SoundSwallower/issues"
+
+[project.scripts]
+soundswallower = "soundswallower.cli:main"
+
 [tool.cibuildwheel]
-# Build the versions found in Ubuntu LTS, the stable PyPy, Anaconda on Windows
-# ...and some other versions we want for Windows
+# Build a reduced selection of binaries as there are tons of them
 build = [
-      "pp38*",
-      "cp36-manylinux_*",
-      "cp38-manylinux_*",
-      "cp37-win*",
-      "cp38-win*",
-      "cp39-win*",
-      "cp310-*"
+      "pp310*",
+      "cp38-*",
+      "cp310-*",
+      "cp311-*",
+      "cp312-*",
 ]
-# PyPy 3.8 will choke on CPython 3.8 build leftovers...
-before-build = "rm -rf _skbuild"
-# PyPy builds are broken on Windows, and skip 32-bit and musl
-skip = ["*musl*", "*_i686", "*-win32", "pp*win*"]
+# Build only universal wheels for Mac where possible, and skip 32-bit
+# builds to avoid building a gigabyte of stuff all the time
+skip = [
+     "cp*-macosx_x86_64",
+     "cp*-macosx_arm64",
+     "*_i686",
+     "*-win32",
+]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "universal2", "arm64"]
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+extend-ignore = "E203"
+max-line-length = "88"
+
+[tool.scikit-build]
+cmake.verbose = true
+logging.level = "INFO"
+wheel.packages = ["py/soundswallower"]
