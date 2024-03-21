@@ -15,6 +15,7 @@ align text to audio.  Most of the functionality is contained in the
       print("Word %s from %.3f to %.3f" % (word, start, end))
 
 """
+
 import collections
 import os
 import wave
