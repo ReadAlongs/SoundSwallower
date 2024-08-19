@@ -6,4 +6,3 @@
 -sSTRICT=1
 -sSTRICT_JS=0
 -sSUPPORT_LONGJMP=0
---memory-init-file=0
