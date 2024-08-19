@@ -40,6 +40,7 @@
   "homepage": "https://github.com/ReadAlongs/SoundSwallower#readme",
   "devDependencies": {
     "@types/node": "^18.0.3",
+    "@types/markdown-it": "^14.1.1",
     "chai": "^4.3.7",
     "jsdoc": "^3.6.10",
     "mocha": "^10.0.0",
