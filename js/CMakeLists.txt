@@ -47,6 +47,7 @@ target_link_options(soundswallower.jsonly PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
   -sENVIRONMENT=web -sWASM=0
+  -sUSE_PTHREADS=0 -sSTRICT=0  # Work around emscripten bug
   -sMODULARIZE=1 -sEXPORT_ES6=1
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
@@ -58,6 +59,7 @@ target_link_options(soundswallower.bundle PRIVATE
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
   --extern-post-js ${CMAKE_SOURCE_DIR}/js/api-bundle-post.js
   -sENVIRONMENT=web -sWASM=0
+  -sUSE_PTHREADS=0 -sSTRICT=0  # Work around emscripten bug
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
 # See
