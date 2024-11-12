@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Topic :: Multimedia :: Sound/Audio :: Speech",
@@ -39,13 +40,14 @@ Issues = "https://github.com/ReadAlongs/SoundSwallower/issues"
 soundswallower = "soundswallower.cli:main"
 
 [tool.cibuildwheel]
-# Build a reduced selection of binaries as there are tons of them
+# Build binaries for supported versions of Python
 build = [
     "cp38-*",
     "cp39-*",
     "cp310-*",
     "cp311-*",
     "cp312-*",
+    "cp313-*",
 ]
 # Build only universal wheels for Mac where possible, and skip 32-bit
 # builds to avoid building a gigabyte of stuff all the time
