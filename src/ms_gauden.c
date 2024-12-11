@@ -125,7 +125,7 @@ gauden_param_read(s3file_t *s,
 
     /* #Codebooks */
     if (s3file_get(&n_mgau, sizeof(int32), 1, s) != 1) {
-        E_ERROR("Failed to read number fo codebooks\n");
+        E_ERROR("Failed to read number of codebooks\n");
         return NULL;
     }
     *out_n_mgau = n_mgau;

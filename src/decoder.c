@@ -759,7 +759,7 @@ decoder_alignment(decoder_t *d)
         int32 wid = dict_wordid(d->dict, seg->word);
         /* This is actually possible, because of (null) transitions. */
         if (wid != BAD_S3WID) {
-            /* The important thing is that they be continguous. */
+            /* The important thing is that they be contiguous. */
             assert(seg->sf == prev_ef + 1);
             prev_ef = seg->ef;
             alignment_add_word(al, wid, seg->sf, seg->ef - seg->sf + 1);

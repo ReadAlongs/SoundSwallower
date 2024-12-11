@@ -36,7 +36,7 @@
  */
 
 /* This noise removal algorithm is inspired by the following papers
- * Computationally Efficient Speech Enchancement by Spectral Minina Tracking
+ * Computationally Efficient Speech Enhancement by Spectral Minina Tracking
  * by G. Doblinger
  *
  * Power-Normalized Cepstral Coefficients (PNCC) for Robust Speech Recognition
@@ -60,7 +60,7 @@
 #include <soundswallower/prim_type.h>
 #include <soundswallower/strfuncs.h>
 
-/* Noise supression constants */
+/* Noise suppression constants */
 #define SMOOTH_WINDOW 4
 #define LAMBDA_POWER 0.7
 #define LAMBDA_A 0.995

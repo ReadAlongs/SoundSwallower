@@ -548,7 +548,7 @@ class Endpointer {
    * @param {number} config.samprate Sampling rate of the input audio.
    * @param {number} config.frame_length Length in seconds of an input
    * frame, must be 0.01, 0.02, or 0.03.
-   * @param {number} config.mode Aggressiveness of voice activity detction,
+   * @param {number} config.mode Aggressiveness of voice activity detection,
    * must be 0, 1, 2, or 3.  Higher numbers will create "tighter"
    * endpoints at the possible expense of clipping the start of
    * utterances.

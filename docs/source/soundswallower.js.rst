@@ -6,7 +6,7 @@ SoundSwallower can be called either from Python (see
 case of JavaScript, we use `Emscripten <https://www.emscripten.org>`_
 to compile the C library into WebAssembly, which is loaded by a
 JavaScript wrapper module.  This means that there are certain
-idiosyncracies that must be taken into account when using the library,
+idiosyncrasies that must be taken into account when using the library,
 mostly with respect to deployment and initialization.
 
 Using SoundSwallower on the Web
