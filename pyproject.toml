@@ -30,6 +30,16 @@ classifiers = [
     "Topic :: Multimedia :: Sound/Audio :: Speech",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "numpy",
+    "pre-commit",
+    "black==24.3.0",
+    "isort",
+    "mypy==0.991",
+]
+
 [project.urls]
 Homepage = "https://github.com/ReadAlongs/SoundSwallower"
 Documentation = "https://soundswallower.readthedocs.io/"

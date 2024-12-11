@@ -3,7 +3,6 @@ include LICENSE
 include README.md
 include TODO.md
 include config.h.in
-include requirements.dev.txt
 include docs/Makefile
 include docs/gen_config.py
 include docs/make.bat

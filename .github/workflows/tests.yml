@@ -29,8 +29,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install
         run: |
-          pip3 install -r requirements.dev.txt
-          pip3 install .
+          pip3 install .[dev]
       - name: Run tests
         run: python3 -m pytest
   wintest:
@@ -40,8 +39,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Install
         run: |
-          pip3 install -r requirements.dev.txt
-          pip3 install .
+          pip3 install .[dev]
       - name: Run tests
         run: python3 -m pytest
   mactest:
@@ -52,8 +50,7 @@ jobs:
       - uses: actions/setup-python@v5
       - name: Install
         run: |
-          pip install -r requirements.dev.txt
-          pip install .
+          pip install .[dev]
       - name: Run tests
         run: python -m pytest
   nodetest:
