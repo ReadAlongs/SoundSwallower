@@ -184,7 +184,7 @@ void fsg_history_entry_add(fsg_history_t *h,
  */
 void fsg_history_end_frame(fsg_history_t *h);
 
-/* Clear the hitory table */
+/* Clear the history table */
 void fsg_history_reset(fsg_history_t *h);
 
 /* Return the number of valid entries in the given history table */

@@ -48,7 +48,7 @@ def get_audio_data(input_file: str) -> Tuple[bytes, Optional[int]]:
     """Try to get single-channel audio data in the most portable way
     possible.
 
-    Currently suports only single-channel WAV and raw audio.
+    Currently supports only single-channel WAV and raw audio.
 
     Args:
         input_file: Path to an audio file.

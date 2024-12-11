@@ -169,7 +169,7 @@ alignment_entry_t *alignment_iter_get(alignment_iter_t *itor);
 alignment_iter_t *alignment_iter_goto(alignment_iter_t *itor, int pos);
 
 /**
- * Retain an alighment
+ * Retain an alignment
  * @memberof alignment_t
  */
 alignment_t *alignment_retain(alignment_t *al);
@@ -209,7 +209,7 @@ alignment_iter_t *alignment_states(alignment_t *al);
 const char *alignment_iter_name(alignment_iter_t *itor);
 
 /**
- * Get the timing and score information for the current segment of an aligment.
+ * Get the timing and score information for the current segment of an alignment.
  *
  * @memberof alignment_iter_t
  * @arg start Output pointer for start frame

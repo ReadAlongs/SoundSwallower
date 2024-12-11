@@ -182,7 +182,7 @@ char *s3file_copy_nextword(s3file_t *s, const char **ptr);
 /**
  * Extract values with byteswapping and checksum.
  */
-size_t s3file_get(void *buf, /**< In: adddress to write values to. */
+size_t s3file_get(void *buf, /**< In: address to write values to. */
                   size_t el_sz, /**< In: element size */
                   size_t n_el, /**< In: number of elements */
                   s3file_t *s);
