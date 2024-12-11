@@ -1,7 +1,8 @@
 [build-system]
 requires = [
     "scikit-build-core",
-    "Cython"
+    "Cython",
+    "setuptools>=61.2",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -28,6 +29,16 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "numpy",
+    "pre-commit",
+    "black==24.3.0",
+    "isort",
+    "mypy==0.991",
 ]
 
 [project.urls]

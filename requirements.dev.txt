@@ -1,8 +1,0 @@
-scikit-build
-Cython
-pytest
-numpy
-pre-commit
-black==24.3.0
-isort
-mypy==0.991
