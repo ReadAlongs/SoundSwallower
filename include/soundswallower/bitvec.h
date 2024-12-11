@@ -96,7 +96,7 @@ bitvec_t *bitvec_realloc(bitvec_t *vec, /* In: Bit vector to search */
  * @param n is the number of bits
  */
 
-#define bitvec_set_all(v, n) memset(v, (bitvec_t)-1, \
+#define bitvec_set_all(v, n) memset(v, (bitvec_t) - 1, \
                                     (((n) + BITVEC_BITS - 1) / BITVEC_BITS) * sizeof(bitvec_t))
 /**
  * Clear the b-th bit of bit vector v

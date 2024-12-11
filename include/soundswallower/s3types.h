@@ -64,7 +64,7 @@ extern "C" {
  */
 
 typedef int16 s3cipid_t; /** Ci phone id */
-#define BAD_S3CIPID ((s3cipid_t)-1)
+#define BAD_S3CIPID ((s3cipid_t) - 1)
 #define NOT_S3CIPID(p) ((p) < 0)
 #define IS_S3CIPID(p) ((p) >= 0)
 #define MAX_S3CIPID 32767
@@ -72,7 +72,7 @@ typedef int16 s3cipid_t; /** Ci phone id */
 /*#define MAX_S3CIPID	127*/
 
 typedef int32 s3pid_t; /** Phone id (triphone or ciphone) */
-#define BAD_S3PID ((s3pid_t)-1)
+#define BAD_S3PID ((s3pid_t) - 1)
 #define NOT_S3PID(p) ((p) < 0)
 #define IS_S3PID(p) ((p) >= 0)
 #define MAX_S3PID ((int32)0x7ffffffe)
@@ -84,13 +84,13 @@ typedef uint16 s3ssid_t; /** Senone sequence id (triphone or ciphone) */
 #define MAX_S3SSID ((s3ssid_t)0xfffe)
 
 typedef int32 s3tmatid_t; /** Transition matrix id; there can be as many as pids */
-#define BAD_S3TMATID ((s3tmatid_t)-1)
+#define BAD_S3TMATID ((s3tmatid_t) - 1)
 #define NOT_S3TMATID(t) ((t) < 0)
 #define IS_S3TMATID(t) ((t) >= 0)
 #define MAX_S3TMATID ((int32)0x7ffffffe)
 
 typedef int32 s3wid_t; /** Dictionary word id */
-#define BAD_S3WID ((s3wid_t)-1)
+#define BAD_S3WID ((s3wid_t) - 1)
 #define NOT_S3WID(w) ((w) < 0)
 #define IS_S3WID(w) ((w) >= 0)
 #define MAX_S3WID ((int32)0x7ffffffe)
