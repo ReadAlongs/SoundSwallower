@@ -149,7 +149,7 @@ typedef struct fsg_pnode_s {
 #define fsg_pnode_leaf(p) ((p)->leaf)
 #define fsg_pnode_ctxt(p) ((p)->ctxt)
 
-#define fsg_pnode_add_ctxt(p, c) ((p)->ctxt.bv[(c) >> 5] |= (1 << ((c)&0x001f)))
+#define fsg_pnode_add_ctxt(p, c) ((p)->ctxt.bv[(c) >> 5] |= (1 << ((c) & 0x001f)))
 
 /*
  * The following is macroized because its called very frequently

@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -17,12 +17,12 @@ repos:
     hooks:
     -   id: mypy
 - repo: https://github.com/PyCQA/isort
-  rev: 5.11.4
+  rev: 5.13.2
   hooks:
     - id: isort
       args: [--profile=black]
 -   repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v15.0.7
+    rev: v19.1.5
     hooks:
     - id: clang-format
       types_or: [c++, c]

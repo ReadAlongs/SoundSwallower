@@ -75,7 +75,7 @@ eval_topn(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (i = 0; i < s->max_topn; i++) {
-        mfcc_t *mean, diff, sqdiff, compl ; /* diff, diff^2, component likelihood */
+        mfcc_t *mean, diff, sqdiff, compl; /* diff, diff^2, component likelihood */
         vqFeature_t vtmp;
         mfcc_t *var, d;
         mfcc_t *obs;
@@ -90,7 +90,7 @@ eval_topn(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
             diff = *obs++ - *mean++;
             sqdiff = MFCCMUL(diff, diff);
             compl = MFCCMUL(sqdiff, *var);
-            d = GMMSUB(d, compl );
+            d = GMMSUB(d, compl);
             ++var;
         }
         if (d < (mfcc_t)MAX_NEG_INT32) /* Redundant if FIXED_POINT */
@@ -124,7 +124,7 @@ eval_cb(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (detP = det; detP < detE; ++detP) {
-        mfcc_t diff, sqdiff, compl ; /* diff, diff^2, component likelihood */
+        mfcc_t diff, sqdiff, compl; /* diff, diff^2, component likelihood */
         mfcc_t d;
         mfcc_t *obs;
         vqFeature_t *cur;
@@ -137,7 +137,7 @@ eval_cb(s2_semi_mgau_t *s, int32 feat, mfcc_t *z)
             diff = *obs++ - *mean++;
             sqdiff = MFCCMUL(diff, diff);
             compl = MFCCMUL(sqdiff, *var);
-            d = GMMSUB(d, compl );
+            d = GMMSUB(d, compl);
             ++var;
         }
         if (j < ceplen) {
