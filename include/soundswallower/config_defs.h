@@ -64,17 +64,15 @@
         DEBUG_OPTIONS
 
 /** Options for debugging and logging. */
-#define DEBUG_OPTIONS                                                  \
-    { "logfn",                                                         \
-      ARG_STRING,                                                      \
-      NULL,                                                            \
-      "File to write log messages in" },                               \
-    {                                                                  \
-        "loglevel",                                                    \
-            ARG_STRING,                                                \
-            "WARN",                                                    \
-            "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" \
-    }
+#define DEBUG_OPTIONS                    \
+    { "logfn",                           \
+      ARG_STRING,                        \
+      NULL,                              \
+      "File to write log messages in" }, \
+        { "loglevel",                    \
+          ARG_STRING,                    \
+          "WARN",                        \
+          "Minimum level of log messages (DEBUG, INFO, WARN, ERROR)" }
 
 /** Options defining beam width parameters for tuning the search. */
 #define BEAM_OPTIONS                                                                            \
@@ -86,12 +84,10 @@
           ARG_FLOATING,                                                                         \
           "7e-29",                                                                              \
           "Beam width applied to word exits" },                                                 \
-    {                                                                                           \
-        "pbeam",                                                                                \
-            ARG_FLOATING,                                                                       \
-            "1e-48",                                                                            \
-            "Beam width applied to phone transitions"                                           \
-    }
+        { "pbeam",                                                                              \
+          ARG_FLOATING,                                                                         \
+          "1e-48",                                                                              \
+          "Beam width applied to phone transitions" }
 
 /** Options defining other parameters for tuning the search. */
 #define SEARCH_OPTIONS                                                                          \
@@ -107,12 +103,10 @@
           ARG_BOOLEAN,                                                                          \
           "no",                                                                                 \
           "Print results and backtraces to log." },                                             \
-    {                                                                                           \
-        "maxhmmpf",                                                                             \
-            ARG_INTEGER,                                                                        \
-            "30000",                                                                            \
-            "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)"    \
-    }
+        { "maxhmmpf",                                                                           \
+          ARG_INTEGER,                                                                          \
+          "30000",                                                                              \
+          "Maximum number of active HMMs to maintain at each frame (or -1 for no pruning)" }
 
 /** Command-line options for finite state grammars. */
 #define FSG_OPTIONS                                               \
@@ -132,12 +126,10 @@
           ARG_BOOLEAN,                                            \
           "yes",                                                  \
           "Add alternate pronunciations to FSG" },                \
-    {                                                             \
-        "fsgusefiller",                                           \
-            ARG_BOOLEAN,                                          \
-            "yes",                                                \
-            "Insert filler words at each state."                  \
-    }
+        { "fsgusefiller",                                         \
+          ARG_BOOLEAN,                                            \
+          "yes",                                                  \
+          "Insert filler words at each state." }
 
 /** Command-line options for statistical language models (not used) and grammars. */
 #define NGRAM_OPTIONS                                                           \
@@ -161,29 +153,25 @@
           ARG_FLOATING,                                                         \
           "0.005",                                                              \
           "Silence word transition probability" },                              \
-    {                                                                           \
-        "fillprob",                                                             \
-            ARG_FLOATING,                                                       \
-            "1e-8",                                                             \
-            "Filler word transition probability"                                \
-    }
+        { "fillprob",                                                           \
+          ARG_FLOATING,                                                         \
+          "1e-8",                                                               \
+          "Filler word transition probability" }
 
 /** Command-line options for dictionaries. */
-#define DICT_OPTIONS                                                                                   \
-    { "dict",                                                                                          \
-      ARG_STRING,                                                                                      \
-      NULL,                                                                                            \
-      "Main pronunciation dictionary (lexicon) input file" },                                          \
-        { "fdict",                                                                                     \
-          ARG_STRING,                                                                                  \
-          NULL,                                                                                        \
-          "Noise word pronunciation dictionary input file" },                                          \
-    {                                                                                                  \
-        "dictcase",                                                                                    \
-            ARG_BOOLEAN,                                                                               \
-            "no",                                                                                      \
-            "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" \
-    }
+#define DICT_OPTIONS                                          \
+    { "dict",                                                 \
+      ARG_STRING,                                             \
+      NULL,                                                   \
+      "Main pronunciation dictionary (lexicon) input file" }, \
+        { "fdict",                                            \
+          ARG_STRING,                                         \
+          NULL,                                               \
+          "Noise word pronunciation dictionary input file" }, \
+        { "dictcase",                                         \
+          ARG_BOOLEAN,                                        \
+          "no",                                               \
+          "Dictionary is case sensitive (NOTE: case insensitivity applies to ASCII characters only)" }
 
 /** Command-line options for acoustic modeling */
 #define ACMOD_OPTIONS                                                                \
@@ -263,12 +251,10 @@
           ARG_FLOATING,                                                              \
           "1.0001",                                                                  \
           "Base in which all log-likelihoods calculated" },                          \
-    {                                                                                \
-        "cionly",                                                                    \
-            ARG_BOOLEAN,                                                             \
-            "no",                                                                    \
-            "Use only context-independent phones (faster, useful for alignment)"     \
-    }
+        { "cionly",                                                                  \
+          ARG_BOOLEAN,                                                               \
+          "no",                                                                      \
+          "Use only context-independent phones (faster, useful for alignment)" }
 
 #if WORDS_BIGENDIAN
 #define NATIVE_ENDIAN "big"
@@ -424,12 +410,10 @@
           ARG_BOOLEAN,                                                                   \
           "no",                                                                          \
           "Remove noise using spectral subtraction" },                                   \
-    {                                                                                    \
-        "verbose",                                                                       \
-            ARG_BOOLEAN,                                                                 \
-            "no",                                                                        \
-            "Show input filenames"                                                       \
-    }
+        { "verbose",                                                                     \
+          ARG_BOOLEAN,                                                                   \
+          "no",                                                                          \
+          "Show input filenames" }
 
 #define FEAT_OPTIONS                                                                                         \
     { "feat",                                                                                                \
@@ -460,12 +444,10 @@
           ARG_INTEGER,                                                                                       \
           "0",                                                                                               \
           "Dimensionality of output of feature transformation (0 to use entire matrix)" },                   \
-    {                                                                                                        \
-        "svspec",                                                                                            \
-            ARG_STRING,                                                                                      \
-            NULL,                                                                                            \
-            "Subvector specification (e.g., 24,0-11/25,12-23/26-38 or 0-12/13-25/26-38)"                     \
-    }
+        { "svspec",                                                                                          \
+          ARG_STRING,                                                                                        \
+          NULL,                                                                                              \
+          "Subvector specification (e.g., 24,0-11/25,12-23/26-38 or 0-12/13-25/26-38)" }
 
 #define CONFIG_EMPTY_OPTION \
     {                       \

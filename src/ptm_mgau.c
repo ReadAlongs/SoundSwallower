@@ -63,9 +63,9 @@ static mgaufuncs_t ptm_mgau_funcs = {
 #define COMPUTE_GMM_MAP(_idx)                       \
     diff[_idx] = obs[_idx] - mean[_idx];            \
     sqdiff[_idx] = MFCCMUL(diff[_idx], diff[_idx]); \
-    compl [_idx] = MFCCMUL(sqdiff[_idx], var[_idx]);
+    compl[_idx] = MFCCMUL(sqdiff[_idx], var[_idx]);
 #define COMPUTE_GMM_REDUCE(_idx) \
-    d = GMMSUB(d, compl [_idx]);
+    d = GMMSUB(d, compl[_idx]);
 
 static void
 insertion_sort_topn(ptm_topn_t *topn, int i, int32 d)
@@ -93,7 +93,7 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (i = 0; i < s->max_topn; i++) {
-        mfcc_t *mean, diff[4], sqdiff[4], compl [4]; /* diff, diff^2, component likelihood */
+        mfcc_t *mean, diff[4], sqdiff[4], compl[4]; /* diff, diff^2, component likelihood */
         mfcc_t *var, d;
         mfcc_t *obs;
         int32 cw, j;
@@ -106,8 +106,8 @@ eval_topn(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         for (j = 0; j < ceplen % 4; ++j) {
             diff[0] = *obs++ - *mean++;
             sqdiff[0] = MFCCMUL(diff[0], diff[0]);
-            compl [0] = MFCCMUL(sqdiff[0], *var);
-            d = GMMSUB(d, compl [0]);
+            compl[0] = MFCCMUL(sqdiff[0], *var);
+            d = GMMSUB(d, compl[0]);
             ++var;
         }
         /* We could vectorize this but it's unlikely to make much
@@ -164,7 +164,7 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
     ceplen = s->g->featlen[feat];
 
     for (detP = det; detP < detE; ++detP) {
-        mfcc_t diff[4], sqdiff[4], compl [4]; /* diff, diff^2, component likelihood */
+        mfcc_t diff[4], sqdiff[4], compl[4]; /* diff, diff^2, component likelihood */
         mfcc_t d, thresh;
         mfcc_t *obs;
         ptm_topn_t *cur;
@@ -181,8 +181,8 @@ eval_cb(ptm_mgau_t *s, int cb, int feat, mfcc_t *z)
         for (j = 0; (j < ceplen % 4) && (d >= thresh); ++j) {
             diff[0] = *obs++ - *mean++;
             sqdiff[0] = MFCCMUL(diff[0], diff[0]);
-            compl [0] = MFCCMUL(sqdiff[0], *var++);
-            d = GMMSUB(d, compl [0]);
+            compl[0] = MFCCMUL(sqdiff[0], *var++);
+            d = GMMSUB(d, compl[0]);
         }
         /* Now do 4 dimensions at a time.  You'd think that GCC would
          * vectorize this?  Apparently not.  And it's right, because
