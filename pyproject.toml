@@ -74,6 +74,7 @@ skip = [
 archs = ["x86_64", "universal2", "arm64"]
 
 [tool.isort]
+known_first_party = ["soundswallower"]
 profile = "black"
 
 [tool.flake8]
