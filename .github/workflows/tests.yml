@@ -22,41 +22,21 @@ jobs:
       - name: Run tests
         run: |
           CTEST_OUTPUT_ON_FAILURE=1 cmake --build build --target check
+
   pytest:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install
-        run: |
-          pip3 install .[dev]
-      - name: Run tests
-        run: python3 -m pytest
-  wintest:
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - name: Install
-        run: |
-          pip3 install .[dev]
-      - name: Run tests
-        run: python3 -m pytest
-  mactest:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-      - name: Install
-        run: |
-          pip install .[dev]
-      - name: Run tests
-        run: python -m pytest
+          python-version: ${{ matrix.python-version }}
+      - run: pip3 install .[dev]
+      - run: python3 -m pytest
+
   nodetest:
     runs-on: ubuntu-latest
     steps:
