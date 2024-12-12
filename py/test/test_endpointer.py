@@ -4,7 +4,6 @@ import os
 import unittest
 
 import numpy as np
-
 from soundswallower import Endpointer
 
 DATADIR = os.path.join(os.path.dirname(__file__), "..", "..", "tests", "data")
