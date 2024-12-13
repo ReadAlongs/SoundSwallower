@@ -36,9 +36,9 @@ dev = [
     "pytest",
     "numpy",
     "pre-commit",
-    "black==24.3.0",
+    "black==24.8.0",
     "isort",
-    "mypy==0.991",
+    "mypy==1.13.0",
 ]
 
 [project.urls]

@@ -68,7 +68,6 @@ def make_argparse() -> argparse.ArgumentParser:
     grammars.add_argument("-t", "--align-text", help="Input text for force alignment.")
     grammars.add_argument("-g", "--grammar", help="Grammar file for recognition.")
     grammars.add_argument("-f", "--fsg", help="FSG file for recognition.")
-    parser.add_argument_group(grammars)
     return parser
 
 
