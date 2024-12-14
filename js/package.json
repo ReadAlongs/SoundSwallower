@@ -32,7 +32,7 @@
     "audio",
     "nlp"
   ],
-  "author": "David Huggins-Daines <dhdaines@gmail.com>",
+  "author": "David Huggins-Daines <dhd@ecolingui.ca>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ReadAlongs/SoundSwallower/issues"

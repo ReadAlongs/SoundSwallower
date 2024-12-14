@@ -67,3 +67,5 @@ _endpointer_speech_start
 _endpointer_speech_end
 _endpointer_process
 _endpointer_end_stream
+stringToNewUTF8
+ccall
