@@ -21,11 +21,13 @@ import os
 import wave
 from typing import Optional, Tuple
 
-from ._soundswallower import Config  # noqa: F401
-from ._soundswallower import Decoder  # noqa: F401
-from ._soundswallower import Endpointer  # noqa: F401
-from ._soundswallower import FsgModel  # noqa: F401
-from ._soundswallower import Vad  # noqa: F401
+from ._soundswallower import (  # noqa: F401
+    Config,
+    Decoder,
+    Endpointer,
+    FsgModel,
+    Vad,
+)
 
 
 def get_model_path(subpath: Optional[str] = None) -> str:
