@@ -21,11 +21,7 @@ import os
 import wave
 from typing import Optional, Tuple
 
-from ._soundswallower import Config  # noqa: F401
-from ._soundswallower import Decoder  # noqa: F401
-from ._soundswallower import Endpointer  # noqa: F401
-from ._soundswallower import FsgModel  # noqa: F401
-from ._soundswallower import Vad  # noqa: F401
+from ._soundswallower import Config, Decoder, Endpointer, FsgModel, Vad
 
 
 def get_model_path(subpath: Optional[str] = None) -> str:
@@ -91,14 +87,14 @@ Hyp.score.__doc__ = "Best path score."
 Hyp.prob.__doc__ = "Posterior probability of hypothesis (often 1.0, sorry)."
 
 __all__ = [
+    "Arg",
     "Config",
     "Decoder",
-    "FsgModel",
-    "Vad",
     "Endpointer",
-    "Arg",
-    "Seg",
+    "FsgModel",
     "Hyp",
-    "get_model_path",
+    "Seg",
+    "Vad",
     "get_audio_data",
+    "get_model_path",
 ]

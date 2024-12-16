@@ -50,7 +50,7 @@ for arg in kwargs:
     if arg.doc is not None:
         arg_text += arg.doc
     if arg.default is not None:
-        if arg.type == bool:
+        if arg.type is bool:
             default = arg.default == "yes"
         else:
             default = arg.type(arg.default)

@@ -33,12 +33,11 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
+    "mypy==1.13.0",
     "numpy",
     "pre-commit",
-    "black==24.8.0",
-    "isort",
-    "mypy==1.13.0",
+    "pytest",
+    "ruff",
 ]
 
 [project.urls]
@@ -73,13 +72,23 @@ skip = [
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "universal2", "arm64"]
 
-[tool.isort]
-known_first_party = ["soundswallower"]
-profile = "black"
+[tool.ruff.lint]
+select = [
+  "B",    # flake8-bugbear
+  "BLE",  # flake8-blind-except
+  "C4",   # flake8-comprehensions
+  "C90",  # mccabe code complexity
+  "E",    # pycodestyle errors
+  "F",    # pyflakes
+  "I",    # isort
+  "PL",   # pylint
+  "RUF",  # Ruff-specific rules
+  "W",    # pycodestyle whitespace
+]
+fixable = ["I"]
 
-[tool.flake8]
-extend-ignore = "E203"
-max-line-length = "88"
+[tool.ruff.lint.isort]
+known-first-party = ["soundswallower"]
 
 [tool.scikit-build]
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
