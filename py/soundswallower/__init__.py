@@ -87,14 +87,14 @@ Hyp.score.__doc__ = "Best path score."
 Hyp.prob.__doc__ = "Posterior probability of hypothesis (often 1.0, sorry)."
 
 __all__ = [
+    "Arg",
     "Config",
     "Decoder",
-    "FsgModel",
-    "Vad",
     "Endpointer",
-    "Arg",
-    "Seg",
+    "FsgModel",
     "Hyp",
-    "get_model_path",
+    "Seg",
+    "Vad",
     "get_audio_data",
+    "get_model_path",
 ]

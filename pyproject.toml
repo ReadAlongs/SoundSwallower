@@ -82,6 +82,7 @@ select = [
   "F",    # pyflakes
   "I",    # isort
   "PL",   # pylint
+  "RUF",  # Ruff-specific rules
   "W",    # pycodestyle whitespace
 ]
 
