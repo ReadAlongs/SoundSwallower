@@ -85,6 +85,7 @@ select = [
   "RUF",  # Ruff-specific rules
   "W",    # pycodestyle whitespace
 ]
+fixable = ["I"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["soundswallower"]
