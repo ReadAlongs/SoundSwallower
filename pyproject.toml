@@ -26,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Topic :: Multimedia :: Sound/Audio :: Speech",
@@ -58,6 +59,7 @@ build = [
     "cp311-*",
     "cp312-*",
     "cp313-*",
+    "cp314-*",
 ]
 # Build only universal wheels for Mac where possible, and skip 32-bit
 # builds to avoid building a gigabyte of stuff all the time
