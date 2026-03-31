@@ -48,6 +48,20 @@ jobs:
           name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
+  list_all_artifacts:
+    needs:
+      - build_wheels
+      - build_sdist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          # unpacks all CIBW artifacts into dist/
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+      - run: ls -lR dist
+
   upload_pypi:
     needs:
       - build_wheels
