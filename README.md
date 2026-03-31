@@ -158,8 +158,21 @@ If you don't have Conda, then what you will need to do is:
 
 - now you can build wheels with pip, using the same method mentioned above.
 
+Contributing
+============
+
+We use [Conventional Commits](https://www.conventionalcommits.org/) for our commit messages, and check them using `gitlint`.
+
+We use automated code formatting tools and apply them systematically using `pre-commit`.
+
+Please install and run our Git hooks before making commits and submitting pull requests:
+```
+pre-commit install
+gitlint install-hook
+```
+
 Authors
--------
+=======
 
 SoundSwallower is based on PocketSphinx, which is based on Sphinx-II,
 which is based on Sphinx, which is based on Harpy, and so on, and so
