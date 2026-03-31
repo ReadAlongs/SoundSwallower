@@ -1,3 +1,12 @@
+# Release process with pre-built wheels:
+#  - Prep:
+#    - in pyproject.toml, adjust the list of Python versions in classifiers and
+#      tool.cobuildwheel.build
+#    - in tests.yml, adjust python-version list; run the tests.yml workflow
+#  - Test: dispatch this workflow manually and inspect the results
+#  - Publish: create a release in the GitHub GUI, which will trigger this workflow,
+#    including Trusted Publishing to PyPI
+
 name: Build
 
 on:
