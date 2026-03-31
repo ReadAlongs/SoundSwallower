@@ -6,6 +6,9 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
 jobs:
   build_sdist:
     name: Build source distribution
@@ -13,6 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Build sdist
@@ -33,6 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Build wheels
