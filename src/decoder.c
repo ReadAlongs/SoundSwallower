@@ -745,7 +745,7 @@ decoder_alignment(decoder_t *d)
     /* Reuse the existing alignment if nothing has changed. */
     if (d->align) {
         state_align_search_t *align = (state_align_search_t *)d->align;
-        if (align->frame == d->acmod->output_frame) {
+        if (align->frame + 1 == d->acmod->output_frame) {
             E_INFO("Reusing existing alignment at frame %d\n", align->frame);
             return align->al;
         }
