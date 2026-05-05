@@ -96,10 +96,12 @@ prune_hmms(state_align_search_t *sas, int frame_idx)
         hmm_t *hmm = sas->hmms + i;
         if (hmm_frame(hmm) < frame_idx)
             continue;
-        /* Enforce alignment constraint: due to non-emitting states,
-         * previous phone's HMM remains active in first frame of its
-         * successor. */
-        if (nf > sas->ef[i])
+        /* ef[i] is the exclusive end frame (= start + duration).
+         * Once nf reaches ef[i] the phone has used its full window;
+         * stop advancing so it is not scored in the next frame.
+         * phone_transition is allowed to fire at this last active
+         * frame via the complementary check in phone_transition. */
+        if (nf >= sas->ef[i])
             continue;
         hmm_frame(hmm) = nf;
     }
@@ -116,18 +118,30 @@ phone_transition(state_align_search_t *sas, int frame_idx)
         int32 newphone_score;
 
         hmm = sas->hmms + i;
-        if (hmm_frame(hmm) != nf)
+        /* Allow transition from phones that were active this frame,
+         * whether they were advanced to nf (normal case) or left at
+         * frame_idx by prune_hmms because they hit their ef boundary.
+         * The original check (hmm_frame != nf) silently blocked
+         * cross-word transitions when the phone was evaluated at
+         * exactly its last allowed frame. */
+        if (hmm_frame(hmm) < frame_idx)
             continue;
         /* Enforce alignment constraint for initial state of each phone. */
         if (nf < sas->sf[i + 1])
             continue;
 
         newphone_score = hmm_out_score(hmm);
-        /* Transition into next phone using the usual Viterbi rule. */
         nhmm = hmm + 1;
-        if (hmm_frame(nhmm) < frame_idx
-            || newphone_score BETTER_THAN hmm_in_score(nhmm)) {
+        if (hmm_frame(nhmm) < frame_idx) {
+            /* Successor is inactive: enter it fresh with the new frame. */
             hmm_enter(nhmm, newphone_score, hmm_out_history(hmm), nf);
+            continue;
+        }
+        /* Successor is already active: update score/history only (Viterbi
+         * competition), never bump its hmm_frame to a later value. */
+        if (newphone_score BETTER_THAN hmm_in_score(nhmm)) {
+            hmm_in_score(nhmm) = newphone_score;
+            hmm_in_history(nhmm) = hmm_out_history(hmm);
         }
     }
 }
@@ -207,7 +221,7 @@ state_align_search_step(search_module_t *search, int frame_idx)
     record_transitions(sas, frame_idx);
 
     /* Update frame counter */
-    sas->frame++;
+    sas->frame = frame_idx;
 
     return 0;
 }
@@ -231,10 +245,9 @@ state_align_search_finish(search_module_t *search)
         return -1;
     }
     itor = alignment_states(sas->al);
-    last_frame = sas->frame;
-    /* Look at frame - 2 because we track transitions, I think */
-    for (cur_frame = sas->frame - 2; cur_frame >= 0; --cur_frame) {
-        cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
+    last_frame = sas->frame + 1;
+    for (cur_frame = sas->frame - 1; cur_frame >= 0; --cur_frame) {
+	cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
         if (cur.id == -1) {
             E_ERROR("Alignment failed in frame %d\n", cur_frame);
             return -1;
@@ -459,13 +472,21 @@ state_align_search_init(const char *name,
          i < sas->n_phones && itor;
          ++i, itor = alignment_iter_next(itor)) {
         alignment_entry_t *ent = alignment_iter_get(itor);
+        int min_nframes;
+
         hmm_init(sas->hmmctx, &sas->hmms[i], FALSE,
                  ent->id.pid.ssid, ent->id.pid.tmatid);
-        if (ent->start > 0)
+        /* Can't align less than the number of frames in an HMM! */
+        min_nframes = hmm_n_emit_state(&sas->hmms[i]);
+        if (ent->duration < min_nframes)
+            E_WARN("phone %d has impossible duration %d "
+                   "(consider disabling bestpath search)\n",
+                   i, ent->duration);
+        if (ent->start > 0 && ent->duration >= min_nframes)
             sas->sf[i] = ent->start;
         else
             sas->sf[i] = 0; /* Always active */
-        if (ent->duration > 0)
+        if (ent->duration >= min_nframes)
             sas->ef[i] = ent->start + ent->duration;
         else
             sas->ef[i] = INT_MAX; /* Always active */
