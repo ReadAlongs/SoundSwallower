@@ -247,7 +247,7 @@ state_align_search_finish(search_module_t *search)
     itor = alignment_states(sas->al);
     last_frame = sas->frame + 1;
     for (cur_frame = sas->frame - 1; cur_frame >= 0; --cur_frame) {
-	cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
+        cur = sas->tokens[cur_frame * sas->n_emit_state + cur.id];
         if (cur.id == -1) {
             E_ERROR("Alignment failed in frame %d\n", cur_frame);
             return -1;
