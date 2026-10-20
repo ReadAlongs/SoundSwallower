@@ -615,7 +615,7 @@ struct decoder_s {
     ptmr_t perf; /**< Performance counter for all of decoding. */
     uint32 n_frame; /**< Total number of frames processed. */
 
-#ifndef EMSCRIPTEN
+#ifndef __EMSCRIPTEN__
     /* Logging. */
     FILE *logfh;
 #endif
