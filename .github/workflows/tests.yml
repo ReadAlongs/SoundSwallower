@@ -12,17 +12,17 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.x
       - uses: pre-commit/action@v3.0.1
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Install
@@ -42,24 +42,25 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip3 install .[dev]
-      - run: python3 -m pytest
+      - run: python -m pip install --upgrade pip
+      - run: pip install .[dev]
+      - run: python -m pytest
 
   nodetest:
     runs-on: ubuntu-latest
     steps:
       - name: Install Build Dependencies
-        uses: mymindstorm/setup-emsdk@v14
-      - uses: actions/checkout@v6
+        uses: mymindstorm/setup-emsdk@v16
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Build
