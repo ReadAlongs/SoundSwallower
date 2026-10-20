@@ -51,8 +51,9 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip3 install .[dev]
-      - run: python3 -m pytest
+      - run: python -m pip install --upgrade pip
+      - run: pip install .[dev]
+      - run: python -m pytest
 
   nodetest:
     runs-on: ubuntu-latest
