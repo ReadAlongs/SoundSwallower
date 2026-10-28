@@ -53,7 +53,6 @@ soundswallower = "soundswallower.cli:main"
 [tool.cibuildwheel]
 # Build binaries for supported versions of Python
 build = [
-    "cp39-*",
     "cp310-*",
     "cp311-*",
     "cp312-*",
