@@ -30,7 +30,7 @@ set_property(TARGET soundswallower.jsonly PROPERTY RUNTIME_OUTPUT_NAME index)
 target_link_options(soundswallower.web PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-web-pre.js
-  -sENVIRONMENT=web -sWASM=1
+  -sENVIRONMENT=web -sWASM=1 -sSUPPORT_BIG_ENDIAN=1
   -sMODULARIZE=1 -sEXPORT_ES6=1
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
@@ -38,7 +38,7 @@ target_link_options(soundswallower.web PRIVATE
 target_link_options(soundswallower.node PRIVATE
   @${CMAKE_SOURCE_DIR}/js/linker_options.txt
   --extern-pre-js ${CMAKE_SOURCE_DIR}/js/api-node-pre.js
-  -sENVIRONMENT=node -sWASM=1
+  -sENVIRONMENT=node -sWASM=1 -sSUPPORT_BIG_ENDIAN=1
   -sMODULARIZE=1 -sEXPORT_ES6=1
   -sDEFAULT_LIBRARY_FUNCS_TO_INCLUDE=@${CMAKE_SOURCE_DIR}/js/library_funcs.txt
   -sEXPORTED_FUNCTIONS=@${CMAKE_SOURCE_DIR}/js/exported_functions.txt)
