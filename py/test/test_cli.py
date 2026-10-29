@@ -24,7 +24,9 @@ class TestCLI(unittest.TestCase):
                 self.assertTrue(result)
                 self.assertEqual(result["t"], text)
                 for word, ref in zip(
-                    (w for w in result["w"] if w["t"] != "<sil>"), text.split()
+                    (w for w in result["w"] if w["t"] != "<sil>"),
+                    text.split(),
+                    strict=False,
                 ):
                     self.assertEqual(baseword(word), ref)
 

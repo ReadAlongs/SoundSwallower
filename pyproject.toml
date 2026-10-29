@@ -11,6 +11,7 @@ name = "soundswallower"
 dynamic = ["version"]
 description = "An even smaller speech recognizer"
 readme = "README.md"
+requires-python = ">= 3.10"
 authors = [
     {name = "David Huggins-Daines", email = "dhd@ecolingui.ca"}
 ]
@@ -20,7 +21,6 @@ classifiers = [
     "Programming Language :: C",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
